@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>I'm Stranded — You're not.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -10,867 +10,585 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-/* ============================================================
-   DESIGN TOKENS
-   ============================================================ */
+/* ── TOKENS ─────────────────────────────────────────────── */
 :root {
-  --bg:       #f7f7f7;
-  --surface:  #ffffff;
-  --border:   #e5e5e5;
-  --text:     #1a1a1a;
-  --text2:    #444444;
-  --muted:    #767676;
+  --bg:          #f0ede8;   /* muted warm parchment */
+  --surface:     #ffffff;
+  --border:      #ddd9d3;
+  --text:        #1a1a1a;
+  --text2:       #444;
+  --muted:       #767676;
 
-  --coral:       #ff385c;
-  --coral-dark:  #e31c5f;
-  --coral-soft:  #fff1f3;
+  /* Coral brand */
+  --coral:       #f03a5f;
+  --coral-dark:  #d4204a;
+  --coral-soft:  #fff0f3;
 
-  --danger:      #c13515;
-  --danger-soft: #fdf1ee;
-  --warn:        #b45309;
-  --warn-soft:   #fffbeb;
-  --safe:        #047857;
-  --safe-soft:   #ecfdf5;
-  --info:        #1d4ed8;
-  --info-soft:   #eff6ff;
-  --green:       #059669;   /* help posts */
-  --green-soft:  #ecfdf5;
+  /* Status — more saturated */
+  --danger:      #d72c0d;
+  --danger-soft: #fef0ee;
+  --warn:        #c47c14;
+  --warn-soft:   #fff8ec;
+  --safe:        #007a5c;
+  --safe-soft:   #eaf7f3;
+  --info:        #1a56db;
+  --info-soft:   #eef3ff;
+  --green:       #007a5c;  /* help = same green as safe */
+  --green-soft:  #eaf7f3;
 
   --radius:    12px;
   --radius-sm: 8px;
-  --shadow:    0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.10);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
-  font-family: 'Inter', sans-serif;
+  --shadow:    0 1px 4px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.10);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,.13);
 }
 
-* { margin:0; padding:0; box-sizing:border-box; }
-
-body { background:var(--bg); color:var(--text); line-height:1.6; min-height:100vh; }
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;line-height:1.6;min-height:100vh;}
 
 /* ── HEADER ─────────────────────────────────────────────── */
-header {
-  background:#fff;
-  border-bottom:1px solid var(--border);
-  position:sticky; top:0; z-index:1000;
-  display:grid;
-  grid-template-columns:1fr auto 1fr;
-  align-items:center;
-  height:60px;
-  padding:0 1.5rem;
+header{
+  background:#fff;border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:1000;
+  display:grid;grid-template-columns:1fr auto 1fr;
+  align-items:center;height:60px;padding:0 1.5rem;
   box-shadow:0 1px 0 var(--border);
 }
-
-.logo {
-  font-size:0.95rem; font-weight:700; color:var(--text);
-  display:flex; align-items:center; gap:0.5rem;
-  justify-self:start; white-space:nowrap;
+.logo{
+  font-size:.9rem;font-weight:700;color:var(--text);
+  display:flex;align-items:center;gap:.5rem;
+  justify-self:start;white-space:nowrap;
 }
-.logo span { color:var(--coral); }
-
-.pulse-dot {
-  width:8px; height:8px; border-radius:50%;
-  background:var(--coral);
-  animation:pulse 2s infinite; flex-shrink:0;
+.logo span{color:var(--coral);}
+.pulse-dot{
+  width:8px;height:8px;border-radius:50%;background:var(--coral);
+  flex-shrink:0;animation:pdot 2s infinite;
 }
-@keyframes pulse {
-  0%,100% { transform:scale(1); box-shadow:0 0 0 0 rgba(255,56,92,.4); }
-  50%      { transform:scale(.85); box-shadow:0 0 0 5px rgba(255,56,92,0); }
+@keyframes pdot{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(240,58,95,.4);}50%{transform:scale(.82);box-shadow:0 0 0 5px rgba(240,58,95,0);}}
+
+nav{display:flex;justify-self:center;}
+nav button{
+  background:none;border:none;border-bottom:2px solid transparent;
+  color:var(--muted);font-family:'Inter',sans-serif;font-size:.85rem;font-weight:500;
+  padding:0 1.1rem;height:60px;margin-bottom:-1px;cursor:pointer;transition:all .15s;white-space:nowrap;
 }
+nav button.active{color:var(--text);border-bottom-color:var(--coral);}
+nav button:hover:not(.active){color:var(--text);}
 
-nav { display:flex; justify-self:center; }
-nav button {
-  background:none; border:none; border-bottom:2px solid transparent;
-  color:var(--muted); font-family:'Inter',sans-serif;
-  font-size:.85rem; font-weight:500;
-  padding:0 1.1rem; height:60px; margin-bottom:-1px;
-  cursor:pointer; transition:all .15s; white-space:nowrap;
+.header-right{display:flex;align-items:center;gap:.85rem;justify-self:end;}
+.last-updated{font-size:.68rem;color:var(--muted);white-space:nowrap;}
+
+.cta-pill{
+  background:var(--coral);color:#fff;border:none;border-radius:999px;
+  padding:.5rem 1.15rem;font-family:'Inter',sans-serif;font-size:.82rem;font-weight:600;
+  cursor:pointer;display:flex;align-items:center;gap:.35rem;white-space:nowrap;
+  transition:background .15s,transform .1s;box-shadow:0 2px 8px rgba(240,58,95,.3);
 }
-nav button.active  { color:var(--text); border-bottom-color:var(--coral); }
-nav button:hover:not(.active) { color:var(--text); }
+.cta-pill:hover{background:var(--coral-dark);transform:scale(1.02);}
 
-.header-right { display:flex; align-items:center; gap:.85rem; justify-self:end; }
-.last-updated  { font-size:.7rem; color:var(--muted); white-space:nowrap; }
-
-.cta-pill {
-  background:linear-gradient(135deg,#e61e4d,#e31c5f,#d70466);
-  color:#fff; border:none; border-radius:999px;
-  padding:.5rem 1.1rem;
-  font-family:'Inter',sans-serif; font-size:.82rem; font-weight:600;
-  cursor:pointer; display:flex; align-items:center; gap:.35rem;
-  white-space:nowrap; transition:opacity .15s, transform .1s;
-  box-shadow:0 2px 8px rgba(227,28,95,.25);
+/* ── SITREP BAR ─────────────────────────────────────────── */
+.sitrep-bar{
+  background:#fff;border-bottom:1px solid var(--border);
+  display:flex;overflow-x:auto;scrollbar-width:none;
 }
-.cta-pill:hover { opacity:.9; transform:scale(1.02); }
+.sitrep-bar::-webkit-scrollbar{display:none;}
 
-/* ── SITREP BAR (clickable filters) ─────────────────────── */
-.sitrep-bar {
-  background:#fff;
-  border-bottom:1px solid var(--border);
-  display:flex; overflow-x:auto;
-  scrollbar-width:none;
+.sitrep-stat{
+  flex:1;min-width:120px;
+  padding:.8rem 1.1rem;border-right:1px solid var(--border);
+  text-align:center;cursor:pointer;transition:background .15s;
+  user-select:none;position:relative;
 }
-.sitrep-bar::-webkit-scrollbar { display:none; }
-
-.sitrep-stat {
-  flex:1; min-width:130px;
-  padding:.85rem 1.25rem;
-  border-right:1px solid var(--border);
-  text-align:center;
-  cursor:pointer;
-  transition:background .15s;
-  user-select:none;
-  position:relative;
+.sitrep-stat:last-of-type{border-right:none;}
+.sitrep-stat:hover{background:#fafaf8;}
+.sitrep-stat.active-filter{background:var(--coral-soft);}
+.sitrep-stat.active-filter::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;
+  height:3px;background:var(--coral);border-radius:3px 3px 0 0;
 }
-.sitrep-stat:last-of-type { border-right:none; }
-.sitrep-stat:hover { background:#fafafa; }
-.sitrep-stat.active-filter { background:var(--coral-soft); }
-.sitrep-stat.active-filter::after {
-  content:''; position:absolute;
-  bottom:0; left:0; right:0; height:3px;
-  background:var(--coral); border-radius:3px 3px 0 0;
+.sitrep-num{
+  font-size:1.85rem;font-weight:800;letter-spacing:-.03em;
+  line-height:1;margin-bottom:.15rem;display:block;
 }
+.sitrep-num.danger{color:var(--danger);}
+.sitrep-num.warn  {color:var(--warn);}
+.sitrep-num.safe  {color:var(--safe);}
+.sitrep-num.green {color:var(--green);}
+.sitrep-num.info  {color:var(--info);}
+.sitrep-num.coral {color:var(--coral);}
+.sitrep-label{font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);}
+.sitrep-sub  {font-size:.57rem;color:var(--muted);opacity:.75;margin-top:.1rem;}
 
-.sitrep-num {
-  font-size:1.9rem; font-weight:800;
-  letter-spacing:-0.03em; line-height:1;
-  margin-bottom:.2rem;
+.sitrep-refresh{
+  display:flex;align-items:center;padding:0 1rem;flex-shrink:0;
+  font-size:.68rem;color:var(--muted);gap:.35rem;
+  white-space:nowrap;cursor:pointer;border:none;background:none;
+  font-family:'Inter',sans-serif;transition:color .2s;
 }
-.sitrep-num.coral   { color:var(--coral); }
-.sitrep-num.danger  { color:var(--danger); }
-.sitrep-num.warn    { color:var(--warn); }
-.sitrep-num.safe    { color:var(--safe); }
-.sitrep-num.green   { color:var(--green); }
-.sitrep-num.info    { color:var(--info); }
+.sitrep-refresh:hover{color:var(--coral);}
+@keyframes spin{to{transform:rotate(360deg);}}
+.spinning{animation:spin 1s linear infinite;display:inline-block;}
 
-.sitrep-label { font-size:.63rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
-.sitrep-sub   { font-size:.58rem; color:var(--muted); margin-top:.1rem; }
+/* ── LAYOUT ─────────────────────────────────────────────── */
+.container{max-width:1300px;margin:0 auto;padding:0 2rem;}
+.view{display:none;}.view.active{display:block;}
 
-.sitrep-refresh {
-  display:flex; align-items:center; padding:0 1rem;
-  font-size:.7rem; color:var(--muted); gap:.35rem;
-  white-space:nowrap; cursor:pointer; border:none; background:none;
-  font-family:'Inter',sans-serif; transition:color .2s; flex-shrink:0;
+/* ── MAP VIEW ───────────────────────────────────────────── */
+#map-view{position:relative;height:calc(100vh - 121px);}
+#crisis-map{width:100%;height:100%;}
+
+.map-legend{
+  position:absolute;bottom:2rem;left:1.5rem;z-index:999;
+  background:rgba(255,255,255,.97);border:1px solid var(--border);
+  border-radius:var(--radius);padding:.85rem 1rem;
+  box-shadow:var(--shadow-md);min-width:180px;
 }
-.sitrep-refresh:hover { color:var(--coral); }
-@keyframes spin { to { transform:rotate(360deg); } }
-.spinning { animation:spin 1s linear infinite; display:inline-block; }
-
-/* ── LAYOUT ──────────────────────────────────────────────── */
-.container  { max-width:1300px; margin:0 auto; padding:0 2rem; }
-.view       { display:none; }
-.view.active{ display:block; }
-
-/* ── MAP VIEW ────────────────────────────────────────────── */
-#map-view   { position:relative; height:calc(100vh - 120px); }
-#crisis-map { width:100%; height:100%; }
-
-.map-legend {
-  position:absolute; bottom:2rem; left:1.5rem; z-index:999;
-  background:rgba(255,255,255,.96);
-  border:1px solid var(--border); border-radius:var(--radius);
-  padding:.85rem 1rem; font-size:.75rem;
-  box-shadow:var(--shadow-md);
+.legend-title{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--coral);margin-bottom:.5rem;}
+.legend-item{
+  display:flex;align-items:center;gap:.55rem;
+  margin-bottom:.28rem;font-size:.76rem;color:var(--text2);
+  cursor:pointer;border-radius:5px;padding:.15rem .35rem;transition:background .15s;
 }
-.legend-title {
-  font-size:.62rem; font-weight:700; text-transform:uppercase;
-  letter-spacing:.08em; color:var(--coral); margin-bottom:.5rem;
+.legend-item:hover{background:#f5f2ef;}
+.legend-item.active-legend{background:var(--coral-soft);color:var(--coral);font-weight:600;}
+.legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.legend-clear{font-size:.68rem;color:var(--muted);margin-top:.45rem;cursor:pointer;padding:.15rem .35rem;border-radius:4px;}
+.legend-clear:hover{color:var(--coral);}
+
+/* Leaflet */
+.leaflet-container{background:#d6cfc4 !important;}
+.leaflet-popup-content-wrapper{
+  background:#fff !important;border:1px solid var(--border) !important;
+  color:var(--text) !important;border-radius:var(--radius) !important;
+  box-shadow:var(--shadow-lg) !important;font-family:'Inter',sans-serif !important;
 }
-.legend-item {
-  display:flex; align-items:center; gap:.55rem;
-  margin-bottom:.3rem; font-size:.74rem; color:var(--text2);
-  cursor:pointer; border-radius:4px; padding:.15rem .3rem;
-  transition:background .15s;
+.leaflet-popup-tip{background:#fff !important;}
+.leaflet-popup-content{margin:.85rem 1rem !important;}
+
+/* ── COUNTRIES VIEW ─────────────────────────────────────── */
+#countries-view{padding:2.5rem 0;}
+.section-header{margin-bottom:1.5rem;}
+.section-title{font-size:1.45rem;font-weight:700;margin-bottom:.3rem;}
+.section-subtitle{font-size:.88rem;color:var(--muted);}
+
+.filter-bar{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem;}
+.filter-btn{
+  background:#fff;border:1.5px solid var(--border);color:var(--muted);
+  border-radius:999px;padding:.38rem 1rem;font-family:'Inter',sans-serif;
+  font-size:.8rem;font-weight:500;cursor:pointer;transition:all .15s;
 }
-.legend-item:hover { background:#f5f5f5; }
-.legend-item.active-legend { background:var(--coral-soft); }
-.legend-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
-.legend-clear { font-size:.68rem; color:var(--muted); margin-top:.4rem; cursor:pointer; padding:.15rem .3rem; }
-.legend-clear:hover { color:var(--coral); }
+.filter-btn.active,.filter-btn:hover{border-color:var(--coral);color:var(--coral);background:var(--coral-soft);}
 
-/* Leaflet overrides */
-.leaflet-container { background:#e8e4db !important; }
-.leaflet-popup-content-wrapper {
-  background:#fff !important; border:1px solid var(--border) !important;
-  color:var(--text) !important; border-radius:var(--radius) !important;
-  box-shadow:var(--shadow-lg) !important; font-family:'Inter',sans-serif !important;
+.countries-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1.2rem;}
+
+.country-card{
+  background:#fff;border:1px solid var(--border);
+  border-top:3px solid var(--border);border-radius:var(--radius);
+  padding:1.2rem;box-shadow:var(--shadow);transition:box-shadow .2s;
 }
-.leaflet-popup-tip { background:#fff !important; }
-.leaflet-popup-content { margin:.85rem 1rem !important; }
+.country-card:hover{box-shadow:var(--shadow-md);}
+.country-card.danger{border-top-color:var(--danger);}
+.country-card.warn  {border-top-color:var(--warn);}
+.country-card.safe  {border-top-color:var(--safe);}
+.country-card.highlight{box-shadow:var(--shadow-md);border-color:var(--coral);}
 
-/* ── COUNTRIES VIEW ──────────────────────────────────────── */
-#countries-view { padding:2.5rem 0; }
-.section-header { margin-bottom:1.5rem; }
-.section-title  { font-size:1.5rem; font-weight:700; margin-bottom:.35rem; }
-.section-subtitle { font-size:.9rem; color:var(--muted); }
+.card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.55rem;}
+.card-name{font-size:1rem;font-weight:700;}
+.status-badge{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:.2rem .6rem;border-radius:999px;}
+.status-badge.danger{background:var(--danger-soft);color:var(--danger);}
+.status-badge.warn  {background:var(--warn-soft);  color:var(--warn);}
+.status-badge.safe  {background:var(--safe-soft);  color:var(--safe);}
 
-.filter-bar { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1.5rem; }
-.filter-btn {
-  background:#fff; border:1.5px solid var(--border);
-  color:var(--muted); border-radius:999px;
-  padding:.4rem 1rem; font-family:'Inter',sans-serif;
-  font-size:.8rem; font-weight:500; cursor:pointer; transition:all .15s;
+.card-advisory{font-size:.82rem;color:var(--text2);line-height:1.55;margin-bottom:.85rem;}
+
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:.28rem 0;border-bottom:1px solid var(--border);font-size:.8rem;}
+.info-row:last-child{border-bottom:none;}
+.info-label{color:var(--muted);font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+
+.embassy-section{margin-top:.85rem;}
+.embassy-title{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.45rem;}
+.embassy-row{display:flex;align-items:center;gap:.6rem;padding:.38rem 0;border-bottom:1px solid var(--border);font-size:.8rem;}
+.embassy-row:last-child{border-bottom:none;}
+.embassy-name{flex:1;font-weight:500;color:var(--text2);}
+.embassy-note{font-size:.7rem;color:var(--muted);}
+.call-btn{
+  background:var(--coral);color:#fff;border:none;border-radius:6px;
+  padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;
+  white-space:nowrap;text-decoration:none;font-family:'Inter',sans-serif;
 }
-.filter-btn.active, .filter-btn:hover { border-color:var(--coral); color:var(--coral); background:var(--coral-soft); }
+.call-btn:hover{background:var(--coral-dark);}
 
-.countries-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:1.25rem; }
+.ngo-tags{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.5rem;}
+.ngo-tag{background:var(--info-soft);color:var(--info);font-size:.63rem;font-weight:600;border-radius:4px;padding:.14rem .48rem;}
 
-.country-card {
-  background:#fff; border:1px solid var(--border);
-  border-radius:var(--radius); padding:1.25rem;
-  box-shadow:var(--shadow); transition:box-shadow .2s, border-color .2s;
-  border-top:3px solid var(--border);
+.telegram-link{display:inline-flex;align-items:center;gap:.4rem;color:var(--info);font-size:.8rem;font-weight:500;text-decoration:none;margin-top:.6rem;}
+.telegram-link:hover{text-decoration:underline;}
+
+/* ── HELP VIEW ──────────────────────────────────────────── */
+#help-view{padding:2.5rem 0;}
+.post-form{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.25rem;}
+.form-title{font-size:.92rem;font-weight:700;margin-bottom:.25rem;}
+.form-note{font-size:.78rem;color:var(--muted);line-height:1.5;margin-bottom:1rem;background:var(--bg);border-radius:6px;padding:.6rem .75rem;border-left:3px solid var(--green);}
+.form-row{margin-bottom:.9rem;}
+.form-row label{display:block;font-size:.72rem;font-weight:600;color:var(--muted);margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.04em;}
+.form-row input,.form-row select,.form-row textarea{
+  width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm);
+  padding:.55rem .85rem;font-family:'Inter',sans-serif;font-size:.88rem;
+  color:var(--text);background:#fff;outline:none;transition:border-color .15s;
 }
-.country-card:hover { box-shadow:var(--shadow-md); }
-.country-card.danger { border-top-color:var(--danger); }
-.country-card.warn   { border-top-color:var(--warn); }
-.country-card.safe   { border-top-color:var(--safe); }
-.country-card.highlight { box-shadow:var(--shadow-md); border-color:var(--coral); }
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--coral);box-shadow:0 0 0 3px var(--coral-soft);}
+.form-row textarea{min-height:80px;resize:vertical;}
+.submit-btn{background:var(--coral);color:#fff;border:none;border-radius:var(--radius-sm);padding:.65rem 1.5rem;font-family:'Inter',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:background .15s;}
+.submit-btn:hover{background:var(--coral-dark);}
 
-.card-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:.6rem; }
-.card-name   { font-size:1rem; font-weight:700; }
-.status-badge {
-  font-size:.6rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
-  padding:.2rem .6rem; border-radius:999px;
-}
-.status-badge.danger { background:var(--danger-soft); color:var(--danger); }
-.status-badge.warn   { background:var(--warn-soft);   color:var(--warn); }
-.status-badge.safe   { background:var(--safe-soft);   color:var(--safe); }
+.posts-list{display:flex;flex-direction:column;gap:.75rem;}
+.post-card{background:#fff;border:1px solid var(--border);border-left:3px solid var(--green);border-radius:var(--radius-sm);padding:1rem;transition:box-shadow .2s;}
+.post-card:hover{box-shadow:var(--shadow);}
+.post-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem;}
+.post-type{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--green);}
+.post-time{font-size:.63rem;color:var(--muted);}
+.post-loc{font-size:.78rem;font-weight:600;color:var(--text2);margin-bottom:.3rem;}
+.post-body{font-size:.84rem;color:var(--text2);line-height:1.5;margin-bottom:.6rem;}
+.post-footer{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}
+.tip-btn{background:var(--green);color:#fff;border:none;border-radius:6px;padding:.2rem .6rem;font-size:.68rem;font-weight:600;cursor:pointer;text-decoration:none;font-family:'Inter',sans-serif;}
+.empty-state{padding:2rem 1rem;text-align:center;color:var(--muted);font-size:.88rem;}
 
-.card-advisory { font-size:.82rem; color:var(--text2); line-height:1.5; margin-bottom:.85rem; }
+/* ── RESOURCES VIEW ─────────────────────────────────────── */
+#resources-view{padding:2.5rem 0;}
+.resources-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:1rem;}
+.resource-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem;box-shadow:var(--shadow);transition:box-shadow .2s;}
+.resource-card:hover{box-shadow:var(--shadow-md);}
+.resource-type{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--coral);margin-bottom:.3rem;}
+.resource-name{font-size:.9rem;font-weight:700;margin-bottom:.3rem;}
+.resource-desc{font-size:.78rem;color:var(--muted);line-height:1.5;margin-bottom:.7rem;}
+.resource-link{color:var(--coral);font-size:.8rem;font-weight:600;text-decoration:none;}
+.resource-link:hover{text-decoration:underline;}
 
-.info-row  { display:flex; justify-content:space-between; align-items:center; padding:.3rem 0; border-bottom:1px solid var(--border); font-size:.8rem; }
-.info-row:last-child { border-bottom:none; }
-.info-label { color:var(--muted); font-size:.72rem; font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
-.info-val   { font-weight:500; }
+/* ── MOBILE ≤600px ──────────────────────────────────────── */
+@media (max-width:600px){
+  /* Hide all desktop chrome */
+  header,.sitrep-bar{display:none !important;}
+  body{overflow:hidden;height:100dvh;background:var(--bg);}
+  .view{display:none !important;}
 
-.embassy-section { margin-top:.85rem; }
-.embassy-title { font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:.5rem; }
-.embassy-row {
-  display:flex; align-items:center; gap:.6rem;
-  padding:.4rem 0; border-bottom:1px solid var(--border); font-size:.8rem;
-}
-.embassy-row:last-child { border-bottom:none; }
-.embassy-name { flex:1; font-weight:500; color:var(--text2); }
-.embassy-detail { font-size:.72rem; color:var(--muted); }
-.call-btn {
-  background:var(--coral); color:#fff; border:none; border-radius:6px;
-  padding:.3rem .75rem; font-size:.7rem; font-weight:600;
-  cursor:pointer; white-space:nowrap; text-decoration:none;
-  font-family:'Inter',sans-serif;
-}
-.call-btn:hover { background:var(--coral-dark); }
-
-.telegram-link {
-  display:inline-flex; align-items:center; gap:.4rem;
-  color:var(--info); font-size:.8rem; font-weight:500;
-  text-decoration:none; margin-top:.65rem;
-}
-.telegram-link:hover { text-decoration:underline; }
-
-.worldwide-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:1.25rem; }
-
-/* ── HELP VIEW ────────────────────────────────────────────── */
-#help-view { padding:2.5rem 0; }
-.help-grid { display:grid; grid-template-columns:1fr 1fr; gap:2rem; }
-@media (max-width:768px) { .help-grid { grid-template-columns:1fr; } }
-
-.column-header {
-  font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
-  padding:.65rem 1rem; border-radius:var(--radius-sm) var(--radius-sm) 0 0;
-  margin-bottom:0;
-  background:var(--safe-soft); color:var(--safe);
-  border-left:3px solid var(--safe);
-}
-
-.post-form { background:#fff; border:1px solid var(--border); border-radius:0 var(--radius-sm) var(--radius-sm); padding:1.25rem; margin-bottom:1.25rem; }
-.form-title { font-size:.9rem; font-weight:700; margin-bottom:.25rem; }
-.form-note  { font-size:.78rem; color:var(--muted); line-height:1.5; margin-bottom:1rem;
-  background:var(--bg); border-radius:6px; padding:.6rem .75rem; border-left:3px solid var(--safe); }
-
-.form-row { margin-bottom:.9rem; }
-.form-row label { display:block; font-size:.75rem; font-weight:600; color:var(--muted); margin-bottom:.3rem; text-transform:uppercase; letter-spacing:.04em; }
-.form-row input, .form-row select, .form-row textarea {
-  width:100%; border:1.5px solid var(--border); border-radius:var(--radius-sm);
-  padding:.55rem .85rem; font-family:'Inter',sans-serif; font-size:.88rem;
-  color:var(--text); background:#fff; outline:none; transition:border-color .15s;
-}
-.form-row input:focus, .form-row select:focus, .form-row textarea:focus { border-color:var(--coral); box-shadow:0 0 0 3px var(--coral-soft); }
-.form-row textarea { min-height:80px; resize:vertical; }
-
-.submit-btn {
-  background:linear-gradient(135deg,#e61e4d,#e31c5f,#d70466);
-  color:#fff; border:none; border-radius:var(--radius-sm);
-  padding:.65rem 1.5rem; font-family:'Inter',sans-serif;
-  font-size:.88rem; font-weight:600; cursor:pointer; transition:opacity .15s;
-}
-.submit-btn:hover { opacity:.9; }
-
-.posts-list { display:flex; flex-direction:column; gap:.75rem; }
-.post-card  {
-  background:#fff; border:1px solid var(--border); border-radius:var(--radius-sm);
-  padding:1rem; border-left:3px solid var(--green);
-  transition:box-shadow .2s;
-}
-.post-card:hover { box-shadow:var(--shadow); }
-
-.post-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:.35rem; }
-.post-type   { font-size:.62rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--green); }
-.post-time   { font-size:.65rem; color:var(--muted); }
-.post-loc    { font-size:.78rem; font-weight:600; color:var(--text2); margin-bottom:.3rem; }
-.post-body   { font-size:.84rem; color:var(--text2); line-height:1.5; margin-bottom:.6rem; }
-.post-footer { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
-.tip-btn {
-  background:var(--green); color:#fff; border:none; border-radius:6px;
-  padding:.2rem .6rem; font-size:.68rem; font-weight:600; cursor:pointer;
-  text-decoration:none; font-family:'Inter',sans-serif;
-}
-
-.empty-state { padding:2rem 1rem; text-align:center; color:var(--muted); font-size:.88rem; }
-
-/* ── RESOURCES VIEW ──────────────────────────────────────── */
-#resources-view { padding:2.5rem 0; }
-.resources-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1rem; }
-.resource-card {
-  background:#fff; border:1px solid var(--border); border-radius:var(--radius);
-  padding:1.1rem; box-shadow:var(--shadow); transition:box-shadow .2s;
-}
-.resource-card:hover { box-shadow:var(--shadow-md); }
-.resource-type { font-size:.62rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--coral); margin-bottom:.3rem; }
-.resource-name { font-size:.92rem; font-weight:700; margin-bottom:.3rem; }
-.resource-desc { font-size:.8rem; color:var(--muted); line-height:1.5; margin-bottom:.75rem; }
-.resource-link {
-  color:var(--coral); font-size:.8rem; font-weight:600; text-decoration:none;
-}
-.resource-link:hover { text-decoration:underline; }
-
-/* ── NGO TAGS ────────────────────────────────────────────── */
-.ngo-tags { display:flex; flex-wrap:wrap; gap:.35rem; margin-top:.5rem; }
-.ngo-tag  {
-  background:var(--info-soft); color:var(--info);
-  font-size:.65rem; font-weight:600; border-radius:4px; padding:.15rem .5rem;
-}
-
-/* ── MOBILE @ 600px ──────────────────────────────────────── */
-@media (max-width:600px) {
-  header, .sitrep-bar { display:none !important; }
-  body { overflow:hidden; height:100dvh; background:#f7f7f7; }
-  .view { display:none !important; }
-
-  /* Shell: map + pinned tab bar */
-  #mobile-shell {
-    display:flex; flex-direction:column;
-    height:100dvh; position:relative; overflow:hidden;
+  /* ── Shell ── */
+  #m-shell{
+    display:flex;flex-direction:column;
+    height:100dvh;overflow:hidden;
   }
 
-  #mobile-map-wrap {
-    flex:1; position:relative; overflow:hidden; min-height:0;
+  /* ── Scrollable stat filter bar at top ── */
+  #m-statbar{
+    background:#fff;border-bottom:1px solid var(--border);
+    display:flex;overflow-x:auto;scrollbar-width:none;
+    flex-shrink:0;height:62px;
   }
-  #mobile-crisis-map { width:100%; height:100%; }
+  #m-statbar::-webkit-scrollbar{display:none;}
 
-  /* Top logo bar */
-  #m-topbar {
-    position:absolute; top:0; left:0; right:0; z-index:800;
-    display:flex; align-items:center; justify-content:space-between;
-    padding:.65rem 1rem;
-    background:linear-gradient(180deg,rgba(255,255,255,.92) 0%,transparent 100%);
+  .m-stat{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    flex-shrink:0;min-width:90px;padding:0 .75rem;
+    border-right:1px solid var(--border);cursor:pointer;
+    transition:background .15s;position:relative;user-select:none;
   }
-  #m-logo {
-    font-size:.9rem; font-weight:700; color:var(--text);
-    display:flex; align-items:center; gap:.4rem;
+  .m-stat:last-child{border-right:none;}
+  .m-stat:hover{background:#fafaf8;}
+  .m-stat.active-filter{background:var(--coral-soft);}
+  .m-stat.active-filter::after{
+    content:'';position:absolute;bottom:0;left:0;right:0;
+    height:3px;background:var(--coral);border-radius:3px 3px 0 0;
   }
-  #m-logo span { color:var(--coral); }
-  #m-updated { font-size:.62rem; color:var(--muted); }
+  .m-stat-num{
+    font-size:1.3rem;font-weight:800;letter-spacing:-.03em;line-height:1;
+    display:block;
+  }
+  .m-stat-num.danger{color:var(--danger);}
+  .m-stat-num.warn  {color:var(--warn);}
+  .m-stat-num.safe  {color:var(--safe);}
+  .m-stat-num.green {color:var(--green);}
+  .m-stat-num.info  {color:var(--info);}
+  .m-stat-label{font-size:.48rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-top:.1rem;text-align:center;line-height:1.2;}
 
-  /* Stats pill */
-  #m-stats {
-    position:absolute; top:3.2rem; left:50%; transform:translateX(-50%);
-    z-index:800;
-    background:rgba(255,255,255,.92); border:1px solid var(--border);
-    border-radius:999px; padding:.3rem 1rem;
-    display:flex; align-items:center; gap:.6rem;
-    backdrop-filter:blur(8px); white-space:nowrap;
-    box-shadow:var(--shadow);
-  }
-  .m-stat-num {
-    font-size:1rem; font-weight:800; letter-spacing:-0.02em; line-height:1;
-  }
-  .m-stat-num.danger { color:var(--danger); }
-  .m-stat-num.green  { color:var(--green); }
-  .m-stat-num.safe   { color:var(--safe); }
-  .m-stat-label { font-size:.46rem; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); }
-  .m-stat-divider { width:1px; height:22px; background:var(--border); }
+  /* ── Map area ── */
+  #m-map-wrap{flex:1;position:relative;overflow:hidden;min-height:0;}
+  #m-crisis-map{width:100%;height:100%;}
 
-  /* Tab bar — ALWAYS VISIBLE, pinned at bottom */
-  #m-tabbar {
-    display:flex !important;
-    background:#fff;
-    border-top:1px solid var(--border);
-    height:64px;
-    flex-shrink:0;
-    padding-bottom:env(safe-area-inset-bottom);
-    position:relative; z-index:1000;
-  }
-  .m-tab {
-    flex:1; display:flex; flex-direction:column;
-    align-items:center; justify-content:center; gap:.25rem;
-    background:none; border:none; border-top:2px solid transparent;
-    color:var(--muted); cursor:pointer; transition:color .15s;
-    padding:.4rem 0;
-    font-family:'Inter',sans-serif; font-size:.52rem;
-    font-weight:600; letter-spacing:.05em; text-transform:uppercase;
-  }
-  .m-tab.active { color:var(--coral); border-top-color:var(--coral); }
-  .m-tab:hover:not(.active) { color:var(--text); }
-  .m-tab svg { width:20px; height:20px; }
-
-  /* Sheet — slides up ABOVE the tab bar */
-  #m-sheet {
-    position:absolute;
-    bottom:64px; /* sits above the tab bar */
-    left:0; right:0;
-    z-index:900;
-    background:#fff;
-    border-top:1px solid var(--border);
-    border-radius:16px 16px 0 0;
-    max-height:calc(100dvh - 64px - 40px);
-    display:flex; flex-direction:column;
+  /* ── Country full-screen popup (replaces sheet for map taps) ── */
+  #m-country-popup{
+    position:absolute;inset:0;z-index:950;
+    background:#fff;overflow-y:auto;
     transform:translateY(100%);
-    transition:transform .32s cubic-bezier(.4,0,.2,1);
-  }
-  #m-sheet.open { transform:translateY(0); }
-
-  #m-sheet-handle-row {
-    padding:.65rem .75rem .3rem;
-    display:flex; flex-direction:column; align-items:center; gap:.4rem;
-    cursor:pointer; flex-shrink:0;
-  }
-  .m-handle { width:32px; height:4px; background:var(--border); border-radius:2px; }
-  .m-sheet-title {
-    font-size:.88rem; font-weight:700; color:var(--text);
-    letter-spacing:0;
-  }
-
-  #m-sheet-body {
-    overflow-y:auto; flex:1; padding:0 1rem 1rem;
+    transition:transform .3s cubic-bezier(.4,0,.2,1);
     -webkit-overflow-scrolling:touch;
   }
+  #m-country-popup.open{transform:translateY(0);}
 
-  /* Offer form in sheet */
-  .m-form-label {
-    display:block; font-size:.65rem; font-weight:600;
-    text-transform:uppercase; letter-spacing:.05em;
-    color:var(--muted); margin-bottom:.3rem;
+  .m-popup-header{
+    position:sticky;top:0;background:#fff;border-bottom:1px solid var(--border);
+    padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;z-index:1;
   }
-  .m-form-row { margin-bottom:.85rem; }
-  .m-form-row input, .m-form-row select, .m-form-row textarea {
-    width:100%; border:1.5px solid var(--border); border-radius:var(--radius-sm);
-    padding:.65rem .85rem; font-family:'Inter',sans-serif; font-size:.95rem;
-    color:var(--text); background:#fff; outline:none; -webkit-appearance:none;
-    transition:border-color .15s;
+  .m-popup-title{font-size:1rem;font-weight:700;}
+  .m-popup-close{
+    background:none;border:none;font-size:1.3rem;cursor:pointer;
+    color:var(--muted);width:36px;height:36px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:50%;transition:background .15s;
   }
-  .m-form-row input:focus, .m-form-row select:focus, .m-form-row textarea:focus {
-    border-color:var(--coral); box-shadow:0 0 0 3px var(--coral-soft);
+  .m-popup-close:hover{background:var(--bg);}
+  .m-popup-body{padding:1rem;}
+  .m-popup-badge{
+    display:inline-block;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+    border-radius:999px;padding:.22rem .7rem;margin-bottom:.65rem;
   }
-  .m-form-row textarea { min-height:75px; resize:none; }
-  .m-form-note {
-    font-size:.75rem; color:var(--muted); line-height:1.5;
-    background:var(--bg); border-radius:6px; padding:.55rem .7rem;
-    border-left:3px solid var(--green); margin-bottom:1rem;
-  }
-  .m-submit {
-    width:100%; background:linear-gradient(135deg,#e61e4d,#e31c5f,#d70466);
-    color:#fff; border:none; border-radius:var(--radius-sm);
-    padding:.9rem; font-family:'Inter',sans-serif;
-    font-size:.95rem; font-weight:700; cursor:pointer; margin-top:.25rem;
-  }
+  .m-popup-advisory{font-size:.84rem;color:var(--text2);line-height:1.6;margin-bottom:.85rem;}
+  .m-popup-section-title{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.5rem;margin-top:.85rem;}
+  .m-popup-info-row{display:flex;justify-content:space-between;align-items:center;padding:.3rem 0;border-bottom:1px solid var(--border);font-size:.82rem;}
+  .m-popup-info-row:last-child{border-bottom:none;}
 
-  /* Country cards in sheet */
-  .m-country-card {
-    background:#fff; border:1px solid var(--border);
-    border-top:3px solid var(--border);
-    border-radius:var(--radius-sm); padding:1rem; margin-bottom:.75rem;
-  }
-  .m-country-card.danger { border-top-color:var(--danger); }
-  .m-country-card.warn   { border-top-color:var(--warn); }
-  .m-country-card.safe   { border-top-color:var(--safe); }
-
-  .m-country-name { font-size:.95rem; font-weight:700; margin-bottom:.3rem; }
-  .m-country-advisory { font-size:.8rem; color:var(--text2); line-height:1.5; margin-bottom:.6rem; }
-  .m-airspace-pill {
-    display:inline-block; font-size:.62rem; font-weight:700;
-    text-transform:uppercase; letter-spacing:.06em;
-    border-radius:999px; padding:.2rem .65rem; margin-bottom:.65rem;
+  .m-emb-row{display:flex;align-items:center;gap:.6rem;padding:.45rem 0;border-bottom:1px solid var(--border);}
+  .m-emb-row:last-child{border-bottom:none;}
+  .m-emb-who{flex:1;}
+  .m-emb-country{font-weight:700;font-size:.82rem;display:block;color:var(--text);}
+  .m-emb-role{font-size:.68rem;color:var(--muted);display:block;margin-top:.05rem;}
+  .m-call-btn{
+    background:var(--coral);color:#fff;border:none;border-radius:7px;
+    padding:.32rem .75rem;font-size:.72rem;font-weight:600;cursor:pointer;
+    white-space:nowrap;text-decoration:none;font-family:'Inter',sans-serif;
+    display:inline-flex;align-items:center;gap:.3rem;
   }
 
-  /* Embassy call rows */
-  .m-embassy-row {
-    display:flex; align-items:center; gap:.5rem;
-    padding:.45rem 0; border-bottom:1px solid var(--border);
-    font-size:.8rem;
+  /* ── Pinned tab bar ── */
+  #m-tabbar{
+    display:flex !important;background:#fff;
+    border-top:1px solid var(--border);
+    flex-shrink:0;height:64px;
+    padding-bottom:env(safe-area-inset-bottom);
+    position:relative;z-index:1000;
   }
-  .m-embassy-row:last-child { border-bottom:none; }
-  .m-embassy-who {
-    flex:1;
+  .m-tab{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.22rem;
+    background:none;border:none;border-top:2px solid transparent;
+    color:var(--muted);cursor:pointer;transition:color .15s;
+    padding:.4rem 0;font-family:'Inter',sans-serif;font-size:.5rem;
+    font-weight:600;letter-spacing:.05em;text-transform:uppercase;
   }
-  .m-embassy-country {
-    font-weight:700; font-size:.8rem; color:var(--text);
-    display:block;
-  }
-  .m-embassy-role {
-    font-size:.68rem; color:var(--muted);
-    display:block;
-  }
-  .m-call-btn {
-    background:var(--coral); color:#fff; border:none; border-radius:6px;
-    padding:.3rem .7rem; font-size:.7rem; font-weight:600;
-    cursor:pointer; white-space:nowrap; text-decoration:none;
-    font-family:'Inter',sans-serif; display:inline-flex; align-items:center; gap:.3rem;
-  }
+  .m-tab.active{color:var(--coral);border-top-color:var(--coral);}
+  .m-tab:hover:not(.active){color:var(--text);}
+  .m-tab svg{width:20px;height:20px;}
 
-  /* Filter chips */
-  .m-chips {
-    display:flex; gap:.4rem; overflow-x:auto;
-    scrollbar-width:none; padding:.5rem 0; margin-bottom:.75rem;
+  /* Resources tab — coral filled */
+  .m-tab-offer{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.22rem;
+    background:var(--coral);border:none;color:#fff !important;cursor:pointer;
+    padding:.4rem 0;font-family:'Inter',sans-serif;font-size:.5rem;
+    font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    border-top:2px solid transparent;
   }
-  .m-chips::-webkit-scrollbar { display:none; }
-  .m-chip {
-    background:#fff; border:1.5px solid var(--border);
-    color:var(--muted); border-radius:999px;
-    font-family:'Inter',sans-serif; font-size:.65rem; font-weight:600;
-    padding:.3rem .8rem; white-space:nowrap; cursor:pointer; flex-shrink:0;
-    transition:all .15s;
+  .m-tab-offer:hover{background:var(--coral-dark);}
+  .m-tab-offer svg{width:20px;height:20px;}
+
+  /* ── Bottom sheet ── */
+  #m-sheet{
+    position:absolute;
+    bottom:64px;left:0;right:0;
+    z-index:900;background:#fff;
+    border-top:1px solid var(--border);
+    border-radius:16px 16px 0 0;
+    max-height:calc(100dvh - 62px - 64px - 40px);
+    display:flex;flex-direction:column;
+    transform:translateY(100%);
+    transition:transform .3s cubic-bezier(.4,0,.2,1);
   }
-  .m-chip.active { background:var(--coral-soft); border-color:var(--coral); color:var(--coral); }
+  #m-sheet.open{transform:translateY(0);}
+
+  #m-sheet-handle{
+    padding:.6rem .75rem .3rem;display:flex;flex-direction:column;
+    align-items:center;gap:.35rem;cursor:pointer;flex-shrink:0;
+  }
+  .m-handle-bar{width:32px;height:4px;background:var(--border);border-radius:2px;}
+  .m-sheet-title{font-size:.88rem;font-weight:700;color:var(--text);}
+
+  #m-sheet-body{overflow-y:auto;flex:1;padding:0 1rem 1rem;-webkit-overflow-scrolling:touch;}
+
+  /* Sheet form */
+  .m-form-label{display:block;font-size:.63rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:.28rem;}
+  .m-form-row{margin-bottom:.82rem;}
+  .m-form-row input,.m-form-row select,.m-form-row textarea{
+    width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm);
+    padding:.65rem .85rem;font-family:'Inter',sans-serif;font-size:.95rem;
+    color:var(--text);background:#fff;outline:none;-webkit-appearance:none;transition:border-color .15s;
+  }
+  .m-form-row input:focus,.m-form-row select:focus,.m-form-row textarea:focus{border-color:var(--coral);box-shadow:0 0 0 3px var(--coral-soft);}
+  .m-form-row textarea{min-height:72px;resize:none;}
+  .m-form-note{font-size:.74rem;color:var(--muted);line-height:1.5;background:var(--bg);border-radius:6px;padding:.5rem .7rem;border-left:3px solid var(--green);margin-bottom:.9rem;}
+  .m-submit{width:100%;background:var(--coral);color:#fff;border:none;border-radius:var(--radius-sm);padding:.88rem;font-family:'Inter',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;margin-top:.25rem;}
+  .m-submit:hover{background:var(--coral-dark);}
 
   /* Resources in sheet */
-  .m-resource-row {
-    display:flex; align-items:center; gap:.65rem;
-    padding:.75rem 0; border-bottom:1px solid var(--border);
-  }
-  .m-resource-row:last-child { border-bottom:none; }
-  .m-resource-name { font-size:.82rem; font-weight:600; flex:1; }
-  .m-resource-type { font-size:.62rem; color:var(--muted); display:block; margin-top:.1rem; }
-  .m-resource-go {
-    background:none; border:1.5px solid var(--border); color:var(--coral);
-    border-radius:6px; padding:.3rem .65rem; font-size:.7rem; font-weight:600;
-    text-decoration:none; white-space:nowrap; cursor:pointer;
-    font-family:'Inter',sans-serif;
-  }
+  .m-res-row{display:flex;align-items:center;gap:.65rem;padding:.72rem 0;border-bottom:1px solid var(--border);}
+  .m-res-row:last-child{border-bottom:none;}
+  .m-res-name{font-size:.82rem;font-weight:600;flex:1;}
+  .m-res-type{font-size:.6rem;color:var(--muted);display:block;margin-top:.1rem;}
+  .m-res-go{background:none;border:1.5px solid var(--border);color:var(--coral);border-radius:6px;padding:.28rem .6rem;font-size:.7rem;font-weight:600;text-decoration:none;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;}
 
-  .countries-grid { grid-template-columns:1fr; }
-  .sitrep-stat { min-width:130px; }
+  /* Embassy in resources sheet */
+  .m-emb-section{margin-bottom:1rem;}
+  .m-emb-country-title{font-size:.72rem;font-weight:700;color:var(--text);background:var(--bg);border-radius:6px;padding:.4rem .6rem;margin-bottom:.4rem;}
 }
 </style>
 </head>
 <body>
 
-<!-- ── DESKTOP HEADER ──────────────────────────────────── -->
+<!-- ── DESKTOP HEADER ────────────────────────────────────── -->
 <header>
-  <div class="logo">
-    <div class="pulse-dot"></div>
-    I'm Stranded — <span>You're not.</span>
-  </div>
+  <div class="logo"><div class="pulse-dot"></div>I'm Stranded — <span>You're not.</span></div>
   <nav>
     <button class="active" onclick="showView('map')">Map</button>
-    <button onclick="showView('countries')">Countries</button>
     <button onclick="showView('resources')">Resources</button>
   </nav>
   <div class="header-right">
-    <div class="last-updated" id="last-updated-label">Loading...</div>
-    <button class="cta-pill" onclick="showView('help')">
-      Share a Spare Room <span>♥</span>
-    </button>
+    <div class="last-updated" id="last-updated-label">Loading…</div>
+    <button class="cta-pill" onclick="showView('help')">Share a Spare Room ♥</button>
   </div>
 </header>
 
-<!-- ── SITREP FILTER BAR ────────────────────────────────── -->
-<div class="sitrep-bar" id="sitrep-bar">
-  <div class="sitrep-stat" id="ss-stranded" onclick="filterMap('stranded')">
-    <div class="sitrep-num danger" id="stat-stranded">—</div>
-    <div class="sitrep-label">Est. Stranded</div>
-    <div class="sitrep-sub">tap · show on map</div>
-  </div>
-  <div class="sitrep-stat" id="ss-cancelled" onclick="filterMap('cancelled')">
-    <div class="sitrep-num warn" id="stat-cancelled">—</div>
-    <div class="sitrep-label">Flights Cancelled</div>
-    <div class="sitrep-sub">tap · show on map</div>
-  </div>
-  <div class="sitrep-stat" id="ss-airports" onclick="filterMap('airports')">
-    <div class="sitrep-num danger" id="stat-airports-closed">—</div>
-    <div class="sitrep-label">Airports Closed</div>
-    <div class="sitrep-sub">tap · show on map</div>
-  </div>
-  <div class="sitrep-stat" id="ss-airspace" onclick="filterMap('airspace')">
-    <div class="sitrep-num warn" id="stat-airspace">—</div>
-    <div class="sitrep-label">Airspace Closed</div>
-    <div class="sitrep-sub">tap · show on map</div>
-  </div>
-  <div class="sitrep-stat" id="ss-routes" onclick="filterMap('routes')">
-    <div class="sitrep-num safe" id="stat-border-crossings">—</div>
-    <div class="sitrep-label">Land Routes Open</div>
-    <div class="sitrep-sub">tap · show on map</div>
-  </div>
-  <div class="sitrep-stat" id="ss-help" onclick="filterMap('help')">
-    <div class="sitrep-num green" id="stat-help-posts">—</div>
-    <div class="sitrep-label">Help Posts Live</div>
-    <div class="sitrep-sub">tap · show on map</div>
-  </div>
-  <button class="sitrep-refresh" onclick="refreshSitrep()">
-    <span id="refresh-icon">↻</span> <span id="refresh-label">updated just now</span>
-  </button>
+<!-- ── SITREP BAR ─────────────────────────────────────────── -->
+<div class="sitrep-bar">
+  <div class="sitrep-stat" id="ss-stranded"  onclick="filterMap('stranded')"><span  class="sitrep-num danger" id="stat-stranded">—</span><div class="sitrep-label">Est. Stranded</div><div class="sitrep-sub">tap · filter map</div></div>
+  <div class="sitrep-stat" id="ss-cancelled" onclick="filterMap('cancelled')"><span class="sitrep-num warn"   id="stat-cancelled">—</span><div class="sitrep-label">Flights Cancelled</div><div class="sitrep-sub">tap · filter map</div></div>
+  <div class="sitrep-stat" id="ss-airports"  onclick="filterMap('airports')"><span  class="sitrep-num danger" id="stat-airports-closed">—</span><div class="sitrep-label">Airports Closed</div><div class="sitrep-sub">tap · filter map</div></div>
+  <div class="sitrep-stat" id="ss-airspace"  onclick="filterMap('airspace')"><span  class="sitrep-num warn"   id="stat-airspace">—</span><div class="sitrep-label">Airspace Closed</div><div class="sitrep-sub">tap · filter map</div></div>
+  <div class="sitrep-stat" id="ss-routes"    onclick="filterMap('routes')"><span    class="sitrep-num safe"   id="stat-border-crossings">—</span><div class="sitrep-label">Land Routes Open</div><div class="sitrep-sub">tap · filter map</div></div>
+  <div class="sitrep-stat" id="ss-help"      onclick="filterMap('help')"><span      class="sitrep-num green"  id="stat-help-posts">—</span><div class="sitrep-label">Help Posts Live</div><div class="sitrep-sub">tap · filter map</div></div>
+  <button class="sitrep-refresh" onclick="refreshSitrep()"><span id="refresh-icon">↻</span> <span id="refresh-label">just now</span></button>
 </div>
 
-<!-- ── MAP VIEW ─────────────────────────────────────────── -->
+<!-- ── MAP VIEW ──────────────────────────────────────────── -->
 <div id="map-view" class="view active">
   <div id="crisis-map"></div>
   <div class="map-legend">
     <div class="legend-title">Filter Map</div>
-    <div class="legend-item" id="leg-danger" onclick="filterMap('danger')">
-      <div class="legend-dot" style="background:#c13515"></div> Active conflict / closed
-    </div>
-    <div class="legend-item" id="leg-warn" onclick="filterMap('warn')">
-      <div class="legend-dot" style="background:#b45309"></div> High alert / restricted
-    </div>
-    <div class="legend-item" id="leg-safe" onclick="filterMap('safe')">
-      <div class="legend-dot" style="background:#047857"></div> Relatively stable
-    </div>
-    <div class="legend-item" id="leg-worldwide" onclick="filterMap('worldwide')">
-      <div class="legend-dot" style="background:#1d4ed8"></div> Worldwide disruption
-    </div>
-    <div class="legend-item" id="leg-help" onclick="filterMap('help')">
-      <div class="legend-dot" style="background:#059669"></div> Help offered
-    </div>
-    <div class="legend-item" id="leg-routes" onclick="filterMap('routes')">
-      <div class="legend-dot" style="background:#b45309;border:1.5px solid #fff;box-sizing:content-box"></div> Land routes
-    </div>
+    <div class="legend-item" id="leg-danger"    onclick="filterMap('danger')">   <div class="legend-dot" style="background:#d72c0d"></div>Active conflict / closed</div>
+    <div class="legend-item" id="leg-warn"      onclick="filterMap('warn')">     <div class="legend-dot" style="background:#c47c14"></div>High alert / restricted</div>
+    <div class="legend-item" id="leg-safe"      onclick="filterMap('safe')">     <div class="legend-dot" style="background:#007a5c"></div>Relatively stable</div>
+    <div class="legend-item" id="leg-worldwide" onclick="filterMap('worldwide')"><div class="legend-dot" style="background:#1a56db"></div>Worldwide disruption</div>
+    <div class="legend-item" id="leg-help"      onclick="filterMap('help')">     <div class="legend-dot" style="background:#007a5c;outline:2px solid #fff;outline-offset:1px"></div>Help offered</div>
+    <div class="legend-item" id="leg-routes"    onclick="filterMap('routes')">   <div class="legend-dot" style="background:#c47c14;outline:2px solid #fff;outline-offset:1px"></div>Land routes</div>
     <div class="legend-clear" onclick="filterMap('all')">✕ Clear filter</div>
   </div>
 </div>
 
-<!-- ── COUNTRIES VIEW ───────────────────────────────────── -->
-<div id="countries-view" class="view">
+<!-- ── RESOURCES VIEW (embassies + orgs) ─────────────────── -->
+<div id="resources-view" class="view">
   <div class="container">
     <div class="section-header">
-      <div class="section-title">Country Status &amp; Resources</div>
-      <div class="section-subtitle">Embassy contacts, exit routes, and active NGOs by country</div>
+      <div class="section-title">Resources, Embassies &amp; NGOs</div>
+      <div class="section-subtitle">Verified organizations, embassy contacts, and hotlines</div>
     </div>
     <div class="filter-bar">
-      <button class="filter-btn active" onclick="filterCountries('all',this)">All</button>
-      <button class="filter-btn" onclick="filterCountries('danger',this)">⚠ High Risk</button>
-      <button class="filter-btn" onclick="filterCountries('warn',this)">⚡ Elevated</button>
-      <button class="filter-btn" onclick="filterCountries('safe',this)">✓ Stable</button>
-      <button class="filter-btn" onclick="showWorldwide(this)" style="margin-left:.75rem;border-color:var(--info);color:var(--info)">🌍 Worldwide</button>
+      <button class="filter-btn active" onclick="filterResources('all',this)">All</button>
+      <button class="filter-btn" onclick="filterResources('embassy',this)">🏛 Embassies</button>
+      <button class="filter-btn" onclick="filterResources('ngo',this)">🤝 NGOs</button>
+      <button class="filter-btn" onclick="filterResources('info',this)">📋 Info &amp; Tools</button>
     </div>
-    <div class="countries-grid" id="countries-grid"></div>
-    <div id="worldwide-grid" style="display:none">
-      <div class="worldwide-grid" id="worldwide-cards"></div>
-    </div>
+    <div id="resources-grid" class="resources-grid"></div>
   </div>
 </div>
 
-<!-- ── HELP VIEW (offer only) ───────────────────────────── -->
+<!-- ── HELP VIEW ─────────────────────────────────────────── -->
 <div id="help-view" class="view">
-  <div class="container">
+  <div class="container" style="max-width:820px">
     <div class="section-header">
       <div class="section-title">Help Board</div>
       <div class="section-subtitle">People offering shelter, transport, food and other assistance</div>
     </div>
-    <div class="help-grid">
-      <div class="help-column">
-        <div class="column-header">↑ Offers of Help</div>
-        <div class="post-form">
-          <div class="form-title">Post an offer</div>
-          <p class="form-note">Your contact info will be visible. This lets people who need help reach you directly. Please only post genuine offers.</p>
-          <div class="form-row">
-            <label>What can you offer?</label>
-            <select id="offer-type">
-              <option value="">Select type…</option>
-              <option>Housing / spare room</option>
-              <option>Transportation / ride share</option>
-              <option>Food / water / supplies</option>
-              <option>Medical assistance</option>
-              <option>Cash / financial help</option>
-              <option>Translation / local knowledge</option>
-              <option>Other</option>
-            </select>
-          </div>
-          <div class="form-row">
-            <label>Your location</label>
-            <input type="text" id="offer-location" placeholder="e.g. Dubai, UAE">
-          </div>
-          <div class="form-row">
-            <label>Details</label>
-            <textarea id="offer-body" placeholder="Describe what you can offer and any limits…"></textarea>
-          </div>
-          <div class="form-row">
-            <label>Your name</label>
-            <input type="text" id="offer-name" placeholder="First name or handle">
-          </div>
-          <div class="form-row">
-            <label>Contact (phone, email, or Telegram — will be public)</label>
-            <input type="text" id="offer-contact" placeholder="@telegram or email@example.com">
-          </div>
-          <div class="form-row">
-            <label>X / Twitter handle <span style="color:var(--muted);font-weight:400">(optional — pin + $HELP tips)</span></label>
-            <input type="text" id="offer-xhandle" placeholder="@yourhandle">
-          </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem">
+      <div>
+        <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--green);background:var(--green-soft);padding:.6rem 1rem;border-left:3px solid var(--green);border-radius:var(--radius-sm) var(--radius-sm) 0 0;margin-bottom:0">↑ Post an Offer</div>
+        <div class="post-form" style="border-radius:0 var(--radius-sm) var(--radius-sm);border-top:none">
+          <p class="form-note">Your contact will be visible so people who need help can reach you directly.</p>
+          <div class="form-row"><label>What can you offer?</label><select id="offer-type"><option value="">Select…</option><option>Housing / spare room</option><option>Transportation</option><option>Food / water / supplies</option><option>Medical assistance</option><option>Financial help</option><option>Translation / local knowledge</option><option>Other</option></select></div>
+          <div class="form-row"><label>Your location</label><input type="text" id="offer-location" placeholder="e.g. Dubai, UAE"></div>
+          <div class="form-row"><label>Details</label><textarea id="offer-body" placeholder="Describe what you can offer…"></textarea></div>
+          <div class="form-row"><label>Your name</label><input type="text" id="offer-name" placeholder="First name or handle"></div>
+          <div class="form-row"><label>Contact (will be public)</label><input type="text" id="offer-contact" placeholder="@telegram or email"></div>
+          <div class="form-row"><label>X/Twitter handle <span style="color:var(--muted);font-weight:400">(optional — $HELP tips)</span></label><input type="text" id="offer-xhandle" placeholder="@yourhandle"></div>
           <button class="submit-btn" onclick="submitPost('offer')">Post Offer</button>
         </div>
-        <div class="posts-list" id="offer-posts"></div>
       </div>
-      <div class="help-column">
-        <div class="column-header" style="background:var(--info-soft);color:var(--info);border-left-color:var(--info)">Live Offers</div>
-        <div class="posts-list" id="all-offers-list"></div>
+      <div>
+        <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--info);background:var(--info-soft);padding:.6rem 1rem;border-left:3px solid var(--info);border-radius:var(--radius-sm) var(--radius-sm) 0 0">Live Offers</div>
+        <div class="posts-list" id="offer-posts" style="margin-top:.75rem"></div>
       </div>
     </div>
-  </div>
-</div>
-
-<!-- ── RESOURCES VIEW ───────────────────────────────────── -->
-<div id="resources-view" class="view">
-  <div class="container">
-    <div class="section-header">
-      <div class="section-title">NGOs, Hotlines &amp; Resources</div>
-      <div class="section-subtitle">Verified organizations active in the region</div>
-    </div>
-    <div class="resources-grid" id="resources-grid"></div>
   </div>
 </div>
 
 <!-- ── MOBILE SHELL ──────────────────────────────────────── -->
-<div id="mobile-shell" style="display:none">
+<div id="m-shell" style="display:none;flex-direction:column;height:100dvh;overflow:hidden;">
 
-  <div id="mobile-map-wrap">
-    <div id="mobile-crisis-map"></div>
+  <!-- Scrollable stat filter bar -->
+  <div id="m-statbar">
+    <div class="m-stat" id="mss-stranded"  onclick="mFilterMap('stranded')"> <span class="m-stat-num danger" id="m-stat-stranded">—</span>  <span class="m-stat-label">Stranded</span></div>
+    <div class="m-stat" id="mss-cancelled" onclick="mFilterMap('cancelled')"><span class="m-stat-num warn"   id="m-stat-cancelled">—</span><span class="m-stat-label">Cancelled</span></div>
+    <div class="m-stat" id="mss-airports"  onclick="mFilterMap('airports')"> <span class="m-stat-num danger" id="m-stat-airports">—</span>   <span class="m-stat-label">Airports<br>Closed</span></div>
+    <div class="m-stat" id="mss-airspace"  onclick="mFilterMap('airspace')"> <span class="m-stat-num warn"   id="m-stat-airspace">—</span>   <span class="m-stat-label">Airspace<br>Closed</span></div>
+    <div class="m-stat" id="mss-routes"    onclick="mFilterMap('routes')">   <span class="m-stat-num safe"   id="m-stat-routes">—</span>     <span class="m-stat-label">Routes<br>Open</span></div>
+    <div class="m-stat" id="mss-help"      onclick="mFilterMap('help')">     <span class="m-stat-num green"  id="m-stat-help">—</span>       <span class="m-stat-label">Help<br>Posts</span></div>
+    <div class="m-stat" onclick="mFilterMap('danger')" style="min-width:72px"><span style="font-size:.85rem">🔴</span><span class="m-stat-label">Conflict</span></div>
+    <div class="m-stat" onclick="mFilterMap('routes')" style="min-width:72px"><span style="font-size:.85rem">🟡</span><span class="m-stat-label">Routes</span></div>
+    <div class="m-stat" onclick="mFilterMap('worldwide')" style="min-width:72px"><span style="font-size:.85rem">🔵</span><span class="m-stat-label">Worldwide</span></div>
+    <div class="m-stat" onclick="mFilterMap('all')" style="min-width:72px"><span style="font-size:.72rem;color:var(--muted)">✕</span><span class="m-stat-label">Clear</span></div>
+  </div>
 
-    <!-- Top logo -->
-    <div id="m-topbar">
-      <div id="m-logo">
-        <div class="pulse-dot"></div>
-        I'm Stranded — <span>You're not.</span>
-      </div>
-      <div id="m-updated"></div>
-    </div>
+  <!-- Map -->
+  <div id="m-map-wrap">
+    <div id="m-crisis-map"></div>
 
-    <!-- Stats pill -->
-    <div id="m-stats">
-      <div>
-        <div class="m-stat-num danger" id="m-stat-stranded">—</div>
-        <div class="m-stat-label">Stranded</div>
+    <!-- Full-screen country popup -->
+    <div id="m-country-popup">
+      <div class="m-popup-header">
+        <div class="m-popup-title" id="m-popup-title">Country Info</div>
+        <button class="m-popup-close" onclick="closeMPopup()">✕</button>
       </div>
-      <div class="m-stat-divider"></div>
-      <div>
-        <div class="m-stat-num safe" id="m-stat-routes">—</div>
-        <div class="m-stat-label">Routes Open</div>
-      </div>
-      <div class="m-stat-divider"></div>
-      <div>
-        <div class="m-stat-num green" id="m-stat-help">—</div>
-        <div class="m-stat-label">Help Posts</div>
-      </div>
+      <div class="m-popup-body" id="m-popup-body"></div>
     </div>
   </div>
 
-  <!-- Bottom sheet (above tab bar) -->
+  <!-- Sheet (for resources + offer help) -->
   <div id="m-sheet">
-    <div id="m-sheet-handle-row" onclick="mSheetToggle()">
-      <div class="m-handle"></div>
-      <div class="m-sheet-title" id="m-sheet-title">Countries &amp; Status</div>
+    <div id="m-sheet-handle" onclick="mSheetToggle()">
+      <div class="m-handle-bar"></div>
+      <div class="m-sheet-title" id="m-sheet-title">Resources</div>
     </div>
     <div id="m-sheet-body">
-
-      <!-- Countries content -->
-      <div id="m-countries-content">
-        <div class="m-chips">
-          <div class="m-chip active" onclick="mFilterCountries('all',this)">All</div>
-          <div class="m-chip" onclick="mFilterCountries('danger',this)">⚠ High Risk</div>
-          <div class="m-chip" onclick="mFilterCountries('warn',this)">⚡ Elevated</div>
-          <div class="m-chip" onclick="mFilterCountries('safe',this)">✓ Stable</div>
-        </div>
-        <div id="m-country-list"></div>
-      </div>
-
-      <!-- Offer help form -->
+      <div id="m-resources-content" style="display:none"></div>
       <div id="m-offer-content" style="display:none">
-        <div class="m-form-note">Post your offer — your contact will be public so people who need help can reach you.</div>
-        <div class="m-form-row">
-          <label class="m-form-label">What can you offer?</label>
-          <select id="m-offer-type">
-            <option value="">Select…</option>
-            <option>Housing / spare room</option>
-            <option>Transportation / ride share</option>
-            <option>Food / water / supplies</option>
-            <option>Medical assistance</option>
-            <option>Cash / financial help</option>
-            <option>Translation / local knowledge</option>
-            <option>Other</option>
-          </select>
-        </div>
-        <div class="m-form-row">
-          <label class="m-form-label">Your location</label>
-          <input type="text" id="m-offer-location" placeholder="e.g. Dubai, UAE">
-        </div>
-        <div class="m-form-row">
-          <label class="m-form-label">Details</label>
-          <textarea id="m-offer-body" placeholder="What you can offer and any limits…"></textarea>
-        </div>
-        <div class="m-form-row">
-          <label class="m-form-label">Your name</label>
-          <input type="text" id="m-offer-name" placeholder="First name or handle">
-        </div>
-        <div class="m-form-row">
-          <label class="m-form-label">Contact (will be public)</label>
-          <input type="text" id="m-offer-contact" placeholder="@telegram or email">
-        </div>
-        <div class="m-form-row">
-          <label class="m-form-label">X / Twitter <span style="color:var(--muted);font-weight:400">(optional)</span></label>
-          <input type="text" id="m-offer-xhandle" placeholder="@yourhandle">
-        </div>
+        <div class="m-form-note">Your contact will be public so people who need help can reach you.</div>
+        <div class="m-form-row"><label class="m-form-label">What can you offer?</label><select id="m-offer-type"><option value="">Select…</option><option>Housing / spare room</option><option>Transportation</option><option>Food / water / supplies</option><option>Medical assistance</option><option>Financial help</option><option>Translation / local knowledge</option><option>Other</option></select></div>
+        <div class="m-form-row"><label class="m-form-label">Your location</label><input type="text" id="m-offer-location" placeholder="e.g. Dubai, UAE"></div>
+        <div class="m-form-row"><label class="m-form-label">Details</label><textarea id="m-offer-body" placeholder="Describe what you can offer…"></textarea></div>
+        <div class="m-form-row"><label class="m-form-label">Your name</label><input type="text" id="m-offer-name" placeholder="First name or handle"></div>
+        <div class="m-form-row"><label class="m-form-label">Contact (will be public)</label><input type="text" id="m-offer-contact" placeholder="@telegram or email"></div>
+        <div class="m-form-row"><label class="m-form-label">X handle <span style="color:var(--muted);font-weight:400">(optional)</span></label><input type="text" id="m-offer-xhandle" placeholder="@yourhandle"></div>
         <button class="m-submit" onclick="mSubmitOffer()">Post Offer</button>
       </div>
-
-      <!-- Resources list -->
-      <div id="m-resources-content" style="display:none" id="m-res-list"></div>
-
     </div>
   </div>
 
-  <!-- Tab bar — pinned, always visible -->
+  <!-- Pinned tab bar — 3 tabs: Map | Resources | Offer Help (coral) -->
   <div id="m-tabbar">
-    <button class="m-tab active" onclick="mTab('map',this)">
-      <!-- map icon -->
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/>
-        <line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/>
-      </svg>
+    <button class="m-tab active" id="mtab-map" onclick="mTab('map',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
       Map
     </button>
-    <button class="m-tab" onclick="mTab('countries',this)">
-      <!-- globe icon -->
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="2" y1="12" x2="22" y2="12"/>
-        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-      </svg>
-      Countries
-    </button>
-    <button class="m-tab" onclick="mTab('offer',this)">
-      <!-- heart/help icon -->
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-      </svg>
-      Offer Help
-    </button>
-    <button class="m-tab" onclick="mTab('resources',this)">
-      <!-- list icon -->
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
-        <line x1="8" y1="18" x2="21" y2="18"/>
-        <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/>
-        <line x1="3" y1="18" x2="3.01" y2="18"/>
-      </svg>
+    <button class="m-tab" id="mtab-resources" onclick="mTab('resources',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
       Resources
+    </button>
+    <button class="m-tab-offer" id="mtab-offer" onclick="mTab('offer',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      Offer Help
     </button>
   </div>
 </div>
@@ -879,91 +597,86 @@ nav button:hover:not(.active) { color:var(--text); }
 // ============================================================
 // DATA
 // ============================================================
-const EMBASSY_LABELS = {
-  usa: { flag:'🇺🇸', name:'United States', role:'US Embassy' },
-  uk:  { flag:'🇬🇧', name:'United Kingdom', role:'UK Embassy' },
-  aus: { flag:'🇦🇺', name:'Australia', role:'Australian Embassy' },
-  can: { flag:'🇨🇦', name:'Canada', role:'Canadian Embassy' },
-  ind: { flag:'🇮🇳', name:'India', role:'Indian Embassy' },
-  phl: { flag:'🇵🇭', name:'Philippines', role:'Philippine Embassy / OWWA' },
-  pak: { flag:'🇵🇰', name:'Pakistan', role:'Pakistani Embassy' },
-  bgd: { flag:'🇧🇩', name:'Bangladesh', role:'Bangladesh Embassy' },
-  npl: { flag:'🇳🇵', name:'Nepal', role:'Nepalese Embassy' },
-  deu: { flag:'🇩🇪', name:'Germany', role:'German Embassy' },
-  fra: { flag:'🇫🇷', name:'France', role:'French Embassy' },
-  eu:  { flag:'🇪🇺', name:'EU', role:'EU Delegation' },
+const EMBASSY_META = {
+  usa:{flag:'🇺🇸',role:'US Embassy'},      uk:{flag:'🇬🇧',role:'UK Embassy'},
+  aus:{flag:'🇦🇺',role:'Australian Embassy'}, can:{flag:'🇨🇦',role:'Canadian Embassy'},
+  ind:{flag:'🇮🇳',role:'Indian Embassy'},   phl:{flag:'🇵🇭',role:'Philippine Embassy / OWWA'},
+  pak:{flag:'🇵🇰',role:'Pakistani Embassy'},  bgd:{flag:'🇧🇩',role:'Bangladesh Embassy'},
+  npl:{flag:'🇳🇵',role:'Nepalese Embassy'},   deu:{flag:'🇩🇪',role:'German Embassy'},
+  fra:{flag:'🇫🇷',role:'French Embassy'},    eu:{flag:'🇪🇺',role:'EU Delegation'},
 };
 
 const COUNTRIES = [
-  { id:"uae", name:"United Arab Emirates", status:"danger",
-    advisory:"Shelter in place. Airspace closed. DXB/AUH suspended. Iranian missile debris reported in civilian areas.",
-    embassy:{ usa:{phone:"+971-2-414-2200",email:"ACSAbuDhabi@state.gov"}, uk:{phone:"+971-2-610-1100"}, aus:{phone:"+61-2-6261-3305",note:"Consular Emergency Centre"}, can:{phone:"+971-2-694-0300"}, ind:{phone:"800-46342 (toll-free)"}, phl:{phone:"+971-50-813-7836"}, pak:{phone:"+971-50-254-8975"}, bgd:{phone:"+971-2-665-5336"}, npl:{phone:"+971-2-444-7804"} },
-    airspace:"CLOSED", borders:[{route:"Overland → Oman (E611)",status:"warn",note:"Open but drone activity reported."},{route:"Overland → Saudi Arabia",status:"warn",note:"Long (900+ km). Fill tank, carry water."}], ngos:["UNHCR","Red Cross UAE","IOM","Caritas UAE"], coords:[24.47,54.37], telegram:"https://t.me/gulfcrisis" },
-  { id:"bahrain", name:"Bahrain", status:"danger",
-    advisory:"High alert. Airspace restricted. US Naval base on lockdown. Missile strikes reported.",
-    embassy:{ usa:{phone:"+973-1724-2700"}, uk:{phone:"+973-1757-4100"}, ind:{phone:"+973-1771-2785"}, phl:{phone:"+973-3995-3235"}, pak:{phone:"+973-1771-1789"}, bgd:{phone:"+973-1753-3271"} },
-    airspace:"RESTRICTED", borders:[{route:"King Fahd Causeway → Saudi Arabia",status:"warn",note:"Road crossing open. Monitor Saudi entry."}], ngos:["Red Crescent Bahrain","UNHCR"], coords:[26.07,50.55], telegram:null },
-  { id:"kuwait", name:"Kuwait", status:"danger",
-    advisory:"Airspace closed. Airport struck. US military base on heightened alert. Shelter in place.",
-    embassy:{ usa:{phone:"+965-2259-1001"}, uk:{phone:"+965-2259-4320"}, ind:{phone:"+965-6550-1946"}, phl:{phone:"+965-2220-5571"}, bgd:{phone:"+965-6992-0013"} },
-    airspace:"CLOSED", borders:[{route:"Overland → Saudi Arabia (south)",status:"warn",note:"Monitor border hourly."}], ngos:["Kuwait Red Crescent","UNHCR Kuwait"], coords:[29.37,47.97], telegram:null },
-  { id:"qatar", name:"Qatar", status:"warn",
-    advisory:"Airspace restricted. US Al Udeid base sheltering in place. Monitor advisories closely.",
-    embassy:{ usa:{phone:"+974-4496-6000"}, uk:{phone:"+974-4496-2100"}, aus:{phone:"+61-2-6261-3305",note:"Consular Emergency Centre"}, ind:{phone:"+974-5564-7502"}, phl:{phone:"+974-4483-1585"} },
-    airspace:"RESTRICTED", borders:[{route:"Sea → Doha Port (limited)",status:"warn",note:"Some vessels operating."}], ngos:["Qatar Red Crescent","IOM Qatar"], coords:[25.28,51.53], telegram:null },
-  { id:"oman", name:"Oman", status:"warn",
-    advisory:"Drone incident near Sohar port. Relatively stable. Receiving overland arrivals from UAE.",
-    embassy:{ usa:{phone:"+968-2464-3400"}, uk:{phone:"+968-2460-9000"}, ind:{phone:"8007-1234 (toll-free)"}, phl:{phone:"+968-7990-5211"} },
-    airspace:"OPEN (monitor)", borders:[{route:"Overland from UAE (Hatta/Hafeet)",status:"safe",note:"Open. Queues building. Fuel up before crossing."}], ngos:["Oman Red Crescent"], coords:[23.61,58.59], telegram:null },
-  { id:"saudi", name:"Saudi Arabia", status:"warn",
-    advisory:"Airspace open on select routes. Receiving overland arrivals. Elevated security posture.",
-    embassy:{ usa:{phone:"+966-11-488-3800"}, uk:{phone:"+966-11-488-0077"}, ind:{phone:"+966-11-488-4697"}, phl:{phone:"+966-56-989-3301"} },
-    airspace:"PARTIALLY OPEN", borders:[{route:"Receiving arrivals from UAE/Kuwait/Bahrain",status:"safe",note:"Land borders open. Delays at checkpoints."}], ngos:["Saudi Red Crescent","King Salman Relief Centre"], coords:[23.88,45.07], telegram:null },
-  { id:"iran", name:"Iran", status:"danger",
-    advisory:"DO NOT TRAVEL. Active military operations. No consular services for most Western nationals.",
-    embassy:{ usa:{note:"No US Embassy — Swiss Embassy: +98-21-2200-8333"}, uk:{note:"Limited — London FCO: +44-20-7008-5000"}, pak:{phone:"+98-21-669413-88"} },
-    airspace:"CLOSED", borders:[{route:"All crossings: unstable / closed",status:"danger",note:"Do not attempt overland crossing."}], ngos:["ICRC (limited)","UNHCR"], coords:[32.43,53.68], telegram:null },
-  { id:"iraq", name:"Iraq", status:"danger",
-    advisory:"Do not travel. Airspace closed. US facilities targeted. Active military near Iranian border.",
-    embassy:{ usa:{phone:"+964-760-030-7000",note:"Shelter in place"}, uk:{phone:"+964-7901-926-280"} },
-    airspace:"CLOSED", borders:[{route:"Overland → Jordan (Trebil/Al-Karama)",status:"warn",note:"Open but slow. Long queues."}], ngos:["UNHCR Iraq","IOM Iraq","ICRC"], coords:[33.22,43.68], telegram:null },
+  {id:'uae',name:'United Arab Emirates',status:'danger',
+   advisory:'Shelter in place. Airspace closed. DXB/AUH suspended. Iranian missile debris reported in civilian areas.',
+   embassy:{usa:{phone:'+971-2-414-2200',email:'ACSAbuDhabi@state.gov'},uk:{phone:'+971-2-610-1100'},aus:{phone:'+61-2-6261-3305',note:'Consular Emergency Centre'},can:{phone:'+971-2-694-0300'},ind:{phone:'800-46342 (toll-free)'},phl:{phone:'+971-50-813-7836'},pak:{phone:'+971-50-254-8975'},bgd:{phone:'+971-2-665-5336'},npl:{phone:'+971-2-444-7804'}},
+   airspace:'CLOSED',
+   borders:[{route:'→ Oman (E611)',status:'warn',note:'Open but drone activity near border.'},{route:'→ Saudi Arabia',status:'warn',note:'Long 900km+. Fill tank, carry water.'}],
+   ngos:['UNHCR','Red Cross UAE','IOM'],coords:[24.47,54.37],telegram:'https://t.me/gulfcrisis'},
+  {id:'bahrain',name:'Bahrain',status:'danger',
+   advisory:'High alert. Airspace restricted. US Naval base on lockdown. Missile strikes reported.',
+   embassy:{usa:{phone:'+973-1724-2700'},uk:{phone:'+973-1757-4100'},ind:{phone:'+973-1771-2785'},phl:{phone:'+973-3995-3235'},pak:{phone:'+973-1771-1789'},bgd:{phone:'+973-1753-3271'}},
+   airspace:'RESTRICTED',borders:[{route:'King Fahd Causeway → Saudi',status:'warn',note:'Road crossing open.'}],ngos:['Red Crescent Bahrain'],coords:[26.07,50.55],telegram:null},
+  {id:'kuwait',name:'Kuwait',status:'danger',
+   advisory:'Airspace closed. Airport struck. US military base on heightened alert.',
+   embassy:{usa:{phone:'+965-2259-1001'},uk:{phone:'+965-2259-4320'},ind:{phone:'+965-6550-1946'},phl:{phone:'+965-2220-5571'},bgd:{phone:'+965-6992-0013'}},
+   airspace:'CLOSED',borders:[{route:'→ Saudi Arabia (south)',status:'warn',note:'Monitor hourly.'}],ngos:['Kuwait Red Crescent'],coords:[29.37,47.97],telegram:null},
+  {id:'qatar',name:'Qatar',status:'warn',
+   advisory:'Airspace restricted. US Al Udeid base sheltering in place.',
+   embassy:{usa:{phone:'+974-4496-6000'},uk:{phone:'+974-4496-2100'},aus:{phone:'+61-2-6261-3305',note:'Consular Emergency Centre'},ind:{phone:'+974-5564-7502'},phl:{phone:'+974-4483-1585'}},
+   airspace:'RESTRICTED',borders:[{route:'Sea → Doha Port',status:'warn',note:'Some vessels operating.'}],ngos:['Qatar Red Crescent','IOM Qatar'],coords:[25.28,51.53],telegram:null},
+  {id:'oman',name:'Oman',status:'warn',
+   advisory:'Drone incident near Sohar. Relatively stable. Receiving UAE overland arrivals.',
+   embassy:{usa:{phone:'+968-2464-3400'},uk:{phone:'+968-2460-9000'},ind:{phone:'8007-1234 (toll-free)'},phl:{phone:'+968-7990-5211'}},
+   airspace:'OPEN (monitor)',borders:[{route:'UAE → Oman (Hatta/Hafeet)',status:'safe',note:'Open. Queues building. Fuel up first.'}],ngos:['Oman Red Crescent'],coords:[23.61,58.59],telegram:null},
+  {id:'saudi',name:'Saudi Arabia',status:'warn',
+   advisory:'Airspace open on select routes. Receiving overland arrivals.',
+   embassy:{usa:{phone:'+966-11-488-3800'},uk:{phone:'+966-11-488-0077'},ind:{phone:'+966-11-488-4697'},phl:{phone:'+966-56-989-3301'}},
+   airspace:'PARTIALLY OPEN',borders:[{route:'Receiving from UAE/Kuwait/Bahrain',status:'safe',note:'Land borders open. Delays.'}],ngos:['Saudi Red Crescent'],coords:[23.88,45.07],telegram:null},
+  {id:'iran',name:'Iran',status:'danger',
+   advisory:'DO NOT TRAVEL. Active military operations. No consular services for most Western nationals.',
+   embassy:{usa:{note:'No US Embassy — Swiss: +98-21-2200-8333'},uk:{note:'Limited — FCDO: +44-20-7008-5000'},pak:{phone:'+98-21-669413-88'}},
+   airspace:'CLOSED',borders:[{route:'All crossings',status:'danger',note:'Unstable / closed. Do not attempt.'}],ngos:['ICRC (limited)'],coords:[32.43,53.68],telegram:null},
+  {id:'iraq',name:'Iraq',status:'danger',
+   advisory:'Do not travel. Airspace closed. US facilities targeted.',
+   embassy:{usa:{phone:'+964-760-030-7000',note:'Shelter in place'},uk:{phone:'+964-7901-926-280'}},
+   airspace:'CLOSED',borders:[{route:'→ Jordan (Trebil)',status:'warn',note:'Open but slow queues.'}],ngos:['UNHCR Iraq','IOM Iraq','ICRC'],coords:[33.22,43.68],telegram:null},
 ];
 
-const WORLDWIDE_REGIONS = [
-  { id:"india", name:"India", note:"Air India/IndiGo cancelled Gulf routes. Millions of diaspora separated.", contacts:[{label:"MOIA 24/7 Helpline",value:"1800-11-3090 (toll-free India)"},{label:"MEA Emergency",value:"+91-11-2301-2113"}], resources:["https://www.mea.gov.in"], coords:[20.59,78.96] },
-  { id:"philippines", name:"Philippines", note:"Massive OFW disruption. OWWA coordinating repatriation.", contacts:[{label:"OWWA International",value:"+632-1348"},{label:"DFA OFW 24/7",value:"+632-8651-9400"}], resources:["https://owwa.gov.ph"], coords:[12.88,121.77] },
-  { id:"pakistan", name:"Pakistan", note:"PIA suspended Gulf routes. CMU activated 24/7.", contacts:[{label:"Pakistan CMU (24/7)",value:"+92-51-9207887"},{label:"Ministry of Foreign Affairs",value:"+92-51-9207354"}], resources:["https://mofa.gov.pk"], coords:[30.38,69.35] },
-  { id:"bangladesh", name:"Bangladesh", note:"Hundreds of thousands of workers stranded.", contacts:[{label:"MOFA Helpline",value:"+880-2-9554000"},{label:"BOESL Emergency",value:"+880-2-9144817"}], resources:["https://www.mofa.gov.bd"], coords:[23.68,90.35] },
-  { id:"uk_europe", name:"UK / Europe", note:"Flights to South Asia cancelled or rerouted via Africa.", contacts:[{label:"FCDO Helpline (24/7)",value:"+44-20-7008-5000"},{label:"FCDO WhatsApp",value:"+44-7973-383750"}], resources:["https://www.gov.uk/foreign-travel-advice"], coords:[51.5,10.5] },
-  { id:"australia", name:"Australia / NZ", note:"Smartraveller raised UAE/Iran to Do Not Travel.", contacts:[{label:"Consular Emergency Centre",value:"+61-2-6261-3305 (overseas)"},{label:"In Australia",value:"1300-555-135"}], resources:["https://www.smartraveller.gov.au"], coords:[-25.27,133.77] },
-  { id:"east_africa", name:"East Africa", note:"Nairobi/Addis Ababa hub routes disrupted.", contacts:[{label:"US Embassy Nairobi",value:"+254-20-363-6000"},{label:"UK Embassy Nairobi",value:"+254-20-284-4000"}], resources:["https://step.state.gov"], coords:[1.29,37.42] },
+const WORLDWIDE = [
+  {id:'india',name:'India',note:'Air India/IndiGo cancelled Gulf routes. Millions separated.',contacts:[{label:'MOIA 24/7',value:'1800-11-3090 (India toll-free)'},{label:'MEA Emergency',value:'+91-11-2301-2113'}],coords:[20.59,78.96]},
+  {id:'philippines',name:'Philippines',note:'Massive OFW disruption. OWWA coordinating repatriation.',contacts:[{label:'OWWA',value:'+632-1348'},{label:'DFA OFW 24/7',value:'+632-8651-9400'}],coords:[12.88,121.77]},
+  {id:'pakistan',name:'Pakistan',note:'PIA suspended Gulf routes. CMU activated 24/7.',contacts:[{label:'Pakistan CMU (24/7)',value:'+92-51-9207887'}],coords:[30.38,69.35]},
+  {id:'bangladesh',name:'Bangladesh',note:'Hundreds of thousands of workers stranded.',contacts:[{label:'MOFA Helpline',value:'+880-2-9554000'}],coords:[23.68,90.35]},
+  {id:'uk_eu',name:'UK / Europe',note:'Flights to South Asia rerouted via Africa (+5–8h).',contacts:[{label:'FCDO 24/7',value:'+44-20-7008-5000'}],coords:[51.5,10.5]},
+  {id:'australia',name:'Australia / NZ',note:'Smartraveller raised UAE/Iran to Do Not Travel.',contacts:[{label:'Consular Emergency',value:'+61-2-6261-3305'}],coords:[-25.27,133.77]},
 ];
 
-const RESOURCES = [
-  { type:"Government", name:"US STEP Program", desc:"Register to receive emergency alerts from US Embassy.", url:"https://step.state.gov" },
-  { type:"Government", name:"UK FCDO Travel Advice", desc:"Live advisories and emergency consular support.", url:"https://www.gov.uk/foreign-travel-advice" },
-  { type:"Government", name:"Australia Smartraveller", desc:"Australian DFAT advisories and emergency registration.", url:"https://www.smartraveller.gov.au" },
-  { type:"Government", name:"Canada ROCA", desc:"Register of Canadians Abroad — emergency alerts.", url:"https://travel.gc.ca/travelling/registration" },
-  { type:"NGO", name:"UNHCR Emergency", desc:"UN Refugee Agency — active in UAE, Iraq, Jordan.", url:"https://www.unhcr.org" },
-  { type:"NGO", name:"ICRC / Red Cross", desc:"Active across the conflict zone.", url:"https://www.icrc.org" },
-  { type:"NGO", name:"IOM", desc:"Coordinates emergency evacuation logistics.", url:"https://www.iom.int" },
-  { type:"NGO", name:"IRC", desc:"Emergency relief in Iraq and Jordan.", url:"https://www.rescue.org" },
-  { type:"NGO", name:"Médecins Sans Frontières", desc:"Medical teams active in Iraq.", url:"https://www.msf.org" },
-  { type:"Community", name:"r/dubai Megathread", desc:"Real-time reports from expats on the ground.", url:"https://reddit.com/r/dubai" },
-  { type:"Aviation", name:"FlightAware", desc:"Live airspace and flight status.", url:"https://flightaware.com" },
-  { type:"Info", name:"ReliefWeb", desc:"Humanitarian news and NGO deployment tracking.", url:"https://reliefweb.int" },
+const NGOS = [
+  {type:'Government',name:'US STEP Program',desc:'Register for emergency alerts from US Embassy.',url:'https://step.state.gov'},
+  {type:'Government',name:'UK FCDO Travel Advice',desc:'Live advisories and consular support.',url:'https://www.gov.uk/foreign-travel-advice'},
+  {type:'Government',name:'Australia Smartraveller',desc:'Australian DFAT advisories and registration.',url:'https://www.smartraveller.gov.au'},
+  {type:'Government',name:'Canada ROCA',desc:'Register of Canadians Abroad.',url:'https://travel.gc.ca/travelling/registration'},
+  {type:'NGO',name:'UNHCR',desc:'UN Refugee Agency — active in UAE, Iraq, Jordan.',url:'https://www.unhcr.org'},
+  {type:'NGO',name:'ICRC / Red Cross',desc:'Active across the conflict zone.',url:'https://www.icrc.org'},
+  {type:'NGO',name:'IOM',desc:'Emergency evacuation logistics.',url:'https://www.iom.int'},
+  {type:'NGO',name:'IRC',desc:'Emergency relief in Iraq and Jordan.',url:'https://www.rescue.org'},
+  {type:'NGO',name:'Médecins Sans Frontières',desc:'Medical teams active in Iraq.',url:'https://www.msf.org'},
+  {type:'Info',name:'FlightAware',desc:'Live airspace and flight status.',url:'https://flightaware.com'},
+  {type:'Info',name:'ReliefWeb',desc:'Humanitarian news and NGO tracking.',url:'https://reliefweb.int'},
+  {type:'Community',name:'r/dubai Megathread',desc:'Real-time reports from expats.',url:'https://reddit.com/r/dubai'},
 ];
 
 const LAND_ROUTES = [
-  { from:[24.47,54.37], to:[23.61,58.59], status:'warn',   label:'UAE → Oman (E611)' },
-  { from:[24.47,54.37], to:[23.88,45.07], status:'warn',   label:'UAE → Saudi Arabia' },
-  { from:[26.07,50.55], to:[23.88,45.07], status:'warn',   label:'Bahrain → Saudi (King Fahd Causeway)' },
-  { from:[29.37,47.97], to:[23.88,45.07], status:'warn',   label:'Kuwait → Saudi Arabia' },
-  { from:[33.22,43.68], to:[30.58,36.24], status:'warn',   label:'Iraq → Jordan (Trebil)' },
-  { from:[30.58,36.24], to:[31.85,35.22], status:'warn',   label:'Jordan → Israel (Allenby Bridge)' },
-  { from:[31.85,35.22], to:[30.00,32.25], status:'danger', label:'Israel → Egypt (Taba)' },
-  { from:[31.30,34.30], to:[30.00,32.25], status:'danger', label:'Gaza → Egypt (Rafah — closed)' },
-  { from:[23.61,58.59], to:[25.28,51.53], status:'warn',   label:'Oman → Qatar (sea route)' },
+  {from:[24.47,54.37],to:[23.61,58.59],status:'warn',  label:'UAE → Oman (E611)'},
+  {from:[24.47,54.37],to:[23.88,45.07],status:'warn',  label:'UAE → Saudi Arabia'},
+  {from:[26.07,50.55],to:[23.88,45.07],status:'warn',  label:'Bahrain → Saudi (King Fahd Causeway)'},
+  {from:[29.37,47.97],to:[23.88,45.07],status:'warn',  label:'Kuwait → Saudi Arabia'},
+  {from:[33.22,43.68],to:[30.58,36.24],status:'warn',  label:'Iraq → Jordan (Trebil)'},
+  {from:[30.58,36.24],to:[31.85,35.22],status:'warn',  label:'Jordan → Israel (Allenby Bridge)'},
+  {from:[31.85,35.22],to:[30.00,32.25],status:'danger',label:'Israel → Egypt (Taba)'},
+  {from:[31.30,34.30],to:[30.00,32.25],status:'danger',label:'Gaza → Egypt (Rafah — closed)'},
+  {from:[23.61,58.59],to:[25.28,51.53],status:'warn',  label:'Oman → Qatar (sea)'},
 ];
 
 // ============================================================
@@ -972,35 +685,31 @@ const LAND_ROUTES = [
 const SUPABASE_URL  = 'https://YOUR_PROJECT_ID.supabase.co';
 const SUPABASE_ANON = 'YOUR_ANON_PUBLIC_KEY';
 const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-const SUPABASE_ON = !SUPABASE_URL.includes('YOUR_PROJECT_ID');
+const SB_ON = !SUPABASE_URL.includes('YOUR_PROJECT_ID');
 let posts = [];
 
 // ============================================================
-// VIEW SWITCHING
+// VIEW SWITCHING (desktop)
 // ============================================================
 function showView(name) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-  const pill = document.querySelector('.cta-pill');
-  if (pill) pill.style.opacity = '1';
   document.getElementById(name+'-view').classList.add('active');
-  const nm = {map:0,countries:1,resources:2};
+  const nm = {map:0,resources:1};
   if (nm[name] !== undefined) document.querySelectorAll('nav button')[nm[name]].classList.add('active');
-  if (name==='map' && !window._mapInit) initMap();
-  if (name==='countries') renderCountries();
-  if (name==='help') renderPosts();
-  if (name==='resources') renderResources();
+  if (name === 'map' && !window._mapInit) initMap();
+  if (name === 'resources') renderResources();
+  if (name === 'help') renderPosts();
 }
 
 // ============================================================
-// MAP + FILTER SYSTEM
+// MAP + FILTER SYSTEM (shared between desktop & mobile refs)
 // ============================================================
-const _mk = { country:[], routes:[], worldwide:[], help:[] };
+const SC = {danger:'#d72c0d',warn:'#c47c14',safe:'#007a5c'};
+const _mk = {country:[],routes:[],worldwide:[],help:[]};
 let _activeFilter = 'all';
 let _postMarkers = [];
 let _userPin = null;
-
-const SC = { danger:'#c13515', warn:'#b45309', safe:'#047857' };
 
 function filterMap(type) {
   if (!window._mapInit) { showView('map'); setTimeout(()=>filterMap(type),500); return; }
@@ -1008,44 +717,36 @@ function filterMap(type) {
   _activeFilter = type;
   const map = window._crisisMap;
 
-  // Update sitrep active state
-  document.querySelectorAll('.sitrep-stat').forEach(s => s.classList.remove('active-filter'));
-  const ssMap = {stranded:'ss-stranded',cancelled:'ss-cancelled',airports:'ss-airports',
-    airspace:'ss-airspace',routes:'ss-routes',help:'ss-help'};
+  // Sitrep active state
+  document.querySelectorAll('.sitrep-stat').forEach(s=>s.classList.remove('active-filter'));
+  const ssMap={stranded:'ss-stranded',cancelled:'ss-cancelled',airports:'ss-airports',airspace:'ss-airspace',routes:'ss-routes',help:'ss-help'};
   if (ssMap[type]) document.getElementById(ssMap[type])?.classList.add('active-filter');
 
-  // Update legend active state
-  document.querySelectorAll('.legend-item').forEach(l => l.classList.remove('active-legend'));
-  const legMap = {danger:'leg-danger',warn:'leg-warn',safe:'leg-safe',worldwide:'leg-worldwide',help:'leg-help',routes:'leg-routes'};
-  if (legMap[type]) document.getElementById(legMap[type])?.classList.add('active-legend');
+  // Legend active state
+  document.querySelectorAll('.legend-item').forEach(l=>l.classList.remove('active-legend'));
+  const lm={danger:'leg-danger',warn:'leg-warn',safe:'leg-safe',worldwide:'leg-worldwide',help:'leg-help',routes:'leg-routes'};
+  if (lm[type]) document.getElementById(lm[type])?.classList.add('active-legend');
 
-  // Determine visibility
-  const showCountry = ['all','stranded','cancelled','airports','airspace','danger','warn','safe'].includes(type);
-  const showRoutes  = ['all','routes'].includes(type);
-  const showWorld   = ['all','worldwide'].includes(type);
-  const showHelp    = ['all','help'].includes(type);
+  const showC = ['all','stranded','cancelled','airports','airspace','danger','warn','safe'].includes(type);
+  const showR = ['all','routes'].includes(type);
+  const showW = ['all','worldwide'].includes(type);
+  const showH = ['all','help'].includes(type);
 
-  _mk.country.forEach(({marker, status}) => {
-    const show = type==='all' || type===status ||
-      ['stranded','cancelled','airports','airspace'].includes(type);
-    show ? marker.addTo(map) : map.removeLayer(marker);
+  _mk.country.forEach(({marker,status})=>{
+    const show = type==='all'||type===status||['stranded','cancelled','airports','airspace'].includes(type);
+    show?marker.addTo(map):map.removeLayer(marker);
   });
-  _mk.routes.forEach(({marker}) => {
-    showRoutes ? marker.addTo(map) : map.removeLayer(marker);
+  _mk.routes.forEach(({marker,status})=>{
+    const show = showR||(type==='danger'&&status==='danger')||(type==='warn'&&status!=='safe');
+    show?marker.addTo(map):map.removeLayer(marker);
   });
-  _mk.worldwide.forEach(m => { showWorld ? m.addTo(map) : map.removeLayer(m); });
-  _mk.help.forEach(m => { showHelp ? m.addTo(map) : map.removeLayer(m); });
+  _mk.worldwide.forEach(m=>{ showW?m.addTo(map):map.removeLayer(m); });
+  _mk.help.forEach(m=>{ showH?m.addTo(map):map.removeLayer(m); });
 
-  // Auto-open popups on specific filters
-  if (type==='airports') {
-    _mk.country.forEach(({marker, country}) => {
-      if (country?.airspace==='CLOSED') { try { marker.openPopup(); } catch(e){} }
-    });
-  }
-  if (type==='routes') map.flyTo([28,46],5,{duration:1});
-  if (type==='help')   map.flyTo([28,45],5,{duration:1});
-  if (type==='all')    map.flyTo([28,45],5,{duration:1});
-
+  if (type==='airports') _mk.country.forEach(({marker,country})=>{ if(country?.airspace==='CLOSED'){try{marker.openPopup();}catch(e){}} });
+  if (type==='routes')   map.flyTo([28,46],5,{duration:1});
+  if (type==='help')     map.flyTo([28,45],5,{duration:1});
+  if (type==='all')      map.flyTo([28,45],5,{duration:1});
   showView('map');
 }
 
@@ -1054,60 +755,35 @@ function initMap() {
   const map = L.map('crisis-map',{zoomControl:false}).setView([28,45],5);
   L.control.zoom({position:'bottomright'}).addTo(map);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
-    attribution:'©OpenStreetMap ©CARTO', maxZoom:19
+    attribution:'©OpenStreetMap ©CARTO',maxZoom:19
   }).addTo(map);
 
-  // Country markers
-  COUNTRIES.forEach(c => {
+  COUNTRIES.forEach(c=>{
     const col = SC[c.status];
-    const glow = L.circleMarker(c.coords,{
-      radius:15, fillColor:col, color:col, weight:1, opacity:.3, fillOpacity:.1
-    }).addTo(map);
-
-    const dot = L.circleMarker(c.coords,{
-      radius:8, fillColor:col, color:'#fff', weight:2, opacity:1, fillOpacity:.95
-    }).addTo(map).bindPopup(`
-      <div style="font-family:'Inter',sans-serif;min-width:230px">
-        <div style="font-size:.95rem;font-weight:700;color:${col};margin-bottom:.3rem">${c.name}</div>
-        <div style="font-size:.78rem;color:#555;line-height:1.5;margin-bottom:.55rem">${c.advisory}</div>
-        <div style="font-size:.7rem;color:#888;margin-bottom:.65rem">
-          Airspace: <strong style="color:${c.airspace==='CLOSED'?'#c13515':c.airspace.includes('OPEN')?'#047857':'#b45309'}">${c.airspace}</strong>
-        </div>
-        ${c.telegram ? `<a href="${c.telegram}" style="color:#1d4ed8;font-size:.75rem;font-weight:500;display:block;margin-bottom:.55rem" target="_blank">→ Telegram group</a>` : ''}
-        <button onclick="filterAndShowCountry('${c.id}')" style="background:#ff385c;border:none;color:#fff;font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;padding:.4rem .9rem;cursor:pointer;border-radius:8px;width:100%">Full info &amp; embassies →</button>
-      </div>
-    `);
-
-    _mk.country.push({marker:glow, status:c.status, country:c});
-    _mk.country.push({marker:dot,  status:c.status, country:c});
+    const glow = L.circleMarker(c.coords,{radius:15,fillColor:col,color:col,weight:1,opacity:.25,fillOpacity:.1}).addTo(map);
+    const dot  = L.circleMarker(c.coords,{radius:8,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.95}).addTo(map)
+      .bindPopup(`<div style="font-family:'Inter',sans-serif;min-width:230px">
+        <div style="font-size:.9rem;font-weight:700;color:${col};margin-bottom:.3rem">${c.name}</div>
+        <div style="font-size:.77rem;color:#555;line-height:1.5;margin-bottom:.5rem">${c.advisory}</div>
+        <div style="font-size:.7rem;margin-bottom:.6rem">Airspace: <strong style="color:${c.airspace==='CLOSED'?'#d72c0d':c.airspace.includes('OPEN')?'#007a5c':'#c47c14'}">${c.airspace}</strong></div>
+        ${c.telegram?`<a href="${c.telegram}" style="color:#1a56db;font-size:.75rem;font-weight:500;display:block;margin-bottom:.5rem" target="_blank">→ Telegram group</a>`:''}
+        <button onclick="window.showCountryDetail('${c.id}')" style="background:#f03a5f;border:none;color:#fff;font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;padding:.4rem .9rem;cursor:pointer;border-radius:8px;width:100%">Full info &amp; embassies →</button>
+      </div>`);
+    _mk.country.push({marker:glow,status:c.status,country:c});
+    _mk.country.push({marker:dot, status:c.status,country:c});
   });
 
-  // Land routes
-  LAND_ROUTES.forEach(r => {
-    const col = r.status==='safe' ? '#047857' : r.status==='warn' ? '#b45309' : '#c13515';
-    const line = L.polyline([r.from,r.to],{
-      color:col, weight:3, opacity:.8,
-      dashArray: r.status==='danger' ? '6,8' : r.status==='warn' ? '8,4' : null
-    }).addTo(map).bindPopup(`
-      <div style="font-family:'Inter',sans-serif">
-        <div style="font-weight:700;font-size:.88rem;color:${col};margin-bottom:.25rem">${r.label}</div>
-        <div style="font-size:.74rem;color:#888">Status: <strong style="color:${col}">${r.status.toUpperCase()}</strong></div>
-      </div>
-    `);
-    _mk.routes.push({marker:line, status:r.status});
+  LAND_ROUTES.forEach(r=>{
+    const col = r.status==='safe'?'#007a5c':r.status==='warn'?'#c47c14':'#d72c0d';
+    const line = L.polyline([r.from,r.to],{color:col,weight:3,opacity:.8,
+      dashArray:r.status==='danger'?'6,8':r.status==='warn'?'8,4':null}).addTo(map)
+      .bindPopup(`<div style="font-family:'Inter',sans-serif"><div style="font-weight:700;font-size:.85rem;color:${col};margin-bottom:.2rem">${r.label}</div><div style="font-size:.72rem;color:#888">${r.status.toUpperCase()}</div></div>`);
+    _mk.routes.push({marker:line,status:r.status});
   });
 
-  // Worldwide markers
-  WORLDWIDE_REGIONS.forEach(r => {
-    const m = L.circleMarker(r.coords,{
-      radius:8, fillColor:'#1d4ed8', color:'#fff', weight:2, opacity:.9, fillOpacity:.5
-    }).addTo(map).bindPopup(`
-      <div style="font-family:'Inter',sans-serif;min-width:190px">
-        <div style="font-size:.88rem;font-weight:700;color:#1d4ed8;margin-bottom:.25rem">🌍 ${r.name}</div>
-        <div style="font-size:.76rem;color:#555;line-height:1.5;margin-bottom:.4rem">${r.note}</div>
-        <div style="font-size:.7rem;color:#888">${r.contacts[0]?.label}: <strong style="color:#222">${r.contacts[0]?.value}</strong></div>
-      </div>
-    `);
+  WORLDWIDE.forEach(r=>{
+    const m = L.circleMarker(r.coords,{radius:7,fillColor:'#1a56db',color:'#fff',weight:2,opacity:.9,fillOpacity:.5}).addTo(map)
+      .bindPopup(`<div style="font-family:'Inter',sans-serif;min-width:190px"><div style="font-size:.85rem;font-weight:700;color:#1a56db;margin-bottom:.25rem">🌍 ${r.name}</div><div style="font-size:.75rem;color:#555;line-height:1.5;margin-bottom:.4rem">${r.note}</div><div style="font-size:.7rem;color:#888">${r.contacts[0]?.label}: <strong style="color:#222">${r.contacts[0]?.value}</strong></div></div>`);
     _mk.worldwide.push(m);
   });
 
@@ -1116,459 +792,376 @@ function initMap() {
 }
 
 function renderPostsOnMap(map) {
-  _mk.help.forEach(m => { try { map.removeLayer(m); } catch(e){} });
-  _mk.help.length = 0;
-  _postMarkers.forEach(m => { try { map.removeLayer(m); } catch(e){} });
-  _postMarkers = [];
-
-  posts.forEach(async p => {
-    if (!p.location) return;
-    const geo = await geocodeCity(p.location);
-    if (!geo) return;
-    const m = L.circleMarker([geo.lat,geo.lng],{
-      radius:7, fillColor:'#059669', color:'#fff', weight:2, opacity:1, fillOpacity:.9
-    }).addTo(map).bindPopup(`
-      <div style="font-family:'Inter',sans-serif;min-width:200px">
-        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#059669;margin-bottom:.25rem">Help offered</div>
-        <div style="font-weight:600;font-size:.85rem;margin-bottom:.2rem">${p.name}</div>
-        <div style="font-size:.78rem;color:#555;line-height:1.5;margin-bottom:.4rem">${p.body.slice(0,110)}${p.body.length>110?'…':''}</div>
-        <div style="font-size:.7rem;color:#888">📍 ${p.location}</div>
-        ${p.xhandle ? `<a href="https://x.com/${p.xhandle}" target="_blank" style="display:inline-block;margin-top:.4rem;background:#059669;color:#fff;font-size:.68rem;font-weight:600;padding:.2rem .55rem;border-radius:5px;text-decoration:none">Tip $HELP →</a>` : ''}
-      </div>
-    `);
-    _mk.help.push(m);
-    _postMarkers.push(m);
+  _mk.help.forEach(m=>{try{map.removeLayer(m);}catch(e){}});
+  _mk.help.length=0; _postMarkers.forEach(m=>{try{map.removeLayer(m);}catch(e){}}); _postMarkers=[];
+  posts.forEach(async p=>{
+    if(!p.location)return;
+    const geo=await geocodeCity(p.location); if(!geo)return;
+    const m=L.circleMarker([geo.lat,geo.lng],{radius:7,fillColor:'#007a5c',color:'#fff',weight:2,opacity:1,fillOpacity:.9}).addTo(map)
+      .bindPopup(`<div style="font-family:'Inter',sans-serif;min-width:200px"><div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#007a5c;margin-bottom:.2rem">Help offered</div><div style="font-weight:600;font-size:.84rem;margin-bottom:.2rem">${p.name}</div><div style="font-size:.77rem;color:#555;line-height:1.5;margin-bottom:.4rem">${p.body.slice(0,100)}${p.body.length>100?'…':''}</div><div style="font-size:.7rem;color:#888">📍 ${p.location}</div>${p.xhandle?`<a href="https://x.com/${p.xhandle}" target="_blank" style="display:inline-block;margin-top:.4rem;background:#007a5c;color:#fff;font-size:.68rem;font-weight:600;padding:.2rem .55rem;border-radius:5px;text-decoration:none">Tip $HELP →</a>`:''}</div>`);
+    _mk.help.push(m); _postMarkers.push(m);
   });
 }
 
-async function geocodeCity(city) {
-  try {
-    const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`,
-      {headers:{'Accept-Language':'en','User-Agent':'ImStranded/1.0'}});
-    const d = await r.json();
-    if (d && d[0]) return {lat:parseFloat(d[0].lat),lng:parseFloat(d[0].lon)};
-  } catch(e) {}
-  return null;
+async function geocodeCity(city){
+  try{const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`,{headers:{'Accept-Language':'en','User-Agent':'ImStranded/1.0'}});const d=await r.json();if(d&&d[0])return{lat:parseFloat(d[0].lat),lng:parseFloat(d[0].lon)};}catch(e){}return null;
 }
 
-function pinMyLocation() {
-  if (!navigator.geolocation) return;
-  navigator.geolocation.getCurrentPosition(pos => {
-    const map = window._crisisMap;
-    if (!map) return;
-    const {latitude:lat,longitude:lng} = pos.coords;
-    if (_userPin) map.removeLayer(_userPin);
-    _userPin = L.circleMarker([lat,lng],{
-      radius:9, fillColor:'#ff385c', color:'#fff', weight:2, opacity:1, fillOpacity:.9
-    }).addTo(map).bindPopup('<div style="font-family:Inter,sans-serif;font-size:.82rem;font-weight:600;color:#ff385c">📍 You are here</div>').openPopup();
-    map.flyTo([lat,lng],11,{duration:1.2});
-  });
-}
-
-window.filterAndShowCountry = function(id) {
-  showView('countries');
-  renderCountries(id);
-  setTimeout(() => document.getElementById('card-'+id)?.scrollIntoView({behavior:'smooth',block:'start'}), 150);
+window.showCountryDetail = function(id) {
+  const c = COUNTRIES.find(x=>x.id===id)||WORLDWIDE.find(x=>x.id===id);
+  if(!c) return;
+  showView('resources');
+  setTimeout(()=>{ const el=document.getElementById('card-'+id); if(el){el.scrollIntoView({behavior:'smooth',block:'start'});el.classList.add('highlight');setTimeout(()=>el.classList.remove('highlight'),2000);} },200);
 };
 
 // ============================================================
-// COUNTRIES
+// RESOURCES (desktop) — embassies + NGOs unified
 // ============================================================
-function renderCountries(highlight) {
-  document.getElementById('worldwide-grid').style.display = 'none';
-  document.getElementById('countries-grid').style.display = '';
-  document.getElementById('countries-grid').innerHTML = COUNTRIES.map(c => renderCard(c, c.id===highlight)).join('');
-}
-
-function filterCountries(filter, btn) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+let _resFilter = 'all';
+function filterResources(f, btn){
+  _resFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('worldwide-grid').style.display = 'none';
-  document.getElementById('countries-grid').style.display = '';
-  const list = filter==='all' ? COUNTRIES : COUNTRIES.filter(c => c.status===filter);
-  document.getElementById('countries-grid').innerHTML = list.map(c => renderCard(c,false)).join('');
+  renderResources();
 }
 
-function showWorldwide(btn) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('countries-grid').style.display = 'none';
-  document.getElementById('worldwide-grid').style.display = 'block';
-  document.getElementById('worldwide-cards').innerHTML = WORLDWIDE_REGIONS.map(renderWorldwideCard).join('');
-}
+function renderResources(){
+  const grid = document.getElementById('resources-grid');
+  if(!grid) return;
+  let html = '';
 
-function renderCard(c, highlight) {
-  const embassyRows = Object.entries(c.embassy).slice(0,5).map(([key, info]) => {
-    const L = EMBASSY_LABELS[key] || {flag:'🏳',name:key.toUpperCase(),role:'Embassy'};
-    const phone = info.phone || info.alt || null;
-    const note = info.note || '';
-    return `<div class="embassy-row">
-      <div class="embassy-who">
-        <span class="embassy-name">${L.flag} ${L.role}</span>
-        ${note ? `<span class="embassy-detail" style="display:block;font-size:.68rem;color:var(--muted);margin-top:.1rem">${note}</span>` : ''}
-      </div>
-      ${phone ? `<a class="call-btn" href="tel:${phone.replace(/[\s\-()]/g,'')}">${phone}</a>` : ''}
-    </div>`;
-  }).join('');
-
-  const borderRows = c.borders.map(b => {
-    const col = b.status==='safe'?'var(--safe)':b.status==='warn'?'var(--warn)':'var(--danger)';
-    return `<div class="info-row"><span class="info-label">${b.route}</span><span class="info-val" style="color:${col}">${b.status.toUpperCase()}</span></div>`;
-  }).join('');
-
-  return `<div class="country-card ${c.status} ${highlight?'highlight':''}" id="card-${c.id}">
-    <div class="card-header">
-      <div class="card-name">${c.name}</div>
-      <span class="status-badge ${c.status}">${c.status.toUpperCase()}</span>
-    </div>
-    <div class="card-advisory">${c.advisory}</div>
-    <div class="info-row"><span class="info-label">Airspace</span><span class="info-val" style="color:${c.airspace==='CLOSED'?'var(--danger)':c.airspace.includes('OPEN')?'var(--safe)':'var(--warn)'}">${c.airspace}</span></div>
-    ${borderRows}
-    <div class="embassy-section">
-      <div class="embassy-title">Embassy Emergency Contacts</div>
-      ${embassyRows || '<div style="font-size:.75rem;color:var(--muted)">Check embassy website</div>'}
-    </div>
-    ${c.ngos?.length ? `<div class="ngo-tags">${c.ngos.map(n=>`<span class="ngo-tag">${n}</span>`).join('')}</div>` : ''}
-    ${c.telegram ? `<a class="telegram-link" href="${c.telegram}" target="_blank">→ Telegram group</a>` : ''}
-  </div>`;
-}
-
-function renderWorldwideCard(r) {
-  return `<div class="country-card safe">
-    <div class="card-name" style="margin-bottom:.5rem">🌍 ${r.name}</div>
-    <div class="card-advisory">${r.note}</div>
-    ${r.contacts.map(c=>`<div class="info-row"><span class="info-label">${c.label}</span><span class="info-val">${c.value}</span></div>`).join('')}
-  </div>`;
-}
-
-// ============================================================
-// HELP BOARD (offers only)
-// ============================================================
-function renderPosts() {
-  const offer = document.getElementById('offer-posts');
-  const all   = document.getElementById('all-offers-list');
-  const offerPosts = posts.filter(p => p.type==='offer');
-  if (!offerPosts.length) {
-    const msg = '<div class="empty-state">No offers yet — be the first to post.</div>';
-    if (offer) offer.innerHTML = msg;
-    if (all) all.innerHTML = msg;
-    return;
+  // Embassy cards (from COUNTRIES)
+  if (_resFilter==='all'||_resFilter==='embassy') {
+    html += COUNTRIES.map(c=>{
+      const col = SC[c.status];
+      const embs = Object.entries(c.embassy).map(([key,info])=>{
+        const M = EMBASSY_META[key]||{flag:'🏳',role:key.toUpperCase()};
+        const phone = info.phone||info.alt||null;
+        const note = info.note||'';
+        return `<div class="embassy-row">
+          <div style="flex:1"><span class="embassy-name">${M.flag} ${M.role}</span>${note?`<div class="embassy-note">${note}</div>`:''}</div>
+          ${phone?`<a class="call-btn" href="tel:${phone.replace(/[\s\-()]/g,'')}">${phone}</a>`:''}
+        </div>`;
+      }).join('');
+      return `<div class="country-card ${c.status}" id="card-${c.id}">
+        <div class="card-header"><div class="card-name">${c.name}</div><span class="status-badge ${c.status}">${c.status.toUpperCase()}</span></div>
+        <div class="card-advisory">${c.advisory}</div>
+        <div class="info-row"><span class="info-label">Airspace</span><span style="color:${c.airspace==='CLOSED'?'var(--danger)':c.airspace.includes('OPEN')?'var(--safe)':'var(--warn)'}; font-weight:600">${c.airspace}</span></div>
+        ${c.borders.map(b=>`<div class="info-row"><span class="info-label">${b.route}</span><span style="color:${b.status==='safe'?'var(--safe)':b.status==='warn'?'var(--warn)':'var(--danger)'};font-weight:600">${b.status.toUpperCase()}</span></div>`).join('')}
+        <div class="embassy-section"><div class="embassy-title">Emergency Contacts</div>${embs||'<div style="font-size:.75rem;color:var(--muted)">Check embassy website</div>'}</div>
+        ${c.ngos?.length?`<div class="ngo-tags">${c.ngos.map(n=>`<span class="ngo-tag">${n}</span>`).join('')}</div>`:''}
+        ${c.telegram?`<a class="telegram-link" href="${c.telegram}" target="_blank">→ Telegram group</a>`:''}
+      </div>`;
+    }).join('');
+    // Worldwide cards
+    html += WORLDWIDE.map(r=>`<div class="country-card safe" id="card-${r.id}">
+      <div class="card-name" style="margin-bottom:.5rem">🌍 ${r.name}</div>
+      <div class="card-advisory">${r.note}</div>
+      ${r.contacts.map(c=>`<div class="info-row"><span class="info-label">${c.label}</span><span>${c.value}</span></div>`).join('')}
+    </div>`).join('');
   }
-  const html = offerPosts.map(p => {
-    const t = p.created_at ? new Date(p.created_at).toLocaleString() : '';
+
+  // NGO / Info cards
+  if (_resFilter==='all'||_resFilter==='ngo'||_resFilter==='info') {
+    html += NGOS.filter(r=> _resFilter==='all'||(_resFilter==='ngo'&&r.type!=='Info'&&r.type!=='Government')||(_resFilter==='info'&&(r.type==='Info'||r.type==='Government')))
+      .map(r=>`<div class="resource-card">
+        <div class="resource-type">${r.type}</div>
+        <div class="resource-name">${r.name}</div>
+        <div class="resource-desc">${r.desc}</div>
+        <a class="resource-link" href="${r.url}" target="_blank" rel="noopener">Open →</a>
+      </div>`).join('');
+  }
+
+  grid.innerHTML = html || '<div class="empty-state">No items match this filter.</div>';
+}
+
+// ============================================================
+// HELP BOARD
+// ============================================================
+function renderPosts(){
+  const el = document.getElementById('offer-posts');
+  if(!el) return;
+  const offerPosts = posts.filter(p=>p.type==='offer');
+  if(!offerPosts.length){el.innerHTML='<div class="empty-state">No offers yet — be the first to post.</div>';return;}
+  el.innerHTML = offerPosts.map(p=>{
+    const t = p.created_at?new Date(p.created_at).toLocaleString():'';
     return `<div class="post-card">
-      <div class="post-header">
-        <span class="post-type">Offering</span>
-        <span class="post-time">${t}</span>
-      </div>
+      <div class="post-header"><span class="post-type">Offering</span><span class="post-time">${t}</span></div>
       <div class="post-loc">📍 ${p.location}</div>
       <div class="post-body">${p.body}</div>
       <div class="post-footer">
-        <span style="font-size:.78rem;color:var(--muted)">${p.name}</span>
-        ${p.contact ? `<a style="font-size:.75rem;color:var(--coral);font-weight:500">${p.contact}</a>` : ''}
-        ${p.xhandle ? `<a class="tip-btn" href="https://x.com/${p.xhandle}" target="_blank">Tip $HELP →</a>` : ''}
-      </div>
-    </div>`;
+        <span style="font-size:.77rem;color:var(--muted)">${p.name}</span>
+        ${p.contact?`<span style="font-size:.75rem;color:var(--coral)">${p.contact}</span>`:''}
+        ${p.xhandle?`<a class="tip-btn" href="https://x.com/${p.xhandle}" target="_blank">Tip $HELP →</a>`:''}
+      </div></div>`;
   }).join('');
-  if (offer) offer.innerHTML = html;
-  if (all) all.innerHTML = html;
 }
 
-async function submitPost(type) {
-  const t = document.getElementById(type+'-type')?.value;
-  const l = document.getElementById(type+'-location')?.value;
-  const b = document.getElementById(type+'-body')?.value;
-  const n = document.getElementById(type+'-name')?.value;
-  const c = document.getElementById(type+'-contact')?.value;
-  const x = (document.getElementById(type+'-xhandle')?.value||'').trim().replace(/^@+/,'');
-  if (!t||!l||!b||!n||!c) { alert('Please fill in all required fields.'); return; }
-  const btn = document.querySelector('.submit-btn');
-  btn.textContent = 'Posting…'; btn.disabled = true;
-  try {
-    const {error} = await _sb.from('help_posts').insert({
-      type, post_type:t, location:l, body:b, name:n, contact:c, xhandle:x||null, flagged:false
-    });
-    if (error) throw error;
-    ['type','location','body','name','contact','xhandle'].forEach(f => {
-      const el = document.getElementById(type+'-'+f);
-      if (el) el.tagName==='SELECT' ? el.selectedIndex=0 : el.value='';
-    });
-    btn.textContent = '✓ Posted!';
-    setTimeout(() => { btn.textContent='Post Offer'; btn.disabled=false; },3000);
+async function submitPost(type){
+  const t=document.getElementById(type+'-type')?.value, l=document.getElementById(type+'-location')?.value,
+    b=document.getElementById(type+'-body')?.value, n=document.getElementById(type+'-name')?.value,
+    c=document.getElementById(type+'-contact')?.value, x=(document.getElementById(type+'-xhandle')?.value||'').trim().replace(/^@+/,'');
+  if(!t||!l||!b||!n||!c){alert('Please fill in all required fields.');return;}
+  const btn=document.querySelector('.submit-btn'); btn.textContent='Posting…'; btn.disabled=true;
+  try{
+    const{error}=await _sb.from('help_posts').insert({type,post_type:t,location:l,body:b,name:n,contact:c,xhandle:x||null,flagged:false});
+    if(error)throw error;
+    ['type','location','body','name','contact','xhandle'].forEach(f=>{const el=document.getElementById(type+'-'+f);if(el)el.tagName==='SELECT'?el.selectedIndex=0:el.value='';});
+    btn.textContent='✓ Posted!'; setTimeout(()=>{btn.textContent='Post Offer';btn.disabled=false;},3000);
     loadPosts();
-  } catch(e) {
-    alert('Failed to post: '+e.message);
-    btn.textContent='Post Offer'; btn.disabled=false;
-  }
+  }catch(e){alert('Failed: '+e.message);btn.textContent='Post Offer';btn.disabled=false;}
 }
 
 // ============================================================
-// RESOURCES
+// SITREP STATS
 // ============================================================
-function renderResources() {
-  document.getElementById('resources-grid').innerHTML = RESOURCES.map(r => `
-    <div class="resource-card">
-      <div class="resource-type">${r.type}</div>
-      <div class="resource-name">${r.name}</div>
-      <div class="resource-desc">${r.desc}</div>
-      <a class="resource-link" href="${r.url}" target="_blank" rel="noopener">Open →</a>
-    </div>
-  `).join('');
-}
-
-// ============================================================
-// SITREP
-// ============================================================
-function animateCount(id, target, duration) {
-  const el = document.getElementById(id);
-  if (!el || !target) return;
-  const start = Date.now();
-  const startVal = parseInt(el.textContent.replace(/,/g,'')) || 0;
-  const step = () => {
-    const p = Math.min((Date.now()-start)/duration, 1);
-    const v = Math.round(startVal + (target-startVal) * (1-Math.pow(1-p,3)));
-    el.textContent = v.toLocaleString();
-    if (p < 1) requestAnimationFrame(step);
-  };
+function animCount(id, target, dur){
+  const el=document.getElementById(id); if(!el||!target)return;
+  const start=Date.now(), startVal=parseInt(el.textContent.replace(/,/g,''))||0;
+  const step=()=>{ const p=Math.min((Date.now()-start)/dur,1),v=Math.round(startVal+(target-startVal)*(1-Math.pow(1-p,3)));el.textContent=v.toLocaleString();if(p<1)requestAnimationFrame(step); };
   requestAnimationFrame(step);
 }
 
-async function refreshSitrep() {
-  const icon = document.getElementById('refresh-icon');
-  const lbl  = document.getElementById('refresh-label');
-  if (icon) icon.classList.add('spinning');
+async function refreshSitrep(){
+  const icon=document.getElementById('refresh-icon'),lbl=document.getElementById('refresh-label');
+  if(icon)icon.classList.add('spinning');
+  // Hardcoded fallback values (replace with live API)
+  const vals = {stranded:847773,cancelled:1847,airports:5,airspace:4,routes:3};
+  animCount('stat-stranded',vals.stranded,1200);
+  animCount('stat-cancelled',vals.cancelled,800);
+  animCount('stat-airports-closed',vals.airports,500);
+  animCount('stat-airspace',vals.airspace,500);
+  animCount('stat-border-crossings',vals.routes,500);
+  // Sync mobile stats
+  animCount('m-stat-stranded',vals.stranded,1200);
+  animCount('m-stat-cancelled',vals.cancelled,800);
+  animCount('m-stat-airports',vals.airports,500);
+  animCount('m-stat-airspace',vals.airspace,500);
+  animCount('m-stat-routes',vals.routes,500);
 
-  try {
-    const r = await fetch('https://api.aviationstack.com/v1/flights?access_key=demo&flight_status=cancelled&limit=100');
-    const d = await r.json();
-    const cancelled = d?.data?.length ?? 0;
-    const closed = 5, airspaceC = 4, routesOpen = 3;
-    const estStranded = cancelled * 180;
-    animateCount('stat-stranded', estStranded, 1200);
-    animateCount('stat-cancelled', cancelled, 800);
-    animateCount('stat-airports-closed', closed, 500);
-    animateCount('stat-airspace', airspaceC, 500);
-    animateCount('stat-border-crossings', routesOpen, 500);
-  } catch(e) {
-    [['stat-stranded','847,773'],['stat-cancelled','1,847'],['stat-airports-closed','5'],['stat-airspace','4'],['stat-border-crossings','3']].forEach(([id,v]) => {
-      const el = document.getElementById(id); if (el) el.textContent = v;
-    });
-  }
-
-  if (SUPABASE_ON) {
-    const {count} = await _sb.from('help_posts').select('*',{count:'exact',head:true}).eq('flagged',false);
-    animateCount('stat-help-posts', count||0, 600);
-    document.getElementById('m-stat-help')
-      && (document.getElementById('m-stat-help').textContent = (count||0).toLocaleString());
+  if(SB_ON){
+    const{count}=await _sb.from('help_posts').select('*',{count:'exact',head:true}).eq('flagged',false);
+    animCount('stat-help-posts',count||0,600);
+    animCount('m-stat-help',count||0,600);
   } else {
-    document.getElementById('stat-help-posts').textContent = '0';
+    ['stat-help-posts','m-stat-help'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='0';});
   }
 
-  const now = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-  document.getElementById('last-updated-label').textContent = `Updated: ${now}`;
-  const mup = document.getElementById('m-updated');
-  if (mup) mup.textContent = now;
-  if (lbl) lbl.textContent = 'updated just now';
-  if (icon) icon.classList.remove('spinning');
-
-  // Sync mobile stats pill
-  ['stranded','border-crossings'].forEach(k => {
-    const src = document.getElementById('stat-'+k);
-    const tgt = document.getElementById('m-stat-'+(k==='border-crossings'?'routes':'stranded'));
-    if (src && tgt) tgt.textContent = src.textContent;
-  });
+  const now=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('last-updated-label').textContent='Updated: '+now;
+  if(lbl)lbl.textContent='just now';
+  if(icon)icon.classList.remove('spinning');
 }
 
 // ============================================================
-// SUPABASE POSTS
+// SUPABASE
 // ============================================================
-async function loadPosts() {
-  if (!SUPABASE_ON) return;
-  const {data} = await _sb.from('help_posts').select('*').eq('flagged',false).order('created_at',{ascending:false}).limit(50);
-  if (data) { posts = data; renderPosts(); renderPostsOnMap(window._crisisMap); }
+async function loadPosts(){
+  if(!SB_ON)return;
+  const{data}=await _sb.from('help_posts').select('*').eq('flagged',false).order('created_at',{ascending:false}).limit(50);
+  if(data){posts=data;renderPosts();renderPostsOnMap(window._crisisMap);}
 }
-
-function subscribeToPostStream() {
-  if (!SUPABASE_ON) return;
-  _sb.channel('help_posts').on('postgres_changes',{event:'INSERT',schema:'public',table:'help_posts'},
-    payload => { posts.unshift(payload.new); renderPosts(); renderPostsOnMap(window._crisisMap); }
-  ).subscribe();
+function subscribeStream(){
+  if(!SB_ON)return;
+  _sb.channel('help_posts').on('postgres_changes',{event:'INSERT',schema:'public',table:'help_posts'},p=>{posts.unshift(p.new);renderPosts();renderPostsOnMap(window._crisisMap);}).subscribe();
 }
 
 // ============================================================
 // MOBILE
 // ============================================================
-let _mSheetOpen = false;
-let _mCurrentTab = 'map';
+let _mSheetOpen=false, _mCurrentTab='map', _mSheetContent='';
+const isMob=()=>window.innerWidth<=600;
 
-function isMobile() { return window.innerWidth <= 600; }
+function initMobile(){
+  window._mobileInit=true;
+  const shell=document.getElementById('m-shell');
+  shell.style.display='flex';
 
-function initMobileShell() {
-  if (!isMobile()) return;
-  window._mobileInit = true;
-
-  // Show mobile shell, hide nothing (views already hidden by CSS)
-  document.getElementById('mobile-shell').style.display = 'flex';
-  document.getElementById('mobile-shell').style.flexDirection = 'column';
-  document.getElementById('mobile-shell').style.height = '100dvh';
-
-  // Init mobile map
-  const mmap = L.map('mobile-crisis-map',{zoomControl:false,attributionControl:false}).setView([28,45],4);
+  const mmap=L.map('m-crisis-map',{zoomControl:false,attributionControl:false}).setView([28,45],4);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mmap);
 
-  COUNTRIES.forEach(c => {
-    const col = SC[c.status];
-    L.circleMarker(c.coords,{radius:9,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.9})
-      .addTo(mmap).on('click',() => {
-        mTab('countries', document.querySelectorAll('.m-tab')[1]);
-        setTimeout(() => { mRenderCountries('all'); mScrollToCountry(c.id); },100);
-      });
+  COUNTRIES.forEach(c=>{
+    const col=SC[c.status];
+    L.circleMarker(c.coords,{radius:10,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.92}).addTo(mmap)
+      .on('click',()=>openMCountryPopup(c.id));
+  });
+  LAND_ROUTES.forEach(r=>{
+    const col=r.status==='safe'?'#007a5c':r.status==='warn'?'#c47c14':'#d72c0d';
+    L.polyline([r.from,r.to],{color:col,weight:2.5,opacity:.8,dashArray:r.status==='danger'?'6,8':r.status==='warn'?'8,4':null}).addTo(mmap);
+  });
+  WORLDWIDE.forEach(r=>{
+    L.circleMarker(r.coords,{radius:7,fillColor:'#1a56db',color:'#fff',weight:1.5,opacity:.9,fillOpacity:.45}).addTo(mmap)
+      .on('click',()=>openMWorldwidePopup(r.id));
   });
 
-  LAND_ROUTES.forEach(r => {
-    const col = r.status==='safe'?'#047857':r.status==='warn'?'#b45309':'#c13515';
-    L.polyline([r.from,r.to],{color:col,weight:2.5,opacity:.7,dashArray:r.status==='danger'?'6,8':r.status==='warn'?'8,4':null}).addTo(mmap);
-  });
-
-  WORLDWIDE_REGIONS.forEach(r => {
-    L.circleMarker(r.coords,{radius:7,fillColor:'#1d4ed8',color:'#fff',weight:1.5,opacity:.8,fillOpacity:.45}).addTo(mmap);
-  });
-
-  window._mobileMap = mmap;
-  mRenderCountries('all');
+  window._mobileMap=mmap;
   mRenderResources();
 }
 
-function mSheetToggle() {
-  _mSheetOpen = !_mSheetOpen;
-  document.getElementById('m-sheet').classList.toggle('open', _mSheetOpen);
+// Mobile map filter (same stat IDs with 'm-' prefix)
+function mFilterMap(type){
+  document.querySelectorAll('.m-stat').forEach(s=>s.classList.remove('active-filter'));
+  const msMap={stranded:'mss-stranded',cancelled:'mss-cancelled',airports:'mss-airports',airspace:'mss-airspace',routes:'mss-routes',help:'mss-help'};
+  if(msMap[type]) document.getElementById(msMap[type])?.classList.add('active-filter');
+  // Visual only on mobile map — pan/zoom based on filter
+  const mm=window._mobileMap; if(!mm)return;
+  if(type==='routes'||type==='airspace'||type==='airports') mm.flyTo([28,46],5,{duration:1});
+  if(type==='worldwide') mm.flyTo([20,40],3,{duration:1.2});
+  if(type==='all') mm.flyTo([28,45],4,{duration:1});
 }
 
-function mSheetOpen(title, contentId) {
-  document.getElementById('m-sheet-title').textContent = title;
-  ['m-countries-content','m-offer-content','m-resources-content'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = id===contentId ? 'block' : 'none';
-  });
-  _mSheetOpen = true;
-  document.getElementById('m-sheet').classList.add('open');
-}
+// Open full-screen country popup
+function openMCountryPopup(id){
+  const c=COUNTRIES.find(x=>x.id===id); if(!c)return;
+  const col=SC[c.status];
+  const acCol=c.airspace==='CLOSED'?'#d72c0d':c.airspace.includes('OPEN')?'#007a5c':'#c47c14';
 
-function mTab(tab, btn) {
-  document.querySelectorAll('.m-tab').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  _mCurrentTab = tab;
-
-  if (tab==='map') {
-    _mSheetOpen = false;
-    document.getElementById('m-sheet').classList.remove('open');
-  } else if (tab==='countries') {
-    mRenderCountries('all');
-    mSheetOpen('Countries & Status','m-countries-content');
-  } else if (tab==='offer') {
-    mSheetOpen('Offer Help','m-offer-content');
-  } else if (tab==='resources') {
-    mRenderResources();
-    mSheetOpen('Resources','m-resources-content');
-  }
-}
-
-function mFilterCountries(f, chip) {
-  document.querySelectorAll('.m-chip').forEach(c => c.classList.remove('active'));
-  chip.classList.add('active');
-  mRenderCountries(f);
-}
-
-function mRenderCountries(filter) {
-  const list = filter==='all' ? COUNTRIES : COUNTRIES.filter(c => c.status===filter);
-  document.getElementById('m-country-list').innerHTML = list.map(c => {
-    const ac = c.airspace==='CLOSED'?'#c13515':c.airspace.includes('OPEN')?'#047857':'#b45309';
-    const embRows = Object.entries(c.embassy).slice(0,4).map(([key,info]) => {
-      const L = EMBASSY_LABELS[key] || {flag:'🏳',name:key.toUpperCase(),role:'Embassy'};
-      const phone = info.phone || info.alt || null;
-      const note  = info.note || '';
-      return `<div class="m-embassy-row">
-        <div class="m-embassy-who">
-          <span class="m-embassy-country">${L.flag} ${L.role}</span>
-          ${note ? `<span class="m-embassy-role">${note}</span>` : ''}
-        </div>
-        ${phone ? `<a class="m-call-btn" href="tel:${phone.replace(/[\s\-()]/g,'')}">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-          Call
-        </a>` : ''}
-      </div>`;
-    }).join('');
-    return `<div class="m-country-card ${c.status}" id="m-card-${c.id}">
-      <div class="m-country-name">${c.name}</div>
-      <div class="m-country-advisory">${c.advisory}</div>
-      <div class="m-airspace-pill" style="background:${ac}18;color:${ac};border:1px solid ${ac}44">✈ ${c.airspace}</div>
-      ${embRows || '<div style="font-size:.75rem;color:var(--muted)">Check embassy website</div>'}
+  const embRows = Object.entries(c.embassy).map(([key,info])=>{
+    const M=EMBASSY_META[key]||{flag:'🏳',role:key.toUpperCase()};
+    const phone=info.phone||info.alt||null;
+    const note=info.note||'';
+    return `<div class="m-emb-row">
+      <div class="m-emb-who">
+        <span class="m-emb-country">${M.flag} ${M.role}</span>
+        ${note?`<span class="m-emb-role">${note}</span>`:''}
+      </div>
+      ${phone?`<a class="m-call-btn" href="tel:${phone.replace(/[\s\-()]/g,'')}">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        Call
+      </a>`:''}
     </div>`;
   }).join('');
+
+  const borderRows=c.borders.map(b=>{
+    const bc=b.status==='safe'?'#007a5c':b.status==='warn'?'#c47c14':'#d72c0d';
+    return `<div class="m-popup-info-row"><span style="color:var(--muted);font-size:.72rem">${b.route}</span><span style="color:${bc};font-weight:600;font-size:.78rem">${b.status.toUpperCase()} — ${b.note}</span></div>`;
+  }).join('');
+
+  document.getElementById('m-popup-title').textContent=c.name;
+  document.getElementById('m-popup-body').innerHTML=`
+    <div class="m-popup-badge" style="background:${col}18;color:${col};border:1px solid ${col}44">${c.status.toUpperCase()}</div>
+    <div class="m-popup-advisory">${c.advisory}</div>
+    <div class="m-popup-info-row"><span style="font-size:.72rem;color:var(--muted)">Airspace</span><span style="color:${acCol};font-weight:700">${c.airspace}</span></div>
+    ${borderRows}
+    <div class="m-popup-section-title">Embassy Emergency Contacts</div>
+    ${embRows||'<div style="font-size:.78rem;color:var(--muted)">Check embassy website</div>'}
+    ${c.ngos?.length?`<div class="m-popup-section-title">Active NGOs</div><div class="ngo-tags">${c.ngos.map(n=>`<span class="ngo-tag">${n}</span>`).join('')}</div>`:''}
+    ${c.telegram?`<a class="telegram-link" href="${c.telegram}" target="_blank">→ Telegram group</a>`:''}
+  `;
+  document.getElementById('m-country-popup').classList.add('open');
 }
 
-function mScrollToCountry(id) {
-  document.getElementById('m-card-'+id)?.scrollIntoView({behavior:'smooth',block:'start'});
+function openMWorldwidePopup(id){
+  const r=WORLDWIDE.find(x=>x.id===id); if(!r)return;
+  document.getElementById('m-popup-title').textContent=r.name;
+  document.getElementById('m-popup-body').innerHTML=`
+    <div class="m-popup-advisory">${r.note}</div>
+    <div class="m-popup-section-title">Emergency Contacts</div>
+    ${r.contacts.map(c=>`<div class="m-popup-info-row"><span style="font-size:.72rem;color:var(--muted)">${c.label}</span><span style="font-weight:600">${c.value}</span></div>`).join('')}
+  `;
+  document.getElementById('m-country-popup').classList.add('open');
 }
 
-function mRenderResources() {
-  const el = document.getElementById('m-resources-content');
-  if (!el) return;
-  el.innerHTML = RESOURCES.map(r => `
-    <div class="m-resource-row">
-      <div><div class="m-resource-name">${r.name}<span class="m-resource-type">${r.type}</span></div></div>
-      <a class="m-resource-go" href="${r.url}" target="_blank">Open →</a>
-    </div>
-  `).join('');
-}
+function closeMPopup(){ document.getElementById('m-country-popup').classList.remove('open'); }
 
-async function mSubmitOffer() {
-  const t = document.getElementById('m-offer-type')?.value;
-  const l = document.getElementById('m-offer-location')?.value;
-  const b = document.getElementById('m-offer-body')?.value;
-  const n = document.getElementById('m-offer-name')?.value;
-  const c = document.getElementById('m-offer-contact')?.value;
-  const x = (document.getElementById('m-offer-xhandle')?.value||'').trim().replace(/^@+/,'');
-  if (!t||!l||!b||!n||!c) { alert('Please fill in all fields.'); return; }
-  const btn = document.querySelector('#m-offer-content .m-submit');
-  btn.textContent='Posting…'; btn.disabled=true;
-  try {
-    const {error} = await _sb.from('help_posts').insert({type:'offer',post_type:t,location:l,body:b,name:n,contact:c,xhandle:x||null,flagged:false});
-    if (error) throw error;
-    ['type','location','body','name','contact','xhandle'].forEach(f => {
-      const el = document.getElementById('m-offer-'+f);
-      if (el) el.tagName==='SELECT'? el.selectedIndex=0 : el.value='';
-    });
-    btn.textContent='✓ Posted!';
-    setTimeout(()=>{btn.textContent='Post Offer';btn.disabled=false;},3000);
-  } catch(e) {
-    alert('Failed: '+e.message);
-    btn.textContent='Post Offer'; btn.disabled=false;
+// Tab bar toggle — click same tab again to close sheet
+function mTab(tab, btn){
+  const sheet=document.getElementById('m-sheet');
+  // If same tab clicked while sheet open → close sheet, go to map
+  if(_mCurrentTab===tab && tab!=='map' && _mSheetOpen){
+    _mSheetOpen=false; sheet.classList.remove('open');
+    _mCurrentTab='map';
+    document.querySelectorAll('.m-tab,.m-tab-offer').forEach(b=>b.classList.remove('active'));
+    document.getElementById('mtab-map').classList.add('active');
+    return;
   }
+  document.querySelectorAll('.m-tab,.m-tab-offer').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  _mCurrentTab=tab;
+
+  if(tab==='map'){
+    _mSheetOpen=false; sheet.classList.remove('open');
+  } else if(tab==='resources'){
+    mShowSheetContent('resources','Resources & Embassies');
+  } else if(tab==='offer'){
+    mShowSheetContent('offer','Offer Help');
+  }
+}
+
+function mShowSheetContent(which, title){
+  document.getElementById('m-resources-content').style.display = which==='resources'?'block':'none';
+  document.getElementById('m-offer-content').style.display     = which==='offer'?'block':'none';
+  document.getElementById('m-sheet-title').textContent = title;
+  _mSheetOpen=true;
+  document.getElementById('m-sheet').classList.add('open');
+  _mSheetContent=which;
+}
+
+function mSheetToggle(){
+  _mSheetOpen=!_mSheetOpen;
+  document.getElementById('m-sheet').classList.toggle('open',_mSheetOpen);
+  if(!_mSheetOpen){
+    _mCurrentTab='map';
+    document.querySelectorAll('.m-tab,.m-tab-offer').forEach(b=>b.classList.remove('active'));
+    document.getElementById('mtab-map').classList.add('active');
+  }
+}
+
+function mRenderResources(){
+  const el=document.getElementById('m-resources-content'); if(!el)return;
+  // Countries section
+  let html='<div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.6rem;margin-top:.25rem">Country Embassies</div>';
+  html+=COUNTRIES.map(c=>`
+    <div class="m-emb-section">
+      <div class="m-emb-country-title" style="color:${SC[c.status]}">${c.name} <span style="font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-left:.4rem;opacity:.7">${c.status}</span></div>
+      ${Object.entries(c.embassy).slice(0,4).map(([key,info])=>{
+        const M=EMBASSY_META[key]||{flag:'🏳',role:key.toUpperCase()};
+        const phone=info.phone||info.alt||null;
+        return `<div class="m-emb-row">
+          <div class="m-emb-who"><span class="m-emb-country">${M.flag} ${M.role}</span>${info.note?`<span class="m-emb-role">${info.note}</span>`:''}</div>
+          ${phone?`<a class="m-call-btn" href="tel:${phone.replace(/[\s\-()]/g,'')}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Call</a>`:''}
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+
+  html+='<div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:.9rem 0 .6rem">NGOs &amp; Info</div>';
+  html+=NGOS.map(r=>`<div class="m-res-row"><div><div class="m-res-name">${r.name}<span class="m-res-type">${r.type}</span></div></div><a class="m-res-go" href="${r.url}" target="_blank">Open →</a></div>`).join('');
+  el.innerHTML=html;
+}
+
+async function mSubmitOffer(){
+  const t=document.getElementById('m-offer-type')?.value, l=document.getElementById('m-offer-location')?.value,
+    b=document.getElementById('m-offer-body')?.value, n=document.getElementById('m-offer-name')?.value,
+    c=document.getElementById('m-offer-contact')?.value, x=(document.getElementById('m-offer-xhandle')?.value||'').trim().replace(/^@+/,'');
+  if(!t||!l||!b||!n||!c){alert('Please fill in all fields.');return;}
+  const btn=document.querySelector('#m-offer-content .m-submit'); btn.textContent='Posting…'; btn.disabled=true;
+  try{
+    const{error}=await _sb.from('help_posts').insert({type:'offer',post_type:t,location:l,body:b,name:n,contact:c,xhandle:x||null,flagged:false});
+    if(error)throw error;
+    ['type','location','body','name','contact','xhandle'].forEach(f=>{const el=document.getElementById('m-offer-'+f);if(el)el.tagName==='SELECT'?el.selectedIndex=0:el.value='';});
+    btn.textContent='✓ Posted!'; setTimeout(()=>{btn.textContent='Post Offer';btn.disabled=false;},3000);
+  }catch(e){alert('Failed: '+e.message);btn.textContent='Post Offer';btn.disabled=false;}
 }
 
 // ============================================================
 // INIT
 // ============================================================
-window.addEventListener('DOMContentLoaded', () => {
-  if (isMobile()) {
-    initMobileShell();
+window.addEventListener('DOMContentLoaded',()=>{
+  if(isMob()){
+    initMobile();
   } else {
     showView('map');
     initMap();
   }
   refreshSitrep();
-  if (SUPABASE_ON) { loadPosts(); subscribeToPostStream(); }
+  setInterval(refreshSitrep, 5*60*1000);
+  if(SB_ON){loadPosts();subscribeStream();}
   else {
-    document.getElementById('offer-posts').innerHTML =
-    document.getElementById('all-offers-list').innerHTML =
-      '<div class="empty-state" style="color:var(--warn)">⚙ Supabase not configured yet. See README → Supabase Setup.</div>';
+    const el=document.getElementById('offer-posts');
+    if(el) el.innerHTML='<div class="empty-state" style="color:var(--warn)">⚙ Supabase not configured. See README.</div>';
   }
 });
-
-window.addEventListener('resize', () => {
-  if (isMobile() && !window._mobileInit) initMobileShell();
-});
+window.addEventListener('resize',()=>{if(isMob()&&!window._mobileInit)initMobile();});
 </script>
 </body>
 </html>
