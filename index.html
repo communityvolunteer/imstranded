@@ -3,1504 +3,569 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gulf Crisis Resource Hub</title>
+<title>I'm Stranded — You're not.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Nunito+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  :root {
-    /* ── Airbnb light base ── */
-    --bg:       #f7f7f7;
-    --bg2:      #efefef;
-    --surface:  #ffffff;
-    --surface2: #f7f7f7;
-    --border:   #dddddd;        /* Airbnb's signature thin gray */
-    --border2:  #b0b0b0;
-
-    /* ── Text — Airbnb charcoal ── */
-    --text:     #222222;
-    --text2:    #484848;
-    --muted:    #717171;
-
-    /* ── Airbnb coral — THE brand signal ── */
-    --coral:        #ff385c;
-    --coral-dark:   #e31c5f;
-    --coral-soft:   #fff1f3;
-    --coral-border: rgba(255,56,92,0.2);
-
-    /* ── All accent/primary/gold vars → coral so nothing breaks ── */
-    --accent:        #ff385c;
-    --accent-soft:   #fff1f3;
-    --accent2:       #e31c5f;
-    --accent2-soft:  #fce4ec;
-    --primary:       #ff385c;
-    --primary-mid:   #e31c5f;
-    --primary-light: #ff6b81;
-    --primary-soft:  #fff1f3;
-    --gold:          #ff385c;
-    --gold-dim:      #e31c5f;
-    --gold-soft:     #fff1f3;
-    --gold-border:   rgba(255,56,92,0.2);
-
-    /* ── Status colors — vivid but warm, work on white ── */
-    --safe:       #008a05;
-    --safe-soft:  #eef7ee;
-    --warn:       #c45f00;
-    --warn-soft:  #fef3e8;
-    --danger:     #c13515;
-    --danger-soft:#fdf1ee;
-    --info:       #0066cc;
-    --info-soft:  #e8f0fb;
-
-    /* ── Typography — Nunito = closest free Airbnb Cereal ── */
-    --display: 'Nunito', sans-serif;
-    --mono:    'Nunito Sans', sans-serif;
-    --sans:    'Nunito Sans', sans-serif;
-
-    /* ── Shape — Airbnb's generous radius ── */
-    --radius:    12px;
-    --radius-sm: 8px;
-    --shadow:    0 2px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
-    --shadow-lg: 0 6px 32px rgba(0,0,0,0.12);
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Nunito Sans', sans-serif;
-    font-weight: 400;
-    line-height: 1.65;
-    min-height: 100vh;
-  }
-
-  /* HEADER — Airbnb light: white bg, coral underline, gradient pill */
-  header {
-    border-bottom: 1px solid var(--border);
-    padding: 0 2rem;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    background: #ffffff;
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    height: 64px;
-    box-shadow: 0 1px 0 var(--border);
-  }
-
-  .logo {
-    font-family: 'Nunito', sans-serif;
-    font-size: 1rem;
-    font-weight: 800;
-    letter-spacing: -0.01em;
-    text-transform: none;
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    white-space: nowrap;
-    justify-self: start;
-  }
-
-  .logo span { color: var(--coral); }
-
-  .pulse-dot {
-    width: 8px; height: 8px;
-    background: var(--coral);
-    border-radius: 50%;
-    animation: pulse 2s infinite;
-    flex-shrink: 0;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(255,56,92,0.5); }
-    50%       { opacity: 0.8; transform: scale(0.85); box-shadow: 0 0 0 5px rgba(255,56,92,0); }
-  }
-
-  nav {
-    display: flex;
-    gap: 0;
-    justify-self: center;
-  }
-
-  nav button {
-    background: none;
-    border: none;
-    border-bottom: 2px solid transparent;
-    color: var(--muted);
-    font-family: 'Nunito Sans', sans-serif;
-    font-size: 0.88rem;
-    font-weight: 600;
-    letter-spacing: 0;
-    text-transform: none;
-    padding: 0 1.25rem;
-    cursor: pointer;
-    transition: all 0.15s;
-    height: 64px;
-    margin-bottom: -1px;
-    white-space: nowrap;
-  }
-
-  nav button.active {
-    color: var(--text);
-    border-bottom-color: var(--coral);
-  }
-
-  nav button:hover:not(.active) { color: var(--text); }
-
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    justify-self: end;
-  }
-
-  .last-updated {
-    font-size: 0.72rem;
-    color: var(--muted);
-    font-family: 'Nunito Sans', sans-serif;
-    white-space: nowrap;
-  }
-
-  /* Airbnb gradient pill button */
-  .cta-pill {
-    background: linear-gradient(to right, #e61e4d, #e31c5f, #d70466);
-    color: #222222;
-    border: none;
-    border-radius: 999px;
-    padding: 0.6rem 1.25rem;
-    font-family: 'Nunito Sans', sans-serif;
-    font-size: 0.82rem;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    white-space: nowrap;
-    transition: opacity 0.15s, transform 0.1s;
-    flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(227,28,95,0.25);
-    letter-spacing: 0;
-    text-transform: none;
-  }
-
-  .cta-pill:hover { opacity: 0.9; transform: scale(1.02); }
-  .cta-pill .heart { font-size: 0.9rem; }
-
-  /* ALERT BANNER — coral on warm white */
-  .alert-banner {
-    background: #ffffff;
-    border-bottom: 1px solid var(--border);
-    padding: 0.5rem 2rem;
-    font-size: 0.78rem;
-    color: var(--text2);
-    font-family: 'Nunito Sans', sans-serif;
-    letter-spacing: 0;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    overflow: hidden;
-  }
-
-  .alert-label {
-    background: var(--coral);
-    color: #222222;
-    font-weight: 700;
-    padding: 0.18rem 0.6rem;
-    border-radius: 4px;
-    font-size: 0.65rem;
-    letter-spacing: 0.04em;
-    flex-shrink: 0;
-  }
-
-  .ticker-wrap { overflow: hidden; flex: 1; }
-
-  .ticker {
-    display: inline-block;
-    white-space: nowrap;
-    animation: ticker 50s linear infinite;
-    font-weight: 500;
-  }
-
-  @keyframes ticker {
-    0% { transform: translateX(100vw); }
-    100% { transform: translateX(-100%); }
-  }
-
-  /* LAYOUT */
-  .container { max-width: 1400px; margin: 0 auto; padding: 0 2rem; }
-  .view { display: none; }
-  .view.active { display: block; }
-
-  /* MAP */
-  #map-view { height: calc(100vh - 108px); position: relative; }
-  #crisis-map { height: 100%; width: 100%; }
-
-  .map-legend {
-    position: absolute;
-    bottom: 2rem;
-    left: 2rem;
-    z-index: 999;
-    background: rgba(255,255,255,0.96);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1rem 1.25rem;
-    font-size: 0.75rem;
-    box-shadow: var(--shadow);
-    backdrop-filter: blur(8px);
-  }
-
-  .legend-title {
-    color: var(--coral);
-    margin-bottom: 0.6rem;
-    font-size: 0.62rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    font-weight: 700;
-    font-family: 'Nunito Sans', sans-serif;
-  }
-
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    margin-bottom: 0.3rem;
-    color: var(--text2);
-    font-size: 0.74rem;
-    font-family: 'Nunito Sans', sans-serif;
-  }
-
-  .legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-
-  /* SITREP BAR — warm white, coral numbers */
-  .sitrep-bar {
-    background: #ffffff;
-    border-bottom: 1px solid var(--border);
-    padding: 0 2rem;
-    display: flex;
-    gap: 0;
-    overflow-x: auto;
-    scrollbar-width: none;
-    box-shadow: 0 1px 0 var(--border);
-  }
-  .sitrep-bar::-webkit-scrollbar { display: none; }
-
-  .sitrep-stat {
-    flex: 1;
-    min-width: 140px;
-    padding: 1rem 1.5rem;
-    border-right: 1px solid var(--border);
-    text-align: center;
-  }
-  .sitrep-stat:last-child { border-right: none; }
-
-  .sitrep-number {
-    font-family: 'Nunito', sans-serif;
-    font-size: 2.2rem;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    line-height: 1;
-    margin-bottom: 0.2rem;
-    color: var(--coral);
-  }
-
-  .sitrep-label {
-    font-family: 'Nunito Sans', sans-serif;
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--muted);
-  }
-
-  .sitrep-sublabel {
-    font-size: 0.6rem;
-    color: var(--muted);
-    opacity: 0.7;
-    margin-top: 0.1rem;
-    font-family: 'Nunito Sans', sans-serif;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  .sitrep-number.danger { color: var(--danger); }
-  .sitrep-number.warn   { color: var(--warn); }
-  .sitrep-number.safe   { color: var(--safe); }
-  .sitrep-number.info   { color: var(--info); }
-
-  .sitrep-refresh {
-    display: flex;
-    align-items: center;
-    padding: 0 1.25rem;
-    font-size: 0.72rem;
-    color: var(--muted);
-    gap: 0.4rem;
-    white-space: nowrap;
-    cursor: pointer;
-    border: none;
-    background: none;
-    font-family: 'Nunito Sans', sans-serif;
-    font-weight: 600;
-    transition: color 0.2s;
-  }
-  .sitrep-refresh:hover { color: var(--coral); }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .spinning { animation: spin 1s linear infinite; display: inline-block; }
-
-  /* COUNTRIES */
-  #countries-view { padding: 2.5rem 0; }
-
-  .section-header { margin-bottom: 1.5rem; }
-
-  .section-title {
-    font-family: 'Nunito', sans-serif;
-    font-size: 2.2rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: #222222;
-    margin-bottom: 0.2rem;
-  }
-
-  .section-subtitle {
-    font-size: 0.82rem;
-    color: #717171;
-    font-family: 'Nunito Sans', sans-serif;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-
-  .filter-bar {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 2rem;
-    flex-wrap: wrap;
-  }
-
-  .filter-btn {
-    background: transparent;
-    border: 1px solid #dddddd;
-    color: #717171;
-    font-family: 'Nunito Sans', sans-serif;
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 0.4rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .filter-btn.active, .filter-btn:hover {
-    border-color: #ff385c;
-    color: #ff385c;
-    background: var(--gold-soft);
-  }
-
-  .countries-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-    gap: 1.25rem;
-  }
-
-  .country-card {
-    background: #f7f7f7;
-    border: 1px solid #dddddd;
-    border-top: 3px solid #dddddd;
-    border-radius: 4px;
-    padding: 1.5rem;
-    transition: all 0.2s;
-    box-shadow: var(--shadow);
-  }
-
-  .country-card:hover {
-    border-top-color: #ff385c;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.5), 0 0 0 1px var(--gold-border);
-    transform: translateY(-2px);
-  }
-
-  .country-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
-  }
-
-  .country-name {
-    font-family: 'Nunito', sans-serif;
-    font-size: 1.3rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: #222222;
-  }
-
-  .status-badge {
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 0.25rem 0.65rem;
-    border-radius: 20px;
-    flex-shrink: 0;
-  }
-
-  .status-danger { color: #c13515; background: var(--danger-soft); }
-  .status-warn   { color: var(--warn);   background: var(--warn-soft); }
-  .status-safe   { color: var(--safe);   background: var(--safe-soft); }
-
-  .info-row {
-    display: flex;
-    gap: 0.75rem;
-    margin-bottom: 0.5rem;
-    font-size: 0.82rem;
-    align-items: flex-start;
-  }
-
-  .info-label {
-    font-size: 0.65rem;
-    font-weight: 700;
-    color: #717171;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    min-width: 76px;
-    padding-top: 0.1rem;
-    flex-shrink: 0;
-  }
-
-  .info-value { color: #717171; flex: 1; line-height: 1.5; }
-  .info-value a { color: var(--info); text-decoration: none; font-weight: 500; }
-  .info-value a:hover { text-decoration: underline; }
-
-  .route-list { list-style: none; }
-  .route-list li {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.5rem;
-    font-size: 0.8rem;
-    margin-bottom: 0.3rem;
-    color: #717171;
-    line-height: 1.45;
-  }
-
-  .route-icon { font-size: 0.85rem; flex-shrink: 0; margin-top: 0.1rem; }
-
-  .ngos-section {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border);
-  }
-
-  .ngos-label {
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #717171;
-    margin-bottom: 0.5rem;
-  }
-
-  .ngo-tag {
-    display: inline-block;
-    background: var(--info-soft);
-    color: var(--info);
-    font-size: 0.7rem;
-    font-weight: 500;
-    padding: 0.2rem 0.55rem;
-    border-radius: 6px;
-    margin: 0.15rem;
-  }
-
-  /* HELP BOARD */
-  #help-view { padding: 2.5rem 0; }
-
-  .help-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-  }
-
-  @media (max-width: 768px) {
-    .help-grid { grid-template-columns: 1fr; }
-    nav button { padding: 0.4rem 0.6rem; font-size: 0.75rem; }
-    .countries-grid { grid-template-columns: 1fr; }
-    .sitrep-stat { min-width: 130px; }
-  }
-
-  /* ============================================================
-     MOBILE LAYOUT — full override below 600px
-     Separate UX: map-first, bottom sheet, native tab bar
-     ============================================================ */
-  @media (max-width: 600px) {
-
-    /* Hide desktop chrome entirely */
-    header, .alert-banner, .sitrep-bar { display: none !important; }
-
-    /* Body takes full viewport */
-    body { background: #f7f7f7; overflow: hidden; height: 100dvh; }
-
-    /* All desktop views hidden */
-    .view { display: none !important; padding: 0 !important; }
-
-    /* ── Mobile shell ── */
-    #mobile-shell {
-      display: flex;
-      flex-direction: column;
-      height: 100dvh;
-      position: relative;
-    }
-
-    /* ── Map fills everything ── */
-    #mobile-map-container {
-      flex: 1;
-      position: relative;
-      overflow: hidden;
-    }
-
-    #mobile-crisis-map {
-      width: 100%;
-      height: 100%;
-    }
-
-    /* ── Top status bar ── */
-    #mobile-topbar {
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      z-index: 800;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.75rem 1rem;
-      background: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, transparent 100%);
-    }
-
-    #mobile-logo {
-      font-family: 'Nunito', sans-serif;
-      font-size: 1rem;
-      letter-spacing: 0.1em;
-      color: #222222;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    #mobile-logo span { color: #ff385c; }  /* gold — strict PP */
-
-    #mobile-live-badge {
-      background: #c13515;   /* danger orange — not pink */
-      color: #222222;
-      font-family: 'Nunito Sans', sans-serif;
-      font-size: 0.6rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      padding: 0.2rem 0.5rem;
-      border-radius: 3px;
-      animation: livepulse 2s infinite;
-    }
-
-    @keyframes livepulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.6; }
-    }
-
-    /* ── Stranded counter pill ── */
-    #mobile-counter {
-      position: absolute;
-      top: 3.5rem;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 800;
-      background: rgba(255,255,255,0.92);
-      border: 1px solid rgba(245,197,24,0.25);
-      border-radius: 999px;
-      padding: 0.35rem 1.2rem;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      backdrop-filter: blur(8px);
-      white-space: nowrap;
-    }
-
-    .m-counter-stat { text-align: center; }
-
-    .m-counter-num {
-      font-family: 'Nunito', sans-serif;
-      font-size: 1.1rem;
-      letter-spacing: 0.04em;
-      line-height: 1;
-      color: #ff385c;   /* gold default */
-    }
-
-    .m-counter-num.danger { color: #c13515; }
-    .m-counter-num.safe   { color: #22c55e; }
-
-    .m-counter-label {
-      font-family: 'Nunito Sans', sans-serif;
-      font-size: 0.48rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: #717171;
-    }
-
-    .m-counter-div {
-      width: 1px;
-      height: 24px;
-      background: #2e2e2e;
-    }
-
-    /* ── Map search bar ── */
-    #mobile-search-bar {
-      position: absolute;
-      bottom: 220px;
-      left: 1rem; right: 1rem;
-      z-index: 800;
-      display: flex;
-      gap: 0.4rem;
-    }
-
-    #mobile-search-input {
-      flex: 1;
-      background: rgba(255,255,255,0.92);
-      border: 1px solid #dddddd;
-      border-radius: 6px;
-      padding: 0.6rem 0.9rem;
-      font-family: 'Nunito Sans', sans-serif;
-      font-size: 0.9rem;
-      color: #222222;
-      outline: none;
-      backdrop-filter: blur(8px);
-    }
-
-    #mobile-search-input::placeholder { color: #717171; }
-
-    #mobile-search-btn {
-      background: #ff385c;
-      color: #222222;
-      border: none;
-      border-radius: 6px;
-      padding: 0 0.9rem;
-      font-family: 'Nunito Sans', sans-serif;
-      font-size: 0.7rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      cursor: pointer;
-    }
-
-    #mobile-locate-btn {
-      background: rgba(255,255,255,0.92);
-      border: 1px solid #dddddd;
-      border-radius: 6px;
-      padding: 0 0.75rem;
-      font-size: 1.1rem;
-      cursor: pointer;
-      backdrop-filter: blur(8px);
-    }
-
-    /* ── PANIC BUTTON ── */
-    #mobile-panic-btn {
-      position: absolute;
-      bottom: 145px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 810;
-      background: #c13515;
-      color: #222222;
-      border: none;
-      border-radius: 999px;
-      padding: 0.9rem 2.5rem;
-      font-family: 'Nunito', sans-serif;
-      font-size: 1.3rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      cursor: pointer;
-      box-shadow: 0 0 0 4px rgba(255,87,34,0.3), 0 8px 24px rgba(255,87,34,0.5);
-      white-space: nowrap;
-      animation: panicglow 3s infinite;
-    }
-
-    @keyframes panicglow {
-      0%, 100% { box-shadow: 0 0 0 4px rgba(255,87,34,0.3), 0 8px 24px rgba(255,87,34,0.4); }
-      50%       { box-shadow: 0 0 0 8px rgba(255,87,34,0.15), 0 8px 32px rgba(255,87,34,0.6); }
-    }
-
-    /* ── Bottom tab bar ── */
-    #mobile-tabbar {
-      display: flex;
-      background: #ffffff;
-      border-top: 1px solid #dddddd;
-      height: 68px;
-      padding-bottom: env(safe-area-inset-bottom);
-      flex-shrink: 0;
-    }
-
-    .m-tab {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 0.3rem;
-      background: none;
-      border: none;
-      color: #717171;    /* muted gray on black */
-      cursor: pointer;
-      transition: color 0.15s;
-      padding: 0.5rem 0;
-      font-family: 'Nunito Sans', sans-serif;
-      font-size: 0.55rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      border-top: 2px solid transparent;
-    }
-
-    .m-tab.active {
-      color: #ff385c;               /* PP gold */
-      border-top-color: #ff385c;
-    }
-
-    .m-tab:hover:not(.active) { color: #222222; }
-
-    .m-tab-icon { font-size: 1.2rem; line-height: 1; }
-
-    /* ── Bottom sheet ── */
-    #mobile-sheet {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      z-index: 900;
-      background: #ffffff;
-      border-top: 1px solid #dddddd;
-      border-radius: 16px 16px 0 0;
-      transform: translateY(calc(100% - 68px));
-      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-      max-height: 82dvh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    #mobile-sheet.open { transform: translateY(0); }
-    #mobile-sheet.peek { transform: translateY(calc(100% - 140px)); }
-
-    #sheet-handle-area {
-      padding: 0.75rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
-      flex-shrink: 0;
-      cursor: pointer;
-    }
-
-    #sheet-handle {
-      width: 36px;
-      height: 4px;
-      background: #333333;
-      border-radius: 2px;
-    }
-
-    #sheet-title {
-      font-family: 'Nunito', sans-serif;
-      font-size: 1rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: #222222;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    #sheet-content {
-      overflow-y: auto;
-      flex: 1;
-      padding: 0 1rem 1rem;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    /* ── Panic form (sheet content) ── */
-    #panic-form { display: block; }
-    #country-sheet { display: none; }
-    #resources-sheet { display: none; }
-    #help-sheet { display: none; }
-
-    .m-form-label {
-      font-family: 'Nunito Sans', sans-serif;
-      font-size: 0.65rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: #666666;
-      margin-bottom: 0.4rem;
-      display: block;
-    }
-
-    .m-form-row { margin-bottom: 1rem; }
-
-    .m-form-row input,
-    .m-form-row select,
-    .m-form-row textarea {
-      width: 100%;
-      background: #f7f7f7;
-      border: 1px solid #dddddd;
-      color: #222222;
-      font-family: 'Nunito Sans', sans-serif;
-      font-size: 1rem;
-      padding: 0.75rem 1rem;
-      border-radius: 4px;
-      outline: none;
-      -webkit-appearance: none;
-    }
-
-    .m-form-row input:focus,
-    .m-form-row select:focus,
-    .m-form-row textarea:focus {
-      border-color: #ff385c;
-      box-shadow: 0 0 0 2px rgba(255,56,92,0.15);
-    }
-
-    .m-form-row textarea { min-height: 80px; resize: none; }
-
-    .m-submit {
-      width: 100%;
-      background: #c13515;
-      color: #222222;
-      border: none;
-      border-radius: 4px;
-      padding: 1rem;
-      font-family: 'Nunito', sans-serif;
-      font-size: 1.2rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      cursor: pointer;
-      margin-top: 0.5rem;
-    }
-
-    .m-submit:active { filter: brightness(0.85); }
-
-    /* ── Country cards in sheet ── */
-    .m-country-card {
-      background: #f7f7f7;
-      border: 1px solid #dddddd;
-      border-top: 3px solid #dddddd;
-      border-radius: 4px;
-      padding: 1rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .m-country-card.danger { border-top-color: #c13515; }
-    .m-country-card.warn   { border-top-color: #ff385c; }
-    .m-country-card.safe   { border-top-color: #22c55e; }
-
-    .m-country-name {
-      font-family: 'Nunito', sans-serif;
-      font-size: 1.15rem;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      margin-bottom: 0.3rem;
-    }
-
-    .m-country-advisory {
-      font-size: 0.82rem;
-      color: #717171;
-      line-height: 1.5;
-      margin-bottom: 0.75rem;
-    }
-
-    .m-airspace-badge {
-      display: inline-block;
-      font-family: 'Nunito Sans', sans-serif;
-      font-size: 0.62rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      padding: 0.25rem 0.6rem;
-      border-radius: 3px;
-      margin-bottom: 0.75rem;
-    }
-
-    .m-embassy-list { margin-bottom: 0.75rem; }
-
-    .m-embassy-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.5rem 0;
-      border-bottom: 1px solid #2e2e2e;
-    }
-
-    .m-embassy-item:last-child { border-bottom: none; }
-
-    .m-embassy-flag { font-size: 0.9rem; }
-
-    .m-embassy-name {
-      font-family: 'Nunito Sans', sans-serif;
-      font-size: 0.65rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: #717171;
-      flex: 1;
-      padding: 0 0.5rem;
-    }
-
-    .m-call-btn {
-      background: #ff385c;
-      color: #222222;
-      border: none;
-      border-radius: 4px;
-      padding: 0.35rem 0.75rem;
-      font-family: 'Nunito Sans', sans-serif;
-      font-size: 0.68rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-decoration: none;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    .m-call-btn.danger-call {
-      background: #c13515;
-      color: #222222;
-    }
-
-    /* ── Resource rows in sheet ── */
-    .m-resource-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.85rem 0;
-      border-bottom: 1px solid #2e2e2e;
-      gap: 0.75rem;
-    }
-
-    .m-resource-row:last-child { border-bottom: none; }
-
-    .m-resource-name {
-      font-family: 'Nunito Sans', sans-serif;
-      font-size: 0.78rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: #222222;
-      flex: 1;
-    }
-
-    .m-resource-tag {
-      font-size: 0.6rem;
-      color: #717171;
-      font-family: 'Nunito Sans', sans-serif;
-      letter-spacing: 0.06em;
-    }
-
-    .m-resource-go {
-      background: none;
-      border: 1px solid #dddddd;
-      color: #ff385c;
-      border-radius: 4px;
-      padding: 0.3rem 0.6rem;
-      font-family: 'Nunito Sans', sans-serif;
-      font-size: 0.65rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-decoration: none;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    /* ── Help posts in sheet ── */
-    .m-post-card {
-      background: #f7f7f7;
-      border: 1px solid #dddddd;
-      border-left: 4px solid;
-      border-radius: 4px;
-      padding: 0.9rem 1rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .m-post-card.offer { border-left-color: #ff385c; }
-    .m-post-card.need  { border-left-color: #c13515; }
-
-    .m-post-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.4rem;
-    }
-
-    .m-post-type {
-      font-family: 'Nunito Sans', sans-serif;
-      font-size: 0.6rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-
-    .m-post-type.offer { color: #ff385c; }
-    .m-post-type.need  { color: #c13515; }
-
-    .m-post-time { font-size: 0.65rem; color: #717171; }
-
-    .m-post-location {
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: #717171;
-      margin-bottom: 0.3rem;
-      font-family: 'Nunito Sans', sans-serif;
-      letter-spacing: 0.03em;
-    }
-
-    .m-post-body {
-      font-size: 0.85rem;
-      color: #717171;
-      line-height: 1.5;
-      margin-bottom: 0.6rem;
-    }
-
-    .m-post-footer {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    .m-contact-link {
-      font-size: 0.7rem;
-      color: #ff385c;
-      font-family: 'Nunito Sans', sans-serif;
-      letter-spacing: 0.04em;
-      text-decoration: none;
-    }
-
-    .m-tip-btn {
-      background: #ff385c;
-      color: #222222;
-      border: none;
-      border-radius: 3px;
-      padding: 0.2rem 0.5rem;
-      font-family: 'Nunito Sans', sans-serif;
-      font-size: 0.6rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      text-decoration: none;
-      margin-left: auto;
-    }
-
-    /* ── Offer help button (not panic) ── */
-    #mobile-offer-btn {
-      position: absolute;
-      bottom: 155px;
-      right: 1rem;
-      z-index: 810;
-      background: #ff385c;
-      color: #222222;
-      border: none;
-      border-radius: 6px;
-      padding: 0.6rem 1rem;
-      font-family: 'Nunito Sans', sans-serif;
-      font-size: 0.62rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      cursor: pointer;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-    }
-
-    /* ── Filter chips ── */
-    .m-filter-chips {
-      display: flex;
-      gap: 0.4rem;
-      overflow-x: auto;
-      scrollbar-width: none;
-      padding-bottom: 0.5rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .m-filter-chips::-webkit-scrollbar { display: none; }
-
-    .m-chip {
-      background: #f7f7f7;
-      border: 1px solid #dddddd;
-      color: #666666;
-      font-family: 'Nunito Sans', sans-serif;
-      font-size: 0.6rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      padding: 0.35rem 0.75rem;
-      border-radius: 999px;
-      white-space: nowrap;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-
-    .m-chip.active {
-      background: rgba(255,56,92,0.08);
-      border-color: #ff385c;
-      color: #ff385c;
-    }
-
-    .m-call-btn {
-      background: #ff385c;
-      color: #222222;
-      border: none;
-      border-radius: 4px;
-      padding: 0.35rem 0.75rem;
-      font-family: 'Nunito Sans', sans-serif;
-      font-size: 0.68rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-decoration: none;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    .m-call-btn.danger-call {
-      background: #c13515;
-      color: #222222;
-    }
-
-    .m-resource-go {
-      background: none;
-      border: 1px solid #dddddd;
-      color: #ff385c;
-      border-radius: 4px;
-      padding: 0.3rem 0.6rem;
-      font-family: 'Nunito Sans', sans-serif;
-      font-size: 0.65rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-decoration: none;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    .m-tip-btn {
-      background: #ff385c;
-      color: #222222;
-      border: none;
-      border-radius: 3px;
-      padding: 0.2rem 0.5rem;
-      font-family: 'Nunito Sans', sans-serif;
-      font-size: 0.6rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      text-decoration: none;
-      margin-left: auto;
-    }
-
-  } /* end @media mobile */
-
-  .column-header {
-    font-family: 'Nunito Sans', sans-serif;
-    font-size: 1.1rem;
-    font-weight: 600;
-    padding: 1rem 1.25rem;
-    margin-bottom: 1.25rem;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-  }
-
-  .column-offer { background: var(--surface2); color: #ff385c;   border-left: 3px solid var(--gold);   border-bottom: 1px solid var(--gold-border); }
-  .column-need  { background: var(--surface2); color: #c13515; border-left: 3px solid var(--danger); border-bottom: 1px solid rgba(255,87,34,0.2); }
-
-  .post-form {
-    background: #f7f7f7;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    box-shadow: var(--shadow);
-  }
-
-  .form-title {
-    font-family: 'Nunito Sans', sans-serif;
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: #222222;
-    margin-bottom: 0.75rem;
-  }
-
-  .form-row { margin-bottom: 0.9rem; }
-
-  .form-row label {
-    display: block;
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: #717171;
-    margin-bottom: 0.35rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .form-row input,
-  .form-row textarea,
-  .form-row select {
-    width: 100%;
-    background: var(--bg);
-    border: 1.5px solid var(--border);
-    border-radius: 4px;
-    color: #222222;
-    font-family: 'Nunito Sans', sans-serif;
-    font-size: 0.88rem;
-    padding: 0.6rem 0.9rem;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    appearance: none;
-  }
-
-  .form-row input:focus,
-  .form-row textarea:focus,
-  .form-row select:focus {
-    border-color: #ff385c;
-    box-shadow: 0 0 0 2px var(--gold-soft);
-  }
-
-  .form-row textarea { resize: vertical; min-height: 90px; }
-
-  .form-note {
-    font-size: 0.78rem;
-    color: #717171;
-    margin-bottom: 1rem;
-    line-height: 1.6;
-    background: var(--surface2);
-    border-radius: 4px;
-    padding: 0.65rem 0.9rem;
-    border-left: 3px solid var(--gold);
-  }
-
-  .form-note strong { color: #ff385c; }
-
-  /* Offer = gold bordered (you're the helper — structured)
-     Need  = orange solid (crisis — urgent) */
-  .submit-btn {
-    background: #ff385c;
-    color: #222222;
-    border: none;
-    border-radius: 4px;
-    font-family: 'Nunito', sans-serif;
-    font-size: 1rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 0.75rem 1.5rem;
-    cursor: pointer;
-    transition: all 0.15s;
-    width: 100%;
-  }
-
-  .submit-btn:hover { background: var(--gold-dim); }
-  .submit-btn.need {
-    background: #c13515;
-    color: #222222;
-  }
-  .submit-btn.need:hover { background: #e04019; }
-
-  .posts-list { display: flex; flex-direction: column; gap: 0.9rem; }
-
-  .post-card {
-    background: #f7f7f7;
-    border: 1.5px solid var(--border);
-    border-left: 4px solid;
-    border-radius: 4px;
-    padding: 1.1rem 1.25rem;
-    transition: all 0.2s;
-    box-shadow: var(--shadow);
-  }
-
-  .post-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
-  .post-card.offer { border-left-color: var(--safe); }
-  .post-card.need  { border-left-color: #c13515; }
-
-  .post-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-  }
-
-  .post-type {
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    padding: 0.2rem 0.55rem;
-    border-radius: 20px;
-  }
-
-  .post-type.offer { color: var(--safe); background: var(--safe-soft); }
-  .post-type.need  { color: #c13515; background: var(--danger-soft); }
-
-  .post-time { font-size: 0.7rem; color: #717171; }
-
-  .post-location {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--accent2);
-    margin-bottom: 0.4rem;
-  }
-
-  .post-body {
-    font-size: 0.85rem;
-    color: #717171;
-    margin-bottom: 0.85rem;
-    line-height: 1.55;
-  }
-
-  .post-contact {
-    font-size: 0.72rem;
-    color: #717171;
-    padding-top: 0.6rem;
-    border-top: 1px solid var(--border);
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-
-  .contact-item { display: flex; align-items: center; gap: 0.3rem; }
-  .contact-item a { color: var(--info); text-decoration: none; font-weight: 500; }
-  .contact-item a:hover { text-decoration: underline; }
-
-  /* RESOURCES */
-  #resources-view { padding: 2.5rem 0; }
-
-  .resources-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2rem;
-  }
-
-  .resource-card {
-    background: #f7f7f7;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.25rem;
-    transition: all 0.2s;
-    box-shadow: var(--shadow);
-  }
-
-  .resource-card:hover {
-    border-color: var(--border2);
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-1px);
-  }
-
-  .resource-type {
-    font-size: 0.62rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: #717171;
-    margin-bottom: 0.4rem;
-  }
-
-  .resource-name {
-    font-family: 'Nunito Sans', sans-serif;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #222222;
-    margin-bottom: 0.4rem;
-  }
-
-  .resource-desc {
-    font-size: 0.8rem;
-    color: #717171;
-    margin-bottom: 0.85rem;
-    line-height: 1.55;
-  }
-
-  .resource-link {
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: var(--info);
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-  }
-
-  .resource-link:hover { text-decoration: underline; }
-
-  /* EMPTY STATE */
-  .empty-state {
-    text-align: center;
-    padding: 3rem;
-    color: #717171;
-    font-size: 0.85rem;
-    border: 2px dashed var(--border);
-    border-radius: var(--radius);
-    background: var(--bg2);
-  }
-
-  /* MODAL */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(17,19,24,0.5);
-    z-index: 9999;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(4px);
-  }
-
-  .modal-overlay.open { display: flex; }
-
-  .modal {
-    background: #f7f7f7;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 2rem;
-    max-width: 500px;
-    width: 90%;
-    position: relative;
-    box-shadow: var(--shadow-lg);
-  }
-
-  .modal-title {
-    font-family: 'Nunito Sans', sans-serif;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #ff385c;
-    margin-bottom: 1rem;
-    position: absolute;
-    top: 1rem; right: 1rem;
-    background: var(--bg2);
-    border: none;
-    border-radius: 50%;
-    color: #717171;
-    font-size: 1rem;
-    width: 28px; height: 28px;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.2s;
-  }
-
-  .modal-close:hover { background: var(--border); color: #222222; }
-
-  /* Leaflet overrides */
-  .leaflet-container { background: #e8e0d8 !important; }
-  .leaflet-popup-content-wrapper {
-    background: #ffffff !important;
-    border: 1px solid var(--border) !important;
-    color: var(--text) !important;
-    border-radius: var(--radius) !important;
-    box-shadow: var(--shadow-lg) !important;
-    font-family: 'Nunito Sans', sans-serif !important;
-  }
-  .leaflet-popup-tip { background: #ffffff !important; }
-  .leaflet-popup-content { margin: 1rem !important; }
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root {
+  --bg:       #f7f7f7;
+  --surface:  #ffffff;
+  --border:   #e5e5e5;
+  --text:     #1a1a1a;
+  --text2:    #444444;
+  --muted:    #767676;
+
+  --coral:       #ff385c;
+  --coral-dark:  #e31c5f;
+  --coral-soft:  #fff1f3;
+
+  --danger:      #c13515;
+  --danger-soft: #fdf1ee;
+  --warn:        #b45309;
+  --warn-soft:   #fffbeb;
+  --safe:        #047857;
+  --safe-soft:   #ecfdf5;
+  --info:        #1d4ed8;
+  --info-soft:   #eff6ff;
+  --green:       #059669;   /* help posts */
+  --green-soft:  #ecfdf5;
+
+  --radius:    12px;
+  --radius-sm: 8px;
+  --shadow:    0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.10);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  font-family: 'Inter', sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body { background:var(--bg); color:var(--text); line-height:1.6; min-height:100vh; }
+
+/* ── HEADER ─────────────────────────────────────────────── */
+header {
+  background:#fff;
+  border-bottom:1px solid var(--border);
+  position:sticky; top:0; z-index:1000;
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+  height:60px;
+  padding:0 1.5rem;
+  box-shadow:0 1px 0 var(--border);
+}
+
+.logo {
+  font-size:0.95rem; font-weight:700; color:var(--text);
+  display:flex; align-items:center; gap:0.5rem;
+  justify-self:start; white-space:nowrap;
+}
+.logo span { color:var(--coral); }
+
+.pulse-dot {
+  width:8px; height:8px; border-radius:50%;
+  background:var(--coral);
+  animation:pulse 2s infinite; flex-shrink:0;
+}
+@keyframes pulse {
+  0%,100% { transform:scale(1); box-shadow:0 0 0 0 rgba(255,56,92,.4); }
+  50%      { transform:scale(.85); box-shadow:0 0 0 5px rgba(255,56,92,0); }
+}
+
+nav { display:flex; justify-self:center; }
+nav button {
+  background:none; border:none; border-bottom:2px solid transparent;
+  color:var(--muted); font-family:'Inter',sans-serif;
+  font-size:.85rem; font-weight:500;
+  padding:0 1.1rem; height:60px; margin-bottom:-1px;
+  cursor:pointer; transition:all .15s; white-space:nowrap;
+}
+nav button.active  { color:var(--text); border-bottom-color:var(--coral); }
+nav button:hover:not(.active) { color:var(--text); }
+
+.header-right { display:flex; align-items:center; gap:.85rem; justify-self:end; }
+.last-updated  { font-size:.7rem; color:var(--muted); white-space:nowrap; }
+
+.cta-pill {
+  background:linear-gradient(135deg,#e61e4d,#e31c5f,#d70466);
+  color:#fff; border:none; border-radius:999px;
+  padding:.5rem 1.1rem;
+  font-family:'Inter',sans-serif; font-size:.82rem; font-weight:600;
+  cursor:pointer; display:flex; align-items:center; gap:.35rem;
+  white-space:nowrap; transition:opacity .15s, transform .1s;
+  box-shadow:0 2px 8px rgba(227,28,95,.25);
+}
+.cta-pill:hover { opacity:.9; transform:scale(1.02); }
+
+/* ── SITREP BAR (clickable filters) ─────────────────────── */
+.sitrep-bar {
+  background:#fff;
+  border-bottom:1px solid var(--border);
+  display:flex; overflow-x:auto;
+  scrollbar-width:none;
+}
+.sitrep-bar::-webkit-scrollbar { display:none; }
+
+.sitrep-stat {
+  flex:1; min-width:130px;
+  padding:.85rem 1.25rem;
+  border-right:1px solid var(--border);
+  text-align:center;
+  cursor:pointer;
+  transition:background .15s;
+  user-select:none;
+  position:relative;
+}
+.sitrep-stat:last-of-type { border-right:none; }
+.sitrep-stat:hover { background:#fafafa; }
+.sitrep-stat.active-filter { background:var(--coral-soft); }
+.sitrep-stat.active-filter::after {
+  content:''; position:absolute;
+  bottom:0; left:0; right:0; height:3px;
+  background:var(--coral); border-radius:3px 3px 0 0;
+}
+
+.sitrep-num {
+  font-size:1.9rem; font-weight:800;
+  letter-spacing:-0.03em; line-height:1;
+  margin-bottom:.2rem;
+}
+.sitrep-num.coral   { color:var(--coral); }
+.sitrep-num.danger  { color:var(--danger); }
+.sitrep-num.warn    { color:var(--warn); }
+.sitrep-num.safe    { color:var(--safe); }
+.sitrep-num.green   { color:var(--green); }
+.sitrep-num.info    { color:var(--info); }
+
+.sitrep-label { font-size:.63rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
+.sitrep-sub   { font-size:.58rem; color:var(--muted); margin-top:.1rem; }
+
+.sitrep-refresh {
+  display:flex; align-items:center; padding:0 1rem;
+  font-size:.7rem; color:var(--muted); gap:.35rem;
+  white-space:nowrap; cursor:pointer; border:none; background:none;
+  font-family:'Inter',sans-serif; transition:color .2s; flex-shrink:0;
+}
+.sitrep-refresh:hover { color:var(--coral); }
+@keyframes spin { to { transform:rotate(360deg); } }
+.spinning { animation:spin 1s linear infinite; display:inline-block; }
+
+/* ── LAYOUT ──────────────────────────────────────────────── */
+.container  { max-width:1300px; margin:0 auto; padding:0 2rem; }
+.view       { display:none; }
+.view.active{ display:block; }
+
+/* ── MAP VIEW ────────────────────────────────────────────── */
+#map-view   { position:relative; height:calc(100vh - 120px); }
+#crisis-map { width:100%; height:100%; }
+
+.map-legend {
+  position:absolute; bottom:2rem; left:1.5rem; z-index:999;
+  background:rgba(255,255,255,.96);
+  border:1px solid var(--border); border-radius:var(--radius);
+  padding:.85rem 1rem; font-size:.75rem;
+  box-shadow:var(--shadow-md);
+}
+.legend-title {
+  font-size:.62rem; font-weight:700; text-transform:uppercase;
+  letter-spacing:.08em; color:var(--coral); margin-bottom:.5rem;
+}
+.legend-item {
+  display:flex; align-items:center; gap:.55rem;
+  margin-bottom:.3rem; font-size:.74rem; color:var(--text2);
+  cursor:pointer; border-radius:4px; padding:.15rem .3rem;
+  transition:background .15s;
+}
+.legend-item:hover { background:#f5f5f5; }
+.legend-item.active-legend { background:var(--coral-soft); }
+.legend-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+.legend-clear { font-size:.68rem; color:var(--muted); margin-top:.4rem; cursor:pointer; padding:.15rem .3rem; }
+.legend-clear:hover { color:var(--coral); }
+
+/* Leaflet overrides */
+.leaflet-container { background:#e8e4db !important; }
+.leaflet-popup-content-wrapper {
+  background:#fff !important; border:1px solid var(--border) !important;
+  color:var(--text) !important; border-radius:var(--radius) !important;
+  box-shadow:var(--shadow-lg) !important; font-family:'Inter',sans-serif !important;
+}
+.leaflet-popup-tip { background:#fff !important; }
+.leaflet-popup-content { margin:.85rem 1rem !important; }
+
+/* ── COUNTRIES VIEW ──────────────────────────────────────── */
+#countries-view { padding:2.5rem 0; }
+.section-header { margin-bottom:1.5rem; }
+.section-title  { font-size:1.5rem; font-weight:700; margin-bottom:.35rem; }
+.section-subtitle { font-size:.9rem; color:var(--muted); }
+
+.filter-bar { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1.5rem; }
+.filter-btn {
+  background:#fff; border:1.5px solid var(--border);
+  color:var(--muted); border-radius:999px;
+  padding:.4rem 1rem; font-family:'Inter',sans-serif;
+  font-size:.8rem; font-weight:500; cursor:pointer; transition:all .15s;
+}
+.filter-btn.active, .filter-btn:hover { border-color:var(--coral); color:var(--coral); background:var(--coral-soft); }
+
+.countries-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:1.25rem; }
+
+.country-card {
+  background:#fff; border:1px solid var(--border);
+  border-radius:var(--radius); padding:1.25rem;
+  box-shadow:var(--shadow); transition:box-shadow .2s, border-color .2s;
+  border-top:3px solid var(--border);
+}
+.country-card:hover { box-shadow:var(--shadow-md); }
+.country-card.danger { border-top-color:var(--danger); }
+.country-card.warn   { border-top-color:var(--warn); }
+.country-card.safe   { border-top-color:var(--safe); }
+.country-card.highlight { box-shadow:var(--shadow-md); border-color:var(--coral); }
+
+.card-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:.6rem; }
+.card-name   { font-size:1rem; font-weight:700; }
+.status-badge {
+  font-size:.6rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+  padding:.2rem .6rem; border-radius:999px;
+}
+.status-badge.danger { background:var(--danger-soft); color:var(--danger); }
+.status-badge.warn   { background:var(--warn-soft);   color:var(--warn); }
+.status-badge.safe   { background:var(--safe-soft);   color:var(--safe); }
+
+.card-advisory { font-size:.82rem; color:var(--text2); line-height:1.5; margin-bottom:.85rem; }
+
+.info-row  { display:flex; justify-content:space-between; align-items:center; padding:.3rem 0; border-bottom:1px solid var(--border); font-size:.8rem; }
+.info-row:last-child { border-bottom:none; }
+.info-label { color:var(--muted); font-size:.72rem; font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
+.info-val   { font-weight:500; }
+
+.embassy-section { margin-top:.85rem; }
+.embassy-title { font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:.5rem; }
+.embassy-row {
+  display:flex; align-items:center; gap:.6rem;
+  padding:.4rem 0; border-bottom:1px solid var(--border); font-size:.8rem;
+}
+.embassy-row:last-child { border-bottom:none; }
+.embassy-name { flex:1; font-weight:500; color:var(--text2); }
+.embassy-detail { font-size:.72rem; color:var(--muted); }
+.call-btn {
+  background:var(--coral); color:#fff; border:none; border-radius:6px;
+  padding:.3rem .75rem; font-size:.7rem; font-weight:600;
+  cursor:pointer; white-space:nowrap; text-decoration:none;
+  font-family:'Inter',sans-serif;
+}
+.call-btn:hover { background:var(--coral-dark); }
+
+.telegram-link {
+  display:inline-flex; align-items:center; gap:.4rem;
+  color:var(--info); font-size:.8rem; font-weight:500;
+  text-decoration:none; margin-top:.65rem;
+}
+.telegram-link:hover { text-decoration:underline; }
+
+.worldwide-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:1.25rem; }
+
+/* ── HELP VIEW ────────────────────────────────────────────── */
+#help-view { padding:2.5rem 0; }
+.help-grid { display:grid; grid-template-columns:1fr 1fr; gap:2rem; }
+@media (max-width:768px) { .help-grid { grid-template-columns:1fr; } }
+
+.column-header {
+  font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+  padding:.65rem 1rem; border-radius:var(--radius-sm) var(--radius-sm) 0 0;
+  margin-bottom:0;
+  background:var(--safe-soft); color:var(--safe);
+  border-left:3px solid var(--safe);
+}
+
+.post-form { background:#fff; border:1px solid var(--border); border-radius:0 var(--radius-sm) var(--radius-sm); padding:1.25rem; margin-bottom:1.25rem; }
+.form-title { font-size:.9rem; font-weight:700; margin-bottom:.25rem; }
+.form-note  { font-size:.78rem; color:var(--muted); line-height:1.5; margin-bottom:1rem;
+  background:var(--bg); border-radius:6px; padding:.6rem .75rem; border-left:3px solid var(--safe); }
+
+.form-row { margin-bottom:.9rem; }
+.form-row label { display:block; font-size:.75rem; font-weight:600; color:var(--muted); margin-bottom:.3rem; text-transform:uppercase; letter-spacing:.04em; }
+.form-row input, .form-row select, .form-row textarea {
+  width:100%; border:1.5px solid var(--border); border-radius:var(--radius-sm);
+  padding:.55rem .85rem; font-family:'Inter',sans-serif; font-size:.88rem;
+  color:var(--text); background:#fff; outline:none; transition:border-color .15s;
+}
+.form-row input:focus, .form-row select:focus, .form-row textarea:focus { border-color:var(--coral); box-shadow:0 0 0 3px var(--coral-soft); }
+.form-row textarea { min-height:80px; resize:vertical; }
+
+.submit-btn {
+  background:linear-gradient(135deg,#e61e4d,#e31c5f,#d70466);
+  color:#fff; border:none; border-radius:var(--radius-sm);
+  padding:.65rem 1.5rem; font-family:'Inter',sans-serif;
+  font-size:.88rem; font-weight:600; cursor:pointer; transition:opacity .15s;
+}
+.submit-btn:hover { opacity:.9; }
+
+.posts-list { display:flex; flex-direction:column; gap:.75rem; }
+.post-card  {
+  background:#fff; border:1px solid var(--border); border-radius:var(--radius-sm);
+  padding:1rem; border-left:3px solid var(--green);
+  transition:box-shadow .2s;
+}
+.post-card:hover { box-shadow:var(--shadow); }
+
+.post-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:.35rem; }
+.post-type   { font-size:.62rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--green); }
+.post-time   { font-size:.65rem; color:var(--muted); }
+.post-loc    { font-size:.78rem; font-weight:600; color:var(--text2); margin-bottom:.3rem; }
+.post-body   { font-size:.84rem; color:var(--text2); line-height:1.5; margin-bottom:.6rem; }
+.post-footer { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
+.tip-btn {
+  background:var(--green); color:#fff; border:none; border-radius:6px;
+  padding:.2rem .6rem; font-size:.68rem; font-weight:600; cursor:pointer;
+  text-decoration:none; font-family:'Inter',sans-serif;
+}
+
+.empty-state { padding:2rem 1rem; text-align:center; color:var(--muted); font-size:.88rem; }
+
+/* ── RESOURCES VIEW ──────────────────────────────────────── */
+#resources-view { padding:2.5rem 0; }
+.resources-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1rem; }
+.resource-card {
+  background:#fff; border:1px solid var(--border); border-radius:var(--radius);
+  padding:1.1rem; box-shadow:var(--shadow); transition:box-shadow .2s;
+}
+.resource-card:hover { box-shadow:var(--shadow-md); }
+.resource-type { font-size:.62rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--coral); margin-bottom:.3rem; }
+.resource-name { font-size:.92rem; font-weight:700; margin-bottom:.3rem; }
+.resource-desc { font-size:.8rem; color:var(--muted); line-height:1.5; margin-bottom:.75rem; }
+.resource-link {
+  color:var(--coral); font-size:.8rem; font-weight:600; text-decoration:none;
+}
+.resource-link:hover { text-decoration:underline; }
+
+/* ── NGO TAGS ────────────────────────────────────────────── */
+.ngo-tags { display:flex; flex-wrap:wrap; gap:.35rem; margin-top:.5rem; }
+.ngo-tag  {
+  background:var(--info-soft); color:var(--info);
+  font-size:.65rem; font-weight:600; border-radius:4px; padding:.15rem .5rem;
+}
+
+/* ── MOBILE @ 600px ──────────────────────────────────────── */
+@media (max-width:600px) {
+  header, .sitrep-bar { display:none !important; }
+  body { overflow:hidden; height:100dvh; background:#f7f7f7; }
+  .view { display:none !important; }
+
+  /* Shell: map + pinned tab bar */
+  #mobile-shell {
+    display:flex; flex-direction:column;
+    height:100dvh; position:relative; overflow:hidden;
+  }
+
+  #mobile-map-wrap {
+    flex:1; position:relative; overflow:hidden; min-height:0;
+  }
+  #mobile-crisis-map { width:100%; height:100%; }
+
+  /* Top logo bar */
+  #m-topbar {
+    position:absolute; top:0; left:0; right:0; z-index:800;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:.65rem 1rem;
+    background:linear-gradient(180deg,rgba(255,255,255,.92) 0%,transparent 100%);
+  }
+  #m-logo {
+    font-size:.9rem; font-weight:700; color:var(--text);
+    display:flex; align-items:center; gap:.4rem;
+  }
+  #m-logo span { color:var(--coral); }
+  #m-updated { font-size:.62rem; color:var(--muted); }
+
+  /* Stats pill */
+  #m-stats {
+    position:absolute; top:3.2rem; left:50%; transform:translateX(-50%);
+    z-index:800;
+    background:rgba(255,255,255,.92); border:1px solid var(--border);
+    border-radius:999px; padding:.3rem 1rem;
+    display:flex; align-items:center; gap:.6rem;
+    backdrop-filter:blur(8px); white-space:nowrap;
+    box-shadow:var(--shadow);
+  }
+  .m-stat-num {
+    font-size:1rem; font-weight:800; letter-spacing:-0.02em; line-height:1;
+  }
+  .m-stat-num.danger { color:var(--danger); }
+  .m-stat-num.green  { color:var(--green); }
+  .m-stat-num.safe   { color:var(--safe); }
+  .m-stat-label { font-size:.46rem; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); }
+  .m-stat-divider { width:1px; height:22px; background:var(--border); }
+
+  /* Tab bar — ALWAYS VISIBLE, pinned at bottom */
+  #m-tabbar {
+    display:flex !important;
+    background:#fff;
+    border-top:1px solid var(--border);
+    height:64px;
+    flex-shrink:0;
+    padding-bottom:env(safe-area-inset-bottom);
+    position:relative; z-index:1000;
+  }
+  .m-tab {
+    flex:1; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:.25rem;
+    background:none; border:none; border-top:2px solid transparent;
+    color:var(--muted); cursor:pointer; transition:color .15s;
+    padding:.4rem 0;
+    font-family:'Inter',sans-serif; font-size:.52rem;
+    font-weight:600; letter-spacing:.05em; text-transform:uppercase;
+  }
+  .m-tab.active { color:var(--coral); border-top-color:var(--coral); }
+  .m-tab:hover:not(.active) { color:var(--text); }
+  .m-tab svg { width:20px; height:20px; }
+
+  /* Sheet — slides up ABOVE the tab bar */
+  #m-sheet {
+    position:absolute;
+    bottom:64px; /* sits above the tab bar */
+    left:0; right:0;
+    z-index:900;
+    background:#fff;
+    border-top:1px solid var(--border);
+    border-radius:16px 16px 0 0;
+    max-height:calc(100dvh - 64px - 40px);
+    display:flex; flex-direction:column;
+    transform:translateY(100%);
+    transition:transform .32s cubic-bezier(.4,0,.2,1);
+  }
+  #m-sheet.open { transform:translateY(0); }
+
+  #m-sheet-handle-row {
+    padding:.65rem .75rem .3rem;
+    display:flex; flex-direction:column; align-items:center; gap:.4rem;
+    cursor:pointer; flex-shrink:0;
+  }
+  .m-handle { width:32px; height:4px; background:var(--border); border-radius:2px; }
+  .m-sheet-title {
+    font-size:.88rem; font-weight:700; color:var(--text);
+    letter-spacing:0;
+  }
+
+  #m-sheet-body {
+    overflow-y:auto; flex:1; padding:0 1rem 1rem;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  /* Offer form in sheet */
+  .m-form-label {
+    display:block; font-size:.65rem; font-weight:600;
+    text-transform:uppercase; letter-spacing:.05em;
+    color:var(--muted); margin-bottom:.3rem;
+  }
+  .m-form-row { margin-bottom:.85rem; }
+  .m-form-row input, .m-form-row select, .m-form-row textarea {
+    width:100%; border:1.5px solid var(--border); border-radius:var(--radius-sm);
+    padding:.65rem .85rem; font-family:'Inter',sans-serif; font-size:.95rem;
+    color:var(--text); background:#fff; outline:none; -webkit-appearance:none;
+    transition:border-color .15s;
+  }
+  .m-form-row input:focus, .m-form-row select:focus, .m-form-row textarea:focus {
+    border-color:var(--coral); box-shadow:0 0 0 3px var(--coral-soft);
+  }
+  .m-form-row textarea { min-height:75px; resize:none; }
+  .m-form-note {
+    font-size:.75rem; color:var(--muted); line-height:1.5;
+    background:var(--bg); border-radius:6px; padding:.55rem .7rem;
+    border-left:3px solid var(--green); margin-bottom:1rem;
+  }
+  .m-submit {
+    width:100%; background:linear-gradient(135deg,#e61e4d,#e31c5f,#d70466);
+    color:#fff; border:none; border-radius:var(--radius-sm);
+    padding:.9rem; font-family:'Inter',sans-serif;
+    font-size:.95rem; font-weight:700; cursor:pointer; margin-top:.25rem;
+  }
+
+  /* Country cards in sheet */
+  .m-country-card {
+    background:#fff; border:1px solid var(--border);
+    border-top:3px solid var(--border);
+    border-radius:var(--radius-sm); padding:1rem; margin-bottom:.75rem;
+  }
+  .m-country-card.danger { border-top-color:var(--danger); }
+  .m-country-card.warn   { border-top-color:var(--warn); }
+  .m-country-card.safe   { border-top-color:var(--safe); }
+
+  .m-country-name { font-size:.95rem; font-weight:700; margin-bottom:.3rem; }
+  .m-country-advisory { font-size:.8rem; color:var(--text2); line-height:1.5; margin-bottom:.6rem; }
+  .m-airspace-pill {
+    display:inline-block; font-size:.62rem; font-weight:700;
+    text-transform:uppercase; letter-spacing:.06em;
+    border-radius:999px; padding:.2rem .65rem; margin-bottom:.65rem;
+  }
+
+  /* Embassy call rows */
+  .m-embassy-row {
+    display:flex; align-items:center; gap:.5rem;
+    padding:.45rem 0; border-bottom:1px solid var(--border);
+    font-size:.8rem;
+  }
+  .m-embassy-row:last-child { border-bottom:none; }
+  .m-embassy-who {
+    flex:1;
+  }
+  .m-embassy-country {
+    font-weight:700; font-size:.8rem; color:var(--text);
+    display:block;
+  }
+  .m-embassy-role {
+    font-size:.68rem; color:var(--muted);
+    display:block;
+  }
+  .m-call-btn {
+    background:var(--coral); color:#fff; border:none; border-radius:6px;
+    padding:.3rem .7rem; font-size:.7rem; font-weight:600;
+    cursor:pointer; white-space:nowrap; text-decoration:none;
+    font-family:'Inter',sans-serif; display:inline-flex; align-items:center; gap:.3rem;
+  }
+
+  /* Filter chips */
+  .m-chips {
+    display:flex; gap:.4rem; overflow-x:auto;
+    scrollbar-width:none; padding:.5rem 0; margin-bottom:.75rem;
+  }
+  .m-chips::-webkit-scrollbar { display:none; }
+  .m-chip {
+    background:#fff; border:1.5px solid var(--border);
+    color:var(--muted); border-radius:999px;
+    font-family:'Inter',sans-serif; font-size:.65rem; font-weight:600;
+    padding:.3rem .8rem; white-space:nowrap; cursor:pointer; flex-shrink:0;
+    transition:all .15s;
+  }
+  .m-chip.active { background:var(--coral-soft); border-color:var(--coral); color:var(--coral); }
+
+  /* Resources in sheet */
+  .m-resource-row {
+    display:flex; align-items:center; gap:.65rem;
+    padding:.75rem 0; border-bottom:1px solid var(--border);
+  }
+  .m-resource-row:last-child { border-bottom:none; }
+  .m-resource-name { font-size:.82rem; font-weight:600; flex:1; }
+  .m-resource-type { font-size:.62rem; color:var(--muted); display:block; margin-top:.1rem; }
+  .m-resource-go {
+    background:none; border:1.5px solid var(--border); color:var(--coral);
+    border-radius:6px; padding:.3rem .65rem; font-size:.7rem; font-weight:600;
+    text-decoration:none; white-space:nowrap; cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+
+  .countries-grid { grid-template-columns:1fr; }
+  .sitrep-stat { min-width:130px; }
+}
 </style>
 </head>
 <body>
 
+<!-- ── DESKTOP HEADER ──────────────────────────────────── -->
 <header>
   <div class="logo">
     <div class="pulse-dot"></div>
@@ -1514,135 +579,129 @@
   <div class="header-right">
     <div class="last-updated" id="last-updated-label">Loading...</div>
     <button class="cta-pill" onclick="showView('help')">
-      Share a Spare Room <span class="heart">♥</span>
+      Share a Spare Room <span>♥</span>
     </button>
   </div>
 </header>
 
-<div class="alert-banner">
-  <span class="alert-label">LIVE</span>
-  <div class="ticker-wrap">
-    <span class="ticker" id="ticker-text">
-      UAE airspace closed · Dubai Int'l Airport suspended · Strait of Hormuz closed by IRGC · Overland routes to Oman/Saudi remain open but conditions change rapidly · Register with your embassy STEP program · Shelter in place if no urgent need to move
-    </span>
-  </div>
-</div>
-
-<!-- SITREP COUNTER BAR -->
+<!-- ── SITREP FILTER BAR ────────────────────────────────── -->
 <div class="sitrep-bar" id="sitrep-bar">
-  <div class="sitrep-stat">
-    <div class="sitrep-number danger" id="stat-stranded">—</div>
+  <div class="sitrep-stat" id="ss-stranded" onclick="filterMap('stranded')">
+    <div class="sitrep-num danger" id="stat-stranded">—</div>
     <div class="sitrep-label">Est. Stranded</div>
-    <div class="sitrep-sublabel">cancelled flights × avg load</div>
+    <div class="sitrep-sub">tap · show on map</div>
   </div>
-  <div class="sitrep-stat">
-    <div class="sitrep-number warn" id="stat-cancelled">—</div>
+  <div class="sitrep-stat" id="ss-cancelled" onclick="filterMap('cancelled')">
+    <div class="sitrep-num warn" id="stat-cancelled">—</div>
     <div class="sitrep-label">Flights Cancelled</div>
-    <div class="sitrep-sublabel">Gulf region today</div>
+    <div class="sitrep-sub">tap · show on map</div>
   </div>
-  <div class="sitrep-stat">
-    <div class="sitrep-number danger" id="stat-airports-closed">—</div>
+  <div class="sitrep-stat" id="ss-airports" onclick="filterMap('airports')">
+    <div class="sitrep-num danger" id="stat-airports-closed">—</div>
     <div class="sitrep-label">Airports Closed</div>
-    <div class="sitrep-sublabel">DXB · AUH · KWI · BAH · DOH</div>
+    <div class="sitrep-sub">tap · show on map</div>
   </div>
-  <div class="sitrep-stat">
-    <div class="sitrep-number warn" id="stat-airspace">—</div>
+  <div class="sitrep-stat" id="ss-airspace" onclick="filterMap('airspace')">
+    <div class="sitrep-num warn" id="stat-airspace">—</div>
     <div class="sitrep-label">Airspace Closed</div>
-    <div class="sitrep-sublabel">countries with full closure</div>
+    <div class="sitrep-sub">tap · show on map</div>
   </div>
-  <div class="sitrep-stat">
-    <div class="sitrep-number safe" id="stat-border-crossings">—</div>
+  <div class="sitrep-stat" id="ss-routes" onclick="filterMap('routes')">
+    <div class="sitrep-num safe" id="stat-border-crossings">—</div>
     <div class="sitrep-label">Land Routes Open</div>
-    <div class="sitrep-sublabel">verified as of last update</div>
+    <div class="sitrep-sub">tap · show on map</div>
   </div>
-  <div class="sitrep-stat">
-    <div class="sitrep-number info" id="stat-help-posts">—</div>
+  <div class="sitrep-stat" id="ss-help" onclick="filterMap('help')">
+    <div class="sitrep-num green" id="stat-help-posts">—</div>
     <div class="sitrep-label">Help Posts Live</div>
-    <div class="sitrep-sublabel">offers + requests on this site</div>
+    <div class="sitrep-sub">tap · show on map</div>
   </div>
-  <button class="sitrep-refresh" onclick="refreshSitrep()" title="Refresh stats">
+  <button class="sitrep-refresh" onclick="refreshSitrep()">
     <span id="refresh-icon">↻</span> <span id="refresh-label">updated just now</span>
   </button>
 </div>
+
+<!-- ── MAP VIEW ─────────────────────────────────────────── -->
 <div id="map-view" class="view active">
   <div id="crisis-map"></div>
-  <div style="position:absolute;top:1rem;left:50%;transform:translateX(-50%);z-index:999;display:flex;gap:0.5rem;width:min(480px,90vw)">
-    <input id="map-search" type="text" placeholder="Search a city or location..." style="flex:1;background:#ffffff;border:1.5px solid #dddddd;border-radius:4px;padding:0.55rem 1rem;font-family:'Nunito Sans',sans-serif;font-size:0.85rem;color:#222222;outline:none;box-shadow:0 2px 12px rgba(0,0,0,0.4)" onkeydown="if(event.key==='Enter')geocodeSearch()">
-    <button onclick="geocodeSearch()" style="background:#ff385c;color:#ffffff;border:none;border-radius:4px;padding:0.55rem 1rem;font-family:'Nunito Sans',sans-serif;font-size:0.78rem;font-weight:700;cursor:pointer;white-space:nowrap;letter-spacing:0.08em;text-transform:uppercase">SEARCH</button>
-    <button onclick="pinMyLocation()" title="Drop a pin at my location" style="background:#ffffff;border:1.5px solid #dddddd;border-radius:8px;padding:0.55rem 0.75rem;font-size:1rem;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.08)" title="Use my location">📍</button>
-  </div>
   <div class="map-legend">
-    <div class="legend-title">Map Key</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--danger)"></div> Active conflict / closed</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--warn)"></div> High alert / restricted</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--safe)"></div> Relatively stable</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#2979ff"></div> Worldwide disruption</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#7c3aed"></div> Help offered</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#0ea5e9"></div> Help needed</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#f59e0b;border:2px solid #fff"></div> Land route open</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#ef4444;border:2px solid #fff"></div> Land route closed/risky</div>
+    <div class="legend-title">Filter Map</div>
+    <div class="legend-item" id="leg-danger" onclick="filterMap('danger')">
+      <div class="legend-dot" style="background:#c13515"></div> Active conflict / closed
+    </div>
+    <div class="legend-item" id="leg-warn" onclick="filterMap('warn')">
+      <div class="legend-dot" style="background:#b45309"></div> High alert / restricted
+    </div>
+    <div class="legend-item" id="leg-safe" onclick="filterMap('safe')">
+      <div class="legend-dot" style="background:#047857"></div> Relatively stable
+    </div>
+    <div class="legend-item" id="leg-worldwide" onclick="filterMap('worldwide')">
+      <div class="legend-dot" style="background:#1d4ed8"></div> Worldwide disruption
+    </div>
+    <div class="legend-item" id="leg-help" onclick="filterMap('help')">
+      <div class="legend-dot" style="background:#059669"></div> Help offered
+    </div>
+    <div class="legend-item" id="leg-routes" onclick="filterMap('routes')">
+      <div class="legend-dot" style="background:#b45309;border:1.5px solid #fff;box-sizing:content-box"></div> Land routes
+    </div>
+    <div class="legend-clear" onclick="filterMap('all')">✕ Clear filter</div>
   </div>
 </div>
 
-<!-- COUNTRIES VIEW -->
+<!-- ── COUNTRIES VIEW ───────────────────────────────────── -->
 <div id="countries-view" class="view">
   <div class="container">
     <div class="section-header">
       <div class="section-title">Country Status &amp; Resources</div>
-      <div class="section-subtitle">Embassy contacts, exit routes and active NGOs by country</div>
+      <div class="section-subtitle">Embassy contacts, exit routes, and active NGOs by country</div>
     </div>
     <div class="filter-bar">
-      <button class="filter-btn active" onclick="filterCountries('all', this)">Gulf Region</button>
-      <button class="filter-btn" onclick="filterCountries('danger', this)">⚠ High Risk</button>
-      <button class="filter-btn" onclick="filterCountries('warn', this)">⚡ Elevated</button>
-      <button class="filter-btn" onclick="filterCountries('safe', this)">✓ Stable</button>
-      <button class="filter-btn" onclick="showWorldwide(this)" style="margin-left:1rem;border-color:var(--info);color:var(--info)">🌍 Stranded Worldwide</button>
+      <button class="filter-btn active" onclick="filterCountries('all',this)">All</button>
+      <button class="filter-btn" onclick="filterCountries('danger',this)">⚠ High Risk</button>
+      <button class="filter-btn" onclick="filterCountries('warn',this)">⚡ Elevated</button>
+      <button class="filter-btn" onclick="filterCountries('safe',this)">✓ Stable</button>
+      <button class="filter-btn" onclick="showWorldwide(this)" style="margin-left:.75rem;border-color:var(--info);color:var(--info)">🌍 Worldwide</button>
     </div>
-    <div class="countries-grid" id="countries-grid">
-      <!-- populated by JS -->
-    </div>
+    <div class="countries-grid" id="countries-grid"></div>
     <div id="worldwide-grid" style="display:none">
-      <div style="margin-bottom:1.5rem">
-        <div class="section-title" style="font-size:1.2rem">Stranded Outside the Gulf</div>
-        <div class="section-subtitle">People stranded worldwide due to Gulf airspace closure — broken connections, cancelled flights, separated families</div>
-      </div>
-      <div class="countries-grid" id="worldwide-cards"></div>
+      <div class="worldwide-grid" id="worldwide-cards"></div>
     </div>
   </div>
 </div>
 
-<!-- HELP BOARD -->
+<!-- ── HELP VIEW (offer only) ───────────────────────────── -->
 <div id="help-view" class="view">
   <div class="container">
+    <div class="section-header">
+      <div class="section-title">Help Board</div>
+      <div class="section-subtitle">People offering shelter, transport, food and other assistance</div>
+    </div>
     <div class="help-grid">
-      <!-- OFFER COLUMN -->
       <div class="help-column">
-        <div class="column-header column-offer">
-          ↑ I CAN HELP — Offering resources
-        </div>
+        <div class="column-header">↑ Offers of Help</div>
         <div class="post-form">
           <div class="form-title">Post an offer</div>
-          <p class="form-note"><strong>Your contact info will be visible.</strong> This is intentional — it lets people verify you're real and deters bad actors. Only post if you're genuinely offering help.</p>
+          <p class="form-note">Your contact info will be visible. This lets people who need help reach you directly. Please only post genuine offers.</p>
           <div class="form-row">
-            <label>What are you offering?</label>
+            <label>What can you offer?</label>
             <select id="offer-type">
-              <option value="">Select type...</option>
+              <option value="">Select type…</option>
               <option>Housing / spare room</option>
               <option>Transportation / ride share</option>
-              <option>Food / supplies</option>
+              <option>Food / water / supplies</option>
               <option>Medical assistance</option>
-              <option>Translation / local knowledge</option>
               <option>Cash / financial help</option>
+              <option>Translation / local knowledge</option>
               <option>Other</option>
             </select>
           </div>
           <div class="form-row">
-            <label>Your location (city, country)</label>
+            <label>Your location</label>
             <input type="text" id="offer-location" placeholder="e.g. Dubai, UAE">
           </div>
           <div class="form-row">
             <label>Details</label>
-            <textarea id="offer-body" placeholder="Describe what you can offer, capacity, any conditions..."></textarea>
+            <textarea id="offer-body" placeholder="Describe what you can offer and any limits…"></textarea>
           </div>
           <div class="form-row">
             <label>Your name</label>
@@ -1653,443 +712,267 @@
             <input type="text" id="offer-contact" placeholder="@telegram or email@example.com">
           </div>
           <div class="form-row">
-            <label>X / Twitter handle <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+            <label>X / Twitter handle <span style="color:var(--muted);font-weight:400">(optional — pin + $HELP tips)</span></label>
             <input type="text" id="offer-xhandle" placeholder="@yourhandle">
-            <div style="font-size:0.72rem;color:var(--muted);margin-top:0.4rem;line-height:1.5">📍 Your pin drops on the map. People can find and tip you <strong style="color:var(--accent2)">$HELP</strong> via your handle.</div>
           </div>
           <button class="submit-btn" onclick="submitPost('offer')">Post Offer</button>
         </div>
-        <div class="posts-list" id="offer-posts">
-          <!-- populated by JS -->
-        </div>
+        <div class="posts-list" id="offer-posts"></div>
       </div>
-
-      <!-- NEED COLUMN -->
       <div class="help-column">
-        <div class="column-header column-need">
-          ↓ I NEED HELP — Requesting resources
-        </div>
-        <div class="post-form">
-          <div class="form-title">Post a request</div>
-          <p class="form-note"><strong>Your contact info will be visible.</strong> People who can help need to be able to reach you directly. Be specific so helpers can assess if they can assist.</p>
-          <div class="form-row">
-            <label>What do you need?</label>
-            <select id="need-type">
-              <option value="">Select type...</option>
-              <option>Shelter / housing</option>
-              <option>Transportation / evacuation help</option>
-              <option>Food / water / supplies</option>
-              <option>Medical help</option>
-              <option>Translation / guidance</option>
-              <option>Financial help</option>
-              <option>Other</option>
-            </select>
-          </div>
-          <div class="form-row">
-            <label>Your current location</label>
-            <input type="text" id="need-location" placeholder="e.g. Deira, Dubai">
-          </div>
-          <div class="form-row">
-            <label>Details</label>
-            <textarea id="need-body" placeholder="How many people? Any special needs? How urgent?"></textarea>
-          </div>
-          <div class="form-row">
-            <label>Your name</label>
-            <input type="text" id="need-name" placeholder="First name or handle">
-          </div>
-          <div class="form-row">
-            <label>Contact (phone, email, or Telegram — will be public)</label>
-            <input type="text" id="need-contact" placeholder="@telegram or email@example.com">
-          </div>
-          <div class="form-row">
-            <label>X / Twitter handle <span style="color:var(--muted);font-weight:400">(optional)</span></label>
-            <input type="text" id="need-xhandle" placeholder="@yourhandle">
-            <div style="font-size:0.72rem;color:var(--muted);margin-top:0.4rem;line-height:1.5">📍 Your pin drops on the map so helpers can find you.</div>
-          </div>
-          <button class="submit-btn need" onclick="submitPost('need')">Post Request</button>
-        </div>
-        <div class="posts-list" id="need-posts">
-          <!-- populated by JS -->
-        </div>
+        <div class="column-header" style="background:var(--info-soft);color:var(--info);border-left-color:var(--info)">Live Offers</div>
+        <div class="posts-list" id="all-offers-list"></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- RESOURCES VIEW -->
+<!-- ── RESOURCES VIEW ───────────────────────────────────── -->
 <div id="resources-view" class="view">
   <div class="container">
     <div class="section-header">
-      <div class="section-title">NGOs, Hotlines &amp; Community Resources</div>
+      <div class="section-title">NGOs, Hotlines &amp; Resources</div>
       <div class="section-subtitle">Verified organizations active in the region</div>
     </div>
-    <div class="resources-grid" id="resources-grid">
-      <!-- populated by JS -->
-    </div>
+    <div class="resources-grid" id="resources-grid"></div>
   </div>
 </div>
 
-<!-- MODAL -->
-<div class="modal-overlay" id="modal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal()">✕</button>
-    <div class="modal-title" id="modal-title"></div>
-    <div id="modal-body"></div>
+<!-- ── MOBILE SHELL ──────────────────────────────────────── -->
+<div id="mobile-shell" style="display:none">
+
+  <div id="mobile-map-wrap">
+    <div id="mobile-crisis-map"></div>
+
+    <!-- Top logo -->
+    <div id="m-topbar">
+      <div id="m-logo">
+        <div class="pulse-dot"></div>
+        I'm Stranded — <span>You're not.</span>
+      </div>
+      <div id="m-updated"></div>
+    </div>
+
+    <!-- Stats pill -->
+    <div id="m-stats">
+      <div>
+        <div class="m-stat-num danger" id="m-stat-stranded">—</div>
+        <div class="m-stat-label">Stranded</div>
+      </div>
+      <div class="m-stat-divider"></div>
+      <div>
+        <div class="m-stat-num safe" id="m-stat-routes">—</div>
+        <div class="m-stat-label">Routes Open</div>
+      </div>
+      <div class="m-stat-divider"></div>
+      <div>
+        <div class="m-stat-num green" id="m-stat-help">—</div>
+        <div class="m-stat-label">Help Posts</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom sheet (above tab bar) -->
+  <div id="m-sheet">
+    <div id="m-sheet-handle-row" onclick="mSheetToggle()">
+      <div class="m-handle"></div>
+      <div class="m-sheet-title" id="m-sheet-title">Countries &amp; Status</div>
+    </div>
+    <div id="m-sheet-body">
+
+      <!-- Countries content -->
+      <div id="m-countries-content">
+        <div class="m-chips">
+          <div class="m-chip active" onclick="mFilterCountries('all',this)">All</div>
+          <div class="m-chip" onclick="mFilterCountries('danger',this)">⚠ High Risk</div>
+          <div class="m-chip" onclick="mFilterCountries('warn',this)">⚡ Elevated</div>
+          <div class="m-chip" onclick="mFilterCountries('safe',this)">✓ Stable</div>
+        </div>
+        <div id="m-country-list"></div>
+      </div>
+
+      <!-- Offer help form -->
+      <div id="m-offer-content" style="display:none">
+        <div class="m-form-note">Post your offer — your contact will be public so people who need help can reach you.</div>
+        <div class="m-form-row">
+          <label class="m-form-label">What can you offer?</label>
+          <select id="m-offer-type">
+            <option value="">Select…</option>
+            <option>Housing / spare room</option>
+            <option>Transportation / ride share</option>
+            <option>Food / water / supplies</option>
+            <option>Medical assistance</option>
+            <option>Cash / financial help</option>
+            <option>Translation / local knowledge</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="m-form-row">
+          <label class="m-form-label">Your location</label>
+          <input type="text" id="m-offer-location" placeholder="e.g. Dubai, UAE">
+        </div>
+        <div class="m-form-row">
+          <label class="m-form-label">Details</label>
+          <textarea id="m-offer-body" placeholder="What you can offer and any limits…"></textarea>
+        </div>
+        <div class="m-form-row">
+          <label class="m-form-label">Your name</label>
+          <input type="text" id="m-offer-name" placeholder="First name or handle">
+        </div>
+        <div class="m-form-row">
+          <label class="m-form-label">Contact (will be public)</label>
+          <input type="text" id="m-offer-contact" placeholder="@telegram or email">
+        </div>
+        <div class="m-form-row">
+          <label class="m-form-label">X / Twitter <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+          <input type="text" id="m-offer-xhandle" placeholder="@yourhandle">
+        </div>
+        <button class="m-submit" onclick="mSubmitOffer()">Post Offer</button>
+      </div>
+
+      <!-- Resources list -->
+      <div id="m-resources-content" style="display:none" id="m-res-list"></div>
+
+    </div>
+  </div>
+
+  <!-- Tab bar — pinned, always visible -->
+  <div id="m-tabbar">
+    <button class="m-tab active" onclick="mTab('map',this)">
+      <!-- map icon -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/>
+        <line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/>
+      </svg>
+      Map
+    </button>
+    <button class="m-tab" onclick="mTab('countries',this)">
+      <!-- globe icon -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="2" y1="12" x2="22" y2="12"/>
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+      </svg>
+      Countries
+    </button>
+    <button class="m-tab" onclick="mTab('offer',this)">
+      <!-- heart/help icon -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+      </svg>
+      Offer Help
+    </button>
+    <button class="m-tab" onclick="mTab('resources',this)">
+      <!-- list icon -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+        <line x1="8" y1="18" x2="21" y2="18"/>
+        <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/>
+        <line x1="3" y1="18" x2="3.01" y2="18"/>
+      </svg>
+      Resources
+    </button>
   </div>
 </div>
 
 <script>
 // ============================================================
-// DATA — Edit this or replace with fetch('./data.json')
+// DATA
 // ============================================================
-const LAST_UPDATED = "2026-03-01T12:00:00Z";
-
-// Embassy contact helper labels
 const EMBASSY_LABELS = {
-  usa: "🇺🇸 USA", uk: "🇬🇧 UK", aus: "🇦🇺 Australia", can: "🇨🇦 Canada",
-  ind: "🇮🇳 India", phl: "🇵🇭 Philippines", pak: "🇵🇰 Pakistan",
-  bgd: "🇧🇩 Bangladesh", npl: "🇳🇵 Nepal", deu: "🇩🇪 Germany",
-  fra: "🇫🇷 France", eu: "🇪🇺 EU"
+  usa: { flag:'🇺🇸', name:'United States', role:'US Embassy' },
+  uk:  { flag:'🇬🇧', name:'United Kingdom', role:'UK Embassy' },
+  aus: { flag:'🇦🇺', name:'Australia', role:'Australian Embassy' },
+  can: { flag:'🇨🇦', name:'Canada', role:'Canadian Embassy' },
+  ind: { flag:'🇮🇳', name:'India', role:'Indian Embassy' },
+  phl: { flag:'🇵🇭', name:'Philippines', role:'Philippine Embassy / OWWA' },
+  pak: { flag:'🇵🇰', name:'Pakistan', role:'Pakistani Embassy' },
+  bgd: { flag:'🇧🇩', name:'Bangladesh', role:'Bangladesh Embassy' },
+  npl: { flag:'🇳🇵', name:'Nepal', role:'Nepalese Embassy' },
+  deu: { flag:'🇩🇪', name:'Germany', role:'German Embassy' },
+  fra: { flag:'🇫🇷', name:'France', role:'French Embassy' },
+  eu:  { flag:'🇪🇺', name:'EU', role:'EU Delegation' },
 };
 
 const COUNTRIES = [
-  {
-    id: "uae",
-    name: "United Arab Emirates",
-    status: "danger",
-    advisory: "Shelter in place. Airspace closed. DXB/AUH suspended. Iranian missile debris reported in civilian areas.",
-    embassy: {
-      usa: { phone: "+971-2-414-2200", email: "ACSAbuDhabi@state.gov", step: "https://step.state.gov" },
-      uk:  { phone: "+971-2-610-1100", web: "https://www.gov.uk/foreign-travel-advice/united-arab-emirates" },
-      aus: { phone: "+61-2-6261-3305", note: "Consular Emergency Centre (Canberra)", web: "https://www.smartraveller.gov.au" },
-      can: { phone: "+971-2-694-0300", web: "https://travel.gc.ca/travelling/registration" },
-      ind: { phone: "800-46342 (toll-free)", whatsapp: "+971543090571", email: "pbsk.dubai@mea.gov.in" },
-      phl: { phone: "+971-50-813-7836", note: "OWWA emergency hotline", web: "https://dubaipcg.dfa.gov.ph" },
-      pak: { phone: "+971-50-254-8975", alt: "+971-2-444-7800", web: "https://pakconsdubai.com" },
-      bgd: { phone: "+971-2-665-5336", note: "Bangladesh Embassy Abu Dhabi" },
-      npl: { phone: "+971-2-444-7804", note: "Nepal Embassy Abu Dhabi" },
-    },
-    airspace: "CLOSED",
-    borders: [
-      { route: "Overland → Oman (E611)", status: "warn", note: "Open but drone activity reported near Omani border. Conditions change rapidly." },
-      { route: "Overland → Saudi Arabia", status: "warn", note: "Long (900+ km). Fill tank, carry water, monitor checkpoints." }
-    ],
-    ngos: ["UNHCR", "Red Cross UAE", "IOM", "Caritas UAE"],
-    coords: [24.47, 54.37],
-    telegram: "https://t.me/gulfcrisis"
-  },
-  {
-    id: "bahrain",
-    name: "Bahrain",
-    status: "danger",
-    advisory: "High alert. Airspace restricted. US Naval base on lockdown. Missile strikes reported.",
-    embassy: {
-      usa: { phone: "+973-1724-2700", email: "BahrainACS@state.gov", step: "https://step.state.gov" },
-      uk:  { phone: "+973-1757-4100", web: "https://www.gov.uk/foreign-travel-advice/bahrain" },
-      ind: { phone: "+973-1771-2785", note: "Indian Embassy Manama" },
-      phl: { phone: "+973-3995-3235", note: "OWWA emergency hotline" },
-      pak: { phone: "+973-1771-1789", note: "Pakistan Embassy Manama" },
-      bgd: { phone: "+973-1753-3271", note: "Bangladesh Embassy Manama — shelter in place advisory issued" },
-    },
-    airspace: "RESTRICTED",
-    borders: [
-      { route: "King Fahd Causeway → Saudi Arabia", status: "warn", note: "Road crossing open. Monitor Saudi entry requirements." }
-    ],
-    ngos: ["Red Crescent Bahrain", "UNHCR"],
-    coords: [26.07, 50.55],
-    telegram: null
-  },
-  {
-    id: "kuwait",
-    name: "Kuwait",
-    status: "danger",
-    advisory: "Airspace closed. Airport struck. US military base on heightened alert. Shelter in place.",
-    embassy: {
-      usa: { phone: "+965-2259-1001", step: "https://step.state.gov" },
-      uk:  { phone: "+965-2259-4320", web: "https://www.gov.uk/foreign-travel-advice/kuwait" },
-      ind: { phone: "+965-6550-1946", email: "community.kuwait@mea.gov.in" },
-      phl: { phone: "+965-2220-5571", note: "OWWA emergency hotline" },
-      pak: { note: "Pakistan Embassy Kuwait City — contact via CMU: +92-51-9207887" },
-      bgd: { phone: "+965-6992-0013", alt: "+965-6651-6404", email: "kuwaitembassy@mofa.gov.bd" },
-    },
-    airspace: "CLOSED",
-    borders: [
-      { route: "Overland → Saudi Arabia (south)", status: "warn", note: "Monitor border crossing status hourly." }
-    ],
-    ngos: ["Kuwait Red Crescent", "UNHCR Kuwait"],
-    coords: [29.37, 47.97],
-    telegram: null
-  },
-  {
-    id: "qatar",
-    name: "Qatar",
-    status: "warn",
-    advisory: "Airspace restricted. US Al Udeid base sheltering in place. Monitor advisories closely.",
-    embassy: {
-      usa: { phone: "+974-4496-6000", step: "https://step.state.gov" },
-      uk:  { phone: "+974-4496-2100", web: "https://www.gov.uk/foreign-travel-advice/qatar" },
-      aus: { phone: "+61-2-6261-3305", note: "Consular Emergency Centre" },
-      ind: { phone: "+974-5564-7502", email: "cons.doha@mea.gov.in" },
-      phl: { phone: "+974-4483-1585", note: "OWWA/Philippine Embassy Doha", web: "https://dohape.dfa.gov.ph" },
-      pak: { note: "Pakistan Embassy Doha — contact CMU: +92-51-9207887" },
-      bgd: { note: "Bangladesh Embassy Doha — avoid military areas advisory issued" },
-    },
-    airspace: "RESTRICTED",
-    borders: [
-      { route: "Sea → Doha Port (limited)", status: "warn", note: "Some vessels operating. Check with carriers." }
-    ],
-    ngos: ["Qatar Red Crescent", "IOM Qatar"],
-    coords: [25.28, 51.53],
-    telegram: null
-  },
-  {
-    id: "oman",
-    name: "Oman",
-    status: "warn",
-    advisory: "Drone incident near Sohar port. Relatively stable. Receiving overland arrivals from UAE.",
-    embassy: {
-      usa: { phone: "+968-2464-3400", step: "https://step.state.gov" },
-      uk:  { phone: "+968-2460-9000", web: "https://www.gov.uk/foreign-travel-advice/oman" },
-      ind: { phone: "8007-1234 (toll-free)", whatsapp: "+968-9828-2270", email: "cw.muscat@mea.gov.in" },
-      phl: { phone: "+968-7990-5211", note: "OWWA emergency hotline" },
-    },
-    airspace: "OPEN (monitor)",
-    borders: [
-      { route: "Overland from UAE (Hatta/Hafeet crossings)", status: "safe", note: "Open. Queues building fast. Fuel up before crossing." }
-    ],
-    ngos: ["Oman Red Crescent"],
-    coords: [23.61, 58.59],
-    telegram: null
-  },
-  {
-    id: "saudi",
-    name: "Saudi Arabia",
-    status: "warn",
-    advisory: "Airspace open on select routes. Receiving overland arrivals. Elevated security posture.",
-    embassy: {
-      usa: { phone: "+966-11-488-3800", step: "https://step.state.gov" },
-      uk:  { phone: "+966-11-488-0077", web: "https://www.gov.uk/foreign-travel-advice/saudi-arabia" },
-      ind: { phone: "+966-11-488-4697", whatsapp: "+966-542126748", tollfree: "800-247-1234", email: "cw.riyadh@mea.gov.in" },
-      phl: { phone: "+966-56-989-3301", note: "OWWA Saudi emergency hotline" },
-      pak: { note: "Pakistan Consulate Jeddah — CMU: +92-51-9207887" },
-    },
-    airspace: "PARTIALLY OPEN",
-    borders: [
-      { route: "Receiving arrivals from UAE, Kuwait, Bahrain", status: "safe", note: "Land borders open. Delays at checkpoints." }
-    ],
-    ngos: ["Saudi Red Crescent", "King Salman Relief Centre"],
-    coords: [23.88, 45.07],
-    telegram: null
-  },
-  {
-    id: "iran",
-    name: "Iran",
-    status: "danger",
-    advisory: "DO NOT TRAVEL. Active military operations. No consular services for most Western nationals.",
-    embassy: {
-      usa: { note: "No US Embassy — Swiss Embassy protecting interests: +98-21-2200-8333" },
-      uk:  { note: "Limited UK representation — London FCO: +44-20-7008-5000" },
-      ind: { note: "Indian Embassy Tehran — shelter in place, avoid movements" },
-      pak: { phone: "+98-21-669413-88", alt: "+98-9107648298", note: "Pakistan Embassy Tehran" },
-    },
-    airspace: "CLOSED",
-    borders: [
-      { route: "All crossings: unstable / closed", status: "danger", note: "Do not attempt overland crossing into Iran." }
-    ],
-    ngos: ["ICRC (limited access)", "UNHCR"],
-    coords: [32.43, 53.68],
-    telegram: null
-  },
-  {
-    id: "iraq",
-    name: "Iraq",
-    status: "danger",
-    advisory: "Do not travel. Airspace closed. US diplomatic facilities targeted. Active military near Iranian border.",
-    embassy: {
-      usa: { phone: "+964-760-030-7000", step: "https://step.state.gov", note: "Shelter in place — embassy may be targeted" },
-      uk:  { phone: "+964-7901-926-280", web: "https://www.gov.uk/foreign-travel-advice/iraq" },
-      ind: { note: "Indian Embassy Baghdad — advising nationals to shelter" },
-      bgd: { whatsapp: "+964-7827-883680", email: "iraq@mofa.gov.bd", note: "Bangladesh Embassy Baghdad" },
-    },
-    airspace: "CLOSED",
-    borders: [
-      { route: "Jordan border (Al-Karama/Trebil)", status: "warn", note: "Open but very slow. Long delays reported." }
-    ],
-    ngos: ["UNHCR Iraq", "IRC", "Médecins Sans Frontières", "NRC"],
-    coords: [33.22, 43.68],
-    telegram: null
-  },
-  {
-    id: "jordan",
-    name: "Jordan",
-    status: "warn",
-    advisory: "Airspace restricted. US Embassy sheltering staff. Amman relatively stable. Monitor hourly.",
-    embassy: {
-      usa: { phone: "+962-6-590-6000", step: "https://step.state.gov", note: "Shelter-in-place for staff — avoid embassy compound" },
-      uk:  { phone: "+962-6-590-9200", web: "https://www.gov.uk/foreign-travel-advice/jordan" },
-      aus: { phone: "+61-2-6261-3305", note: "Consular Emergency Centre" },
-      phl: { phone: "+962-7-7907-7775", note: "OWWA Jordan emergency hotline" },
-    },
-    airspace: "PARTIALLY OPEN",
-    borders: [
-      { route: "Amman Airport (QAI) — some flights operating", status: "safe", note: "Check airline status. Some European carriers resuming." }
-    ],
-    ngos: ["UNHCR Jordan", "IRC Jordan", "Mercy Corps"],
-    coords: [30.58, 36.24],
-    telegram: null
-  },
-  {
-    id: "israel",
-    name: "Israel & Palestinian Territories",
-    status: "danger",
-    advisory: "Active missile strikes. Ben Gurion airport closed. Iron Dome active. Gaza: extreme humanitarian crisis, movement nearly impossible.",
-    embassy: {
-      usa: { phone: "+972-2-630-4000", step: "https://step.state.gov", note: "Embassy Jerusalem — shelter in place order in effect" },
-      uk:  { phone: "+972-2-671-7150", web: "https://www.gov.uk/foreign-travel-advice/israel" },
-      aus: { phone: "+61-2-6261-3305", note: "Consular Emergency Centre (no embassy on-site currently)" },
-      can: { phone: "+972-3-636-3300", note: "Canadian Embassy Tel Aviv" },
-      deu: { phone: "+972-3-693-9183", note: "German Embassy Tel Aviv" },
-      fra: { phone: "+972-3-520-8500", note: "French Embassy Tel Aviv" },
-    },
-    airspace: "CLOSED",
-    borders: [
-      { route: "Allenby/King Hussein Bridge → Jordan", status: "warn", note: "Periodically open. Check hours before attempting. Long queues." },
-      { route: "Rafah Crossing (Gaza → Egypt)", status: "danger", note: "Effectively closed. Extreme danger. Coordinate only through ICRC." },
-      { route: "Taba → Egypt (Eilat side)", status: "warn", note: "Possible but monitor military activity near Eilat." }
-    ],
-    ngos: ["ICRC", "UNRWA (Gaza)", "Magen David Adom", "MSF", "World Food Programme"],
-    coords: [31.85, 35.22],
-    telegram: null
-  }
+  { id:"uae", name:"United Arab Emirates", status:"danger",
+    advisory:"Shelter in place. Airspace closed. DXB/AUH suspended. Iranian missile debris reported in civilian areas.",
+    embassy:{ usa:{phone:"+971-2-414-2200",email:"ACSAbuDhabi@state.gov"}, uk:{phone:"+971-2-610-1100"}, aus:{phone:"+61-2-6261-3305",note:"Consular Emergency Centre"}, can:{phone:"+971-2-694-0300"}, ind:{phone:"800-46342 (toll-free)"}, phl:{phone:"+971-50-813-7836"}, pak:{phone:"+971-50-254-8975"}, bgd:{phone:"+971-2-665-5336"}, npl:{phone:"+971-2-444-7804"} },
+    airspace:"CLOSED", borders:[{route:"Overland → Oman (E611)",status:"warn",note:"Open but drone activity reported."},{route:"Overland → Saudi Arabia",status:"warn",note:"Long (900+ km). Fill tank, carry water."}], ngos:["UNHCR","Red Cross UAE","IOM","Caritas UAE"], coords:[24.47,54.37], telegram:"https://t.me/gulfcrisis" },
+  { id:"bahrain", name:"Bahrain", status:"danger",
+    advisory:"High alert. Airspace restricted. US Naval base on lockdown. Missile strikes reported.",
+    embassy:{ usa:{phone:"+973-1724-2700"}, uk:{phone:"+973-1757-4100"}, ind:{phone:"+973-1771-2785"}, phl:{phone:"+973-3995-3235"}, pak:{phone:"+973-1771-1789"}, bgd:{phone:"+973-1753-3271"} },
+    airspace:"RESTRICTED", borders:[{route:"King Fahd Causeway → Saudi Arabia",status:"warn",note:"Road crossing open. Monitor Saudi entry."}], ngos:["Red Crescent Bahrain","UNHCR"], coords:[26.07,50.55], telegram:null },
+  { id:"kuwait", name:"Kuwait", status:"danger",
+    advisory:"Airspace closed. Airport struck. US military base on heightened alert. Shelter in place.",
+    embassy:{ usa:{phone:"+965-2259-1001"}, uk:{phone:"+965-2259-4320"}, ind:{phone:"+965-6550-1946"}, phl:{phone:"+965-2220-5571"}, bgd:{phone:"+965-6992-0013"} },
+    airspace:"CLOSED", borders:[{route:"Overland → Saudi Arabia (south)",status:"warn",note:"Monitor border hourly."}], ngos:["Kuwait Red Crescent","UNHCR Kuwait"], coords:[29.37,47.97], telegram:null },
+  { id:"qatar", name:"Qatar", status:"warn",
+    advisory:"Airspace restricted. US Al Udeid base sheltering in place. Monitor advisories closely.",
+    embassy:{ usa:{phone:"+974-4496-6000"}, uk:{phone:"+974-4496-2100"}, aus:{phone:"+61-2-6261-3305",note:"Consular Emergency Centre"}, ind:{phone:"+974-5564-7502"}, phl:{phone:"+974-4483-1585"} },
+    airspace:"RESTRICTED", borders:[{route:"Sea → Doha Port (limited)",status:"warn",note:"Some vessels operating."}], ngos:["Qatar Red Crescent","IOM Qatar"], coords:[25.28,51.53], telegram:null },
+  { id:"oman", name:"Oman", status:"warn",
+    advisory:"Drone incident near Sohar port. Relatively stable. Receiving overland arrivals from UAE.",
+    embassy:{ usa:{phone:"+968-2464-3400"}, uk:{phone:"+968-2460-9000"}, ind:{phone:"8007-1234 (toll-free)"}, phl:{phone:"+968-7990-5211"} },
+    airspace:"OPEN (monitor)", borders:[{route:"Overland from UAE (Hatta/Hafeet)",status:"safe",note:"Open. Queues building. Fuel up before crossing."}], ngos:["Oman Red Crescent"], coords:[23.61,58.59], telegram:null },
+  { id:"saudi", name:"Saudi Arabia", status:"warn",
+    advisory:"Airspace open on select routes. Receiving overland arrivals. Elevated security posture.",
+    embassy:{ usa:{phone:"+966-11-488-3800"}, uk:{phone:"+966-11-488-0077"}, ind:{phone:"+966-11-488-4697"}, phl:{phone:"+966-56-989-3301"} },
+    airspace:"PARTIALLY OPEN", borders:[{route:"Receiving arrivals from UAE/Kuwait/Bahrain",status:"safe",note:"Land borders open. Delays at checkpoints."}], ngos:["Saudi Red Crescent","King Salman Relief Centre"], coords:[23.88,45.07], telegram:null },
+  { id:"iran", name:"Iran", status:"danger",
+    advisory:"DO NOT TRAVEL. Active military operations. No consular services for most Western nationals.",
+    embassy:{ usa:{note:"No US Embassy — Swiss Embassy: +98-21-2200-8333"}, uk:{note:"Limited — London FCO: +44-20-7008-5000"}, pak:{phone:"+98-21-669413-88"} },
+    airspace:"CLOSED", borders:[{route:"All crossings: unstable / closed",status:"danger",note:"Do not attempt overland crossing."}], ngos:["ICRC (limited)","UNHCR"], coords:[32.43,53.68], telegram:null },
+  { id:"iraq", name:"Iraq", status:"danger",
+    advisory:"Do not travel. Airspace closed. US facilities targeted. Active military near Iranian border.",
+    embassy:{ usa:{phone:"+964-760-030-7000",note:"Shelter in place"}, uk:{phone:"+964-7901-926-280"} },
+    airspace:"CLOSED", borders:[{route:"Overland → Jordan (Trebil/Al-Karama)",status:"warn",note:"Open but slow. Long queues."}], ngos:["UNHCR Iraq","IOM Iraq","ICRC"], coords:[33.22,43.68], telegram:null },
 ];
 
-// ============================================================
-// WORLDWIDE — People stranded outside Gulf due to flight disruption
-// ============================================================
 const WORLDWIDE_REGIONS = [
-  {
-    id: "bali",
-    name: "Bali / Indonesia",
-    note: "Heavily affected. Europe↔Bali routes via DXB/DOH all cancelled. Thousands stranded at Ngurah Rai Airport.",
-    contacts: [
-      { label: "Australian Consular Emergency", value: "+61-2-6261-3305" },
-      { label: "UK FCDO Helpline", value: "+44-20-7008-5000" },
-      { label: "US Embassy Jakarta", value: "+62-21-5083-1000" },
-      { label: "Bali Airport Info", value: "+62-361-9351011" },
-    ],
-    resources: ["https://www.smartraveller.gov.au", "https://step.state.gov"],
-    coords: [-8.34, 115.09]
-  },
-  {
-    id: "india",
-    name: "India (Mumbai / Delhi)",
-    note: "Air India, IndiGo cancelled Gulf + Europe routes. Millions of diaspora families separated. Migrant workers unable to reach Gulf jobs.",
-    contacts: [
-      { label: "MOIA 24/7 Helpline", value: "1800-11-3090 (toll-free India)" },
-      { label: "MEA Emergency", value: "+91-11-2301-2113" },
-    ],
-    resources: ["https://www.mea.gov.in", "https://www.pravasisampark.gov.in"],
-    coords: [20.59, 78.96]
-  },
-  {
-    id: "philippines",
-    name: "Philippines",
-    note: "Massive OFW disruption. Remittance workers unable to reach Gulf postings. OWWA coordinating repatriation assistance.",
-    contacts: [
-      { label: "OWWA International Hotline", value: "+632-1348" },
-      { label: "DFA OFW 24/7 Hotline", value: "+632-8651-9400" },
-      { label: "DOLE Hotline", value: "1349 (within PH)" },
-    ],
-    resources: ["https://owwa.gov.ph", "https://dfa.gov.ph"],
-    coords: [12.88, 121.77]
-  },
-  {
-    id: "pakistan",
-    name: "Pakistan",
-    note: "PIA and other carriers suspended Gulf routes. One Pakistani national killed in UAE. CMU activated 24/7.",
-    contacts: [
-      { label: "Pakistan CMU (24/7)", value: "+92-51-9207887" },
-      { label: "Ministry of Foreign Affairs", value: "+92-51-9207354" },
-    ],
-    resources: ["https://mofa.gov.pk"],
-    coords: [30.38, 69.35]
-  },
-  {
-    id: "bangladesh",
-    name: "Bangladesh",
-    note: "Hundreds of thousands of garment and construction workers stranded. Multiple embassies issued urgent advisories.",
-    contacts: [
-      { label: "Bangladesh MOFA Helpline", value: "+880-2-9554000" },
-      { label: "BOESL Emergency", value: "+880-2-9144817" },
-    ],
-    resources: ["https://www.mofa.gov.bd", "https://boesl.gov.bd"],
-    coords: [23.68, 90.35]
-  },
-  {
-    id: "uk_europe",
-    name: "UK / Europe",
-    note: "Long-haul disruption. Flights to South/Southeast Asia cancelled or rerouted via Africa adding 5–8 hours.",
-    contacts: [
-      { label: "FCDO Helpline (24/7)", value: "+44-20-7008-5000" },
-      { label: "FCDO WhatsApp", value: "+44-7973-383750" },
-    ],
-    resources: ["https://www.gov.uk/foreign-travel-advice", "https://www.flightaware.com"],
-    coords: [51.5, 10.5]
-  },
-  {
-    id: "australia",
-    name: "Australia / NZ",
-    note: "Gulf routing dependency severe. Smartraveller raised UAE/Iran to Do Not Travel. Consular Emergency Centre handling high volume.",
-    contacts: [
-      { label: "Consular Emergency Centre", value: "+61-2-6261-3305 (overseas)" },
-      { label: "Consular Emergency Centre", value: "1300-555-135 (in Australia)" },
-    ],
-    resources: ["https://www.smartraveller.gov.au/news-and-updates/middle-east-conflict"],
-    coords: [-25.27, 133.77]
-  },
-  {
-    id: "east_africa",
-    name: "East Africa (Kenya / Ethiopia)",
-    note: "Nairobi and Addis Ababa are Gulf hub transit points. Thousands stranded on Asia↔Africa routes.",
-    contacts: [
-      { label: "US Embassy Nairobi", value: "+254-20-363-6000" },
-      { label: "UK Embassy Nairobi", value: "+254-20-284-4000" },
-    ],
-    resources: ["https://step.state.gov", "https://www.gov.uk/foreign-travel-advice"],
-    coords: [1.29, 37.42]
-  },
+  { id:"india", name:"India", note:"Air India/IndiGo cancelled Gulf routes. Millions of diaspora separated.", contacts:[{label:"MOIA 24/7 Helpline",value:"1800-11-3090 (toll-free India)"},{label:"MEA Emergency",value:"+91-11-2301-2113"}], resources:["https://www.mea.gov.in"], coords:[20.59,78.96] },
+  { id:"philippines", name:"Philippines", note:"Massive OFW disruption. OWWA coordinating repatriation.", contacts:[{label:"OWWA International",value:"+632-1348"},{label:"DFA OFW 24/7",value:"+632-8651-9400"}], resources:["https://owwa.gov.ph"], coords:[12.88,121.77] },
+  { id:"pakistan", name:"Pakistan", note:"PIA suspended Gulf routes. CMU activated 24/7.", contacts:[{label:"Pakistan CMU (24/7)",value:"+92-51-9207887"},{label:"Ministry of Foreign Affairs",value:"+92-51-9207354"}], resources:["https://mofa.gov.pk"], coords:[30.38,69.35] },
+  { id:"bangladesh", name:"Bangladesh", note:"Hundreds of thousands of workers stranded.", contacts:[{label:"MOFA Helpline",value:"+880-2-9554000"},{label:"BOESL Emergency",value:"+880-2-9144817"}], resources:["https://www.mofa.gov.bd"], coords:[23.68,90.35] },
+  { id:"uk_europe", name:"UK / Europe", note:"Flights to South Asia cancelled or rerouted via Africa.", contacts:[{label:"FCDO Helpline (24/7)",value:"+44-20-7008-5000"},{label:"FCDO WhatsApp",value:"+44-7973-383750"}], resources:["https://www.gov.uk/foreign-travel-advice"], coords:[51.5,10.5] },
+  { id:"australia", name:"Australia / NZ", note:"Smartraveller raised UAE/Iran to Do Not Travel.", contacts:[{label:"Consular Emergency Centre",value:"+61-2-6261-3305 (overseas)"},{label:"In Australia",value:"1300-555-135"}], resources:["https://www.smartraveller.gov.au"], coords:[-25.27,133.77] },
+  { id:"east_africa", name:"East Africa", note:"Nairobi/Addis Ababa hub routes disrupted.", contacts:[{label:"US Embassy Nairobi",value:"+254-20-363-6000"},{label:"UK Embassy Nairobi",value:"+254-20-284-4000"}], resources:["https://step.state.gov"], coords:[1.29,37.42] },
 ];
 
 const RESOURCES = [
-  { type: "Government", name: "US STEP Program", desc: "Register to receive emergency alerts from US Embassy. Essential for all Americans abroad.", url: "https://step.state.gov" },
-  { type: "Government", name: "UK FCDO Travel Advice", desc: "Live advisories and emergency consular support for British nationals.", url: "https://www.gov.uk/foreign-travel-advice" },
-  { type: "Government", name: "Australia Smartraveller", desc: "Australian DFAT travel advisories and emergency registration.", url: "https://www.smartraveller.gov.au" },
-  { type: "Government", name: "Canada ROCA", desc: "Register of Canadians Abroad — emergency alerts and consular help.", url: "https://travel.gc.ca/travelling/registration" },
-  { type: "NGO", name: "UNHCR Emergency", desc: "UN Refugee Agency — active in UAE, Iraq, Jordan. Can assist displaced persons.", url: "https://www.unhcr.org" },
-  { type: "NGO", name: "ICRC (Red Cross)", desc: "International Committee of the Red Cross — active across the conflict zone.", url: "https://www.icrc.org" },
-  { type: "NGO", name: "IOM — Intl Org for Migration", desc: "Coordinates emergency evacuation logistics for migrants and vulnerable populations.", url: "https://www.iom.int" },
-  { type: "NGO", name: "IRC — International Rescue Committee", desc: "Emergency relief in Iraq and Jordan. Crisis hotlines available.", url: "https://www.rescue.org" },
-  { type: "NGO", name: "Médecins Sans Frontières", desc: "Medical teams active in Iraq. Can assist with emergency medical needs.", url: "https://www.msf.org" },
-  { type: "Community", name: "r/dubai — Megathread", desc: "Reddit community aggregating real-time reports from expats on the ground.", url: "https://reddit.com/r/dubai" },
-  { type: "Community", name: "InterNations Gulf Crisis Group", desc: "Expat community network sharing resources and verified information.", url: "https://www.internations.org" },
-  { type: "Aviation", name: "FlightAware", desc: "Live airspace and flight status — check before going to any airport.", url: "https://flightaware.com" },
-  { type: "Aviation", name: "AviationStack API", desc: "Used by this site's auto-updater to track airspace closures.", url: "https://aviationstack.com" },
-  { type: "Info", name: "ReliefWeb", desc: "Comprehensive humanitarian news and NGO deployment tracking for the region.", url: "https://reliefweb.int" }
+  { type:"Government", name:"US STEP Program", desc:"Register to receive emergency alerts from US Embassy.", url:"https://step.state.gov" },
+  { type:"Government", name:"UK FCDO Travel Advice", desc:"Live advisories and emergency consular support.", url:"https://www.gov.uk/foreign-travel-advice" },
+  { type:"Government", name:"Australia Smartraveller", desc:"Australian DFAT advisories and emergency registration.", url:"https://www.smartraveller.gov.au" },
+  { type:"Government", name:"Canada ROCA", desc:"Register of Canadians Abroad — emergency alerts.", url:"https://travel.gc.ca/travelling/registration" },
+  { type:"NGO", name:"UNHCR Emergency", desc:"UN Refugee Agency — active in UAE, Iraq, Jordan.", url:"https://www.unhcr.org" },
+  { type:"NGO", name:"ICRC / Red Cross", desc:"Active across the conflict zone.", url:"https://www.icrc.org" },
+  { type:"NGO", name:"IOM", desc:"Coordinates emergency evacuation logistics.", url:"https://www.iom.int" },
+  { type:"NGO", name:"IRC", desc:"Emergency relief in Iraq and Jordan.", url:"https://www.rescue.org" },
+  { type:"NGO", name:"Médecins Sans Frontières", desc:"Medical teams active in Iraq.", url:"https://www.msf.org" },
+  { type:"Community", name:"r/dubai Megathread", desc:"Real-time reports from expats on the ground.", url:"https://reddit.com/r/dubai" },
+  { type:"Aviation", name:"FlightAware", desc:"Live airspace and flight status.", url:"https://flightaware.com" },
+  { type:"Info", name:"ReliefWeb", desc:"Humanitarian news and NGO deployment tracking.", url:"https://reliefweb.int" },
+];
+
+const LAND_ROUTES = [
+  { from:[24.47,54.37], to:[23.61,58.59], status:'warn',   label:'UAE → Oman (E611)' },
+  { from:[24.47,54.37], to:[23.88,45.07], status:'warn',   label:'UAE → Saudi Arabia' },
+  { from:[26.07,50.55], to:[23.88,45.07], status:'warn',   label:'Bahrain → Saudi (King Fahd Causeway)' },
+  { from:[29.37,47.97], to:[23.88,45.07], status:'warn',   label:'Kuwait → Saudi Arabia' },
+  { from:[33.22,43.68], to:[30.58,36.24], status:'warn',   label:'Iraq → Jordan (Trebil)' },
+  { from:[30.58,36.24], to:[31.85,35.22], status:'warn',   label:'Jordan → Israel (Allenby Bridge)' },
+  { from:[31.85,35.22], to:[30.00,32.25], status:'danger', label:'Israel → Egypt (Taba)' },
+  { from:[31.30,34.30], to:[30.00,32.25], status:'danger', label:'Gaza → Egypt (Rafah — closed)' },
+  { from:[23.61,58.59], to:[25.28,51.53], status:'warn',   label:'Oman → Qatar (sea route)' },
 ];
 
 // ============================================================
-// SUPABASE CONFIG
-// Run supabase-setup.sql first, then add xhandle column:
-//   ALTER TABLE help_posts ADD COLUMN IF NOT EXISTS xhandle text;
+// SUPABASE
 // ============================================================
 const SUPABASE_URL  = 'https://YOUR_PROJECT_ID.supabase.co';
 const SUPABASE_ANON = 'YOUR_ANON_PUBLIC_KEY';
-
-const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-
-const SUPABASE_CONFIGURED = !SUPABASE_URL.includes('YOUR_PROJECT_ID');
-
-// Local cache — loaded from DB on init, kept live via realtime subscription
+const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+const SUPABASE_ON = !SUPABASE_URL.includes('YOUR_PROJECT_ID');
 let posts = [];
 
 // ============================================================
@@ -2099,209 +982,193 @@ function showView(name) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
   const pill = document.querySelector('.cta-pill');
-  if (pill) pill.style.background = '#ffffff';
-
-  document.getElementById(name + '-view').classList.add('active');
-
-  // Nav: map=0, countries=1, resources=2 — pill handles help
-  const navMap = { map: 0, countries: 1, resources: 2 };
-  if (navMap[name] !== undefined) {
-    document.querySelectorAll('nav button')[navMap[name]].classList.add('active');
-  } else if (name === 'help' && pill) {
-    pill.style.background = 'var(--gold)';
-  }
-
-  if (name === 'map' && !window._mapInit) initMap();
-  if (name === 'countries') renderCountries();
-  if (name === 'help') renderPosts();
-  if (name === 'resources') renderResources();
+  if (pill) pill.style.opacity = '1';
+  document.getElementById(name+'-view').classList.add('active');
+  const nm = {map:0,countries:1,resources:2};
+  if (nm[name] !== undefined) document.querySelectorAll('nav button')[nm[name]].classList.add('active');
+  if (name==='map' && !window._mapInit) initMap();
+  if (name==='countries') renderCountries();
+  if (name==='help') renderPosts();
+  if (name==='resources') renderResources();
 }
 
 // ============================================================
-// MAP
+// MAP + FILTER SYSTEM
 // ============================================================
-
-// Land routes: [from_coords, to_coords, status, label]
-const LAND_ROUTES = [
-  { from: [24.47, 54.37], to: [23.61, 58.59], status: 'warn',   label: 'UAE → Oman (E611)' },
-  { from: [24.47, 54.37], to: [23.88, 45.07], status: 'warn',   label: 'UAE → Saudi Arabia' },
-  { from: [26.07, 50.55], to: [23.88, 45.07], status: 'warn',   label: 'Bahrain → Saudi (King Fahd Causeway)' },
-  { from: [29.37, 47.97], to: [23.88, 45.07], status: 'warn',   label: 'Kuwait → Saudi Arabia' },
-  { from: [33.22, 43.68], to: [30.58, 36.24], status: 'warn',   label: 'Iraq → Jordan (Trebil/Al-Karama)' },
-  { from: [30.58, 36.24], to: [31.85, 35.22], status: 'warn',   label: 'Jordan → Israel (Allenby Bridge)' },
-  { from: [31.85, 35.22], to: [30.00, 32.25], status: 'danger', label: 'Israel → Egypt (Taba)' },
-  { from: [31.30, 34.30], to: [30.00, 32.25], status: 'danger', label: 'Gaza → Egypt (Rafah — effectively closed)' },
-  { from: [23.61, 58.59], to: [25.28, 51.53], status: 'warn',   label: 'Oman → Qatar (sea route)' },
-];
-
-let _userLocationMarker = null;
-let _searchMarker = null;
+const _mk = { country:[], routes:[], worldwide:[], help:[] };
+let _activeFilter = 'all';
 let _postMarkers = [];
+let _userPin = null;
+
+const SC = { danger:'#c13515', warn:'#b45309', safe:'#047857' };
+
+function filterMap(type) {
+  if (!window._mapInit) { showView('map'); setTimeout(()=>filterMap(type),500); return; }
+  if (_activeFilter === type) type = 'all';
+  _activeFilter = type;
+  const map = window._crisisMap;
+
+  // Update sitrep active state
+  document.querySelectorAll('.sitrep-stat').forEach(s => s.classList.remove('active-filter'));
+  const ssMap = {stranded:'ss-stranded',cancelled:'ss-cancelled',airports:'ss-airports',
+    airspace:'ss-airspace',routes:'ss-routes',help:'ss-help'};
+  if (ssMap[type]) document.getElementById(ssMap[type])?.classList.add('active-filter');
+
+  // Update legend active state
+  document.querySelectorAll('.legend-item').forEach(l => l.classList.remove('active-legend'));
+  const legMap = {danger:'leg-danger',warn:'leg-warn',safe:'leg-safe',worldwide:'leg-worldwide',help:'leg-help',routes:'leg-routes'};
+  if (legMap[type]) document.getElementById(legMap[type])?.classList.add('active-legend');
+
+  // Determine visibility
+  const showCountry = ['all','stranded','cancelled','airports','airspace','danger','warn','safe'].includes(type);
+  const showRoutes  = ['all','routes'].includes(type);
+  const showWorld   = ['all','worldwide'].includes(type);
+  const showHelp    = ['all','help'].includes(type);
+
+  _mk.country.forEach(({marker, status}) => {
+    const show = type==='all' || type===status ||
+      ['stranded','cancelled','airports','airspace'].includes(type);
+    show ? marker.addTo(map) : map.removeLayer(marker);
+  });
+  _mk.routes.forEach(({marker}) => {
+    showRoutes ? marker.addTo(map) : map.removeLayer(marker);
+  });
+  _mk.worldwide.forEach(m => { showWorld ? m.addTo(map) : map.removeLayer(m); });
+  _mk.help.forEach(m => { showHelp ? m.addTo(map) : map.removeLayer(m); });
+
+  // Auto-open popups on specific filters
+  if (type==='airports') {
+    _mk.country.forEach(({marker, country}) => {
+      if (country?.airspace==='CLOSED') { try { marker.openPopup(); } catch(e){} }
+    });
+  }
+  if (type==='routes') map.flyTo([28,46],5,{duration:1});
+  if (type==='help')   map.flyTo([28,45],5,{duration:1});
+  if (type==='all')    map.flyTo([28,45],5,{duration:1});
+
+  showView('map');
+}
 
 function initMap() {
   window._mapInit = true;
-  const map = L.map('crisis-map', { zoomControl: false }).setView([28, 45], 5);
-  L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    attribution: '©OpenStreetMap ©CARTO',
-    maxZoom: 19
+  const map = L.map('crisis-map',{zoomControl:false}).setView([28,45],5);
+  L.control.zoom({position:'bottomright'}).addTo(map);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
+    attribution:'©OpenStreetMap ©CARTO', maxZoom:19
   }).addTo(map);
 
-  const statusColors = { danger: '#ff4d00', warn: '#ffaa00', safe: '#00b248' };
-
-  // ── Country markers ──────────────────────────────────────
+  // Country markers
   COUNTRIES.forEach(c => {
-    const col = statusColors[c.status];
-
-    // Outer glow ring
-    L.circleMarker(c.coords, {
-      radius: 16, fillColor: col, color: col,
-      weight: 1, opacity: 0.5, fillOpacity: 0.15
+    const col = SC[c.status];
+    const glow = L.circleMarker(c.coords,{
+      radius:15, fillColor:col, color:col, weight:1, opacity:.3, fillOpacity:.1
     }).addTo(map);
 
-    // Inner dot
-    L.circleMarker(c.coords, {
-      radius: 8, fillColor: col, color: '#000',
-      weight: 1.5, opacity: 1, fillOpacity: 0.95
+    const dot = L.circleMarker(c.coords,{
+      radius:8, fillColor:col, color:'#fff', weight:2, opacity:1, fillOpacity:.95
     }).addTo(map).bindPopup(`
-      <div style="font-family:'Nunito Sans',sans-serif;min-width:230px;color:#222222">
-        <div style="font-family:'Nunito',sans-serif;font-size:1.3rem;color:${col};margin-bottom:0.4rem;letter-spacing:0.06em">${c.name}</div>
-        <div style="font-size:0.82rem;color:#717171;margin-bottom:0.6rem;line-height:1.5">${c.advisory}</div>
-        <div style="font-size:0.72rem;margin-bottom:0.75rem;font-family:'Nunito Sans',sans-serif;letter-spacing:0.04em">
-          <span style="color:#717171">AIRSPACE: </span>
-          <strong style="color:${c.airspace==='CLOSED'?'#c13515':c.airspace.includes('OPEN')?'#22c55e':'#ff385c'}">${c.airspace}</strong>
+      <div style="font-family:'Inter',sans-serif;min-width:230px">
+        <div style="font-size:.95rem;font-weight:700;color:${col};margin-bottom:.3rem">${c.name}</div>
+        <div style="font-size:.78rem;color:#555;line-height:1.5;margin-bottom:.55rem">${c.advisory}</div>
+        <div style="font-size:.7rem;color:#888;margin-bottom:.65rem">
+          Airspace: <strong style="color:${c.airspace==='CLOSED'?'#c13515':c.airspace.includes('OPEN')?'#047857':'#b45309'}">${c.airspace}</strong>
         </div>
-        ${c.telegram ? `<a href="${c.telegram}" style="color:#60a5fa;font-size:0.75rem;display:block;margin-bottom:0.6rem;font-weight:600;font-family:'Nunito Sans',sans-serif;letter-spacing:0.04em" target="_blank">→ TELEGRAM GROUP</a>` : ''}
-        <button onclick="window.filterAndShowCountry('${c.id}')" style="background:#ff385c;border:none;color:#ffffff;font-family:'Nunito Sans',sans-serif;font-size:0.85rem;font-weight:700;padding:0.4rem 1rem;cursor:pointer;border-radius:3px;letter-spacing:0.08em;width:100%;text-transform:uppercase">FULL INFO & EMBASSIES →</button>
+        ${c.telegram ? `<a href="${c.telegram}" style="color:#1d4ed8;font-size:.75rem;font-weight:500;display:block;margin-bottom:.55rem" target="_blank">→ Telegram group</a>` : ''}
+        <button onclick="filterAndShowCountry('${c.id}')" style="background:#ff385c;border:none;color:#fff;font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;padding:.4rem .9rem;cursor:pointer;border-radius:8px;width:100%">Full info &amp; embassies →</button>
       </div>
     `);
+
+    _mk.country.push({marker:glow, status:c.status, country:c});
+    _mk.country.push({marker:dot,  status:c.status, country:c});
   });
 
-  // ── Land routes ──────────────────────────────────────────
+  // Land routes
   LAND_ROUTES.forEach(r => {
-    const color = r.status === 'safe' ? '#22c55e' : r.status === 'warn' ? '#f59e0b' : '#ef4444';
-    const dash  = r.status === 'danger' ? '6,8' : r.status === 'warn' ? '8,4' : null;
-
-    L.polyline([r.from, r.to], {
-      color, weight: 3, opacity: 0.75,
-      dashArray: dash
+    const col = r.status==='safe' ? '#047857' : r.status==='warn' ? '#b45309' : '#c13515';
+    const line = L.polyline([r.from,r.to],{
+      color:col, weight:3, opacity:.8,
+      dashArray: r.status==='danger' ? '6,8' : r.status==='warn' ? '8,4' : null
     }).addTo(map).bindPopup(`
-      <div style="font-family:'Nunito Sans',sans-serif">
-        <div style="font-family:'Nunito Sans',sans-serif;font-weight:700;font-size:0.95rem;color:${color};margin-bottom:0.3rem">${r.label}</div>
-        <div style="font-size:0.75rem;color:#8a909e">Status: <strong style="color:${color}">${r.status.toUpperCase()}</strong></div>
+      <div style="font-family:'Inter',sans-serif">
+        <div style="font-weight:700;font-size:.88rem;color:${col};margin-bottom:.25rem">${r.label}</div>
+        <div style="font-size:.74rem;color:#888">Status: <strong style="color:${col}">${r.status.toUpperCase()}</strong></div>
       </div>
     `);
+    _mk.routes.push({marker:line, status:r.status});
   });
 
-  // ── Worldwide region markers ─────────────────────────────
+  // Worldwide markers
   WORLDWIDE_REGIONS.forEach(r => {
-    L.circleMarker(r.coords, {
-      radius: 9, fillColor: '#60a5fa', color: '#000',
-      weight: 1.5, opacity: 0.8, fillOpacity: 0.5
+    const m = L.circleMarker(r.coords,{
+      radius:8, fillColor:'#1d4ed8', color:'#fff', weight:2, opacity:.9, fillOpacity:.5
     }).addTo(map).bindPopup(`
-      <div style="font-family:'Nunito Sans',sans-serif;min-width:200px;color:#222222">
-        <div style="font-family:'Nunito',sans-serif;font-size:1.1rem;color:#60a5fa;margin-bottom:0.4rem;letter-spacing:0.06em">🌍 ${r.name}</div>
-        <div style="font-size:0.8rem;color:#717171;line-height:1.5;margin-bottom:0.5rem">${r.note}</div>
-        <div style="font-size:0.72rem;color:#717171;font-family:'Nunito Sans',sans-serif">${r.contacts[0]?.label}: <strong style="color:#222222">${r.contacts[0]?.value}</strong></div>
+      <div style="font-family:'Inter',sans-serif;min-width:190px">
+        <div style="font-size:.88rem;font-weight:700;color:#1d4ed8;margin-bottom:.25rem">🌍 ${r.name}</div>
+        <div style="font-size:.76rem;color:#555;line-height:1.5;margin-bottom:.4rem">${r.note}</div>
+        <div style="font-size:.7rem;color:#888">${r.contacts[0]?.label}: <strong style="color:#222">${r.contacts[0]?.value}</strong></div>
       </div>
     `);
+    _mk.worldwide.push(m);
   });
 
-  // ── Help post markers ────────────────────────────────────
   renderPostsOnMap(map);
   window._crisisMap = map;
 }
 
-// Geocode a city string using Nominatim (free, no key)
-async function geocodeCity(city) {
-  try {
-    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`, {
-      headers: { 'Accept-Language': 'en', 'User-Agent': 'ImStranded/1.0' }
-    });
-    const data = await res.json();
-    if (data && data[0]) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon), name: data[0].display_name };
-    return null;
-  } catch(e) { return null; }
-}
-
-async function geocodeSearch() {
-  const query = document.getElementById('map-search').value.trim();
-  if (!query) return;
-  const result = await geocodeCity(query);
-  if (!result) { alert('Location not found. Try a city or country name.'); return; }
-  const map = window._crisisMap;
-  if (_searchMarker) map.removeLayer(_searchMarker);
-  _searchMarker = L.marker([result.lat, result.lng], {
-    icon: L.divIcon({
-      className: '',
-      html: `<div style="background:#ffffff;color:#222222;padding:0.3rem 0.6rem;border-radius:4px;font-family:'Nunito Sans',sans-serif;font-size:0.72rem;font-weight:600;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.3)">📍 ${query}</div>`,
-      iconAnchor: [0, 0]
-    })
-  }).addTo(map);
-  map.flyTo([result.lat, result.lng], 10, { duration: 1.2 });
-}
-
-function pinMyLocation() {
-  if (!navigator.geolocation) { alert('Geolocation not supported by your browser.'); return; }
-  navigator.geolocation.getCurrentPosition(pos => {
-    const map = window._crisisMap;
-    const { latitude: lat, longitude: lng } = pos.coords;
-    if (_userLocationMarker) map.removeLayer(_userLocationMarker);
-    _userLocationMarker = L.circleMarker([lat, lng], {
-      radius: 10, fillColor: '#ff385c', color: '#000',
-      weight: 2, opacity: 1, fillOpacity: 0.9
-    }).addTo(map).bindPopup(`
-      <div style="font-family:'Nunito Sans',sans-serif;color:#222222">
-        <strong style="color:#ff385c;font-family:'Nunito',sans-serif;font-size:1rem;letter-spacing:0.06em">YOU ARE HERE</strong><br>
-        <span style="font-size:0.75rem;color:#717171">${lat.toFixed(4)}, ${lng.toFixed(4)}</span><br>
-        <a href="#" onclick="document.querySelectorAll('nav button')[2].click();return false" style="color:#ff385c;font-size:0.78rem;font-weight:600;font-family:'Nunito Sans',sans-serif;letter-spacing:0.04em">→ POST FOR HELP OR OFFER HELP</a>
-      </div>
-    `).openPopup();
-    map.flyTo([lat, lng], 11, { duration: 1.2 });
-  }, () => alert('Unable to get your location. Check browser permissions.'));
-}
-
-// Render help post pins — purple for offers, blue for needs
 function renderPostsOnMap(map) {
-  // Clear old markers
-  _postMarkers.forEach(m => map.removeLayer(m));
+  _mk.help.forEach(m => { try { map.removeLayer(m); } catch(e){} });
+  _mk.help.length = 0;
+  _postMarkers.forEach(m => { try { map.removeLayer(m); } catch(e){} });
   _postMarkers = [];
 
   posts.forEach(async p => {
     if (!p.location) return;
     const geo = await geocodeCity(p.location);
     if (!geo) return;
-
-    const isOffer = p.type === 'offer';
-    const color   = isOffer ? '#7c3aed' : '#0ea5e9';
-    const icon    = isOffer ? '🟣' : '🔵';
-
-    const marker = L.circleMarker([geo.lat, geo.lng], {
-      radius: 7, fillColor: color, color: '#000',
-      weight: 1.5, opacity: 1, fillOpacity: 0.95
+    const m = L.circleMarker([geo.lat,geo.lng],{
+      radius:7, fillColor:'#059669', color:'#fff', weight:2, opacity:1, fillOpacity:.9
     }).addTo(map).bindPopup(`
-      <div style="font-family:'Nunito Sans',sans-serif;min-width:200px;color:#222222">
-        <div style="font-family:'Nunito',sans-serif;font-size:0.95rem;color:${color};letter-spacing:0.06em;margin-bottom:0.3rem">${icon} ${p.postType}</div>
-        <div style="font-size:0.8rem;color:#717171;margin-bottom:0.4rem;line-height:1.5">${p.body.slice(0,120)}${p.body.length > 120 ? '…' : ''}</div>
-        <div style="font-size:0.72rem;color:#717171;font-family:'Nunito Sans',sans-serif;letter-spacing:0.03em">📍 ${p.location} · 👤 ${p.name}</div>
-        ${p.xhandle ? `<a href="https://x.com/${p.xhandle}" target="_blank" style="display:inline-block;margin-top:0.5rem;background:${isOffer?'#ff385c':'rgba(96,165,250,0.15)'};color:${isOffer?'#000':'#60a5fa'};font-size:0.7rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:3px;text-decoration:none;font-family:'Nunito Sans',sans-serif;letter-spacing:0.06em">${isOffer?'TIP $HELP →':'@'+p.xhandle}</a>` : ''}
+      <div style="font-family:'Inter',sans-serif;min-width:200px">
+        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#059669;margin-bottom:.25rem">Help offered</div>
+        <div style="font-weight:600;font-size:.85rem;margin-bottom:.2rem">${p.name}</div>
+        <div style="font-size:.78rem;color:#555;line-height:1.5;margin-bottom:.4rem">${p.body.slice(0,110)}${p.body.length>110?'…':''}</div>
+        <div style="font-size:.7rem;color:#888">📍 ${p.location}</div>
+        ${p.xhandle ? `<a href="https://x.com/${p.xhandle}" target="_blank" style="display:inline-block;margin-top:.4rem;background:#059669;color:#fff;font-size:.68rem;font-weight:600;padding:.2rem .55rem;border-radius:5px;text-decoration:none">Tip $HELP →</a>` : ''}
       </div>
     `);
-    _postMarkers.push(marker);
+    _mk.help.push(m);
+    _postMarkers.push(m);
+  });
+}
+
+async function geocodeCity(city) {
+  try {
+    const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`,
+      {headers:{'Accept-Language':'en','User-Agent':'ImStranded/1.0'}});
+    const d = await r.json();
+    if (d && d[0]) return {lat:parseFloat(d[0].lat),lng:parseFloat(d[0].lon)};
+  } catch(e) {}
+  return null;
+}
+
+function pinMyLocation() {
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(pos => {
+    const map = window._crisisMap;
+    if (!map) return;
+    const {latitude:lat,longitude:lng} = pos.coords;
+    if (_userPin) map.removeLayer(_userPin);
+    _userPin = L.circleMarker([lat,lng],{
+      radius:9, fillColor:'#ff385c', color:'#fff', weight:2, opacity:1, fillOpacity:.9
+    }).addTo(map).bindPopup('<div style="font-family:Inter,sans-serif;font-size:.82rem;font-weight:600;color:#ff385c">📍 You are here</div>').openPopup();
+    map.flyTo([lat,lng],11,{duration:1.2});
   });
 }
 
 window.filterAndShowCountry = function(id) {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-  document.getElementById('countries-view').classList.add('active');
-  document.querySelectorAll('nav button')[1].classList.add('active');
+  showView('countries');
   renderCountries(id);
-  setTimeout(() => {
-    const el = document.getElementById('card-' + id);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, 100);
+  setTimeout(() => document.getElementById('card-'+id)?.scrollIntoView({behavior:'smooth',block:'start'}), 150);
 };
 
 // ============================================================
@@ -2310,8 +1177,16 @@ window.filterAndShowCountry = function(id) {
 function renderCountries(highlight) {
   document.getElementById('worldwide-grid').style.display = 'none';
   document.getElementById('countries-grid').style.display = '';
-  const grid = document.getElementById('countries-grid');
-  grid.innerHTML = COUNTRIES.map(c => renderCard(c, highlight === c.id)).join('');
+  document.getElementById('countries-grid').innerHTML = COUNTRIES.map(c => renderCard(c, c.id===highlight)).join('');
+}
+
+function filterCountries(filter, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('worldwide-grid').style.display = 'none';
+  document.getElementById('countries-grid').style.display = '';
+  const list = filter==='all' ? COUNTRIES : COUNTRIES.filter(c => c.status===filter);
+  document.getElementById('countries-grid').innerHTML = list.map(c => renderCard(c,false)).join('');
 }
 
 function showWorldwide(btn) {
@@ -2319,334 +1194,111 @@ function showWorldwide(btn) {
   btn.classList.add('active');
   document.getElementById('countries-grid').style.display = 'none';
   document.getElementById('worldwide-grid').style.display = 'block';
-  const grid = document.getElementById('worldwide-cards');
-  grid.innerHTML = WORLDWIDE_REGIONS.map(renderWorldwideCard).join('');
+  document.getElementById('worldwide-cards').innerHTML = WORLDWIDE_REGIONS.map(renderWorldwideCard).join('');
+}
+
+function renderCard(c, highlight) {
+  const embassyRows = Object.entries(c.embassy).slice(0,5).map(([key, info]) => {
+    const L = EMBASSY_LABELS[key] || {flag:'🏳',name:key.toUpperCase(),role:'Embassy'};
+    const phone = info.phone || info.alt || null;
+    const note = info.note || '';
+    return `<div class="embassy-row">
+      <div class="embassy-who">
+        <span class="embassy-name">${L.flag} ${L.role}</span>
+        ${note ? `<span class="embassy-detail" style="display:block;font-size:.68rem;color:var(--muted);margin-top:.1rem">${note}</span>` : ''}
+      </div>
+      ${phone ? `<a class="call-btn" href="tel:${phone.replace(/[\s\-()]/g,'')}">${phone}</a>` : ''}
+    </div>`;
+  }).join('');
+
+  const borderRows = c.borders.map(b => {
+    const col = b.status==='safe'?'var(--safe)':b.status==='warn'?'var(--warn)':'var(--danger)';
+    return `<div class="info-row"><span class="info-label">${b.route}</span><span class="info-val" style="color:${col}">${b.status.toUpperCase()}</span></div>`;
+  }).join('');
+
+  return `<div class="country-card ${c.status} ${highlight?'highlight':''}" id="card-${c.id}">
+    <div class="card-header">
+      <div class="card-name">${c.name}</div>
+      <span class="status-badge ${c.status}">${c.status.toUpperCase()}</span>
+    </div>
+    <div class="card-advisory">${c.advisory}</div>
+    <div class="info-row"><span class="info-label">Airspace</span><span class="info-val" style="color:${c.airspace==='CLOSED'?'var(--danger)':c.airspace.includes('OPEN')?'var(--safe)':'var(--warn)'}">${c.airspace}</span></div>
+    ${borderRows}
+    <div class="embassy-section">
+      <div class="embassy-title">Embassy Emergency Contacts</div>
+      ${embassyRows || '<div style="font-size:.75rem;color:var(--muted)">Check embassy website</div>'}
+    </div>
+    ${c.ngos?.length ? `<div class="ngo-tags">${c.ngos.map(n=>`<span class="ngo-tag">${n}</span>`).join('')}</div>` : ''}
+    ${c.telegram ? `<a class="telegram-link" href="${c.telegram}" target="_blank">→ Telegram group</a>` : ''}
+  </div>`;
 }
 
 function renderWorldwideCard(r) {
-  const contactItems = r.contacts.map(c =>
-    `<div class="info-row">
-      <span class="info-label" style="min-width:120px">${c.label}</span>
-      <span class="info-value"><strong>${c.value}</strong></span>
-    </div>`
-  ).join('');
-  const links = r.resources.map(url =>
-    `<a href="${url}" target="_blank" class="resource-link" style="display:inline-flex;margin-right:1rem">→ ${url.replace('https://','').replace('www.','').split('/')[0]}</a>`
-  ).join('');
-  return `
-    <div class="country-card">
-      <div class="country-header">
-        <div class="country-name">${r.name}</div>
-        <div class="status-badge" style="color:var(--info);background:var(--info-soft)">DISRUPTED</div>
-      </div>
-      <div class="info-row" style="margin-bottom:0.75rem">
-        <span class="info-value" style="color:var(--text2);font-size:0.82rem">${r.note}</span>
-      </div>
-      ${contactItems}
-      <div class="ngos-section">
-        <div class="ngos-label">Official Resources</div>
-        ${links}
-      </div>
-    </div>
-  `;
-}
-
-function renderCard(c, highlighted) {
-  const statusLabel = { danger: 'High Risk', warn: 'Elevated', safe: 'Stable' }[c.status];
-
-  const embassyRows = Object.entries(c.embassy).map(([nation, info]) => {
-    const label = EMBASSY_LABELS[nation] || nation.toUpperCase();
-    const parts = [];
-    if (info.phone)    parts.push(`📞 ${info.phone}`);
-    if (info.alt)      parts.push(`📞 ${info.alt}`);
-    if (info.tollfree) parts.push(`☎️ ${info.tollfree} (toll-free)`);
-    if (info.whatsapp) parts.push(`💬 ${info.whatsapp} (WhatsApp)`);
-    if (info.email)    parts.push(`<a href="mailto:${info.email}">${info.email}</a>`);
-    if (info.step)     parts.push(`<a href="${info.step}" target="_blank">STEP →</a>`);
-    if (info.web)      parts.push(`<a href="${info.web}" target="_blank">Advisory →</a>`);
-    if (info.note)     parts.push(`<em style="color:var(--muted);font-size:0.75rem">${info.note}</em>`);
-    return `
-      <div class="info-row">
-        <span class="info-label" style="min-width:90px">${label}</span>
-        <span class="info-value" style="font-size:0.78rem;line-height:1.6">${parts.join(' · ')}</span>
-      </div>
-    `;
-  }).join('');
-
-  const routeItems = c.borders.map(r => {
-    const icon = r.status === 'safe' ? '✅' : r.status === 'warn' ? '⚠️' : '🚫';
-    return `<li><span class="route-icon">${icon}</span><span><strong>${r.route}</strong> — ${r.note}</span></li>`;
-  }).join('');
-
-  return `
-    <div class="country-card" id="card-${c.id}" style="${highlighted ? 'border-color:var(--accent)' : ''}">
-      <div class="country-header">
-        <div class="country-name">${c.name}</div>
-        <div class="status-badge status-${c.status}">${statusLabel}</div>
-      </div>
-      <div class="info-row">
-        <span class="info-label">Advisory</span>
-        <span class="info-value">${c.advisory}</span>
-      </div>
-      <div class="info-row">
-        <span class="info-label">Airspace</span>
-        <span class="info-value" style="color:${c.airspace==='CLOSED'?'var(--danger)':c.airspace.includes('OPEN')?'var(--safe)':'var(--warn)'};font-weight:600">${c.airspace}</span>
-      </div>
-      <div style="margin:0.75rem 0 0.25rem;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted)">Embassy Contacts</div>
-      ${embassyRows}
-      <div class="info-row" style="margin-top:0.5rem">
-        <span class="info-label">Exit Routes</span>
-        <span class="info-value">
-          <ul class="route-list">${routeItems}</ul>
-        </span>
-      </div>
-      <div class="ngos-section">
-        <div class="ngos-label">Active NGOs / Orgs</div>
-        ${c.ngos.map(n => `<span class="ngo-tag">${n}</span>`).join('')}
-        ${c.telegram ? `<div style="margin-top:0.5rem"><a href="${c.telegram}" target="_blank" style="color:var(--info);font-size:0.72rem;font-weight:600">→ Telegram group</a></div>` : ''}
-      </div>
-    </div>
-  `;
-}
-
-function filterCountries(status, btn) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('worldwide-grid').style.display = 'none';
-  document.getElementById('countries-grid').style.display = '';
-  const grid = document.getElementById('countries-grid');
-  const filtered = status === 'all' ? COUNTRIES : COUNTRIES.filter(c => c.status === status);
-  grid.innerHTML = filtered.map(c => renderCard(c, false)).join('');
+  return `<div class="country-card safe">
+    <div class="card-name" style="margin-bottom:.5rem">🌍 ${r.name}</div>
+    <div class="card-advisory">${r.note}</div>
+    ${r.contacts.map(c=>`<div class="info-row"><span class="info-label">${c.label}</span><span class="info-val">${c.value}</span></div>`).join('')}
+  </div>`;
 }
 
 // ============================================================
-// HELP POSTS — Supabase powered
+// HELP BOARD (offers only)
 // ============================================================
-
-// Map DB row shape → internal shape
-function dbToPost(row) {
-  return {
-    id:       row.id,
-    type:     row.type,
-    postType: row.post_type,
-    location: row.location,
-    body:     row.body,
-    name:     row.name,
-    contact:  row.contact,
-    xhandle:  row.xhandle || null,
-    time:     row.created_at,
-    flagged:  row.flagged || false,
-  };
-}
-
-// Load all posts from Supabase and render
-async function loadPosts() {
-  setPostsLoading(true);
-  try {
-    const { data, error } = await _supabase
-      .from('help_posts')
-      .select('*')
-      .eq('flagged', false)          // hide flagged posts
-      .order('created_at', { ascending: false })
-      .limit(200);
-
-    if (error) throw error;
-    posts = (data || []).map(dbToPost);
-    renderPosts();
-    // Refresh map pins if map is open
-    if (window._crisisMap) renderPostsOnMap(window._crisisMap);
-  } catch (e) {
-    console.error('Failed to load posts:', e);
-    setPostsError('Could not load posts. Check Supabase config.');
-  } finally {
-    setPostsLoading(false);
-  }
-}
-
-// Subscribe to real-time inserts — new posts appear instantly for everyone
-function subscribeToPostStream() {
-  _supabase
-    .channel('help_posts_stream')
-    .on('postgres_changes',
-      { event: 'INSERT', schema: 'public', table: 'help_posts' },
-      (payload) => {
-        const newPost = dbToPost(payload.new);
-        if (!newPost.flagged) {
-          posts.unshift(newPost);
-          renderPosts();
-          flashNewPost(newPost.id);
-          if (window._crisisMap) renderPostsOnMap(window._crisisMap);
-        }
-      }
-    )
-    .on('postgres_changes',
-      { event: 'UPDATE', schema: 'public', table: 'help_posts' },
-      (payload) => {
-        // Handle flag updates — remove from view if flagged
-        if (payload.new.flagged) {
-          posts = posts.filter(p => p.id !== payload.new.id);
-          renderPosts();
-        }
-      }
-    )
-    .subscribe();
-}
-
-function flashNewPost(id) {
-  setTimeout(() => {
-    const el = document.querySelector(`[data-post-id="${id}"]`);
-    if (el) {
-      el.style.transition = 'background 0.3s';
-      el.style.background = 'rgba(245,197,24,0.08)';
-      setTimeout(() => { el.style.background = ''; }, 1200);
-      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-  }, 100);
-}
-
-function setPostsLoading(loading) {
-  ['offer-posts', 'need-posts'].forEach(id => {
-    if (loading) document.getElementById(id).innerHTML =
-      `<div class="empty-state" style="color:var(--muted)">Loading posts...</div>`;
-  });
-}
-
-function setPostsError(msg) {
-  ['offer-posts', 'need-posts'].forEach(id => {
-    document.getElementById(id).innerHTML =
-      `<div class="empty-state" style="color:var(--danger)">${msg}</div>`;
-  });
-}
-
 function renderPosts() {
-  const offers = posts.filter(p => p.type === 'offer');
-  const needs  = posts.filter(p => p.type === 'need');
-
-  document.getElementById('offer-posts').innerHTML = offers.length
-    ? offers.map(renderPost).join('')
-    : `<div class="empty-state">No offers yet. Be the first.</div>`;
-
-  document.getElementById('need-posts').innerHTML = needs.length
-    ? needs.map(renderPost).join('')
-    : `<div class="empty-state">No requests yet.</div>`;
-}
-
-function renderPost(p) {
-  const time = new Date(p.time).toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
-  let contactDisplay = p.contact;
-  if (p.contact.startsWith('@')) {
-    contactDisplay = `<a href="https://t.me/${p.contact.slice(1)}" target="_blank">${p.contact}</a>`;
-  } else if (p.contact.includes('@') && !p.contact.startsWith('+')) {
-    contactDisplay = `<a href="mailto:${p.contact}">${p.contact}</a>`;
+  const offer = document.getElementById('offer-posts');
+  const all   = document.getElementById('all-offers-list');
+  const offerPosts = posts.filter(p => p.type==='offer');
+  if (!offerPosts.length) {
+    const msg = '<div class="empty-state">No offers yet — be the first to post.</div>';
+    if (offer) offer.innerHTML = msg;
+    if (all) all.innerHTML = msg;
+    return;
   }
-
-  const xHandle = p.xhandle ? p.xhandle.replace('@','') : null;
-  const xSection = xHandle ? `
-    <span class="contact-item">
-      𝕏 <a href="https://x.com/${xHandle}" target="_blank">@${xHandle}</a>
-    </span>
-    ${p.type === 'offer' ? `<span class="contact-item" style="margin-left:auto">
-      <a href="https://x.com/${xHandle}" target="_blank" style="background:var(--gold);color:#222222;font-size:0.68rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:3px;text-decoration:none;font-family:var(--mono);letter-spacing:0.06em;text-transform:uppercase">
-        TIP $HELP →
-      </a>
-    </span>` : ''}
-  ` : '';
-
-  return `
-    <div class="post-card ${p.type}" data-post-id="${p.id}">
-      <div class="post-meta">
-        <span class="post-type ${p.type}">${p.postType}</span>
-        <span class="post-time">${time}</span>
+  const html = offerPosts.map(p => {
+    const t = p.created_at ? new Date(p.created_at).toLocaleString() : '';
+    return `<div class="post-card">
+      <div class="post-header">
+        <span class="post-type">Offering</span>
+        <span class="post-time">${t}</span>
       </div>
-      <div class="post-location">📍 ${escHtml(p.location)}</div>
-      <div class="post-body">${escHtml(p.body)}</div>
-      <div class="post-contact">
-        <span class="contact-item">👤 ${escHtml(p.name)}</span>
-        <span class="contact-item">📬 ${contactDisplay}</span>
-        ${xSection}
-        ${!xHandle ? `<span class="contact-item" style="margin-left:auto">` : `<span class="contact-item">`}
-          <button onclick="flagPost('${p.id}')" style="background:none;border:none;color:var(--muted);font-family:var(--mono);font-size:0.6rem;cursor:pointer;letter-spacing:0.05em" title="Flag as suspicious">⚑ flag</button>
-        </span>
+      <div class="post-loc">📍 ${p.location}</div>
+      <div class="post-body">${p.body}</div>
+      <div class="post-footer">
+        <span style="font-size:.78rem;color:var(--muted)">${p.name}</span>
+        ${p.contact ? `<a style="font-size:.75rem;color:var(--coral);font-weight:500">${p.contact}</a>` : ''}
+        ${p.xhandle ? `<a class="tip-btn" href="https://x.com/${p.xhandle}" target="_blank">Tip $HELP →</a>` : ''}
       </div>
-    </div>
-  `;
-}
-
-// Basic XSS protection
-function escHtml(s) {
-  return String(s)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;');
+    </div>`;
+  }).join('');
+  if (offer) offer.innerHTML = html;
+  if (all) all.innerHTML = html;
 }
 
 async function submitPost(type) {
-  const postType = document.getElementById(type + '-type').value;
-  const location = document.getElementById(type + '-location').value;
-  const body     = document.getElementById(type + '-body').value;
-  const name     = document.getElementById(type + '-name').value;
-  const contact  = document.getElementById(type + '-contact').value;
-  const xhandle  = (document.getElementById(type + '-xhandle').value || '').trim().replace(/^@+/, '');
-
-  if (!postType || !location || !body || !name || !contact) {
-    alert('Please fill in all required fields.');
-    return;
-  }
-
-  const contactOk = contact.includes('@') || contact.startsWith('+') || /\d{7,}/.test(contact);
-  if (!contactOk) {
-    alert('Please enter a valid contact: email, phone number, or @telegram handle.');
-    return;
-  }
-
-  const btn = type === 'offer'
-    ? document.querySelector('.submit-btn:not(.need)')
-    : document.querySelector('.submit-btn.need');
-  const originalText = btn.textContent;
-  btn.textContent = 'Posting...';
-  btn.disabled = true;
-
+  const t = document.getElementById(type+'-type')?.value;
+  const l = document.getElementById(type+'-location')?.value;
+  const b = document.getElementById(type+'-body')?.value;
+  const n = document.getElementById(type+'-name')?.value;
+  const c = document.getElementById(type+'-contact')?.value;
+  const x = (document.getElementById(type+'-xhandle')?.value||'').trim().replace(/^@+/,'');
+  if (!t||!l||!b||!n||!c) { alert('Please fill in all required fields.'); return; }
+  const btn = document.querySelector('.submit-btn');
+  btn.textContent = 'Posting…'; btn.disabled = true;
   try {
-    const { error } = await _supabase.from('help_posts').insert({
-      type,
-      post_type: postType,
-      location,
-      body,
-      name,
-      contact,
-      xhandle: xhandle || null,
-      flagged: false,
+    const {error} = await _sb.from('help_posts').insert({
+      type, post_type:t, location:l, body:b, name:n, contact:c, xhandle:x||null, flagged:false
     });
-
     if (error) throw error;
-
     ['type','location','body','name','contact','xhandle'].forEach(f => {
-      const el = document.getElementById(type + '-' + f);
-      if (el) el.tagName === 'SELECT' ? el.selectedIndex = 0 : el.value = '';
+      const el = document.getElementById(type+'-'+f);
+      if (el) el.tagName==='SELECT' ? el.selectedIndex=0 : el.value='';
     });
-
     btn.textContent = '✓ Posted!';
-    setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 2000);
-
-  } catch (e) {
-    console.error('Post failed:', e);
-    alert('Failed to post. Check your connection and try again.\n\nError: ' + e.message);
-    btn.textContent = originalText;
-    btn.disabled = false;
-  }
-}
-
-// Flag a post as suspicious — soft-delete via DB flag
-async function flagPost(id) {
-  if (!confirm('Flag this post as suspicious or fake? It will be hidden pending review.')) return;
-  const { error } = await _supabase
-    .from('help_posts')
-    .update({ flagged: true })
-    .eq('id', id);
-  if (!error) {
-    posts = posts.filter(p => p.id !== id);
-    renderPosts();
+    setTimeout(() => { btn.textContent='Post Offer'; btn.disabled=false; },3000);
+    loadPosts();
+  } catch(e) {
+    alert('Failed to post: '+e.message);
+    btn.textContent='Post Offer'; btn.disabled=false;
   }
 }
 
@@ -2654,596 +1306,269 @@ async function flagPost(id) {
 // RESOURCES
 // ============================================================
 function renderResources() {
-  const grid = document.getElementById('resources-grid');
-  grid.innerHTML = RESOURCES.map(r => `
+  document.getElementById('resources-grid').innerHTML = RESOURCES.map(r => `
     <div class="resource-card">
       <div class="resource-type">${r.type}</div>
       <div class="resource-name">${r.name}</div>
       <div class="resource-desc">${r.desc}</div>
-      <a href="${r.url}" target="_blank" class="resource-link">→ ${r.url.replace('https://','')}</a>
+      <a class="resource-link" href="${r.url}" target="_blank" rel="noopener">Open →</a>
     </div>
   `).join('');
 }
 
 // ============================================================
-// SITREP COUNTER — reads live from Supabase
-// Scraper updates Supabase every hour via Vercel Cron
-// Realtime subscription pushes updates to all open browsers instantly
+// SITREP
 // ============================================================
-
-const SITREP_FALLBACK = {
-  cancelled_flights: 1847,
-  avg_passengers_per_flight: 459,
-  airports_closed: 5,
-  airspace_closed_countries: 4,
-  land_routes_open: 3,
-  last_updated: '2026-03-01T10:00:00Z',
-};
-
-function animateCount(elId, target, duration = 1200) {
-  const el = document.getElementById(elId);
-  if (!el) return;
-  const start = performance.now();
-  function update(now) {
-    const progress = Math.min((now - start) / duration, 1);
-    const eased = 1 - Math.pow(1 - progress, 3);
-    el.textContent = Math.round(target * eased).toLocaleString();
-    if (progress < 1) requestAnimationFrame(update);
-  }
-  requestAnimationFrame(update);
-}
-
-function formatRelativeTime(isoString) {
-  const diff = Math.floor((Date.now() - new Date(isoString)) / 1000 / 60);
-  if (diff < 1)  return 'updated just now';
-  if (diff < 60) return `updated ${diff}m ago`;
-  return `updated ${Math.floor(diff / 60)}h ago`;
-}
-
-function applySitrep(data) {
-  const estStranded = data.cancelled_flights * data.avg_passengers_per_flight;
-  animateCount('stat-stranded',         estStranded,           1400);
-  animateCount('stat-cancelled',        data.cancelled_flights, 1000);
-  animateCount('stat-airports-closed',  data.airports_closed,   600);
-  animateCount('stat-airspace',         data.airspace_closed_countries, 600);
-  animateCount('stat-border-crossings', data.land_routes_open,  600);
-  document.getElementById('refresh-label').textContent = formatRelativeTime(data.last_updated);
-
-  // Update ticker if headlines available
-  if (data.headlines) {
-    try {
-      const h = JSON.parse(data.headlines);
-      if (h.length) document.getElementById('ticker-text').textContent = h.join(' · ');
-    } catch(e) {}
-  }
+function animateCount(id, target, duration) {
+  const el = document.getElementById(id);
+  if (!el || !target) return;
+  const start = Date.now();
+  const startVal = parseInt(el.textContent.replace(/,/g,'')) || 0;
+  const step = () => {
+    const p = Math.min((Date.now()-start)/duration, 1);
+    const v = Math.round(startVal + (target-startVal) * (1-Math.pow(1-p,3)));
+    el.textContent = v.toLocaleString();
+    if (p < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
 }
 
 async function refreshSitrep() {
   const icon = document.getElementById('refresh-icon');
-  const label = document.getElementById('refresh-label');
-  icon.classList.add('spinning');
-  label.textContent = 'refreshing...';
+  const lbl  = document.getElementById('refresh-label');
+  if (icon) icon.classList.add('spinning');
 
-  let data = { ...SITREP_FALLBACK };
-
-  // Pull live from Supabase if configured
-  if (SUPABASE_CONFIGURED) {
-    try {
-      const { data: rows, error } = await _supabase
-        .from('sitrep')
-        .select('*')
-        .eq('id', 'current')
-        .single();
-      if (!error && rows) data = rows;
-    } catch (e) {
-      console.warn('Sitrep fetch failed, using fallback:', e.message);
-    }
+  try {
+    const r = await fetch('https://api.aviationstack.com/v1/flights?access_key=demo&flight_status=cancelled&limit=100');
+    const d = await r.json();
+    const cancelled = d?.data?.length ?? 0;
+    const closed = 5, airspaceC = 4, routesOpen = 3;
+    const estStranded = cancelled * 180;
+    animateCount('stat-stranded', estStranded, 1200);
+    animateCount('stat-cancelled', cancelled, 800);
+    animateCount('stat-airports-closed', closed, 500);
+    animateCount('stat-airspace', airspaceC, 500);
+    animateCount('stat-border-crossings', routesOpen, 500);
+  } catch(e) {
+    [['stat-stranded','847,773'],['stat-cancelled','1,847'],['stat-airports-closed','5'],['stat-airspace','4'],['stat-border-crossings','3']].forEach(([id,v]) => {
+      const el = document.getElementById(id); if (el) el.textContent = v;
+    });
   }
 
-  // Pull live help post count
-  let helpPostCount = posts.length;
-  if (SUPABASE_CONFIGURED) {
-    try {
-      const { count } = await _supabase
-        .from('help_posts')
-        .select('*', { count: 'exact', head: true })
-        .eq('flagged', false);
-      if (count !== null) helpPostCount = count;
-    } catch (e) {}
+  if (SUPABASE_ON) {
+    const {count} = await _sb.from('help_posts').select('*',{count:'exact',head:true}).eq('flagged',false);
+    animateCount('stat-help-posts', count||0, 600);
+    document.getElementById('m-stat-help')
+      && (document.getElementById('m-stat-help').textContent = (count||0).toLocaleString());
+  } else {
+    document.getElementById('stat-help-posts').textContent = '0';
   }
 
-  animateCount('stat-help-posts', helpPostCount, 800);
-  applySitrep(data);
-  icon.classList.remove('spinning');
-}
+  const now = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('last-updated-label').textContent = `Updated: ${now}`;
+  const mup = document.getElementById('m-updated');
+  if (mup) mup.textContent = now;
+  if (lbl) lbl.textContent = 'updated just now';
+  if (icon) icon.classList.remove('spinning');
 
-// Realtime subscription — sitrep updates stream instantly when scraper runs
-function subscribeSitrep() {
-  if (!SUPABASE_CONFIGURED) return;
-  _supabase
-    .channel('sitrep_live')
-    .on('postgres_changes',
-      { event: 'UPDATE', schema: 'public', table: 'sitrep' },
-      (payload) => {
-        console.log('Sitrep updated live:', payload.new.last_updated);
-        applySitrep(payload.new);
-        // Flash the bar to signal update
-        const bar = document.getElementById('sitrep-bar');
-        bar.style.transition = 'background 0.4s';
-        bar.style.background = 'rgba(245,197,24,0.05)';
-        setTimeout(() => { bar.style.background = ''; }, 1000);
-      }
-    )
-    .subscribe();
-}
-
-// Auto-refresh every 5 min as backup
-setInterval(refreshSitrep, 5 * 60 * 1000);
-document.getElementById('last-updated-label').textContent =
-  'Updated: ' + new Date(LAST_UPDATED).toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', timeZoneName:'short' });
-
-function closeModal() {
-  document.getElementById('modal').classList.remove('open');
-}
-
-// Boot map immediately
-initMap();
-
-// Boot sitrep — load from Supabase + subscribe to live updates
-refreshSitrep();
-subscribeSitrep();
-
-// Boot Supabase — load posts + start live stream
-// (even if user hasn't clicked the help tab yet)
-if (SUPABASE_CONFIGURED) {
-  loadPosts();
-  subscribeToPostStream();
-} else {
-  ['offer-posts','need-posts'].forEach(id => {
-    document.getElementById(id).innerHTML = `
-      <div class="empty-state" style="color:var(--warn)">
-        ⚙ Supabase not configured yet.<br>
-        See README → Supabase Setup to enable live posts.
-      </div>`;
+  // Sync mobile stats pill
+  ['stranded','border-crossings'].forEach(k => {
+    const src = document.getElementById('stat-'+k);
+    const tgt = document.getElementById('m-stat-'+(k==='border-crossings'?'routes':'stranded'));
+    if (src && tgt) tgt.textContent = src.textContent;
   });
 }
 
 // ============================================================
-// MOBILE UI — only runs on small screens
+// SUPABASE POSTS
 // ============================================================
-if (window.innerWidth <= 600) {
-  initMobile();
+async function loadPosts() {
+  if (!SUPABASE_ON) return;
+  const {data} = await _sb.from('help_posts').select('*').eq('flagged',false).order('created_at',{ascending:false}).limit(50);
+  if (data) { posts = data; renderPosts(); renderPostsOnMap(window._crisisMap); }
 }
-window.addEventListener('resize', () => {
-  if (window.innerWidth <= 600 && !window._mobileInit) initMobile();
-});
 
-function initMobile() {
+function subscribeToPostStream() {
+  if (!SUPABASE_ON) return;
+  _sb.channel('help_posts').on('postgres_changes',{event:'INSERT',schema:'public',table:'help_posts'},
+    payload => { posts.unshift(payload.new); renderPosts(); renderPostsOnMap(window._crisisMap); }
+  ).subscribe();
+}
+
+// ============================================================
+// MOBILE
+// ============================================================
+let _mSheetOpen = false;
+let _mCurrentTab = 'map';
+
+function isMobile() { return window.innerWidth <= 600; }
+
+function initMobileShell() {
+  if (!isMobile()) return;
   window._mobileInit = true;
 
-  // Build mobile shell HTML
-  document.body.insertAdjacentHTML('beforeend', `
-    <div id="mobile-shell">
-
-      <!-- Map container -->
-      <div id="mobile-map-container">
-        <div id="mobile-crisis-map"></div>
-
-        <!-- Top bar -->
-        <div id="mobile-topbar">
-          <div id="mobile-logo">
-            <div class="pulse-dot"></div>
-            I'M STRANDED — <span>YOU'RE NOT.</span>
-          </div>
-          <div id="mobile-live-badge">LIVE</div>
-        </div>
-
-        <!-- Stranded counter pill -->
-        <div id="mobile-counter">
-          <div class="m-counter-stat">
-            <div class="m-counter-num danger" id="m-stat-stranded">—</div>
-            <div class="m-counter-label">Stranded</div>
-          </div>
-          <div class="m-counter-div"></div>
-          <div class="m-counter-stat">
-            <div class="m-counter-num" id="m-stat-cancelled">—</div>
-            <div class="m-counter-label">Cancelled</div>
-          </div>
-          <div class="m-counter-div"></div>
-          <div class="m-counter-stat">
-            <div class="m-counter-num safe" id="m-stat-routes">—</div>
-            <div class="m-counter-label">Routes Open</div>
-          </div>
-        </div>
-
-        <!-- Search bar -->
-        <div id="mobile-search-bar">
-          <input id="mobile-search-input" type="text" placeholder="Search city or location…" onkeydown="if(event.key==='Enter')mobileSearch()">
-          <button id="mobile-search-btn" onclick="mobileSearch()">GO</button>
-          <button id="mobile-locate-btn" onclick="mobilePinLocation()">📍</button>
-        </div>
-
-        <!-- PANIC: I NEED HELP -->
-        <button id="mobile-panic-btn" onclick="openSheet('panic')">
-          🆘 I NEED HELP
-        </button>
-
-        <!-- Offer help -->
-        <button id="mobile-offer-btn" onclick="openSheet('help')">
-          OFFER HELP ↑
-        </button>
-      </div>
-
-      <!-- Bottom sheet -->
-      <div id="mobile-sheet" class="peek">
-        <div id="sheet-handle-area" onclick="toggleSheet()">
-          <div id="sheet-handle"></div>
-          <div id="sheet-title">
-            <span id="sheet-title-text">↑ COUNTRIES & STATUS</span>
-          </div>
-        </div>
-        <div id="sheet-content">
-          <!-- Panic / need help form -->
-          <div id="panic-form" style="display:none">
-            <div style="background:rgba(255,87,34,0.1);border:1px solid rgba(255,87,34,0.3);border-radius:6px;padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.82rem;color:#ffb09a;font-family:var(--mono);letter-spacing:0.03em">
-              Your contact info will be visible. This lets helpers reach you and deters bad actors.
-            </div>
-            <div class="m-form-row">
-              <label class="m-form-label">What do you need?</label>
-              <select id="m-need-type">
-                <option value="">Select…</option>
-                <option>Shelter / housing</option>
-                <option>Transportation / evacuation</option>
-                <option>Food / water / supplies</option>
-                <option>Medical help</option>
-                <option>Financial help</option>
-                <option>Translation / guidance</option>
-                <option>Other</option>
-              </select>
-            </div>
-            <div class="m-form-row">
-              <label class="m-form-label">Your current location</label>
-              <input type="text" id="m-need-location" placeholder="e.g. Deira, Dubai">
-            </div>
-            <div class="m-form-row">
-              <label class="m-form-label">Details — how many people? how urgent?</label>
-              <textarea id="m-need-body" placeholder="Be specific so helpers can assess…"></textarea>
-            </div>
-            <div class="m-form-row">
-              <label class="m-form-label">Your name</label>
-              <input type="text" id="m-need-name" placeholder="First name or handle">
-            </div>
-            <div class="m-form-row">
-              <label class="m-form-label">Contact (phone, email, or @telegram)</label>
-              <input type="text" id="m-need-contact" placeholder="+971 50 000 0000">
-            </div>
-            <div class="m-form-row">
-              <label class="m-form-label">X / Twitter handle <span style="color:var(--muted);font-weight:400">(optional — pin + tips)</span></label>
-              <input type="text" id="m-need-xhandle" placeholder="@yourhandle">
-            </div>
-            <button class="m-submit" onclick="mobileSubmitNeed()">POST REQUEST — I NEED HELP</button>
-          </div>
-
-          <!-- Offer help form -->
-          <div id="help-sheet" style="display:none">
-            <div class="m-form-row">
-              <label class="m-form-label">What can you offer?</label>
-              <select id="m-offer-type">
-                <option value="">Select…</option>
-                <option>Housing / spare room</option>
-                <option>Transportation / ride share</option>
-                <option>Food / supplies</option>
-                <option>Medical assistance</option>
-                <option>Cash / financial help</option>
-                <option>Translation / local knowledge</option>
-                <option>Other</option>
-              </select>
-            </div>
-            <div class="m-form-row">
-              <label class="m-form-label">Your location</label>
-              <input type="text" id="m-offer-location" placeholder="e.g. Dubai, UAE">
-            </div>
-            <div class="m-form-row">
-              <label class="m-form-label">Details</label>
-              <textarea id="m-offer-body" placeholder="Describe what you can offer…"></textarea>
-            </div>
-            <div class="m-form-row">
-              <label class="m-form-label">Your name</label>
-              <input type="text" id="m-offer-name" placeholder="First name or handle">
-            </div>
-            <div class="m-form-row">
-              <label class="m-form-label">Contact</label>
-              <input type="text" id="m-offer-contact" placeholder="+971 50 000 0000">
-            </div>
-            <div class="m-form-row">
-              <label class="m-form-label">X / Twitter handle <span style="color:var(--muted);font-weight:400">(pin on map + receive $HELP tips)</span></label>
-              <input type="text" id="m-offer-xhandle" placeholder="@yourhandle">
-              <div style="font-size:0.7rem;color:var(--muted);margin-top:0.35rem">📍 Your pin drops on the map. People can tip you <strong style="color:var(--gold)">$HELP</strong> via your handle.</div>
-            </div>
-            <button class="m-submit" style="background:var(--gold);color:#222222" onclick="mobileSubmitOffer()">POST OFFER — I CAN HELP</button>
-          </div>
-
-          <!-- Countries sheet -->
-          <div id="country-sheet" style="display:none">
-            <div class="m-filter-chips">
-              <div class="m-chip active" onclick="mobileFilterCountries('all',this)">All</div>
-              <div class="m-chip" onclick="mobileFilterCountries('danger',this)">⚠ High Risk</div>
-              <div class="m-chip" onclick="mobileFilterCountries('warn',this)">⚡ Elevated</div>
-              <div class="m-chip" onclick="mobileFilterCountries('safe',this)">✓ Stable</div>
-            </div>
-            <div id="m-country-list"></div>
-          </div>
-
-          <!-- Resources sheet -->
-          <div id="resources-sheet" style="display:none">
-            <div id="m-resources-list"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Bottom tab bar -->
-      <div id="mobile-tabbar">
-        <button class="m-tab active" onclick="mobileTab('map',this)">
-          <span class="m-tab-icon">🗺</span>Map
-        </button>
-        <button class="m-tab" onclick="mobileTab('countries',this)">
-          <span class="m-tab-icon">🌍</span>Countries
-        </button>
-        <button class="m-tab" onclick="mobileTab('posts',this)">
-          <span class="m-tab-icon">🤝</span>Help Board
-        </button>
-        <button class="m-tab" onclick="mobileTab('resources',this)">
-          <span class="m-tab-icon">📋</span>Resources
-        </button>
-      </div>
-    </div>
-  `);
+  // Show mobile shell, hide nothing (views already hidden by CSS)
+  document.getElementById('mobile-shell').style.display = 'flex';
+  document.getElementById('mobile-shell').style.flexDirection = 'column';
+  document.getElementById('mobile-shell').style.height = '100dvh';
 
   // Init mobile map
-  const mmap = L.map('mobile-crisis-map', { zoomControl: false, attributionControl: false })
-    .setView([28, 45], 4);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(mmap);
+  const mmap = L.map('mobile-crisis-map',{zoomControl:false,attributionControl:false}).setView([28,45],4);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mmap);
 
-  const sc = { danger: '#c13515', warn: '#ff385c', safe: '#22c55e' };
   COUNTRIES.forEach(c => {
-    L.circleMarker(c.coords, {
-      radius: 10, fillColor: sc[c.status], color: '#000', weight: 1.5, opacity: 1, fillOpacity: 0.9
-    }).addTo(mmap).on('click', () => {
-      mobileTab('countries', document.querySelectorAll('.m-tab')[1]);
-      setTimeout(() => { renderMobileCountries('all'); scrollToMobileCountry(c.id); }, 100);
-    });
-  });
-
-  WORLDWIDE_REGIONS.forEach(r => {
-    L.circleMarker(r.coords, {
-      radius: 7, fillColor: '#60a5fa', color: '#000', weight: 1.5, opacity: 0.8, fillOpacity: 0.5
-    }).addTo(mmap);
+    const col = SC[c.status];
+    L.circleMarker(c.coords,{radius:9,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.9})
+      .addTo(mmap).on('click',() => {
+        mTab('countries', document.querySelectorAll('.m-tab')[1]);
+        setTimeout(() => { mRenderCountries('all'); mScrollToCountry(c.id); },100);
+      });
   });
 
   LAND_ROUTES.forEach(r => {
-    const col = r.status === 'safe' ? '#22c55e' : r.status === 'warn' ? '#ff385c' : '#ef4444';
-    L.polyline([r.from, r.to], { color: col, weight: 2.5, opacity: 0.7,
-      dashArray: r.status === 'danger' ? '6,8' : r.status === 'warn' ? '8,4' : null
-    }).addTo(mmap);
+    const col = r.status==='safe'?'#047857':r.status==='warn'?'#b45309':'#c13515';
+    L.polyline([r.from,r.to],{color:col,weight:2.5,opacity:.7,dashArray:r.status==='danger'?'6,8':r.status==='warn'?'8,4':null}).addTo(mmap);
+  });
+
+  WORLDWIDE_REGIONS.forEach(r => {
+    L.circleMarker(r.coords,{radius:7,fillColor:'#1d4ed8',color:'#fff',weight:1.5,opacity:.8,fillOpacity:.45}).addTo(mmap);
   });
 
   window._mobileMap = mmap;
-
-  // Sync stats to mobile counter
-  function syncMobileStats() {
-    const s = document.getElementById('stat-stranded');
-    const c = document.getElementById('stat-cancelled');
-    const r = document.getElementById('stat-border-crossings');
-    if (s) document.getElementById('m-stat-stranded').textContent = s.textContent;
-    if (c) document.getElementById('m-stat-cancelled').textContent = c.textContent;
-    if (r) document.getElementById('m-stat-routes').textContent = r.textContent;
-  }
-  setTimeout(syncMobileStats, 2000);
-  setInterval(syncMobileStats, 30000);
-
-  // Initial sheet state — peek showing countries handle
-  renderMobileCountries('all');
-  renderMobileResources();
+  mRenderCountries('all');
+  mRenderResources();
 }
 
-// ── Sheet control ──────────────────────────────────────────
-let _sheetOpen = false;
-let _currentSheetContent = 'country';
-
-function toggleSheet() {
-  const sheet = document.getElementById('mobile-sheet');
-  _sheetOpen = !_sheetOpen;
-  sheet.className = _sheetOpen ? 'open' : 'peek';
+function mSheetToggle() {
+  _mSheetOpen = !_mSheetOpen;
+  document.getElementById('m-sheet').classList.toggle('open', _mSheetOpen);
 }
 
-function openSheet(content) {
-  const sheet = document.getElementById('mobile-sheet');
-  sheet.className = 'open';
-  _sheetOpen = true;
-  showSheetContent(content);
-}
-
-function showSheetContent(which) {
-  ['panic-form','help-sheet','country-sheet','resources-sheet'].forEach(id => {
-    document.getElementById(id).style.display = 'none';
+function mSheetOpen(title, contentId) {
+  document.getElementById('m-sheet-title').textContent = title;
+  ['m-countries-content','m-offer-content','m-resources-content'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = id===contentId ? 'block' : 'none';
   });
-  const titles = {
-    panic: '🆘 POST — I NEED HELP', help: '↑ OFFER HELP',
-    countries: '🌍 COUNTRY STATUS', resources: '📋 RESOURCES'
-  };
-  const map = { panic:'panic-form', help:'help-sheet', countries:'country-sheet', resources:'resources-sheet' };
-  document.getElementById(map[which]).style.display = 'block';
-  document.getElementById('sheet-title-text').textContent = titles[which] || which.toUpperCase();
-  _currentSheetContent = which;
+  _mSheetOpen = true;
+  document.getElementById('m-sheet').classList.add('open');
 }
 
-// ── Tab bar ───────────────────────────────────────────────
-function mobileTab(tab, btn) {
+function mTab(tab, btn) {
   document.querySelectorAll('.m-tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  _mCurrentTab = tab;
 
-  const panic = document.getElementById('mobile-panic-btn');
-  const offer = document.getElementById('mobile-offer-btn');
-
-  if (tab === 'map') {
-    document.getElementById('mobile-sheet').className = 'peek';
-    _sheetOpen = false;
-    panic.style.display = 'block';
-    offer.style.display = 'block';
-  } else if (tab === 'countries') {
-    openSheet('countries');
-    panic.style.display = 'none';
-    offer.style.display = 'none';
-  } else if (tab === 'posts') {
-    openSheet('help');
-    panic.style.display = 'none';
-    offer.style.display = 'none';
-  } else if (tab === 'resources') {
-    openSheet('resources');
-    panic.style.display = 'none';
-    offer.style.display = 'none';
+  if (tab==='map') {
+    _mSheetOpen = false;
+    document.getElementById('m-sheet').classList.remove('open');
+  } else if (tab==='countries') {
+    mRenderCountries('all');
+    mSheetOpen('Countries & Status','m-countries-content');
+  } else if (tab==='offer') {
+    mSheetOpen('Offer Help','m-offer-content');
+  } else if (tab==='resources') {
+    mRenderResources();
+    mSheetOpen('Resources','m-resources-content');
   }
 }
 
-// ── Render countries in sheet ─────────────────────────────
-function renderMobileCountries(filter) {
-  const list = document.getElementById('m-country-list');
-  const filtered = filter === 'all' ? COUNTRIES : COUNTRIES.filter(c => c.status === filter);
-  list.innerHTML = filtered.map(c => {
-    const airColor = c.airspace === 'CLOSED' ? 'var(--danger)' : c.airspace.includes('OPEN') ? 'var(--safe)' : 'var(--gold)';
-    const embassyCalls = Object.entries(c.embassy).slice(0,4).map(([nation, info]) => {
-      const label = EMBASSY_LABELS[nation] || nation.toUpperCase();
+function mFilterCountries(f, chip) {
+  document.querySelectorAll('.m-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  mRenderCountries(f);
+}
+
+function mRenderCountries(filter) {
+  const list = filter==='all' ? COUNTRIES : COUNTRIES.filter(c => c.status===filter);
+  document.getElementById('m-country-list').innerHTML = list.map(c => {
+    const ac = c.airspace==='CLOSED'?'#c13515':c.airspace.includes('OPEN')?'#047857':'#b45309';
+    const embRows = Object.entries(c.embassy).slice(0,4).map(([key,info]) => {
+      const L = EMBASSY_LABELS[key] || {flag:'🏳',name:key.toUpperCase(),role:'Embassy'};
       const phone = info.phone || info.alt || null;
-      if (!phone || phone.includes('N/A') || phone.includes('no US')) return '';
-      return `<div class="m-embassy-item">
-        <span class="m-embassy-flag">${label.split(' ')[0]}</span>
-        <span class="m-embassy-name">${label.split(' ').slice(1).join(' ')}</span>
-        <a class="m-call-btn" href="tel:${phone.replace(/\s/g,'')}">📞 CALL</a>
+      const note  = info.note || '';
+      return `<div class="m-embassy-row">
+        <div class="m-embassy-who">
+          <span class="m-embassy-country">${L.flag} ${L.role}</span>
+          ${note ? `<span class="m-embassy-role">${note}</span>` : ''}
+        </div>
+        ${phone ? `<a class="m-call-btn" href="tel:${phone.replace(/[\s\-()]/g,'')}">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          Call
+        </a>` : ''}
       </div>`;
     }).join('');
-    return `
-      <div class="m-country-card ${c.status}" id="m-card-${c.id}">
-        <div class="m-country-name">${c.name}</div>
-        <div class="m-country-advisory">${c.advisory}</div>
-        <div class="m-airspace-badge" style="background:${airColor}22;color:${airColor};border:1px solid ${airColor}44">
-          ✈ ${c.airspace}
-        </div>
-        <div class="m-embassy-list">${embassyCalls || '<div style="font-size:0.75rem;color:var(--muted)">Check embassy website for contacts</div>'}</div>
-      </div>
-    `;
+    return `<div class="m-country-card ${c.status}" id="m-card-${c.id}">
+      <div class="m-country-name">${c.name}</div>
+      <div class="m-country-advisory">${c.advisory}</div>
+      <div class="m-airspace-pill" style="background:${ac}18;color:${ac};border:1px solid ${ac}44">✈ ${c.airspace}</div>
+      ${embRows || '<div style="font-size:.75rem;color:var(--muted)">Check embassy website</div>'}
+    </div>`;
   }).join('');
 }
 
-function mobileFilterCountries(filter, chip) {
-  document.querySelectorAll('.m-chip').forEach(c => c.classList.remove('active'));
-  chip.classList.add('active');
-  renderMobileCountries(filter);
+function mScrollToCountry(id) {
+  document.getElementById('m-card-'+id)?.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-function scrollToMobileCountry(id) {
-  const el = document.getElementById('m-card-' + id);
-  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-// ── Render resources in sheet ─────────────────────────────
-function renderMobileResources() {
-  document.getElementById('m-resources-list').innerHTML = RESOURCES.map(r => `
+function mRenderResources() {
+  const el = document.getElementById('m-resources-content');
+  if (!el) return;
+  el.innerHTML = RESOURCES.map(r => `
     <div class="m-resource-row">
-      <div>
-        <div class="m-resource-name">${r.name}</div>
-        <div class="m-resource-tag">${r.type}</div>
-      </div>
-      <a class="m-resource-go" href="${r.url}" target="_blank">OPEN →</a>
+      <div><div class="m-resource-name">${r.name}<span class="m-resource-type">${r.type}</span></div></div>
+      <a class="m-resource-go" href="${r.url}" target="_blank">Open →</a>
     </div>
   `).join('');
 }
 
-// ── Map search / locate ───────────────────────────────────
-async function mobileSearch() {
-  const q = document.getElementById('mobile-search-input').value.trim();
-  if (!q) return;
-  const geo = await geocodeCity(q);
-  if (!geo) return;
-  window._mobileMap.flyTo([geo.lat, geo.lng], 11, { duration: 1.2 });
-}
-
-function mobilePinLocation() {
-  if (!navigator.geolocation) return;
-  navigator.geolocation.getCurrentPosition(pos => {
-    const { latitude: lat, longitude: lng } = pos.coords;
-    L.circleMarker([lat, lng], {
-      radius: 9, fillColor: '#ff385c', color: '#000', weight: 2, opacity: 1, fillOpacity: 0.95
-    }).addTo(window._mobileMap).bindPopup('<div style="color:#222222;font-family:Nunito Sans,sans-serif;font-size:0.9rem;letter-spacing:0.06em">YOU ARE HERE</div>').openPopup();
-    window._mobileMap.flyTo([lat, lng], 12, { duration: 1.2 });
-  });
-}
-
-// ── Mobile form submissions ───────────────────────────────
-async function mobileSubmitNeed() {
-  const postType = document.getElementById('m-need-type').value;
-  const location = document.getElementById('m-need-location').value;
-  const body     = document.getElementById('m-need-body').value;
-  const name     = document.getElementById('m-need-name').value;
-  const contact  = document.getElementById('m-need-contact').value;
-  const xhandle  = (document.getElementById('m-need-xhandle').value||'').trim().replace(/^@+/,'');
-
-  if (!postType || !location || !body || !name || !contact) {
-    alert('Please fill in all required fields.'); return;
-  }
-
-  const btn = document.querySelector('#panic-form .m-submit');
-  btn.textContent = 'POSTING…'; btn.disabled = true;
-
+async function mSubmitOffer() {
+  const t = document.getElementById('m-offer-type')?.value;
+  const l = document.getElementById('m-offer-location')?.value;
+  const b = document.getElementById('m-offer-body')?.value;
+  const n = document.getElementById('m-offer-name')?.value;
+  const c = document.getElementById('m-offer-contact')?.value;
+  const x = (document.getElementById('m-offer-xhandle')?.value||'').trim().replace(/^@+/,'');
+  if (!t||!l||!b||!n||!c) { alert('Please fill in all fields.'); return; }
+  const btn = document.querySelector('#m-offer-content .m-submit');
+  btn.textContent='Posting…'; btn.disabled=true;
   try {
-    const { error } = await _supabase.from('help_posts').insert({
-      type: 'need', post_type: postType, location, body, name, contact,
-      xhandle: xhandle || null, flagged: false
-    });
+    const {error} = await _sb.from('help_posts').insert({type:'offer',post_type:t,location:l,body:b,name:n,contact:c,xhandle:x||null,flagged:false});
     if (error) throw error;
-    ['m-need-type','m-need-location','m-need-body','m-need-name','m-need-contact','m-need-xhandle'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.tagName === 'SELECT' ? el.selectedIndex = 0 : el.value = '';
+    ['type','location','body','name','contact','xhandle'].forEach(f => {
+      const el = document.getElementById('m-offer-'+f);
+      if (el) el.tagName==='SELECT'? el.selectedIndex=0 : el.value='';
     });
-    btn.textContent = '✓ POSTED — HELP IS COMING';
-    setTimeout(() => { btn.textContent = 'POST REQUEST — I NEED HELP'; btn.disabled = false; }, 3000);
+    btn.textContent='✓ Posted!';
+    setTimeout(()=>{btn.textContent='Post Offer';btn.disabled=false;},3000);
   } catch(e) {
-    alert('Failed to post. Check connection.\n' + e.message);
-    btn.textContent = 'POST REQUEST — I NEED HELP'; btn.disabled = false;
+    alert('Failed: '+e.message);
+    btn.textContent='Post Offer'; btn.disabled=false;
   }
 }
 
-async function mobileSubmitOffer() {
-  const postType = document.getElementById('m-offer-type').value;
-  const location = document.getElementById('m-offer-location').value;
-  const body     = document.getElementById('m-offer-body').value;
-  const name     = document.getElementById('m-offer-name').value;
-  const contact  = document.getElementById('m-offer-contact').value;
-  const xhandle  = (document.getElementById('m-offer-xhandle').value||'').trim().replace(/^@+/,'');
-
-  if (!postType || !location || !body || !name || !contact) {
-    alert('Please fill in all required fields.'); return;
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('DOMContentLoaded', () => {
+  if (isMobile()) {
+    initMobileShell();
+  } else {
+    showView('map');
+    initMap();
   }
-
-  const btn = document.querySelector('#help-sheet .m-submit');
-  btn.textContent = 'POSTING…'; btn.disabled = true;
-
-  try {
-    const { error } = await _supabase.from('help_posts').insert({
-      type: 'offer', post_type: postType, location, body, name, contact,
-      xhandle: xhandle || null, flagged: false
-    });
-    if (error) throw error;
-    ['m-offer-type','m-offer-location','m-offer-body','m-offer-name','m-offer-contact','m-offer-xhandle'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.tagName === 'SELECT' ? el.selectedIndex = 0 : el.value = '';
-    });
-    btn.textContent = '✓ POSTED — THANK YOU';
-    setTimeout(() => { btn.textContent = 'POST OFFER — I CAN HELP'; btn.disabled = false; }, 3000);
-  } catch(e) {
-    alert('Failed to post.\n' + e.message);
-    btn.textContent = 'POST OFFER — I CAN HELP'; btn.disabled = false;
+  refreshSitrep();
+  if (SUPABASE_ON) { loadPosts(); subscribeToPostStream(); }
+  else {
+    document.getElementById('offer-posts').innerHTML =
+    document.getElementById('all-offers-list').innerHTML =
+      '<div class="empty-state" style="color:var(--warn)">⚙ Supabase not configured yet. See README → Supabase Setup.</div>';
   }
-}
+});
+
+window.addEventListener('resize', () => {
+  if (isMobile() && !window._mobileInit) initMobileShell();
+});
 </script>
 </body>
 </html>
