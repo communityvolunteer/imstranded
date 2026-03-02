@@ -5,65 +5,65 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Gulf Crisis Resource Hub</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Nunito+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
-    /* ── Base — near-black, not pure #000 — matches PP ── */
-    --bg:       #0d0d0d;
-    --bg2:      #161616;
-    --surface:  #1a1a1a;
-    --surface2: #222222;
-    --border:   #2e2e2e;
-    --border2:  #3d3d3d;
+    /* ── Airbnb light base ── */
+    --bg:       #f7f7f7;
+    --bg2:      #efefef;
+    --surface:  #ffffff;
+    --surface2: #f7f7f7;
+    --border:   #dddddd;        /* Airbnb's signature thin gray */
+    --border2:  #b0b0b0;
 
-    /* ── Text ── */
-    --text:     #f0f0f0;
-    --text2:    #b0b0b0;
-    --muted:    #666666;
+    /* ── Text — Airbnb charcoal ── */
+    --text:     #222222;
+    --text2:    #484848;
+    --muted:    #717171;
 
-    /* ── Gold — People Powered signal color ── */
-    --gold:        #f5c518;     /* primary signal — PP yellow-gold */
-    --gold-dim:    #c49a10;     /* darker gold for hover */
-    --gold-soft:   rgba(245,197,24,0.10);
-    --gold-border: rgba(245,197,24,0.25);
+    /* ── Airbnb coral — THE brand signal ── */
+    --coral:        #ff385c;
+    --coral-dark:   #e31c5f;
+    --coral-soft:   #fff1f3;
+    --coral-border: rgba(255,56,92,0.2);
 
-    /* ── Accent = gold (not orange) for UI chrome ── */
-    --accent:      #f5c518;
-    --accent-soft: rgba(245,197,24,0.10);
-    --accent2:     #f5c518;
-    --accent2-soft:rgba(245,197,24,0.10);
+    /* ── All accent/primary/gold vars → coral so nothing breaks ── */
+    --accent:        #ff385c;
+    --accent-soft:   #fff1f3;
+    --accent2:       #e31c5f;
+    --accent2-soft:  #fce4ec;
+    --primary:       #ff385c;
+    --primary-mid:   #e31c5f;
+    --primary-light: #ff6b81;
+    --primary-soft:  #fff1f3;
+    --gold:          #ff385c;
+    --gold-dim:      #e31c5f;
+    --gold-soft:     #fff1f3;
+    --gold-border:   rgba(255,56,92,0.2);
 
-    /* ── Crisis voltage — orange reserved for DANGER only ── */
-    --danger:      #ff5722;
-    --danger-soft: rgba(255,87,34,0.12);
+    /* ── Status colors — vivid but warm, work on white ── */
+    --safe:       #008a05;
+    --safe-soft:  #eef7ee;
+    --warn:       #c45f00;
+    --warn-soft:  #fef3e8;
+    --danger:     #c13515;
+    --danger-soft:#fdf1ee;
+    --info:       #0066cc;
+    --info-soft:  #e8f0fb;
 
-    /* ── Status colors — vivid on black ── */
-    --safe:      #22c55e;
-    --safe-soft: rgba(34,197,94,0.12);
-    --warn:      #f5c518;       /* gold = warn — doubles as brand */
-    --warn-soft: rgba(245,197,24,0.10);
-    --info:      #60a5fa;
-    --info-soft: rgba(96,165,250,0.12);
+    /* ── Typography — Nunito = closest free Airbnb Cereal ── */
+    --display: 'Nunito', sans-serif;
+    --mono:    'Nunito Sans', sans-serif;
+    --sans:    'Nunito Sans', sans-serif;
 
-    /* ── Primary = gold for links, active states ── */
-    --primary:       #f5c518;
-    --primary-mid:   #d4a910;
-    --primary-light: #ffd740;
-    --primary-soft:  rgba(245,197,24,0.10);
-
-    /* ── Typography ── */
-    --display: 'Bebas Neue', 'Barlow Condensed', sans-serif;   /* hero numbers, big headings */
-    --mono:    'Barlow Condensed', sans-serif;                  /* labels, caps, nav */
-    --sans:    'Barlow', sans-serif;                            /* body */
-
-    /* ── Shape ── */
-    --radius:    6px;
-    --radius-sm: 4px;
-    --shadow:    0 2px 12px rgba(0,0,0,0.4);
-    --shadow-lg: 0 8px 32px rgba(0,0,0,0.6);
+    /* ── Shape — Airbnb's generous radius ── */
+    --radius:    12px;
+    --radius-sm: 8px;
+    --shadow:    0 2px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+    --shadow-lg: 0 6px 32px rgba(0,0,0,0.12);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -71,98 +71,135 @@
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: var(--sans);
+    font-family: 'Nunito Sans', sans-serif;
     font-weight: 400;
     line-height: 1.65;
     min-height: 100vh;
   }
 
-  /* HEADER */
+  /* HEADER — Airbnb light: white bg, coral underline, gradient pill */
   header {
-    border-bottom: 2px solid var(--gold);
+    border-bottom: 1px solid var(--border);
     padding: 0 2rem;
     position: sticky;
     top: 0;
     z-index: 1000;
-    background: #000000;
-    display: flex;
+    background: #ffffff;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    justify-content: space-between;
-    height: 56px;
-    box-shadow: 0 2px 24px rgba(0,0,0,0.6);
+    height: 64px;
+    box-shadow: 0 1px 0 var(--border);
   }
 
   .logo {
-    font-family: var(--display);
-    font-size: 1.3rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: #ffffff;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    text-transform: none;
+    color: var(--text);
     display: flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.5rem;
+    white-space: nowrap;
+    justify-self: start;
   }
 
-  .logo span { color: var(--gold); }
+  .logo span { color: var(--coral); }
 
   .pulse-dot {
     width: 8px; height: 8px;
-    background: var(--danger);
+    background: var(--coral);
     border-radius: 50%;
     animation: pulse 2s infinite;
     flex-shrink: 0;
   }
 
   @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(255,87,34,0.6); }
-    50%       { opacity: 0.8; transform: scale(0.85); box-shadow: 0 0 0 6px rgba(255,87,34,0); }
+    0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(255,56,92,0.5); }
+    50%       { opacity: 0.8; transform: scale(0.85); box-shadow: 0 0 0 5px rgba(255,56,92,0); }
   }
 
-  .last-updated {
-    font-size: 0.65rem;
-    color: var(--muted);
-    font-family: var(--mono);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+  nav {
+    display: flex;
+    gap: 0;
+    justify-self: center;
   }
-
-  nav { display: flex; gap: 0.1rem; }
 
   nav button {
     background: none;
     border: none;
     border-bottom: 2px solid transparent;
     color: var(--muted);
-    font-family: var(--mono);
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 0.5rem 1rem;
+    font-family: 'Nunito Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+    padding: 0 1.25rem;
     cursor: pointer;
     transition: all 0.15s;
-    height: 56px;
-    margin-bottom: -2px;
+    height: 64px;
+    margin-bottom: -1px;
+    white-space: nowrap;
   }
 
   nav button.active {
-    color: var(--gold);
-    border-bottom-color: var(--gold);
-  }
-
-  nav button:hover:not(.active) {
     color: var(--text);
+    border-bottom-color: var(--coral);
   }
 
-  /* ALERT BANNER — gold on very dark — urgent but not screaming */
-  .alert-banner {
-    background: #111111;
-    border-bottom: 1px solid var(--gold-border);
-    padding: 0.5rem 2rem;
+  nav button:hover:not(.active) { color: var(--text); }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    justify-self: end;
+  }
+
+  .last-updated {
     font-size: 0.72rem;
+    color: var(--muted);
+    font-family: 'Nunito Sans', sans-serif;
+    white-space: nowrap;
+  }
+
+  /* Airbnb gradient pill button */
+  .cta-pill {
+    background: linear-gradient(to right, #e61e4d, #e31c5f, #d70466);
+    color: #222222;
+    border: none;
+    border-radius: 999px;
+    padding: 0.6rem 1.25rem;
+    font-family: 'Nunito Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+    transition: opacity 0.15s, transform 0.1s;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(227,28,95,0.25);
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .cta-pill:hover { opacity: 0.9; transform: scale(1.02); }
+  .cta-pill .heart { font-size: 0.9rem; }
+
+  /* ALERT BANNER — coral on warm white */
+  .alert-banner {
+    background: #ffffff;
+    border-bottom: 1px solid var(--border);
+    padding: 0.5rem 2rem;
+    font-size: 0.78rem;
     color: var(--text2);
-    font-family: var(--mono);
-    letter-spacing: 0.04em;
+    font-family: 'Nunito Sans', sans-serif;
+    letter-spacing: 0;
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -170,13 +207,13 @@
   }
 
   .alert-label {
-    background: var(--danger);
-    color: #fff;
+    background: var(--coral);
+    color: #222222;
     font-weight: 700;
-    padding: 0.18rem 0.55rem;
-    border-radius: 3px;
-    font-size: 0.62rem;
-    letter-spacing: 0.08em;
+    padding: 0.18rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
     flex-shrink: 0;
   }
 
@@ -208,23 +245,23 @@
     bottom: 2rem;
     left: 2rem;
     z-index: 999;
-    background: rgba(0,0,0,0.88);
-    border: 1px solid var(--gold-border);
-    border-radius: var(--radius-sm);
+    background: rgba(255,255,255,0.96);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
     padding: 1rem 1.25rem;
     font-size: 0.75rem;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.5);
-    backdrop-filter: blur(12px);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(8px);
   }
 
   .legend-title {
-    color: var(--gold);
+    color: var(--coral);
     margin-bottom: 0.6rem;
-    font-size: 0.6rem;
+    font-size: 0.62rem;
     text-transform: uppercase;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.1em;
     font-weight: 700;
-    font-family: var(--mono);
+    font-family: 'Nunito Sans', sans-serif;
   }
 
   .legend-item {
@@ -233,65 +270,65 @@
     gap: 0.6rem;
     margin-bottom: 0.3rem;
     color: var(--text2);
-    font-size: 0.72rem;
-    font-family: var(--mono);
-    letter-spacing: 0.03em;
+    font-size: 0.74rem;
+    font-family: 'Nunito Sans', sans-serif;
   }
 
   .legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
 
-  /* SITREP BAR — black ops, gold numbers */
+  /* SITREP BAR — warm white, coral numbers */
   .sitrep-bar {
-    background: #000000;
-    border-bottom: 1px solid var(--gold-border);
+    background: #ffffff;
+    border-bottom: 1px solid var(--border);
     padding: 0 2rem;
     display: flex;
     gap: 0;
     overflow-x: auto;
     scrollbar-width: none;
+    box-shadow: 0 1px 0 var(--border);
   }
   .sitrep-bar::-webkit-scrollbar { display: none; }
 
   .sitrep-stat {
     flex: 1;
     min-width: 140px;
-    padding: 0.9rem 1.5rem;
+    padding: 1rem 1.5rem;
     border-right: 1px solid var(--border);
     text-align: center;
   }
   .sitrep-stat:last-child { border-right: none; }
 
   .sitrep-number {
-    font-family: var(--display);
-    font-size: 2.4rem;
-    letter-spacing: 0.04em;
+    font-family: 'Nunito', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
     line-height: 1;
     margin-bottom: 0.2rem;
-    color: var(--gold);          /* default: gold */
+    color: var(--coral);
   }
 
   .sitrep-label {
-    font-family: var(--mono);
-    font-size: 0.58rem;
+    font-family: 'Nunito Sans', sans-serif;
+    font-size: 0.65rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.08em;
     color: var(--muted);
   }
 
   .sitrep-sublabel {
-    font-size: 0.54rem;
+    font-size: 0.6rem;
     color: var(--muted);
-    opacity: 0.6;
+    opacity: 0.7;
     margin-top: 0.1rem;
-    font-family: var(--mono);
-    letter-spacing: 0.06em;
+    font-family: 'Nunito Sans', sans-serif;
     text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
 
-  /* Override: danger stays orange, safe stays green */
   .sitrep-number.danger { color: var(--danger); }
-  .sitrep-number.warn   { color: var(--gold); }
+  .sitrep-number.warn   { color: var(--warn); }
   .sitrep-number.safe   { color: var(--safe); }
   .sitrep-number.info   { color: var(--info); }
 
@@ -299,18 +336,18 @@
     display: flex;
     align-items: center;
     padding: 0 1.25rem;
-    font-size: 0.6rem;
+    font-size: 0.72rem;
     color: var(--muted);
     gap: 0.4rem;
     white-space: nowrap;
     cursor: pointer;
     border: none;
     background: none;
-    font-family: var(--sans);
-    font-weight: 500;
+    font-family: 'Nunito Sans', sans-serif;
+    font-weight: 600;
     transition: color 0.2s;
   }
-  .sitrep-refresh:hover { color: var(--gold); }
+  .sitrep-refresh:hover { color: var(--coral); }
 
   @keyframes spin { to { transform: rotate(360deg); } }
   .spinning { animation: spin 1s linear infinite; display: inline-block; }
@@ -321,18 +358,18 @@
   .section-header { margin-bottom: 1.5rem; }
 
   .section-title {
-    font-family: var(--display);
+    font-family: 'Nunito', sans-serif;
     font-size: 2.2rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--text);
+    color: #222222;
     margin-bottom: 0.2rem;
   }
 
   .section-subtitle {
     font-size: 0.82rem;
-    color: var(--muted);
-    font-family: var(--mono);
+    color: #717171;
+    font-family: 'Nunito Sans', sans-serif;
     letter-spacing: 0.04em;
     text-transform: uppercase;
   }
@@ -346,22 +383,22 @@
 
   .filter-btn {
     background: transparent;
-    border: 1px solid var(--border2);
-    color: var(--muted);
-    font-family: var(--mono);
+    border: 1px solid #dddddd;
+    color: #717171;
+    font-family: 'Nunito Sans', sans-serif;
     font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     padding: 0.4rem 1rem;
-    border-radius: var(--radius-sm);
+    border-radius: 4px;
     cursor: pointer;
     transition: all 0.15s;
   }
 
   .filter-btn.active, .filter-btn:hover {
-    border-color: var(--gold);
-    color: var(--gold);
+    border-color: #ff385c;
+    color: #ff385c;
     background: var(--gold-soft);
   }
 
@@ -372,17 +409,17 @@
   }
 
   .country-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-top: 3px solid var(--border2);
-    border-radius: var(--radius-sm);
+    background: #f7f7f7;
+    border: 1px solid #dddddd;
+    border-top: 3px solid #dddddd;
+    border-radius: 4px;
     padding: 1.5rem;
     transition: all 0.2s;
     box-shadow: var(--shadow);
   }
 
   .country-card:hover {
-    border-top-color: var(--gold);
+    border-top-color: #ff385c;
     box-shadow: 0 4px 24px rgba(0,0,0,0.5), 0 0 0 1px var(--gold-border);
     transform: translateY(-2px);
   }
@@ -395,11 +432,11 @@
   }
 
   .country-name {
-    font-family: var(--display);
+    font-family: 'Nunito', sans-serif;
     font-size: 1.3rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--text);
+    color: #222222;
   }
 
   .status-badge {
@@ -412,7 +449,7 @@
     flex-shrink: 0;
   }
 
-  .status-danger { color: var(--danger); background: var(--danger-soft); }
+  .status-danger { color: #c13515; background: var(--danger-soft); }
   .status-warn   { color: var(--warn);   background: var(--warn-soft); }
   .status-safe   { color: var(--safe);   background: var(--safe-soft); }
 
@@ -427,7 +464,7 @@
   .info-label {
     font-size: 0.65rem;
     font-weight: 700;
-    color: var(--muted);
+    color: #717171;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     min-width: 76px;
@@ -435,7 +472,7 @@
     flex-shrink: 0;
   }
 
-  .info-value { color: var(--text2); flex: 1; line-height: 1.5; }
+  .info-value { color: #717171; flex: 1; line-height: 1.5; }
   .info-value a { color: var(--info); text-decoration: none; font-weight: 500; }
   .info-value a:hover { text-decoration: underline; }
 
@@ -446,7 +483,7 @@
     gap: 0.5rem;
     font-size: 0.8rem;
     margin-bottom: 0.3rem;
-    color: var(--text2);
+    color: #717171;
     line-height: 1.45;
   }
 
@@ -463,7 +500,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: var(--muted);
+    color: #717171;
     margin-bottom: 0.5rem;
   }
 
@@ -504,7 +541,7 @@
     header, .alert-banner, .sitrep-bar { display: none !important; }
 
     /* Body takes full viewport */
-    body { background: #000; overflow: hidden; height: 100dvh; }
+    body { background: #f7f7f7; overflow: hidden; height: 100dvh; }
 
     /* All desktop views hidden */
     .view { display: none !important; padding: 0 !important; }
@@ -538,25 +575,25 @@
       align-items: center;
       justify-content: space-between;
       padding: 0.75rem 1rem;
-      background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, transparent 100%);
+      background: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, transparent 100%);
     }
 
     #mobile-logo {
-      font-family: var(--display);
+      font-family: 'Nunito', sans-serif;
       font-size: 1rem;
       letter-spacing: 0.1em;
-      color: #fff;
+      color: #222222;
       display: flex;
       align-items: center;
       gap: 0.5rem;
     }
 
-    #mobile-logo span { color: var(--gold); }
+    #mobile-logo span { color: #ff385c; }  /* gold — strict PP */
 
     #mobile-live-badge {
-      background: var(--danger);
-      color: #fff;
-      font-family: var(--mono);
+      background: #c13515;   /* danger orange — not pink */
+      color: #222222;
+      font-family: 'Nunito Sans', sans-serif;
       font-size: 0.6rem;
       font-weight: 700;
       letter-spacing: 0.1em;
@@ -577,8 +614,8 @@
       left: 50%;
       transform: translateX(-50%);
       z-index: 800;
-      background: rgba(0,0,0,0.75);
-      border: 1px solid var(--gold-border);
+      background: rgba(255,255,255,0.92);
+      border: 1px solid rgba(245,197,24,0.25);
       border-radius: 999px;
       padding: 0.35rem 1.2rem;
       display: flex;
@@ -588,33 +625,31 @@
       white-space: nowrap;
     }
 
-    .m-counter-stat {
-      text-align: center;
-    }
+    .m-counter-stat { text-align: center; }
 
     .m-counter-num {
-      font-family: var(--display);
+      font-family: 'Nunito', sans-serif;
       font-size: 1.1rem;
       letter-spacing: 0.04em;
       line-height: 1;
-      color: var(--gold);
+      color: #ff385c;   /* gold default */
     }
 
-    .m-counter-num.danger { color: var(--danger); }
-    .m-counter-num.safe   { color: var(--safe); }
+    .m-counter-num.danger { color: #c13515; }
+    .m-counter-num.safe   { color: #22c55e; }
 
     .m-counter-label {
-      font-family: var(--mono);
+      font-family: 'Nunito Sans', sans-serif;
       font-size: 0.48rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: var(--muted);
+      color: #717171;
     }
 
     .m-counter-div {
       width: 1px;
       height: 24px;
-      background: var(--border);
+      background: #2e2e2e;
     }
 
     /* ── Map search bar ── */
@@ -629,26 +664,26 @@
 
     #mobile-search-input {
       flex: 1;
-      background: rgba(20,20,20,0.92);
-      border: 1px solid var(--border2);
+      background: rgba(255,255,255,0.92);
+      border: 1px solid #dddddd;
       border-radius: 6px;
       padding: 0.6rem 0.9rem;
-      font-family: var(--sans);
+      font-family: 'Nunito Sans', sans-serif;
       font-size: 0.9rem;
-      color: var(--text);
+      color: #222222;
       outline: none;
       backdrop-filter: blur(8px);
     }
 
-    #mobile-search-input::placeholder { color: var(--muted); }
+    #mobile-search-input::placeholder { color: #717171; }
 
     #mobile-search-btn {
-      background: var(--gold);
-      color: #000;
+      background: #ff385c;
+      color: #222222;
       border: none;
       border-radius: 6px;
       padding: 0 0.9rem;
-      font-family: var(--mono);
+      font-family: 'Nunito Sans', sans-serif;
       font-size: 0.7rem;
       font-weight: 700;
       letter-spacing: 0.08em;
@@ -657,8 +692,8 @@
     }
 
     #mobile-locate-btn {
-      background: rgba(20,20,20,0.92);
-      border: 1px solid var(--border2);
+      background: rgba(255,255,255,0.92);
+      border: 1px solid #dddddd;
       border-radius: 6px;
       padding: 0 0.75rem;
       font-size: 1.1rem;
@@ -673,12 +708,12 @@
       left: 50%;
       transform: translateX(-50%);
       z-index: 810;
-      background: var(--danger);
-      color: #fff;
+      background: #c13515;
+      color: #222222;
       border: none;
       border-radius: 999px;
       padding: 0.9rem 2.5rem;
-      font-family: var(--display);
+      font-family: 'Nunito', sans-serif;
       font-size: 1.3rem;
       letter-spacing: 0.12em;
       text-transform: uppercase;
@@ -696,8 +731,8 @@
     /* ── Bottom tab bar ── */
     #mobile-tabbar {
       display: flex;
-      background: #000;
-      border-top: 1px solid var(--gold-border);
+      background: #ffffff;
+      border-top: 1px solid #dddddd;
       height: 68px;
       padding-bottom: env(safe-area-inset-bottom);
       flex-shrink: 0;
@@ -712,23 +747,23 @@
       gap: 0.3rem;
       background: none;
       border: none;
-      color: var(--muted);
+      color: #717171;    /* muted gray on black */
       cursor: pointer;
       transition: color 0.15s;
       padding: 0.5rem 0;
-      font-family: var(--mono);
+      font-family: 'Nunito Sans', sans-serif;
       font-size: 0.55rem;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       border-top: 2px solid transparent;
     }
 
     .m-tab.active {
-      color: var(--gold);
-      border-top-color: var(--gold);
+      color: #ff385c;               /* PP gold */
+      border-top-color: #ff385c;
     }
 
-    .m-tab:hover:not(.active) { color: var(--text); }
+    .m-tab:hover:not(.active) { color: #222222; }
 
     .m-tab-icon { font-size: 1.2rem; line-height: 1; }
 
@@ -737,8 +772,8 @@
       position: absolute;
       bottom: 0; left: 0; right: 0;
       z-index: 900;
-      background: #111;
-      border-top: 1px solid var(--gold-border);
+      background: #ffffff;
+      border-top: 1px solid #dddddd;
       border-radius: 16px 16px 0 0;
       transform: translateY(calc(100% - 68px));
       transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
@@ -763,16 +798,16 @@
     #sheet-handle {
       width: 36px;
       height: 4px;
-      background: var(--border2);
+      background: #333333;
       border-radius: 2px;
     }
 
     #sheet-title {
-      font-family: var(--display);
+      font-family: 'Nunito', sans-serif;
       font-size: 1rem;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: var(--text);
+      color: #222222;
       display: flex;
       align-items: center;
       gap: 0.5rem;
@@ -792,12 +827,12 @@
     #help-sheet { display: none; }
 
     .m-form-label {
-      font-family: var(--mono);
+      font-family: 'Nunito Sans', sans-serif;
       font-size: 0.65rem;
       font-weight: 700;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: var(--muted);
+      color: #666666;
       margin-bottom: 0.4rem;
       display: block;
     }
@@ -808,13 +843,13 @@
     .m-form-row select,
     .m-form-row textarea {
       width: 100%;
-      background: var(--surface2);
-      border: 1px solid var(--border2);
-      color: var(--text);
-      font-family: var(--sans);
+      background: #f7f7f7;
+      border: 1px solid #dddddd;
+      color: #222222;
+      font-family: 'Nunito Sans', sans-serif;
       font-size: 1rem;
       padding: 0.75rem 1rem;
-      border-radius: var(--radius-sm);
+      border-radius: 4px;
       outline: none;
       -webkit-appearance: none;
     }
@@ -822,20 +857,20 @@
     .m-form-row input:focus,
     .m-form-row select:focus,
     .m-form-row textarea:focus {
-      border-color: var(--gold);
-      box-shadow: 0 0 0 2px var(--gold-soft);
+      border-color: #ff385c;
+      box-shadow: 0 0 0 2px rgba(255,56,92,0.15);
     }
 
     .m-form-row textarea { min-height: 80px; resize: none; }
 
     .m-submit {
       width: 100%;
-      background: var(--danger);
-      color: #fff;
+      background: #c13515;
+      color: #222222;
       border: none;
-      border-radius: var(--radius-sm);
+      border-radius: 4px;
       padding: 1rem;
-      font-family: var(--display);
+      font-family: 'Nunito', sans-serif;
       font-size: 1.2rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
@@ -843,24 +878,24 @@
       margin-top: 0.5rem;
     }
 
-    .m-submit:active { background: #c94519; }
+    .m-submit:active { filter: brightness(0.85); }
 
     /* ── Country cards in sheet ── */
     .m-country-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-top: 3px solid var(--border2);
-      border-radius: var(--radius-sm);
+      background: #f7f7f7;
+      border: 1px solid #dddddd;
+      border-top: 3px solid #dddddd;
+      border-radius: 4px;
       padding: 1rem;
       margin-bottom: 0.75rem;
     }
 
-    .m-country-card.danger { border-top-color: var(--danger); }
-    .m-country-card.warn   { border-top-color: var(--gold); }
-    .m-country-card.safe   { border-top-color: var(--safe); }
+    .m-country-card.danger { border-top-color: #c13515; }
+    .m-country-card.warn   { border-top-color: #ff385c; }
+    .m-country-card.safe   { border-top-color: #22c55e; }
 
     .m-country-name {
-      font-family: var(--display);
+      font-family: 'Nunito', sans-serif;
       font-size: 1.15rem;
       letter-spacing: 0.06em;
       text-transform: uppercase;
@@ -869,14 +904,14 @@
 
     .m-country-advisory {
       font-size: 0.82rem;
-      color: var(--text2);
+      color: #717171;
       line-height: 1.5;
       margin-bottom: 0.75rem;
     }
 
     .m-airspace-badge {
       display: inline-block;
-      font-family: var(--mono);
+      font-family: 'Nunito Sans', sans-serif;
       font-size: 0.62rem;
       font-weight: 700;
       letter-spacing: 0.1em;
@@ -893,7 +928,7 @@
       justify-content: space-between;
       align-items: center;
       padding: 0.5rem 0;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid #2e2e2e;
     }
 
     .m-embassy-item:last-child { border-bottom: none; }
@@ -901,23 +936,23 @@
     .m-embassy-flag { font-size: 0.9rem; }
 
     .m-embassy-name {
-      font-family: var(--mono);
+      font-family: 'Nunito Sans', sans-serif;
       font-size: 0.65rem;
       font-weight: 700;
       letter-spacing: 0.06em;
       text-transform: uppercase;
-      color: var(--text2);
+      color: #717171;
       flex: 1;
       padding: 0 0.5rem;
     }
 
     .m-call-btn {
-      background: var(--gold);
-      color: #000;
+      background: #ff385c;
+      color: #222222;
       border: none;
       border-radius: 4px;
       padding: 0.35rem 0.75rem;
-      font-family: var(--mono);
+      font-family: 'Nunito Sans', sans-serif;
       font-size: 0.68rem;
       font-weight: 700;
       letter-spacing: 0.06em;
@@ -927,8 +962,8 @@
     }
 
     .m-call-btn.danger-call {
-      background: var(--danger);
-      color: #fff;
+      background: #c13515;
+      color: #222222;
     }
 
     /* ── Resource rows in sheet ── */
@@ -937,36 +972,36 @@
       align-items: center;
       justify-content: space-between;
       padding: 0.85rem 0;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid #2e2e2e;
       gap: 0.75rem;
     }
 
     .m-resource-row:last-child { border-bottom: none; }
 
     .m-resource-name {
-      font-family: var(--mono);
+      font-family: 'Nunito Sans', sans-serif;
       font-size: 0.78rem;
       font-weight: 700;
       letter-spacing: 0.04em;
       text-transform: uppercase;
-      color: var(--text);
+      color: #222222;
       flex: 1;
     }
 
     .m-resource-tag {
       font-size: 0.6rem;
-      color: var(--muted);
-      font-family: var(--mono);
+      color: #717171;
+      font-family: 'Nunito Sans', sans-serif;
       letter-spacing: 0.06em;
     }
 
     .m-resource-go {
       background: none;
-      border: 1px solid var(--border2);
-      color: var(--gold);
+      border: 1px solid #dddddd;
+      color: #ff385c;
       border-radius: 4px;
       padding: 0.3rem 0.6rem;
-      font-family: var(--mono);
+      font-family: 'Nunito Sans', sans-serif;
       font-size: 0.65rem;
       font-weight: 700;
       letter-spacing: 0.06em;
@@ -977,16 +1012,16 @@
 
     /* ── Help posts in sheet ── */
     .m-post-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
+      background: #f7f7f7;
+      border: 1px solid #dddddd;
       border-left: 4px solid;
-      border-radius: var(--radius-sm);
+      border-radius: 4px;
       padding: 0.9rem 1rem;
       margin-bottom: 0.75rem;
     }
 
-    .m-post-card.offer { border-left-color: var(--gold); }
-    .m-post-card.need  { border-left-color: var(--danger); }
+    .m-post-card.offer { border-left-color: #ff385c; }
+    .m-post-card.need  { border-left-color: #c13515; }
 
     .m-post-header {
       display: flex;
@@ -996,30 +1031,30 @@
     }
 
     .m-post-type {
-      font-family: var(--mono);
+      font-family: 'Nunito Sans', sans-serif;
       font-size: 0.6rem;
       font-weight: 700;
       letter-spacing: 0.1em;
       text-transform: uppercase;
     }
 
-    .m-post-type.offer { color: var(--gold); }
-    .m-post-type.need  { color: var(--danger); }
+    .m-post-type.offer { color: #ff385c; }
+    .m-post-type.need  { color: #c13515; }
 
-    .m-post-time { font-size: 0.65rem; color: var(--muted); }
+    .m-post-time { font-size: 0.65rem; color: #717171; }
 
     .m-post-location {
       font-size: 0.75rem;
       font-weight: 600;
-      color: var(--text2);
+      color: #717171;
       margin-bottom: 0.3rem;
-      font-family: var(--mono);
+      font-family: 'Nunito Sans', sans-serif;
       letter-spacing: 0.03em;
     }
 
     .m-post-body {
       font-size: 0.85rem;
-      color: var(--text2);
+      color: #717171;
       line-height: 1.5;
       margin-bottom: 0.6rem;
     }
@@ -1033,19 +1068,19 @@
 
     .m-contact-link {
       font-size: 0.7rem;
-      color: var(--gold);
-      font-family: var(--mono);
+      color: #ff385c;
+      font-family: 'Nunito Sans', sans-serif;
       letter-spacing: 0.04em;
       text-decoration: none;
     }
 
     .m-tip-btn {
-      background: var(--gold);
-      color: #000;
+      background: #ff385c;
+      color: #222222;
       border: none;
       border-radius: 3px;
       padding: 0.2rem 0.5rem;
-      font-family: var(--mono);
+      font-family: 'Nunito Sans', sans-serif;
       font-size: 0.6rem;
       font-weight: 700;
       letter-spacing: 0.08em;
@@ -1060,12 +1095,12 @@
       bottom: 155px;
       right: 1rem;
       z-index: 810;
-      background: var(--gold);
-      color: #000;
+      background: #ff385c;
+      color: #222222;
       border: none;
       border-radius: 6px;
       padding: 0.6rem 1rem;
-      font-family: var(--mono);
+      font-family: 'Nunito Sans', sans-serif;
       font-size: 0.62rem;
       font-weight: 700;
       letter-spacing: 0.08em;
@@ -1087,10 +1122,10 @@
     .m-filter-chips::-webkit-scrollbar { display: none; }
 
     .m-chip {
-      background: var(--surface2);
-      border: 1px solid var(--border2);
-      color: var(--muted);
-      font-family: var(--mono);
+      background: #f7f7f7;
+      border: 1px solid #dddddd;
+      color: #666666;
+      font-family: 'Nunito Sans', sans-serif;
       font-size: 0.6rem;
       font-weight: 700;
       letter-spacing: 0.08em;
@@ -1103,30 +1138,80 @@
     }
 
     .m-chip.active {
-      background: var(--gold-soft);
-      border-color: var(--gold);
-      color: var(--gold);
+      background: rgba(255,56,92,0.08);
+      border-color: #ff385c;
+      color: #ff385c;
+    }
+
+    .m-call-btn {
+      background: #ff385c;
+      color: #222222;
+      border: none;
+      border-radius: 4px;
+      padding: 0.35rem 0.75rem;
+      font-family: 'Nunito Sans', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-decoration: none;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .m-call-btn.danger-call {
+      background: #c13515;
+      color: #222222;
+    }
+
+    .m-resource-go {
+      background: none;
+      border: 1px solid #dddddd;
+      color: #ff385c;
+      border-radius: 4px;
+      padding: 0.3rem 0.6rem;
+      font-family: 'Nunito Sans', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-decoration: none;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .m-tip-btn {
+      background: #ff385c;
+      color: #222222;
+      border: none;
+      border-radius: 3px;
+      padding: 0.2rem 0.5rem;
+      font-family: 'Nunito Sans', sans-serif;
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-decoration: none;
+      margin-left: auto;
     }
 
   } /* end @media mobile */
 
   .column-header {
-    font-family: var(--mono);
+    font-family: 'Nunito Sans', sans-serif;
     font-size: 1.1rem;
     font-weight: 600;
     padding: 1rem 1.25rem;
     margin-bottom: 1.25rem;
-    border-radius: var(--radius-sm);
+    border-radius: 4px;
     display: flex;
     align-items: center;
     gap: 0.6rem;
   }
 
-  .column-offer { background: var(--surface2); color: var(--gold);   border-left: 3px solid var(--gold);   border-bottom: 1px solid var(--gold-border); }
-  .column-need  { background: var(--surface2); color: var(--danger); border-left: 3px solid var(--danger); border-bottom: 1px solid rgba(255,87,34,0.2); }
+  .column-offer { background: var(--surface2); color: #ff385c;   border-left: 3px solid var(--gold);   border-bottom: 1px solid var(--gold-border); }
+  .column-need  { background: var(--surface2); color: #c13515; border-left: 3px solid var(--danger); border-bottom: 1px solid rgba(255,87,34,0.2); }
 
   .post-form {
-    background: var(--surface);
+    background: #f7f7f7;
     border: 1.5px solid var(--border);
     border-radius: var(--radius);
     padding: 1.5rem;
@@ -1135,10 +1220,10 @@
   }
 
   .form-title {
-    font-family: var(--mono);
+    font-family: 'Nunito Sans', sans-serif;
     font-size: 0.95rem;
     font-weight: 600;
-    color: var(--text);
+    color: #222222;
     margin-bottom: 0.75rem;
   }
 
@@ -1148,7 +1233,7 @@
     display: block;
     font-size: 0.72rem;
     font-weight: 600;
-    color: var(--text2);
+    color: #717171;
     margin-bottom: 0.35rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -1160,9 +1245,9 @@
     width: 100%;
     background: var(--bg);
     border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    color: var(--text);
-    font-family: var(--sans);
+    border-radius: 4px;
+    color: #222222;
+    font-family: 'Nunito Sans', sans-serif;
     font-size: 0.88rem;
     padding: 0.6rem 0.9rem;
     outline: none;
@@ -1173,7 +1258,7 @@
   .form-row input:focus,
   .form-row textarea:focus,
   .form-row select:focus {
-    border-color: var(--gold);
+    border-color: #ff385c;
     box-shadow: 0 0 0 2px var(--gold-soft);
   }
 
@@ -1181,25 +1266,25 @@
 
   .form-note {
     font-size: 0.78rem;
-    color: var(--text2);
+    color: #717171;
     margin-bottom: 1rem;
     line-height: 1.6;
     background: var(--surface2);
-    border-radius: var(--radius-sm);
+    border-radius: 4px;
     padding: 0.65rem 0.9rem;
     border-left: 3px solid var(--gold);
   }
 
-  .form-note strong { color: var(--gold); }
+  .form-note strong { color: #ff385c; }
 
   /* Offer = gold bordered (you're the helper — structured)
      Need  = orange solid (crisis — urgent) */
   .submit-btn {
-    background: var(--gold);
-    color: #000000;
+    background: #ff385c;
+    color: #222222;
     border: none;
-    border-radius: var(--radius-sm);
-    font-family: var(--display);
+    border-radius: 4px;
+    font-family: 'Nunito', sans-serif;
     font-size: 1rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -1211,18 +1296,18 @@
 
   .submit-btn:hover { background: var(--gold-dim); }
   .submit-btn.need {
-    background: var(--danger);
-    color: #ffffff;
+    background: #c13515;
+    color: #222222;
   }
   .submit-btn.need:hover { background: #e04019; }
 
   .posts-list { display: flex; flex-direction: column; gap: 0.9rem; }
 
   .post-card {
-    background: var(--surface);
+    background: #f7f7f7;
     border: 1.5px solid var(--border);
     border-left: 4px solid;
-    border-radius: var(--radius-sm);
+    border-radius: 4px;
     padding: 1.1rem 1.25rem;
     transition: all 0.2s;
     box-shadow: var(--shadow);
@@ -1230,7 +1315,7 @@
 
   .post-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
   .post-card.offer { border-left-color: var(--safe); }
-  .post-card.need  { border-left-color: var(--danger); }
+  .post-card.need  { border-left-color: #c13515; }
 
   .post-meta {
     display: flex;
@@ -1249,9 +1334,9 @@
   }
 
   .post-type.offer { color: var(--safe); background: var(--safe-soft); }
-  .post-type.need  { color: var(--danger); background: var(--danger-soft); }
+  .post-type.need  { color: #c13515; background: var(--danger-soft); }
 
-  .post-time { font-size: 0.7rem; color: var(--muted); }
+  .post-time { font-size: 0.7rem; color: #717171; }
 
   .post-location {
     font-size: 0.75rem;
@@ -1262,14 +1347,14 @@
 
   .post-body {
     font-size: 0.85rem;
-    color: var(--text2);
+    color: #717171;
     margin-bottom: 0.85rem;
     line-height: 1.55;
   }
 
   .post-contact {
     font-size: 0.72rem;
-    color: var(--muted);
+    color: #717171;
     padding-top: 0.6rem;
     border-top: 1px solid var(--border);
     display: flex;
@@ -1293,7 +1378,7 @@
   }
 
   .resource-card {
-    background: var(--surface);
+    background: #f7f7f7;
     border: 1.5px solid var(--border);
     border-radius: var(--radius);
     padding: 1.25rem;
@@ -1312,21 +1397,21 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: var(--muted);
+    color: #717171;
     margin-bottom: 0.4rem;
   }
 
   .resource-name {
-    font-family: var(--mono);
+    font-family: 'Nunito Sans', sans-serif;
     font-size: 1rem;
     font-weight: 600;
-    color: var(--text);
+    color: #222222;
     margin-bottom: 0.4rem;
   }
 
   .resource-desc {
     font-size: 0.8rem;
-    color: var(--text2);
+    color: #717171;
     margin-bottom: 0.85rem;
     line-height: 1.55;
   }
@@ -1347,7 +1432,7 @@
   .empty-state {
     text-align: center;
     padding: 3rem;
-    color: var(--muted);
+    color: #717171;
     font-size: 0.85rem;
     border: 2px dashed var(--border);
     border-radius: var(--radius);
@@ -1369,7 +1454,7 @@
   .modal-overlay.open { display: flex; }
 
   .modal {
-    background: var(--surface);
+    background: #f7f7f7;
     border: 1.5px solid var(--border);
     border-radius: var(--radius);
     padding: 2rem;
@@ -1380,17 +1465,17 @@
   }
 
   .modal-title {
-    font-family: var(--mono);
+    font-family: 'Nunito Sans', sans-serif;
     font-size: 1.1rem;
     font-weight: 600;
-    color: var(--gold);
+    color: #ff385c;
     margin-bottom: 1rem;
     position: absolute;
     top: 1rem; right: 1rem;
     background: var(--bg2);
     border: none;
     border-radius: 50%;
-    color: var(--muted);
+    color: #717171;
     font-size: 1rem;
     width: 28px; height: 28px;
     cursor: pointer;
@@ -1398,19 +1483,19 @@
     transition: all 0.2s;
   }
 
-  .modal-close:hover { background: var(--border); color: var(--text); }
+  .modal-close:hover { background: var(--border); color: #222222; }
 
   /* Leaflet overrides */
-  .leaflet-container { background: #0d0d0d !important; }
+  .leaflet-container { background: #e8e0d8 !important; }
   .leaflet-popup-content-wrapper {
-    background: #1a1a1a !important;
-    border: 1px solid rgba(245,197,24,0.3) !important;
-    color: #f0f0f0 !important;
+    background: #ffffff !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text) !important;
     border-radius: var(--radius) !important;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.7) !important;
-    font-family: var(--sans) !important;
+    box-shadow: var(--shadow-lg) !important;
+    font-family: 'Nunito Sans', sans-serif !important;
   }
-  .leaflet-popup-tip { background: #1a1a1a !important; }
+  .leaflet-popup-tip { background: #ffffff !important; }
   .leaflet-popup-content { margin: 1rem !important; }
 </style>
 </head>
@@ -1424,10 +1509,14 @@
   <nav>
     <button class="active" onclick="showView('map')">Map</button>
     <button onclick="showView('countries')">Countries</button>
-    <button onclick="showView('help')">Give / Get Help</button>
     <button onclick="showView('resources')">Resources</button>
   </nav>
-  <div class="last-updated" id="last-updated-label">Loading...</div>
+  <div class="header-right">
+    <div class="last-updated" id="last-updated-label">Loading...</div>
+    <button class="cta-pill" onclick="showView('help')">
+      Share a Spare Room <span class="heart">♥</span>
+    </button>
+  </div>
 </header>
 
 <div class="alert-banner">
@@ -1478,9 +1567,9 @@
 <div id="map-view" class="view active">
   <div id="crisis-map"></div>
   <div style="position:absolute;top:1rem;left:50%;transform:translateX(-50%);z-index:999;display:flex;gap:0.5rem;width:min(480px,90vw)">
-    <input id="map-search" type="text" placeholder="Search a city or location..." style="flex:1;background:#1a1a1a;border:1px solid #3d3d3d;border-radius:4px;padding:0.55rem 1rem;font-family:'Barlow',sans-serif;font-size:0.85rem;color:#f0f0f0;outline:none;box-shadow:0 2px 12px rgba(0,0,0,0.4)" onkeydown="if(event.key==='Enter')geocodeSearch()">
-    <button onclick="geocodeSearch()" style="background:#f5c518;color:#000;border:none;border-radius:4px;padding:0.55rem 1rem;font-family:'Barlow Condensed',sans-serif;font-size:0.78rem;font-weight:700;cursor:pointer;white-space:nowrap;letter-spacing:0.08em;text-transform:uppercase">SEARCH</button>
-    <button onclick="pinMyLocation()" title="Drop a pin at my location" style="background:#1a1a1a;border:1px solid #3d3d3d;border-radius:4px;padding:0.55rem 0.75rem;font-size:1rem;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.4)" title="Use my location">📍</button>
+    <input id="map-search" type="text" placeholder="Search a city or location..." style="flex:1;background:#ffffff;border:1.5px solid #dddddd;border-radius:4px;padding:0.55rem 1rem;font-family:'Nunito Sans',sans-serif;font-size:0.85rem;color:#222222;outline:none;box-shadow:0 2px 12px rgba(0,0,0,0.4)" onkeydown="if(event.key==='Enter')geocodeSearch()">
+    <button onclick="geocodeSearch()" style="background:#ff385c;color:#ffffff;border:none;border-radius:4px;padding:0.55rem 1rem;font-family:'Nunito Sans',sans-serif;font-size:0.78rem;font-weight:700;cursor:pointer;white-space:nowrap;letter-spacing:0.08em;text-transform:uppercase">SEARCH</button>
+    <button onclick="pinMyLocation()" title="Drop a pin at my location" style="background:#ffffff;border:1.5px solid #dddddd;border-radius:8px;padding:0.55rem 0.75rem;font-size:1rem;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.08)" title="Use my location">📍</button>
   </div>
   <div class="map-legend">
     <div class="legend-title">Map Key</div>
@@ -2009,8 +2098,18 @@ let posts = [];
 function showView(name) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  const pill = document.querySelector('.cta-pill');
+  if (pill) pill.style.background = '#ffffff';
+
   document.getElementById(name + '-view').classList.add('active');
-  event.target.classList.add('active');
+
+  // Nav: map=0, countries=1, resources=2 — pill handles help
+  const navMap = { map: 0, countries: 1, resources: 2 };
+  if (navMap[name] !== undefined) {
+    document.querySelectorAll('nav button')[navMap[name]].classList.add('active');
+  } else if (name === 'help' && pill) {
+    pill.style.background = 'var(--gold)';
+  }
 
   if (name === 'map' && !window._mapInit) initMap();
   if (name === 'countries') renderCountries();
@@ -2044,7 +2143,7 @@ function initMap() {
   const map = L.map('crisis-map', { zoomControl: false }).setView([28, 45], 5);
   L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     attribution: '©OpenStreetMap ©CARTO',
     maxZoom: 19
   }).addTo(map);
@@ -2066,15 +2165,15 @@ function initMap() {
       radius: 8, fillColor: col, color: '#000',
       weight: 1.5, opacity: 1, fillOpacity: 0.95
     }).addTo(map).bindPopup(`
-      <div style="font-family:'Barlow',sans-serif;min-width:230px;color:#f0f0f0">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:${col};margin-bottom:0.4rem;letter-spacing:0.06em">${c.name}</div>
-        <div style="font-size:0.82rem;color:#b0b0b0;margin-bottom:0.6rem;line-height:1.5">${c.advisory}</div>
-        <div style="font-size:0.72rem;margin-bottom:0.75rem;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.04em">
-          <span style="color:#666">AIRSPACE: </span>
-          <strong style="color:${c.airspace==='CLOSED'?'#ff5722':c.airspace.includes('OPEN')?'#22c55e':'#f5c518'}">${c.airspace}</strong>
+      <div style="font-family:'Nunito Sans',sans-serif;min-width:230px;color:#222222">
+        <div style="font-family:'Nunito',sans-serif;font-size:1.3rem;color:${col};margin-bottom:0.4rem;letter-spacing:0.06em">${c.name}</div>
+        <div style="font-size:0.82rem;color:#717171;margin-bottom:0.6rem;line-height:1.5">${c.advisory}</div>
+        <div style="font-size:0.72rem;margin-bottom:0.75rem;font-family:'Nunito Sans',sans-serif;letter-spacing:0.04em">
+          <span style="color:#717171">AIRSPACE: </span>
+          <strong style="color:${c.airspace==='CLOSED'?'#c13515':c.airspace.includes('OPEN')?'#22c55e':'#ff385c'}">${c.airspace}</strong>
         </div>
-        ${c.telegram ? `<a href="${c.telegram}" style="color:#60a5fa;font-size:0.75rem;display:block;margin-bottom:0.6rem;font-weight:600;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.04em" target="_blank">→ TELEGRAM GROUP</a>` : ''}
-        <button onclick="window.filterAndShowCountry('${c.id}')" style="background:#f5c518;border:none;color:#000;font-family:'Barlow Condensed',sans-serif;font-size:0.85rem;font-weight:700;padding:0.4rem 1rem;cursor:pointer;border-radius:3px;letter-spacing:0.08em;width:100%;text-transform:uppercase">FULL INFO & EMBASSIES →</button>
+        ${c.telegram ? `<a href="${c.telegram}" style="color:#60a5fa;font-size:0.75rem;display:block;margin-bottom:0.6rem;font-weight:600;font-family:'Nunito Sans',sans-serif;letter-spacing:0.04em" target="_blank">→ TELEGRAM GROUP</a>` : ''}
+        <button onclick="window.filterAndShowCountry('${c.id}')" style="background:#ff385c;border:none;color:#ffffff;font-family:'Nunito Sans',sans-serif;font-size:0.85rem;font-weight:700;padding:0.4rem 1rem;cursor:pointer;border-radius:3px;letter-spacing:0.08em;width:100%;text-transform:uppercase">FULL INFO & EMBASSIES →</button>
       </div>
     `);
   });
@@ -2088,8 +2187,8 @@ function initMap() {
       color, weight: 3, opacity: 0.75,
       dashArray: dash
     }).addTo(map).bindPopup(`
-      <div style="font-family:'Barlow',sans-serif">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.95rem;color:${color};margin-bottom:0.3rem">${r.label}</div>
+      <div style="font-family:'Nunito Sans',sans-serif">
+        <div style="font-family:'Nunito Sans',sans-serif;font-weight:700;font-size:0.95rem;color:${color};margin-bottom:0.3rem">${r.label}</div>
         <div style="font-size:0.75rem;color:#8a909e">Status: <strong style="color:${color}">${r.status.toUpperCase()}</strong></div>
       </div>
     `);
@@ -2101,10 +2200,10 @@ function initMap() {
       radius: 9, fillColor: '#60a5fa', color: '#000',
       weight: 1.5, opacity: 0.8, fillOpacity: 0.5
     }).addTo(map).bindPopup(`
-      <div style="font-family:'Barlow',sans-serif;min-width:200px;color:#f0f0f0">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:#60a5fa;margin-bottom:0.4rem;letter-spacing:0.06em">🌍 ${r.name}</div>
-        <div style="font-size:0.8rem;color:#b0b0b0;line-height:1.5;margin-bottom:0.5rem">${r.note}</div>
-        <div style="font-size:0.72rem;color:#666;font-family:'Barlow Condensed',sans-serif">${r.contacts[0]?.label}: <strong style="color:#f0f0f0">${r.contacts[0]?.value}</strong></div>
+      <div style="font-family:'Nunito Sans',sans-serif;min-width:200px;color:#222222">
+        <div style="font-family:'Nunito',sans-serif;font-size:1.1rem;color:#60a5fa;margin-bottom:0.4rem;letter-spacing:0.06em">🌍 ${r.name}</div>
+        <div style="font-size:0.8rem;color:#717171;line-height:1.5;margin-bottom:0.5rem">${r.note}</div>
+        <div style="font-size:0.72rem;color:#717171;font-family:'Nunito Sans',sans-serif">${r.contacts[0]?.label}: <strong style="color:#222222">${r.contacts[0]?.value}</strong></div>
       </div>
     `);
   });
@@ -2136,7 +2235,7 @@ async function geocodeSearch() {
   _searchMarker = L.marker([result.lat, result.lng], {
     icon: L.divIcon({
       className: '',
-      html: `<div style="background:#111;color:#fff;padding:0.3rem 0.6rem;border-radius:4px;font-family:'Barlow',sans-serif;font-size:0.72rem;font-weight:600;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.3)">📍 ${query}</div>`,
+      html: `<div style="background:#ffffff;color:#222222;padding:0.3rem 0.6rem;border-radius:4px;font-family:'Nunito Sans',sans-serif;font-size:0.72rem;font-weight:600;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.3)">📍 ${query}</div>`,
       iconAnchor: [0, 0]
     })
   }).addTo(map);
@@ -2150,13 +2249,13 @@ function pinMyLocation() {
     const { latitude: lat, longitude: lng } = pos.coords;
     if (_userLocationMarker) map.removeLayer(_userLocationMarker);
     _userLocationMarker = L.circleMarker([lat, lng], {
-      radius: 10, fillColor: '#f5c518', color: '#000',
+      radius: 10, fillColor: '#ff385c', color: '#000',
       weight: 2, opacity: 1, fillOpacity: 0.9
     }).addTo(map).bindPopup(`
-      <div style="font-family:'Barlow',sans-serif;color:#f0f0f0">
-        <strong style="color:#f5c518;font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.06em">YOU ARE HERE</strong><br>
-        <span style="font-size:0.75rem;color:#666">${lat.toFixed(4)}, ${lng.toFixed(4)}</span><br>
-        <a href="#" onclick="document.querySelectorAll('nav button')[2].click();return false" style="color:#f5c518;font-size:0.78rem;font-weight:600;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.04em">→ POST FOR HELP OR OFFER HELP</a>
+      <div style="font-family:'Nunito Sans',sans-serif;color:#222222">
+        <strong style="color:#ff385c;font-family:'Nunito',sans-serif;font-size:1rem;letter-spacing:0.06em">YOU ARE HERE</strong><br>
+        <span style="font-size:0.75rem;color:#717171">${lat.toFixed(4)}, ${lng.toFixed(4)}</span><br>
+        <a href="#" onclick="document.querySelectorAll('nav button')[2].click();return false" style="color:#ff385c;font-size:0.78rem;font-weight:600;font-family:'Nunito Sans',sans-serif;letter-spacing:0.04em">→ POST FOR HELP OR OFFER HELP</a>
       </div>
     `).openPopup();
     map.flyTo([lat, lng], 11, { duration: 1.2 });
@@ -2182,11 +2281,11 @@ function renderPostsOnMap(map) {
       radius: 7, fillColor: color, color: '#000',
       weight: 1.5, opacity: 1, fillOpacity: 0.95
     }).addTo(map).bindPopup(`
-      <div style="font-family:'Barlow',sans-serif;min-width:200px;color:#f0f0f0">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:0.95rem;color:${color};letter-spacing:0.06em;margin-bottom:0.3rem">${icon} ${p.postType}</div>
-        <div style="font-size:0.8rem;color:#b0b0b0;margin-bottom:0.4rem;line-height:1.5">${p.body.slice(0,120)}${p.body.length > 120 ? '…' : ''}</div>
-        <div style="font-size:0.72rem;color:#666;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.03em">📍 ${p.location} · 👤 ${p.name}</div>
-        ${p.xhandle ? `<a href="https://x.com/${p.xhandle}" target="_blank" style="display:inline-block;margin-top:0.5rem;background:${isOffer?'#f5c518':'rgba(96,165,250,0.15)'};color:${isOffer?'#000':'#60a5fa'};font-size:0.7rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:3px;text-decoration:none;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.06em">${isOffer?'TIP $HELP →':'@'+p.xhandle}</a>` : ''}
+      <div style="font-family:'Nunito Sans',sans-serif;min-width:200px;color:#222222">
+        <div style="font-family:'Nunito',sans-serif;font-size:0.95rem;color:${color};letter-spacing:0.06em;margin-bottom:0.3rem">${icon} ${p.postType}</div>
+        <div style="font-size:0.8rem;color:#717171;margin-bottom:0.4rem;line-height:1.5">${p.body.slice(0,120)}${p.body.length > 120 ? '…' : ''}</div>
+        <div style="font-size:0.72rem;color:#717171;font-family:'Nunito Sans',sans-serif;letter-spacing:0.03em">📍 ${p.location} · 👤 ${p.name}</div>
+        ${p.xhandle ? `<a href="https://x.com/${p.xhandle}" target="_blank" style="display:inline-block;margin-top:0.5rem;background:${isOffer?'#ff385c':'rgba(96,165,250,0.15)'};color:${isOffer?'#000':'#60a5fa'};font-size:0.7rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:3px;text-decoration:none;font-family:'Nunito Sans',sans-serif;letter-spacing:0.06em">${isOffer?'TIP $HELP →':'@'+p.xhandle}</a>` : ''}
       </div>
     `);
     _postMarkers.push(marker);
@@ -2447,7 +2546,7 @@ function renderPost(p) {
       𝕏 <a href="https://x.com/${xHandle}" target="_blank">@${xHandle}</a>
     </span>
     ${p.type === 'offer' ? `<span class="contact-item" style="margin-left:auto">
-      <a href="https://x.com/${xHandle}" target="_blank" style="background:var(--gold);color:#000;font-size:0.68rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:3px;text-decoration:none;font-family:var(--mono);letter-spacing:0.06em;text-transform:uppercase">
+      <a href="https://x.com/${xHandle}" target="_blank" style="background:var(--gold);color:#222222;font-size:0.68rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:3px;text-decoration:none;font-family:var(--mono);letter-spacing:0.06em;text-transform:uppercase">
         TIP $HELP →
       </a>
     </span>` : ''}
@@ -2861,7 +2960,7 @@ function initMobile() {
               <input type="text" id="m-offer-xhandle" placeholder="@yourhandle">
               <div style="font-size:0.7rem;color:var(--muted);margin-top:0.35rem">📍 Your pin drops on the map. People can tip you <strong style="color:var(--gold)">$HELP</strong> via your handle.</div>
             </div>
-            <button class="m-submit" style="background:var(--gold);color:#000" onclick="mobileSubmitOffer()">POST OFFER — I CAN HELP</button>
+            <button class="m-submit" style="background:var(--gold);color:#222222" onclick="mobileSubmitOffer()">POST OFFER — I CAN HELP</button>
           </div>
 
           <!-- Countries sheet -->
@@ -2903,9 +3002,9 @@ function initMobile() {
   // Init mobile map
   const mmap = L.map('mobile-crisis-map', { zoomControl: false, attributionControl: false })
     .setView([28, 45], 4);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(mmap);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(mmap);
 
-  const sc = { danger: '#ff5722', warn: '#f5c518', safe: '#22c55e' };
+  const sc = { danger: '#c13515', warn: '#ff385c', safe: '#22c55e' };
   COUNTRIES.forEach(c => {
     L.circleMarker(c.coords, {
       radius: 10, fillColor: sc[c.status], color: '#000', weight: 1.5, opacity: 1, fillOpacity: 0.9
@@ -2922,7 +3021,7 @@ function initMobile() {
   });
 
   LAND_ROUTES.forEach(r => {
-    const col = r.status === 'safe' ? '#22c55e' : r.status === 'warn' ? '#f5c518' : '#ef4444';
+    const col = r.status === 'safe' ? '#22c55e' : r.status === 'warn' ? '#ff385c' : '#ef4444';
     L.polyline([r.from, r.to], { color: col, weight: 2.5, opacity: 0.7,
       dashArray: r.status === 'danger' ? '6,8' : r.status === 'warn' ? '8,4' : null
     }).addTo(mmap);
@@ -3073,8 +3172,8 @@ function mobilePinLocation() {
   navigator.geolocation.getCurrentPosition(pos => {
     const { latitude: lat, longitude: lng } = pos.coords;
     L.circleMarker([lat, lng], {
-      radius: 9, fillColor: '#f5c518', color: '#000', weight: 2, opacity: 1, fillOpacity: 0.95
-    }).addTo(window._mobileMap).bindPopup('<div style="color:#f0f0f0;font-family:Barlow Condensed,sans-serif;font-size:0.9rem;letter-spacing:0.06em">YOU ARE HERE</div>').openPopup();
+      radius: 9, fillColor: '#ff385c', color: '#000', weight: 2, opacity: 1, fillOpacity: 0.95
+    }).addTo(window._mobileMap).bindPopup('<div style="color:#222222;font-family:Nunito Sans,sans-serif;font-size:0.9rem;letter-spacing:0.06em">YOU ARE HERE</div>').openPopup();
     window._mobileMap.flyTo([lat, lng], 12, { duration: 1.2 });
   });
 }
