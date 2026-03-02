@@ -5,56 +5,65 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Gulf Crisis Resource Hub</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
-    /* ── Base — cool blue-gray operational surface ── */
-    --bg:       #f0f2f5;        /* cool light gray — never pure white */
-    --bg2:      #e8ebf0;        /* slightly deeper for alternating surfaces */
-    --surface:  #ffffff;        /* panels and cards */
-    --surface2: #f5f7fa;        /* nested surfaces */
-    --border:   #d6dae4;        /* subtle cool border */
-    --border2:  #b8bfce;        /* stronger dividers */
+    /* ── Base — near-black, not pure #000 — matches PP ── */
+    --bg:       #0d0d0d;
+    --bg2:      #161616;
+    --surface:  #1a1a1a;
+    --surface2: #222222;
+    --border:   #2e2e2e;
+    --border2:  #3d3d3d;
 
     /* ── Text ── */
-    --text:     #0f1824;        /* near-black with blue undertone */
-    --text2:    #2e3d52;        /* body text — navy-gray */
-    --muted:    #7a8799;        /* secondary — blue-toned gray */
+    --text:     #f0f0f0;
+    --text2:    #b0b0b0;
+    --muted:    #666666;
 
-    /* ── Primary brand — steel blue, institutional ── */
-    --primary:       #1a4b8c;   /* deep navy-blue — logo, headings, active states */
-    --primary-mid:   #2563b0;   /* mid blue — links, interactive */
-    --primary-light: #3b82d4;   /* lighter blue — hover states */
-    --primary-soft:  #e8f0fb;   /* very light blue — active bg tint */
+    /* ── Gold — People Powered signal color ── */
+    --gold:        #f5c518;     /* primary signal — PP yellow-gold */
+    --gold-dim:    #c49a10;     /* darker gold for hover */
+    --gold-soft:   rgba(245,197,24,0.10);
+    --gold-border: rgba(245,197,24,0.25);
 
-    /* ── Alert voltage — orange ONLY for crisis signals ── */
-    --accent:      #e8500a;     /* slightly deeper orange — not as hot, more credible */
-    --accent-soft: #fef0e8;
-    --accent2:     #d4860a;     /* amber — secondary alert */
-    --accent2-soft:#fef6e8;
+    /* ── Accent = gold (not orange) for UI chrome ── */
+    --accent:      #f5c518;
+    --accent-soft: rgba(245,197,24,0.10);
+    --accent2:     #f5c518;
+    --accent2-soft:rgba(245,197,24,0.10);
 
-    /* ── Status colors — kept vivid to pop on cool bg ── */
-    --safe:      #0f9d5a;       /* green — open routes, stable */
-    --safe-soft: #e6f7ef;
-    --warn:      #d4860a;       /* amber — elevated/restricted */
-    --warn-soft: #fef6e8;
-    --danger:    #e8500a;       /* orange-red — crisis/closed */
-    --danger-soft:#fef0e8;
-    --info:      #2563b0;       /* blue — worldwide/neutral info */
-    --info-soft: #e8f0fb;
+    /* ── Crisis voltage — orange reserved for DANGER only ── */
+    --danger:      #ff5722;
+    --danger-soft: rgba(255,87,34,0.12);
 
-    /* ── Fonts ── */
-    --mono: 'Barlow Condensed', sans-serif;
-    --sans: 'Barlow', sans-serif;
+    /* ── Status colors — vivid on black ── */
+    --safe:      #22c55e;
+    --safe-soft: rgba(34,197,94,0.12);
+    --warn:      #f5c518;       /* gold = warn — doubles as brand */
+    --warn-soft: rgba(245,197,24,0.10);
+    --info:      #60a5fa;
+    --info-soft: rgba(96,165,250,0.12);
+
+    /* ── Primary = gold for links, active states ── */
+    --primary:       #f5c518;
+    --primary-mid:   #d4a910;
+    --primary-light: #ffd740;
+    --primary-soft:  rgba(245,197,24,0.10);
+
+    /* ── Typography ── */
+    --display: 'Bebas Neue', 'Barlow Condensed', sans-serif;   /* hero numbers, big headings */
+    --mono:    'Barlow Condensed', sans-serif;                  /* labels, caps, nav */
+    --sans:    'Barlow', sans-serif;                            /* body */
 
     /* ── Shape ── */
-    --radius:    8px;
-    --radius-sm: 5px;
-    --shadow:    0 1px 3px rgba(15,24,36,0.06), 0 4px 12px rgba(15,24,36,0.06);
-    --shadow-lg: 0 4px 20px rgba(15,24,36,0.10), 0 12px 40px rgba(15,24,36,0.08);
+    --radius:    6px;
+    --radius-sm: 4px;
+    --shadow:    0 2px 12px rgba(0,0,0,0.4);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.6);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -70,24 +79,23 @@
 
   /* HEADER */
   header {
-    border-bottom: 2px solid var(--primary);
+    border-bottom: 2px solid var(--gold);
     padding: 0 2rem;
     position: sticky;
     top: 0;
     z-index: 1000;
-    background: var(--primary);
+    background: #000000;
     display: flex;
     align-items: center;
     justify-content: space-between;
     height: 56px;
-    box-shadow: 0 2px 16px rgba(15,24,36,0.18);
+    box-shadow: 0 2px 24px rgba(0,0,0,0.6);
   }
 
   .logo {
-    font-family: var(--mono);
-    font-size: 1rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
+    font-family: var(--display);
+    font-size: 1.3rem;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     color: #ffffff;
     display: flex;
@@ -95,63 +103,66 @@
     gap: 0.6rem;
   }
 
-  .logo span { color: #ffb347; font-style: normal; } /* warm amber — logo accent only */
+  .logo span { color: var(--gold); }
 
   .pulse-dot {
     width: 8px; height: 8px;
-    background: var(--accent);
+    background: var(--danger);
     border-radius: 50%;
     animation: pulse 2s infinite;
     flex-shrink: 0;
   }
 
   @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(232,80,10,0.5); }
-    50% { opacity: 0.85; transform: scale(0.85); box-shadow: 0 0 0 6px rgba(232,80,10,0); }
+    0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(255,87,34,0.6); }
+    50%       { opacity: 0.8; transform: scale(0.85); box-shadow: 0 0 0 6px rgba(255,87,34,0); }
   }
 
   .last-updated {
-    font-size: 0.68rem;
-    color: rgba(255,255,255,0.55);
-    font-weight: 400;
-    letter-spacing: 0.04em;
+    font-size: 0.65rem;
+    color: var(--muted);
+    font-family: var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
   }
 
-  nav { display: flex; gap: 0.15rem; }
+  nav { display: flex; gap: 0.1rem; }
 
   nav button {
     background: none;
     border: none;
-    border-radius: 4px;
-    color: rgba(255,255,255,0.65);
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
     font-family: var(--mono);
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    padding: 0.4rem 0.9rem;
+    padding: 0.5rem 1rem;
     cursor: pointer;
     transition: all 0.15s;
+    height: 56px;
+    margin-bottom: -2px;
   }
 
   nav button.active {
-    color: #ffffff;
-    background: rgba(255,255,255,0.15);
-    border-bottom: 2px solid var(--accent);
+    color: var(--gold);
+    border-bottom-color: var(--gold);
   }
 
   nav button:hover:not(.active) {
-    color: #ffffff;
-    background: rgba(255,255,255,0.08);
+    color: var(--text);
   }
 
-  /* ALERT BANNER — orange voltage strip */
+  /* ALERT BANNER — gold on very dark — urgent but not screaming */
   .alert-banner {
-    background: #1c3d70;        /* dark navy — just below header */
-    border-bottom: 1px solid #0f2a55;
+    background: #111111;
+    border-bottom: 1px solid var(--gold-border);
     padding: 0.5rem 2rem;
-    font-size: 0.75rem;
-    color: rgba(255,255,255,0.75);
+    font-size: 0.72rem;
+    color: var(--text2);
+    font-family: var(--mono);
+    letter-spacing: 0.04em;
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -159,7 +170,7 @@
   }
 
   .alert-label {
-    background: var(--accent);
+    background: var(--danger);
     color: #fff;
     font-weight: 700;
     padding: 0.18rem 0.55rem;
@@ -194,24 +205,24 @@
 
   .map-legend {
     position: absolute;
-    bottom: 9rem;
+    bottom: 2rem;
     left: 2rem;
     z-index: 999;
-    background: rgba(15,30,53,0.92);
-    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(0,0,0,0.88);
+    border: 1px solid var(--gold-border);
     border-radius: var(--radius-sm);
     padding: 1rem 1.25rem;
     font-size: 0.75rem;
-    box-shadow: 0 4px 20px rgba(15,24,36,0.3);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.5);
     backdrop-filter: blur(12px);
   }
 
   .legend-title {
-    color: rgba(255,255,255,0.4);
+    color: var(--gold);
     margin-bottom: 0.6rem;
     font-size: 0.6rem;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.14em;
     font-weight: 700;
     font-family: var(--mono);
   }
@@ -221,70 +232,75 @@
     align-items: center;
     gap: 0.6rem;
     margin-bottom: 0.3rem;
-    color: rgba(255,255,255,0.65);
+    color: var(--text2);
     font-size: 0.72rem;
+    font-family: var(--mono);
+    letter-spacing: 0.03em;
   }
 
   .legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
 
-  /* SITREP BAR — dark ops dashboard strip */
+  /* SITREP BAR — black ops, gold numbers */
   .sitrep-bar {
-    background: #0f1e35;        /* deep navy — operations center feel */
-    border-bottom: 1px solid #0a1628;
+    background: #000000;
+    border-bottom: 1px solid var(--gold-border);
     padding: 0 2rem;
     display: flex;
     gap: 0;
     overflow-x: auto;
     scrollbar-width: none;
-    box-shadow: 0 2px 12px rgba(15,24,36,0.2);
   }
   .sitrep-bar::-webkit-scrollbar { display: none; }
 
   .sitrep-stat {
     flex: 1;
-    min-width: 150px;
-    padding: 0.85rem 1.5rem;
-    border-right: 1px solid rgba(255,255,255,0.07);
+    min-width: 140px;
+    padding: 0.9rem 1.5rem;
+    border-right: 1px solid var(--border);
     text-align: center;
   }
   .sitrep-stat:last-child { border-right: none; }
 
   .sitrep-number {
-    font-family: var(--mono);
-    font-size: 2rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
+    font-family: var(--display);
+    font-size: 2.4rem;
+    letter-spacing: 0.04em;
     line-height: 1;
     margin-bottom: 0.2rem;
+    color: var(--gold);          /* default: gold */
   }
 
   .sitrep-label {
     font-family: var(--mono);
-    font-size: 0.6rem;
-    font-weight: 600;
+    font-size: 0.58rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.14em;
+    color: var(--muted);
   }
 
   .sitrep-sublabel {
-    font-size: 0.56rem;
-    color: rgba(255,255,255,0.25);
+    font-size: 0.54rem;
+    color: var(--muted);
+    opacity: 0.6;
     margin-top: 0.1rem;
+    font-family: var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
   }
 
-  /* Orange = crisis signal. Blue = operational info. Green = safe. */
-  .sitrep-number.danger { color: #ff6b35; }   /* hot orange — stranded, closed */
-  .sitrep-number.warn   { color: #f0a500; }   /* amber */
-  .sitrep-number.safe   { color: #34c77b; }   /* green */
-  .sitrep-number.info   { color: #60a5fa; }   /* soft blue — help posts */
+  /* Override: danger stays orange, safe stays green */
+  .sitrep-number.danger { color: var(--danger); }
+  .sitrep-number.warn   { color: var(--gold); }
+  .sitrep-number.safe   { color: var(--safe); }
+  .sitrep-number.info   { color: var(--info); }
 
   .sitrep-refresh {
     display: flex;
     align-items: center;
     padding: 0 1.25rem;
-    font-size: 0.62rem;
-    color: rgba(255,255,255,0.35);
+    font-size: 0.6rem;
+    color: var(--muted);
     gap: 0.4rem;
     white-space: nowrap;
     cursor: pointer;
@@ -294,7 +310,7 @@
     font-weight: 500;
     transition: color 0.2s;
   }
-  .sitrep-refresh:hover { color: rgba(255,255,255,0.8); }
+  .sitrep-refresh:hover { color: var(--gold); }
 
   @keyframes spin { to { transform: rotate(360deg); } }
   .spinning { animation: spin 1s linear infinite; display: inline-block; }
@@ -305,18 +321,20 @@
   .section-header { margin-bottom: 1.5rem; }
 
   .section-title {
-    font-family: var(--mono);
-    font-size: 1.8rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
+    font-family: var(--display);
+    font-size: 2.2rem;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--primary);
+    color: var(--text);
     margin-bottom: 0.2rem;
   }
 
   .section-subtitle {
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     color: var(--muted);
+    font-family: var(--mono);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
   }
 
   .filter-bar {
@@ -327,24 +345,24 @@
   }
 
   .filter-btn {
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    color: var(--text2);
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--muted);
     font-family: var(--mono);
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     padding: 0.4rem 1rem;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
     transition: all 0.15s;
   }
 
   .filter-btn.active, .filter-btn:hover {
-    border-color: var(--primary-mid);
-    color: var(--primary);
-    background: var(--primary-soft);
+    border-color: var(--gold);
+    color: var(--gold);
+    background: var(--gold-soft);
   }
 
   .countries-grid {
@@ -355,17 +373,18 @@
 
   .country-card {
     background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--border2);
+    border-radius: var(--radius-sm);
     padding: 1.5rem;
     transition: all 0.2s;
     box-shadow: var(--shadow);
   }
 
   .country-card:hover {
-    border-color: var(--primary-mid);
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-1px);
+    border-top-color: var(--gold);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.5), 0 0 0 1px var(--gold-border);
+    transform: translateY(-2px);
   }
 
   .country-header {
@@ -376,12 +395,11 @@
   }
 
   .country-name {
-    font-family: var(--mono);
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--primary);
-    letter-spacing: 0.03em;
+    font-family: var(--display);
+    font-size: 1.3rem;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
+    color: var(--text);
   }
 
   .status-badge {
@@ -488,8 +506,8 @@
     gap: 0.6rem;
   }
 
-  .column-offer { background: var(--primary-soft); color: var(--primary); border-left: 3px solid var(--primary-mid); }
-  .column-need  { background: var(--danger-soft);  color: var(--danger);  border-left: 3px solid var(--accent); }
+  .column-offer { background: var(--surface2); color: var(--gold);   border-left: 3px solid var(--gold);   border-bottom: 1px solid var(--gold-border); }
+  .column-need  { background: var(--surface2); color: var(--danger); border-left: 3px solid var(--danger); border-bottom: 1px solid rgba(255,87,34,0.2); }
 
   .post-form {
     background: var(--surface);
@@ -539,50 +557,48 @@
   .form-row input:focus,
   .form-row textarea:focus,
   .form-row select:focus {
-    border-color: var(--primary-mid);
-    box-shadow: 0 0 0 3px rgba(37,99,176,0.12);
+    border-color: var(--gold);
+    box-shadow: 0 0 0 2px var(--gold-soft);
   }
 
   .form-row textarea { resize: vertical; min-height: 90px; }
 
   .form-note {
     font-size: 0.78rem;
-    color: var(--muted);
+    color: var(--text2);
     margin-bottom: 1rem;
     line-height: 1.6;
-    background: var(--primary-soft);
+    background: var(--surface2);
     border-radius: var(--radius-sm);
     padding: 0.65rem 0.9rem;
-    border-left: 3px solid var(--primary-mid);
+    border-left: 3px solid var(--gold);
   }
 
-  .form-note strong { color: var(--primary); }
+  .form-note strong { color: var(--gold); }
 
-  /* Offer = blue (calm, institutional — you're the helper)
-     Need = orange (urgent signal — person in crisis) */
+  /* Offer = gold bordered (you're the helper — structured)
+     Need  = orange solid (crisis — urgent) */
   .submit-btn {
-    background: var(--primary-mid);
-    color: #fff;
+    background: var(--gold);
+    color: #000000;
     border: none;
     border-radius: var(--radius-sm);
-    font-family: var(--mono);
-    font-size: 0.85rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
+    font-family: var(--display);
+    font-size: 1rem;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     padding: 0.75rem 1.5rem;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.15s;
     width: 100%;
   }
 
-  .submit-btn:hover { background: var(--primary); box-shadow: 0 4px 12px rgba(26,75,140,0.3); }
+  .submit-btn:hover { background: var(--gold-dim); }
   .submit-btn.need {
-    background: var(--accent);
-    border: none;
-    color: #fff;
+    background: var(--danger);
+    color: #ffffff;
   }
-  .submit-btn.need:hover { background: #c94508; box-shadow: 0 4px 12px rgba(232,80,10,0.3); }
+  .submit-btn.need:hover { background: #e04019; }
 
   .posts-list { display: flex; flex-direction: column; gap: 0.9rem; }
 
@@ -751,7 +767,7 @@
     font-family: var(--mono);
     font-size: 1.1rem;
     font-weight: 600;
-    color: var(--primary);
+    color: var(--gold);
     margin-bottom: 1rem;
     position: absolute;
     top: 1rem; right: 1rem;
@@ -769,16 +785,16 @@
   .modal-close:hover { background: var(--border); color: var(--text); }
 
   /* Leaflet overrides */
-  .leaflet-container { background: #dce4ee !important; }
+  .leaflet-container { background: #0d0d0d !important; }
   .leaflet-popup-content-wrapper {
-    background: #ffffff !important;
-    border: 1px solid var(--border) !important;
-    color: var(--text) !important;
+    background: #1a1a1a !important;
+    border: 1px solid rgba(245,197,24,0.3) !important;
+    color: #f0f0f0 !important;
     border-radius: var(--radius) !important;
-    box-shadow: 0 4px 20px rgba(15,24,36,0.15) !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.7) !important;
     font-family: var(--sans) !important;
   }
-  .leaflet-popup-tip { background: #ffffff !important; }
+  .leaflet-popup-tip { background: #1a1a1a !important; }
   .leaflet-popup-content { margin: 1rem !important; }
 </style>
 </head>
@@ -846,9 +862,9 @@
 <div id="map-view" class="view active">
   <div id="crisis-map"></div>
   <div style="position:absolute;top:1rem;left:50%;transform:translateX(-50%);z-index:999;display:flex;gap:0.5rem;width:min(480px,90vw)">
-    <input id="map-search" type="text" placeholder="Search a city or location..." style="flex:1;background:#fff;border:1.5px solid var(--border);border-radius:6px;padding:0.55rem 1rem;font-family:var(--sans);font-size:0.85rem;color:var(--text);outline:none;box-shadow:0 2px 12px rgba(0,0,0,0.12)" onkeydown="if(event.key==='Enter')geocodeSearch()">
-    <button onclick="geocodeSearch()" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:0.55rem 1rem;font-family:var(--mono);font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;letter-spacing:0.04em">SEARCH</button>
-    <button onclick="pinMyLocation()" title="Drop a pin at my location" style="background:#fff;border:1.5px solid var(--border);border-radius:6px;padding:0.55rem 0.75rem;font-size:1rem;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.1)" title="Use my location">📍</button>
+    <input id="map-search" type="text" placeholder="Search a city or location..." style="flex:1;background:#1a1a1a;border:1px solid #3d3d3d;border-radius:4px;padding:0.55rem 1rem;font-family:'Barlow',sans-serif;font-size:0.85rem;color:#f0f0f0;outline:none;box-shadow:0 2px 12px rgba(0,0,0,0.4)" onkeydown="if(event.key==='Enter')geocodeSearch()">
+    <button onclick="geocodeSearch()" style="background:#f5c518;color:#000;border:none;border-radius:4px;padding:0.55rem 1rem;font-family:'Barlow Condensed',sans-serif;font-size:0.78rem;font-weight:700;cursor:pointer;white-space:nowrap;letter-spacing:0.08em;text-transform:uppercase">SEARCH</button>
+    <button onclick="pinMyLocation()" title="Drop a pin at my location" style="background:#1a1a1a;border:1px solid #3d3d3d;border-radius:4px;padding:0.55rem 0.75rem;font-size:1rem;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.4)" title="Use my location">📍</button>
   </div>
   <div class="map-legend">
     <div class="legend-title">Map Key</div>
@@ -1412,7 +1428,7 @@ function initMap() {
   const map = L.map('crisis-map', { zoomControl: false }).setView([28, 45], 5);
   L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
     attribution: '©OpenStreetMap ©CARTO',
     maxZoom: 19
   }).addTo(map);
@@ -1431,18 +1447,18 @@ function initMap() {
 
     // Inner dot
     L.circleMarker(c.coords, {
-      radius: 8, fillColor: col, color: '#fff',
+      radius: 8, fillColor: col, color: '#000',
       weight: 1.5, opacity: 1, fillOpacity: 0.95
     }).addTo(map).bindPopup(`
-      <div style="font-family:'Barlow',sans-serif;min-width:230px">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;font-weight:700;color:${col};margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.04em">${c.name}</div>
-        <div style="font-size:0.82rem;color:#3d4450;margin-bottom:0.6rem;line-height:1.5">${c.advisory}</div>
-        <div style="font-size:0.72rem;margin-bottom:0.75rem">
-          <span style="color:#8a909e">Airspace: </span>
-          <strong style="color:${c.airspace==='CLOSED'?'#ff4d00':c.airspace.includes('OPEN')?'#00b248':'#ffaa00'}">${c.airspace}</strong>
+      <div style="font-family:'Barlow',sans-serif;min-width:230px;color:#f0f0f0">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:${col};margin-bottom:0.4rem;letter-spacing:0.06em">${c.name}</div>
+        <div style="font-size:0.82rem;color:#b0b0b0;margin-bottom:0.6rem;line-height:1.5">${c.advisory}</div>
+        <div style="font-size:0.72rem;margin-bottom:0.75rem;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.04em">
+          <span style="color:#666">AIRSPACE: </span>
+          <strong style="color:${c.airspace==='CLOSED'?'#ff5722':c.airspace.includes('OPEN')?'#22c55e':'#f5c518'}">${c.airspace}</strong>
         </div>
-        ${c.telegram ? `<a href="${c.telegram}" style="color:#2979ff;font-size:0.75rem;display:block;margin-bottom:0.6rem;font-weight:600" target="_blank">→ Telegram group</a>` : ''}
-        <button onclick="window.filterAndShowCountry('${c.id}')" style="background:#1a4b8c;border:none;color:#fff;font-family:'Barlow',sans-serif;font-size:0.78rem;font-weight:700;padding:0.4rem 1rem;cursor:pointer;border-radius:4px;letter-spacing:0.03em;width:100%">FULL INFO & EMBASSIES →</button>
+        ${c.telegram ? `<a href="${c.telegram}" style="color:#60a5fa;font-size:0.75rem;display:block;margin-bottom:0.6rem;font-weight:600;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.04em" target="_blank">→ TELEGRAM GROUP</a>` : ''}
+        <button onclick="window.filterAndShowCountry('${c.id}')" style="background:#f5c518;border:none;color:#000;font-family:'Barlow Condensed',sans-serif;font-size:0.85rem;font-weight:700;padding:0.4rem 1rem;cursor:pointer;border-radius:3px;letter-spacing:0.08em;width:100%;text-transform:uppercase">FULL INFO & EMBASSIES →</button>
       </div>
     `);
   });
@@ -1466,13 +1482,13 @@ function initMap() {
   // ── Worldwide region markers ─────────────────────────────
   WORLDWIDE_REGIONS.forEach(r => {
     L.circleMarker(r.coords, {
-      radius: 9, fillColor: '#2979ff', color: '#fff',
+      radius: 9, fillColor: '#60a5fa', color: '#000',
       weight: 1.5, opacity: 0.8, fillOpacity: 0.5
     }).addTo(map).bindPopup(`
-      <div style="font-family:'Barlow',sans-serif;min-width:200px">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;color:#2979ff;margin-bottom:0.4rem;text-transform:uppercase">🌍 ${r.name}</div>
-        <div style="font-size:0.8rem;color:#3d4450;line-height:1.5;margin-bottom:0.5rem">${r.note}</div>
-        <div style="font-size:0.72rem;color:#8a909e">${r.contacts[0]?.label}: <strong>${r.contacts[0]?.value}</strong></div>
+      <div style="font-family:'Barlow',sans-serif;min-width:200px;color:#f0f0f0">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:#60a5fa;margin-bottom:0.4rem;letter-spacing:0.06em">🌍 ${r.name}</div>
+        <div style="font-size:0.8rem;color:#b0b0b0;line-height:1.5;margin-bottom:0.5rem">${r.note}</div>
+        <div style="font-size:0.72rem;color:#666;font-family:'Barlow Condensed',sans-serif">${r.contacts[0]?.label}: <strong style="color:#f0f0f0">${r.contacts[0]?.value}</strong></div>
       </div>
     `);
   });
@@ -1518,13 +1534,13 @@ function pinMyLocation() {
     const { latitude: lat, longitude: lng } = pos.coords;
     if (_userLocationMarker) map.removeLayer(_userLocationMarker);
     _userLocationMarker = L.circleMarker([lat, lng], {
-      radius: 10, fillColor: '#7c3aed', color: '#fff',
+      radius: 10, fillColor: '#f5c518', color: '#000',
       weight: 2, opacity: 1, fillOpacity: 0.9
     }).addTo(map).bindPopup(`
-      <div style="font-family:'Barlow',sans-serif">
-        <strong>You are here</strong><br>
-        <span style="font-size:0.75rem;color:#8a909e">${lat.toFixed(4)}, ${lng.toFixed(4)}</span><br>
-        <a href="#" onclick="document.querySelectorAll('nav button')[2].click();return false" style="color:#7c3aed;font-size:0.78rem;font-weight:600">→ Post for help or offer help</a>
+      <div style="font-family:'Barlow',sans-serif;color:#f0f0f0">
+        <strong style="color:#f5c518;font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.06em">YOU ARE HERE</strong><br>
+        <span style="font-size:0.75rem;color:#666">${lat.toFixed(4)}, ${lng.toFixed(4)}</span><br>
+        <a href="#" onclick="document.querySelectorAll('nav button')[2].click();return false" style="color:#f5c518;font-size:0.78rem;font-weight:600;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.04em">→ POST FOR HELP OR OFFER HELP</a>
       </div>
     `).openPopup();
     map.flyTo([lat, lng], 11, { duration: 1.2 });
@@ -1547,14 +1563,14 @@ function renderPostsOnMap(map) {
     const icon    = isOffer ? '🟣' : '🔵';
 
     const marker = L.circleMarker([geo.lat, geo.lng], {
-      radius: 7, fillColor: color, color: '#fff',
-      weight: 1.5, opacity: 1, fillOpacity: 0.9
+      radius: 7, fillColor: color, color: '#000',
+      weight: 1.5, opacity: 1, fillOpacity: 0.95
     }).addTo(map).bindPopup(`
-      <div style="font-family:'Barlow',sans-serif;min-width:200px">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:0.85rem;font-weight:700;color:${color};text-transform:uppercase;margin-bottom:0.3rem">${icon} ${p.postType}</div>
-        <div style="font-size:0.8rem;color:#3d4450;margin-bottom:0.4rem;line-height:1.5">${p.body.slice(0,120)}${p.body.length > 120 ? '…' : ''}</div>
-        <div style="font-size:0.72rem;color:#8a909e">📍 ${p.location} · 👤 ${p.name}</div>
-        ${p.xhandle ? `<a href="https://x.com/${p.xhandle}" target="_blank" style="display:inline-block;margin-top:0.5rem;background:${isOffer?'#fef3c7':'#e0f2fe'};color:${isOffer?'#92400e':'#0369a1'};font-size:0.7rem;font-weight:700;padding:0.2rem 0.5rem;border-radius:4px;text-decoration:none">${isOffer?'Tip $HELP →':'@'+p.xhandle}</a>` : ''}
+      <div style="font-family:'Barlow',sans-serif;min-width:200px;color:#f0f0f0">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:0.95rem;color:${color};letter-spacing:0.06em;margin-bottom:0.3rem">${icon} ${p.postType}</div>
+        <div style="font-size:0.8rem;color:#b0b0b0;margin-bottom:0.4rem;line-height:1.5">${p.body.slice(0,120)}${p.body.length > 120 ? '…' : ''}</div>
+        <div style="font-size:0.72rem;color:#666;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.03em">📍 ${p.location} · 👤 ${p.name}</div>
+        ${p.xhandle ? `<a href="https://x.com/${p.xhandle}" target="_blank" style="display:inline-block;margin-top:0.5rem;background:${isOffer?'#f5c518':'rgba(96,165,250,0.15)'};color:${isOffer?'#000':'#60a5fa'};font-size:0.7rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:3px;text-decoration:none;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.06em">${isOffer?'TIP $HELP →':'@'+p.xhandle}</a>` : ''}
       </div>
     `);
     _postMarkers.push(marker);
@@ -1766,7 +1782,7 @@ function flashNewPost(id) {
     const el = document.querySelector(`[data-post-id="${id}"]`);
     if (el) {
       el.style.transition = 'background 0.3s';
-      el.style.background = 'rgba(37,99,176,0.10)';
+      el.style.background = 'rgba(245,197,24,0.08)';
       setTimeout(() => { el.style.background = ''; }, 1200);
       el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
@@ -1815,8 +1831,8 @@ function renderPost(p) {
       𝕏 <a href="https://x.com/${xHandle}" target="_blank">@${xHandle}</a>
     </span>
     ${p.type === 'offer' ? `<span class="contact-item" style="margin-left:auto">
-      <a href="https://x.com/${xHandle}" target="_blank" style="background:var(--accent2-soft);color:var(--accent2);font-size:0.68rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:4px;text-decoration:none;border:1px solid var(--warn)">
-        Tip $HELP →
+      <a href="https://x.com/${xHandle}" target="_blank" style="background:var(--gold);color:#000;font-size:0.68rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:3px;text-decoration:none;font-family:var(--mono);letter-spacing:0.06em;text-transform:uppercase">
+        TIP $HELP →
       </a>
     </span>` : ''}
   ` : '';
@@ -2039,7 +2055,7 @@ function subscribeSitrep() {
         // Flash the bar to signal update
         const bar = document.getElementById('sitrep-bar');
         bar.style.transition = 'background 0.4s';
-        bar.style.background = 'rgba(37,99,176,0.06)';
+        bar.style.background = 'rgba(245,197,24,0.05)';
         setTimeout(() => { bar.style.background = ''; }, 1000);
       }
     )
