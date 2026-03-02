@@ -494,6 +494,622 @@
     .sitrep-stat { min-width: 130px; }
   }
 
+  /* ============================================================
+     MOBILE LAYOUT — full override below 600px
+     Separate UX: map-first, bottom sheet, native tab bar
+     ============================================================ */
+  @media (max-width: 600px) {
+
+    /* Hide desktop chrome entirely */
+    header, .alert-banner, .sitrep-bar { display: none !important; }
+
+    /* Body takes full viewport */
+    body { background: #000; overflow: hidden; height: 100dvh; }
+
+    /* All desktop views hidden */
+    .view { display: none !important; padding: 0 !important; }
+
+    /* ── Mobile shell ── */
+    #mobile-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      position: relative;
+    }
+
+    /* ── Map fills everything ── */
+    #mobile-map-container {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #mobile-crisis-map {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ── Top status bar ── */
+    #mobile-topbar {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      z-index: 800;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, transparent 100%);
+    }
+
+    #mobile-logo {
+      font-family: var(--display);
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    #mobile-logo span { color: var(--gold); }
+
+    #mobile-live-badge {
+      background: var(--danger);
+      color: #fff;
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      padding: 0.2rem 0.5rem;
+      border-radius: 3px;
+      animation: livepulse 2s infinite;
+    }
+
+    @keyframes livepulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    /* ── Stranded counter pill ── */
+    #mobile-counter {
+      position: absolute;
+      top: 3.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 800;
+      background: rgba(0,0,0,0.75);
+      border: 1px solid var(--gold-border);
+      border-radius: 999px;
+      padding: 0.35rem 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      backdrop-filter: blur(8px);
+      white-space: nowrap;
+    }
+
+    .m-counter-stat {
+      text-align: center;
+    }
+
+    .m-counter-num {
+      font-family: var(--display);
+      font-size: 1.1rem;
+      letter-spacing: 0.04em;
+      line-height: 1;
+      color: var(--gold);
+    }
+
+    .m-counter-num.danger { color: var(--danger); }
+    .m-counter-num.safe   { color: var(--safe); }
+
+    .m-counter-label {
+      font-family: var(--mono);
+      font-size: 0.48rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .m-counter-div {
+      width: 1px;
+      height: 24px;
+      background: var(--border);
+    }
+
+    /* ── Map search bar ── */
+    #mobile-search-bar {
+      position: absolute;
+      bottom: 220px;
+      left: 1rem; right: 1rem;
+      z-index: 800;
+      display: flex;
+      gap: 0.4rem;
+    }
+
+    #mobile-search-input {
+      flex: 1;
+      background: rgba(20,20,20,0.92);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      padding: 0.6rem 0.9rem;
+      font-family: var(--sans);
+      font-size: 0.9rem;
+      color: var(--text);
+      outline: none;
+      backdrop-filter: blur(8px);
+    }
+
+    #mobile-search-input::placeholder { color: var(--muted); }
+
+    #mobile-search-btn {
+      background: var(--gold);
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      padding: 0 0.9rem;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    #mobile-locate-btn {
+      background: rgba(20,20,20,0.92);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      padding: 0 0.75rem;
+      font-size: 1.1rem;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+    }
+
+    /* ── PANIC BUTTON ── */
+    #mobile-panic-btn {
+      position: absolute;
+      bottom: 145px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 810;
+      background: var(--danger);
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      padding: 0.9rem 2.5rem;
+      font-family: var(--display);
+      font-size: 1.3rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 0 0 4px rgba(255,87,34,0.3), 0 8px 24px rgba(255,87,34,0.5);
+      white-space: nowrap;
+      animation: panicglow 3s infinite;
+    }
+
+    @keyframes panicglow {
+      0%, 100% { box-shadow: 0 0 0 4px rgba(255,87,34,0.3), 0 8px 24px rgba(255,87,34,0.4); }
+      50%       { box-shadow: 0 0 0 8px rgba(255,87,34,0.15), 0 8px 32px rgba(255,87,34,0.6); }
+    }
+
+    /* ── Bottom tab bar ── */
+    #mobile-tabbar {
+      display: flex;
+      background: #000;
+      border-top: 1px solid var(--gold-border);
+      height: 68px;
+      padding-bottom: env(safe-area-inset-bottom);
+      flex-shrink: 0;
+    }
+
+    .m-tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.15s;
+      padding: 0.5rem 0;
+      font-family: var(--mono);
+      font-size: 0.55rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-top: 2px solid transparent;
+    }
+
+    .m-tab.active {
+      color: var(--gold);
+      border-top-color: var(--gold);
+    }
+
+    .m-tab:hover:not(.active) { color: var(--text); }
+
+    .m-tab-icon { font-size: 1.2rem; line-height: 1; }
+
+    /* ── Bottom sheet ── */
+    #mobile-sheet {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      z-index: 900;
+      background: #111;
+      border-top: 1px solid var(--gold-border);
+      border-radius: 16px 16px 0 0;
+      transform: translateY(calc(100% - 68px));
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      max-height: 82dvh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #mobile-sheet.open { transform: translateY(0); }
+    #mobile-sheet.peek { transform: translateY(calc(100% - 140px)); }
+
+    #sheet-handle-area {
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    #sheet-handle {
+      width: 36px;
+      height: 4px;
+      background: var(--border2);
+      border-radius: 2px;
+    }
+
+    #sheet-title {
+      font-family: var(--display);
+      font-size: 1rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    #sheet-content {
+      overflow-y: auto;
+      flex: 1;
+      padding: 0 1rem 1rem;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* ── Panic form (sheet content) ── */
+    #panic-form { display: block; }
+    #country-sheet { display: none; }
+    #resources-sheet { display: none; }
+    #help-sheet { display: none; }
+
+    .m-form-label {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+      display: block;
+    }
+
+    .m-form-row { margin-bottom: 1rem; }
+
+    .m-form-row input,
+    .m-form-row select,
+    .m-form-row textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-sm);
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    .m-form-row input:focus,
+    .m-form-row select:focus,
+    .m-form-row textarea:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px var(--gold-soft);
+    }
+
+    .m-form-row textarea { min-height: 80px; resize: none; }
+
+    .m-submit {
+      width: 100%;
+      background: var(--danger);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+      font-family: var(--display);
+      font-size: 1.2rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      margin-top: 0.5rem;
+    }
+
+    .m-submit:active { background: #c94519; }
+
+    /* ── Country cards in sheet ── */
+    .m-country-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--border2);
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .m-country-card.danger { border-top-color: var(--danger); }
+    .m-country-card.warn   { border-top-color: var(--gold); }
+    .m-country-card.safe   { border-top-color: var(--safe); }
+
+    .m-country-name {
+      font-family: var(--display);
+      font-size: 1.15rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 0.3rem;
+    }
+
+    .m-country-advisory {
+      font-size: 0.82rem;
+      color: var(--text2);
+      line-height: 1.5;
+      margin-bottom: 0.75rem;
+    }
+
+    .m-airspace-badge {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.6rem;
+      border-radius: 3px;
+      margin-bottom: 0.75rem;
+    }
+
+    .m-embassy-list { margin-bottom: 0.75rem; }
+
+    .m-embassy-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .m-embassy-item:last-child { border-bottom: none; }
+
+    .m-embassy-flag { font-size: 0.9rem; }
+
+    .m-embassy-name {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text2);
+      flex: 1;
+      padding: 0 0.5rem;
+    }
+
+    .m-call-btn {
+      background: var(--gold);
+      color: #000;
+      border: none;
+      border-radius: 4px;
+      padding: 0.35rem 0.75rem;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-decoration: none;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .m-call-btn.danger-call {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    /* ── Resource rows in sheet ── */
+    .m-resource-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.85rem 0;
+      border-bottom: 1px solid var(--border);
+      gap: 0.75rem;
+    }
+
+    .m-resource-row:last-child { border-bottom: none; }
+
+    .m-resource-name {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text);
+      flex: 1;
+    }
+
+    .m-resource-tag {
+      font-size: 0.6rem;
+      color: var(--muted);
+      font-family: var(--mono);
+      letter-spacing: 0.06em;
+    }
+
+    .m-resource-go {
+      background: none;
+      border: 1px solid var(--border2);
+      color: var(--gold);
+      border-radius: 4px;
+      padding: 0.3rem 0.6rem;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-decoration: none;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* ── Help posts in sheet ── */
+    .m-post-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid;
+      border-radius: var(--radius-sm);
+      padding: 0.9rem 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .m-post-card.offer { border-left-color: var(--gold); }
+    .m-post-card.need  { border-left-color: var(--danger); }
+
+    .m-post-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.4rem;
+    }
+
+    .m-post-type {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .m-post-type.offer { color: var(--gold); }
+    .m-post-type.need  { color: var(--danger); }
+
+    .m-post-time { font-size: 0.65rem; color: var(--muted); }
+
+    .m-post-location {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text2);
+      margin-bottom: 0.3rem;
+      font-family: var(--mono);
+      letter-spacing: 0.03em;
+    }
+
+    .m-post-body {
+      font-size: 0.85rem;
+      color: var(--text2);
+      line-height: 1.5;
+      margin-bottom: 0.6rem;
+    }
+
+    .m-post-footer {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .m-contact-link {
+      font-size: 0.7rem;
+      color: var(--gold);
+      font-family: var(--mono);
+      letter-spacing: 0.04em;
+      text-decoration: none;
+    }
+
+    .m-tip-btn {
+      background: var(--gold);
+      color: #000;
+      border: none;
+      border-radius: 3px;
+      padding: 0.2rem 0.5rem;
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-decoration: none;
+      margin-left: auto;
+    }
+
+    /* ── Offer help button (not panic) ── */
+    #mobile-offer-btn {
+      position: absolute;
+      bottom: 155px;
+      right: 1rem;
+      z-index: 810;
+      background: var(--gold);
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      padding: 0.6rem 1rem;
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    }
+
+    /* ── Filter chips ── */
+    .m-filter-chips {
+      display: flex;
+      gap: 0.4rem;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .m-filter-chips::-webkit-scrollbar { display: none; }
+
+    .m-chip {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      white-space: nowrap;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .m-chip.active {
+      background: var(--gold-soft);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+  } /* end @media mobile */
+
   .column-header {
     font-family: var(--mono);
     font-size: 1.1rem;
@@ -2084,7 +2700,6 @@ if (SUPABASE_CONFIGURED) {
   loadPosts();
   subscribeToPostStream();
 } else {
-  // Supabase not configured yet — show setup notice on help tab
   ['offer-posts','need-posts'].forEach(id => {
     document.getElementById(id).innerHTML = `
       <div class="empty-state" style="color:var(--warn)">
@@ -2092,6 +2707,443 @@ if (SUPABASE_CONFIGURED) {
         See README → Supabase Setup to enable live posts.
       </div>`;
   });
+}
+
+// ============================================================
+// MOBILE UI — only runs on small screens
+// ============================================================
+if (window.innerWidth <= 600) {
+  initMobile();
+}
+window.addEventListener('resize', () => {
+  if (window.innerWidth <= 600 && !window._mobileInit) initMobile();
+});
+
+function initMobile() {
+  window._mobileInit = true;
+
+  // Build mobile shell HTML
+  document.body.insertAdjacentHTML('beforeend', `
+    <div id="mobile-shell">
+
+      <!-- Map container -->
+      <div id="mobile-map-container">
+        <div id="mobile-crisis-map"></div>
+
+        <!-- Top bar -->
+        <div id="mobile-topbar">
+          <div id="mobile-logo">
+            <div class="pulse-dot"></div>
+            I'M STRANDED — <span>YOU'RE NOT.</span>
+          </div>
+          <div id="mobile-live-badge">LIVE</div>
+        </div>
+
+        <!-- Stranded counter pill -->
+        <div id="mobile-counter">
+          <div class="m-counter-stat">
+            <div class="m-counter-num danger" id="m-stat-stranded">—</div>
+            <div class="m-counter-label">Stranded</div>
+          </div>
+          <div class="m-counter-div"></div>
+          <div class="m-counter-stat">
+            <div class="m-counter-num" id="m-stat-cancelled">—</div>
+            <div class="m-counter-label">Cancelled</div>
+          </div>
+          <div class="m-counter-div"></div>
+          <div class="m-counter-stat">
+            <div class="m-counter-num safe" id="m-stat-routes">—</div>
+            <div class="m-counter-label">Routes Open</div>
+          </div>
+        </div>
+
+        <!-- Search bar -->
+        <div id="mobile-search-bar">
+          <input id="mobile-search-input" type="text" placeholder="Search city or location…" onkeydown="if(event.key==='Enter')mobileSearch()">
+          <button id="mobile-search-btn" onclick="mobileSearch()">GO</button>
+          <button id="mobile-locate-btn" onclick="mobilePinLocation()">📍</button>
+        </div>
+
+        <!-- PANIC: I NEED HELP -->
+        <button id="mobile-panic-btn" onclick="openSheet('panic')">
+          🆘 I NEED HELP
+        </button>
+
+        <!-- Offer help -->
+        <button id="mobile-offer-btn" onclick="openSheet('help')">
+          OFFER HELP ↑
+        </button>
+      </div>
+
+      <!-- Bottom sheet -->
+      <div id="mobile-sheet" class="peek">
+        <div id="sheet-handle-area" onclick="toggleSheet()">
+          <div id="sheet-handle"></div>
+          <div id="sheet-title">
+            <span id="sheet-title-text">↑ COUNTRIES & STATUS</span>
+          </div>
+        </div>
+        <div id="sheet-content">
+          <!-- Panic / need help form -->
+          <div id="panic-form" style="display:none">
+            <div style="background:rgba(255,87,34,0.1);border:1px solid rgba(255,87,34,0.3);border-radius:6px;padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.82rem;color:#ffb09a;font-family:var(--mono);letter-spacing:0.03em">
+              Your contact info will be visible. This lets helpers reach you and deters bad actors.
+            </div>
+            <div class="m-form-row">
+              <label class="m-form-label">What do you need?</label>
+              <select id="m-need-type">
+                <option value="">Select…</option>
+                <option>Shelter / housing</option>
+                <option>Transportation / evacuation</option>
+                <option>Food / water / supplies</option>
+                <option>Medical help</option>
+                <option>Financial help</option>
+                <option>Translation / guidance</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="m-form-row">
+              <label class="m-form-label">Your current location</label>
+              <input type="text" id="m-need-location" placeholder="e.g. Deira, Dubai">
+            </div>
+            <div class="m-form-row">
+              <label class="m-form-label">Details — how many people? how urgent?</label>
+              <textarea id="m-need-body" placeholder="Be specific so helpers can assess…"></textarea>
+            </div>
+            <div class="m-form-row">
+              <label class="m-form-label">Your name</label>
+              <input type="text" id="m-need-name" placeholder="First name or handle">
+            </div>
+            <div class="m-form-row">
+              <label class="m-form-label">Contact (phone, email, or @telegram)</label>
+              <input type="text" id="m-need-contact" placeholder="+971 50 000 0000">
+            </div>
+            <div class="m-form-row">
+              <label class="m-form-label">X / Twitter handle <span style="color:var(--muted);font-weight:400">(optional — pin + tips)</span></label>
+              <input type="text" id="m-need-xhandle" placeholder="@yourhandle">
+            </div>
+            <button class="m-submit" onclick="mobileSubmitNeed()">POST REQUEST — I NEED HELP</button>
+          </div>
+
+          <!-- Offer help form -->
+          <div id="help-sheet" style="display:none">
+            <div class="m-form-row">
+              <label class="m-form-label">What can you offer?</label>
+              <select id="m-offer-type">
+                <option value="">Select…</option>
+                <option>Housing / spare room</option>
+                <option>Transportation / ride share</option>
+                <option>Food / supplies</option>
+                <option>Medical assistance</option>
+                <option>Cash / financial help</option>
+                <option>Translation / local knowledge</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="m-form-row">
+              <label class="m-form-label">Your location</label>
+              <input type="text" id="m-offer-location" placeholder="e.g. Dubai, UAE">
+            </div>
+            <div class="m-form-row">
+              <label class="m-form-label">Details</label>
+              <textarea id="m-offer-body" placeholder="Describe what you can offer…"></textarea>
+            </div>
+            <div class="m-form-row">
+              <label class="m-form-label">Your name</label>
+              <input type="text" id="m-offer-name" placeholder="First name or handle">
+            </div>
+            <div class="m-form-row">
+              <label class="m-form-label">Contact</label>
+              <input type="text" id="m-offer-contact" placeholder="+971 50 000 0000">
+            </div>
+            <div class="m-form-row">
+              <label class="m-form-label">X / Twitter handle <span style="color:var(--muted);font-weight:400">(pin on map + receive $HELP tips)</span></label>
+              <input type="text" id="m-offer-xhandle" placeholder="@yourhandle">
+              <div style="font-size:0.7rem;color:var(--muted);margin-top:0.35rem">📍 Your pin drops on the map. People can tip you <strong style="color:var(--gold)">$HELP</strong> via your handle.</div>
+            </div>
+            <button class="m-submit" style="background:var(--gold);color:#000" onclick="mobileSubmitOffer()">POST OFFER — I CAN HELP</button>
+          </div>
+
+          <!-- Countries sheet -->
+          <div id="country-sheet" style="display:none">
+            <div class="m-filter-chips">
+              <div class="m-chip active" onclick="mobileFilterCountries('all',this)">All</div>
+              <div class="m-chip" onclick="mobileFilterCountries('danger',this)">⚠ High Risk</div>
+              <div class="m-chip" onclick="mobileFilterCountries('warn',this)">⚡ Elevated</div>
+              <div class="m-chip" onclick="mobileFilterCountries('safe',this)">✓ Stable</div>
+            </div>
+            <div id="m-country-list"></div>
+          </div>
+
+          <!-- Resources sheet -->
+          <div id="resources-sheet" style="display:none">
+            <div id="m-resources-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom tab bar -->
+      <div id="mobile-tabbar">
+        <button class="m-tab active" onclick="mobileTab('map',this)">
+          <span class="m-tab-icon">🗺</span>Map
+        </button>
+        <button class="m-tab" onclick="mobileTab('countries',this)">
+          <span class="m-tab-icon">🌍</span>Countries
+        </button>
+        <button class="m-tab" onclick="mobileTab('posts',this)">
+          <span class="m-tab-icon">🤝</span>Help Board
+        </button>
+        <button class="m-tab" onclick="mobileTab('resources',this)">
+          <span class="m-tab-icon">📋</span>Resources
+        </button>
+      </div>
+    </div>
+  `);
+
+  // Init mobile map
+  const mmap = L.map('mobile-crisis-map', { zoomControl: false, attributionControl: false })
+    .setView([28, 45], 4);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(mmap);
+
+  const sc = { danger: '#ff5722', warn: '#f5c518', safe: '#22c55e' };
+  COUNTRIES.forEach(c => {
+    L.circleMarker(c.coords, {
+      radius: 10, fillColor: sc[c.status], color: '#000', weight: 1.5, opacity: 1, fillOpacity: 0.9
+    }).addTo(mmap).on('click', () => {
+      mobileTab('countries', document.querySelectorAll('.m-tab')[1]);
+      setTimeout(() => { renderMobileCountries('all'); scrollToMobileCountry(c.id); }, 100);
+    });
+  });
+
+  WORLDWIDE_REGIONS.forEach(r => {
+    L.circleMarker(r.coords, {
+      radius: 7, fillColor: '#60a5fa', color: '#000', weight: 1.5, opacity: 0.8, fillOpacity: 0.5
+    }).addTo(mmap);
+  });
+
+  LAND_ROUTES.forEach(r => {
+    const col = r.status === 'safe' ? '#22c55e' : r.status === 'warn' ? '#f5c518' : '#ef4444';
+    L.polyline([r.from, r.to], { color: col, weight: 2.5, opacity: 0.7,
+      dashArray: r.status === 'danger' ? '6,8' : r.status === 'warn' ? '8,4' : null
+    }).addTo(mmap);
+  });
+
+  window._mobileMap = mmap;
+
+  // Sync stats to mobile counter
+  function syncMobileStats() {
+    const s = document.getElementById('stat-stranded');
+    const c = document.getElementById('stat-cancelled');
+    const r = document.getElementById('stat-border-crossings');
+    if (s) document.getElementById('m-stat-stranded').textContent = s.textContent;
+    if (c) document.getElementById('m-stat-cancelled').textContent = c.textContent;
+    if (r) document.getElementById('m-stat-routes').textContent = r.textContent;
+  }
+  setTimeout(syncMobileStats, 2000);
+  setInterval(syncMobileStats, 30000);
+
+  // Initial sheet state — peek showing countries handle
+  renderMobileCountries('all');
+  renderMobileResources();
+}
+
+// ── Sheet control ──────────────────────────────────────────
+let _sheetOpen = false;
+let _currentSheetContent = 'country';
+
+function toggleSheet() {
+  const sheet = document.getElementById('mobile-sheet');
+  _sheetOpen = !_sheetOpen;
+  sheet.className = _sheetOpen ? 'open' : 'peek';
+}
+
+function openSheet(content) {
+  const sheet = document.getElementById('mobile-sheet');
+  sheet.className = 'open';
+  _sheetOpen = true;
+  showSheetContent(content);
+}
+
+function showSheetContent(which) {
+  ['panic-form','help-sheet','country-sheet','resources-sheet'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  const titles = {
+    panic: '🆘 POST — I NEED HELP', help: '↑ OFFER HELP',
+    countries: '🌍 COUNTRY STATUS', resources: '📋 RESOURCES'
+  };
+  const map = { panic:'panic-form', help:'help-sheet', countries:'country-sheet', resources:'resources-sheet' };
+  document.getElementById(map[which]).style.display = 'block';
+  document.getElementById('sheet-title-text').textContent = titles[which] || which.toUpperCase();
+  _currentSheetContent = which;
+}
+
+// ── Tab bar ───────────────────────────────────────────────
+function mobileTab(tab, btn) {
+  document.querySelectorAll('.m-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const panic = document.getElementById('mobile-panic-btn');
+  const offer = document.getElementById('mobile-offer-btn');
+
+  if (tab === 'map') {
+    document.getElementById('mobile-sheet').className = 'peek';
+    _sheetOpen = false;
+    panic.style.display = 'block';
+    offer.style.display = 'block';
+  } else if (tab === 'countries') {
+    openSheet('countries');
+    panic.style.display = 'none';
+    offer.style.display = 'none';
+  } else if (tab === 'posts') {
+    openSheet('help');
+    panic.style.display = 'none';
+    offer.style.display = 'none';
+  } else if (tab === 'resources') {
+    openSheet('resources');
+    panic.style.display = 'none';
+    offer.style.display = 'none';
+  }
+}
+
+// ── Render countries in sheet ─────────────────────────────
+function renderMobileCountries(filter) {
+  const list = document.getElementById('m-country-list');
+  const filtered = filter === 'all' ? COUNTRIES : COUNTRIES.filter(c => c.status === filter);
+  list.innerHTML = filtered.map(c => {
+    const airColor = c.airspace === 'CLOSED' ? 'var(--danger)' : c.airspace.includes('OPEN') ? 'var(--safe)' : 'var(--gold)';
+    const embassyCalls = Object.entries(c.embassy).slice(0,4).map(([nation, info]) => {
+      const label = EMBASSY_LABELS[nation] || nation.toUpperCase();
+      const phone = info.phone || info.alt || null;
+      if (!phone || phone.includes('N/A') || phone.includes('no US')) return '';
+      return `<div class="m-embassy-item">
+        <span class="m-embassy-flag">${label.split(' ')[0]}</span>
+        <span class="m-embassy-name">${label.split(' ').slice(1).join(' ')}</span>
+        <a class="m-call-btn" href="tel:${phone.replace(/\s/g,'')}">📞 CALL</a>
+      </div>`;
+    }).join('');
+    return `
+      <div class="m-country-card ${c.status}" id="m-card-${c.id}">
+        <div class="m-country-name">${c.name}</div>
+        <div class="m-country-advisory">${c.advisory}</div>
+        <div class="m-airspace-badge" style="background:${airColor}22;color:${airColor};border:1px solid ${airColor}44">
+          ✈ ${c.airspace}
+        </div>
+        <div class="m-embassy-list">${embassyCalls || '<div style="font-size:0.75rem;color:var(--muted)">Check embassy website for contacts</div>'}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function mobileFilterCountries(filter, chip) {
+  document.querySelectorAll('.m-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  renderMobileCountries(filter);
+}
+
+function scrollToMobileCountry(id) {
+  const el = document.getElementById('m-card-' + id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── Render resources in sheet ─────────────────────────────
+function renderMobileResources() {
+  document.getElementById('m-resources-list').innerHTML = RESOURCES.map(r => `
+    <div class="m-resource-row">
+      <div>
+        <div class="m-resource-name">${r.name}</div>
+        <div class="m-resource-tag">${r.type}</div>
+      </div>
+      <a class="m-resource-go" href="${r.url}" target="_blank">OPEN →</a>
+    </div>
+  `).join('');
+}
+
+// ── Map search / locate ───────────────────────────────────
+async function mobileSearch() {
+  const q = document.getElementById('mobile-search-input').value.trim();
+  if (!q) return;
+  const geo = await geocodeCity(q);
+  if (!geo) return;
+  window._mobileMap.flyTo([geo.lat, geo.lng], 11, { duration: 1.2 });
+}
+
+function mobilePinLocation() {
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(pos => {
+    const { latitude: lat, longitude: lng } = pos.coords;
+    L.circleMarker([lat, lng], {
+      radius: 9, fillColor: '#f5c518', color: '#000', weight: 2, opacity: 1, fillOpacity: 0.95
+    }).addTo(window._mobileMap).bindPopup('<div style="color:#f0f0f0;font-family:Barlow Condensed,sans-serif;font-size:0.9rem;letter-spacing:0.06em">YOU ARE HERE</div>').openPopup();
+    window._mobileMap.flyTo([lat, lng], 12, { duration: 1.2 });
+  });
+}
+
+// ── Mobile form submissions ───────────────────────────────
+async function mobileSubmitNeed() {
+  const postType = document.getElementById('m-need-type').value;
+  const location = document.getElementById('m-need-location').value;
+  const body     = document.getElementById('m-need-body').value;
+  const name     = document.getElementById('m-need-name').value;
+  const contact  = document.getElementById('m-need-contact').value;
+  const xhandle  = (document.getElementById('m-need-xhandle').value||'').trim().replace(/^@+/,'');
+
+  if (!postType || !location || !body || !name || !contact) {
+    alert('Please fill in all required fields.'); return;
+  }
+
+  const btn = document.querySelector('#panic-form .m-submit');
+  btn.textContent = 'POSTING…'; btn.disabled = true;
+
+  try {
+    const { error } = await _supabase.from('help_posts').insert({
+      type: 'need', post_type: postType, location, body, name, contact,
+      xhandle: xhandle || null, flagged: false
+    });
+    if (error) throw error;
+    ['m-need-type','m-need-location','m-need-body','m-need-name','m-need-contact','m-need-xhandle'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.tagName === 'SELECT' ? el.selectedIndex = 0 : el.value = '';
+    });
+    btn.textContent = '✓ POSTED — HELP IS COMING';
+    setTimeout(() => { btn.textContent = 'POST REQUEST — I NEED HELP'; btn.disabled = false; }, 3000);
+  } catch(e) {
+    alert('Failed to post. Check connection.\n' + e.message);
+    btn.textContent = 'POST REQUEST — I NEED HELP'; btn.disabled = false;
+  }
+}
+
+async function mobileSubmitOffer() {
+  const postType = document.getElementById('m-offer-type').value;
+  const location = document.getElementById('m-offer-location').value;
+  const body     = document.getElementById('m-offer-body').value;
+  const name     = document.getElementById('m-offer-name').value;
+  const contact  = document.getElementById('m-offer-contact').value;
+  const xhandle  = (document.getElementById('m-offer-xhandle').value||'').trim().replace(/^@+/,'');
+
+  if (!postType || !location || !body || !name || !contact) {
+    alert('Please fill in all required fields.'); return;
+  }
+
+  const btn = document.querySelector('#help-sheet .m-submit');
+  btn.textContent = 'POSTING…'; btn.disabled = true;
+
+  try {
+    const { error } = await _supabase.from('help_posts').insert({
+      type: 'offer', post_type: postType, location, body, name, contact,
+      xhandle: xhandle || null, flagged: false
+    });
+    if (error) throw error;
+    ['m-offer-type','m-offer-location','m-offer-body','m-offer-name','m-offer-contact','m-offer-xhandle'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.tagName === 'SELECT' ? el.selectedIndex = 0 : el.value = '';
+    });
+    btn.textContent = '✓ POSTED — THANK YOU';
+    setTimeout(() => { btn.textContent = 'POST OFFER — I CAN HELP'; btn.disabled = false; }, 3000);
+  } catch(e) {
+    alert('Failed to post.\n' + e.message);
+    btn.textContent = 'POST OFFER — I CAN HELP'; btn.disabled = false;
+  }
 }
 </script>
 </body>
