@@ -1,0 +1,1635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gulf Crisis Resource Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --border: #2a2a2a;
+    --text: #e8e8e0;
+    --muted: #666;
+    --accent: #ff4d00;
+    --accent2: #ffaa00;
+    --safe: #00c853;
+    --warn: #ffaa00;
+    --danger: #ff4d00;
+    --info: #2979ff;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-weight: 300;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: rgba(10,10,10,0.95);
+    backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+  }
+
+  .logo {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .pulse-dot {
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  .last-updated {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  nav {
+    display: flex;
+    gap: 0;
+  }
+
+  nav button {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  nav button.active {
+    color: var(--text);
+    border-bottom-color: var(--accent);
+  }
+
+  nav button:hover { color: var(--text); }
+
+  /* ALERT BANNER */
+  .alert-banner {
+    background: linear-gradient(90deg, #1a0800, #0a0a0a);
+    border-bottom: 1px solid var(--accent);
+    padding: 0.5rem 2rem;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--accent2);
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    overflow: hidden;
+  }
+
+  .alert-label {
+    background: var(--accent);
+    color: #000;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.65rem;
+    flex-shrink: 0;
+  }
+
+  .ticker-wrap {
+    overflow: hidden;
+    flex: 1;
+  }
+
+  .ticker {
+    display: inline-block;
+    white-space: nowrap;
+    animation: ticker 40s linear infinite;
+  }
+
+  @keyframes ticker {
+    0% { transform: translateX(100vw); }
+    100% { transform: translateX(-100%); }
+  }
+
+  /* LAYOUT */
+  .container { max-width: 1400px; margin: 0 auto; padding: 0 2rem; }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* MAP VIEW */
+  #map-view { height: calc(100vh - 100px); position: relative; }
+
+  #crisis-map {
+    height: 100%;
+    width: 100%;
+    background: #0d0d0d;
+  }
+
+  .map-legend {
+    position: absolute;
+    bottom: 2rem;
+    left: 2rem;
+    z-index: 999;
+    background: rgba(10,10,10,0.9);
+    border: 1px solid var(--border);
+    padding: 1rem 1.25rem;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+  }
+
+  .legend-title {
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+    color: var(--text);
+  }
+
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* COUNTRY CARDS VIEW */
+  #countries-view { padding: 2rem 0; }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .section-title {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+  }
+
+  .filter-bar {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.35rem 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .filter-btn.active, .filter-btn:hover {
+    border-color: var(--accent);
+    color: var(--text);
+    background: rgba(255,77,0,0.1);
+  }
+
+  .countries-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+
+  .country-card {
+    background: var(--surface);
+    padding: 1.5rem;
+    transition: background 0.2s;
+  }
+
+  .country-card:hover { background: var(--surface2); }
+
+  .country-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+  }
+
+  .country-name {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--text);
+  }
+
+  .status-badge {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    border: 1px solid;
+    flex-shrink: 0;
+  }
+
+  .status-danger { color: var(--danger); border-color: var(--danger); background: rgba(255,77,0,0.08); }
+  .status-warn { color: var(--warn); border-color: var(--warn); background: rgba(255,170,0,0.08); }
+  .status-safe { color: var(--safe); border-color: var(--safe); background: rgba(0,200,83,0.08); }
+
+  .info-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+    font-size: 0.8rem;
+  }
+
+  .info-label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    min-width: 80px;
+    padding-top: 0.05rem;
+  }
+
+  .info-value { color: var(--text); flex: 1; }
+  .info-value a { color: var(--accent2); text-decoration: none; }
+  .info-value a:hover { text-decoration: underline; }
+
+  .route-list { list-style: none; }
+  .route-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.78rem;
+    margin-bottom: 0.25rem;
+    color: var(--text);
+  }
+
+  .route-icon { font-size: 0.9rem; }
+
+  .ngos-section {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .ngos-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .ngo-tag {
+    display: inline-block;
+    border: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+    margin: 0.15rem;
+    color: var(--info);
+    border-color: rgba(41,121,255,0.3);
+  }
+
+  /* HELP BOARD */
+  #help-view { padding: 2rem 0; }
+
+  .help-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+
+  @media (max-width: 768px) {
+    .help-grid { grid-template-columns: 1fr; }
+    nav button { padding: 0.5rem 0.5rem; font-size: 0.6rem; }
+  }
+
+  .help-column {}
+
+  .column-header {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .column-offer {
+    background: rgba(0,200,83,0.08);
+    border: 1px solid rgba(0,200,83,0.3);
+    color: var(--safe);
+  }
+
+  .column-need {
+    background: rgba(255,77,0,0.08);
+    border: 1px solid rgba(255,77,0,0.3);
+    color: var(--danger);
+  }
+
+  .post-form {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-title {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  .form-row {
+    margin-bottom: 0.75rem;
+  }
+
+  .form-row label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 0.3rem;
+  }
+
+  .form-row input,
+  .form-row textarea,
+  .form-row select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    padding: 0.5rem 0.75rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-row input:focus,
+  .form-row textarea:focus,
+  .form-row select:focus {
+    border-color: var(--accent);
+  }
+
+  .form-row textarea { resize: vertical; min-height: 80px; }
+
+  .form-note {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+  }
+
+  .form-note strong { color: var(--accent2); }
+
+  .submit-btn {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.6rem 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+  }
+
+  .submit-btn:hover { background: #ff6a2a; }
+  .submit-btn.need { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
+  .submit-btn.need:hover { background: rgba(255,77,0,0.15); }
+
+  .posts-list { display: flex; flex-direction: column; gap: 0.75rem; }
+
+  .post-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid;
+    padding: 1rem 1.25rem;
+    transition: background 0.2s;
+  }
+
+  .post-card:hover { background: var(--surface2); }
+  .post-card.offer { border-left-color: var(--safe); }
+  .post-card.need { border-left-color: var(--danger); }
+
+  .post-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .post-type {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.1rem 0.4rem;
+    border: 1px solid;
+  }
+
+  .post-type.offer { color: var(--safe); border-color: rgba(0,200,83,0.4); }
+  .post-type.need { color: var(--danger); border-color: rgba(255,77,0,0.4); }
+
+  .post-time {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--muted);
+  }
+
+  .post-location {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--accent2);
+    margin-bottom: 0.35rem;
+  }
+
+  .post-body { font-size: 0.82rem; color: var(--text); margin-bottom: 0.75rem; line-height: 1.5; }
+
+  .post-contact {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .contact-item { display: flex; align-items: center; gap: 0.3rem; }
+  .contact-item a { color: var(--info); text-decoration: none; }
+  .contact-item a:hover { text-decoration: underline; }
+
+  /* RESOURCES VIEW */
+  #resources-view { padding: 2rem 0; }
+
+  .resources-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-bottom: 2rem;
+  }
+
+  .resource-card {
+    background: var(--surface);
+    padding: 1.25rem;
+  }
+
+  .resource-type {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 0.35rem;
+  }
+
+  .resource-name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.35rem;
+  }
+
+  .resource-desc {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+    line-height: 1.5;
+  }
+
+  .resource-link {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--info);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .resource-link:hover { color: var(--accent2); }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    border: 1px dashed var(--border);
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    position: relative;
+  }
+
+  .modal-title {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 1rem; right: 1rem;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+    line-height: 1;
+  }
+
+  .modal-close:hover { color: var(--text); }
+
+  /* SITREP COUNTER */
+  .sitrep-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0.75rem 2rem;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .sitrep-bar::-webkit-scrollbar { display: none; }
+
+  .sitrep-stat {
+    flex: 1;
+    min-width: 160px;
+    padding: 0.5rem 1.5rem;
+    border-right: 1px solid var(--border);
+    text-align: center;
+  }
+  .sitrep-stat:last-child { border-right: none; }
+
+  .sitrep-number {
+    font-family: var(--mono);
+    font-size: 1.6rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 0.2rem;
+  }
+
+  .sitrep-label {
+    font-family: var(--mono);
+    font-size: 0.58rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+  }
+
+  .sitrep-sublabel {
+    font-family: var(--mono);
+    font-size: 0.55rem;
+    color: var(--muted);
+    opacity: 0.6;
+    margin-top: 0.15rem;
+  }
+
+  .sitrep-number.danger { color: var(--danger); }
+  .sitrep-number.warn   { color: var(--warn); }
+  .sitrep-number.safe   { color: var(--safe); }
+  .sitrep-number.info   { color: var(--info); }
+
+  .sitrep-refresh {
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+    font-family: var(--mono);
+    font-size: 0.58rem;
+    color: var(--muted);
+    gap: 0.4rem;
+    white-space: nowrap;
+    cursor: pointer;
+    border: none;
+    background: none;
+  }
+  .sitrep-refresh:hover { color: var(--text); }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinning { animation: spin 1s linear infinite; display: inline-block; }
+
+  /* Leaflet overrides */
+  .leaflet-container { background: #0d0d0d !important; }
+  .leaflet-popup-content-wrapper {
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text) !important;
+    border-radius: 0 !important;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.8) !important;
+    font-family: var(--sans) !important;
+  }
+  .leaflet-popup-tip { background: var(--surface) !important; }
+  .leaflet-popup-content { margin: 1rem !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="pulse-dot"></div>
+    Gulf Crisis Resource Hub
+  </div>
+  <nav>
+    <button class="active" onclick="showView('map')">Map</button>
+    <button onclick="showView('countries')">Countries</button>
+    <button onclick="showView('help')">Give / Get Help</button>
+    <button onclick="showView('resources')">Resources</button>
+  </nav>
+  <div class="last-updated" id="last-updated-label">Loading...</div>
+</header>
+
+<div class="alert-banner">
+  <span class="alert-label">LIVE</span>
+  <div class="ticker-wrap">
+    <span class="ticker" id="ticker-text">
+      UAE airspace closed · Dubai Int'l Airport suspended · Strait of Hormuz closed by IRGC · Overland routes to Oman/Saudi remain open but conditions change rapidly · Register with your embassy STEP program · Shelter in place if no urgent need to move
+    </span>
+  </div>
+</div>
+
+<!-- SITREP COUNTER BAR -->
+<div class="sitrep-bar" id="sitrep-bar">
+  <div class="sitrep-stat">
+    <div class="sitrep-number danger" id="stat-stranded">—</div>
+    <div class="sitrep-label">Est. Stranded</div>
+    <div class="sitrep-sublabel">cancelled flights × avg load</div>
+  </div>
+  <div class="sitrep-stat">
+    <div class="sitrep-number warn" id="stat-cancelled">—</div>
+    <div class="sitrep-label">Flights Cancelled</div>
+    <div class="sitrep-sublabel">Gulf region today</div>
+  </div>
+  <div class="sitrep-stat">
+    <div class="sitrep-number danger" id="stat-airports-closed">—</div>
+    <div class="sitrep-label">Airports Closed</div>
+    <div class="sitrep-sublabel">DXB · AUH · KWI · BAH · DOH</div>
+  </div>
+  <div class="sitrep-stat">
+    <div class="sitrep-number warn" id="stat-airspace">—</div>
+    <div class="sitrep-label">Airspace Closed</div>
+    <div class="sitrep-sublabel">countries with full closure</div>
+  </div>
+  <div class="sitrep-stat">
+    <div class="sitrep-number safe" id="stat-border-crossings">—</div>
+    <div class="sitrep-label">Land Routes Open</div>
+    <div class="sitrep-sublabel">verified as of last update</div>
+  </div>
+  <div class="sitrep-stat">
+    <div class="sitrep-number info" id="stat-help-posts">—</div>
+    <div class="sitrep-label">Help Posts Live</div>
+    <div class="sitrep-sublabel">offers + requests on this site</div>
+  </div>
+  <button class="sitrep-refresh" onclick="refreshSitrep()" title="Refresh stats">
+    <span id="refresh-icon">↻</span> <span id="refresh-label">updated just now</span>
+  </button>
+</div>
+<div id="map-view" class="view active">
+  <div id="crisis-map"></div>
+  <div class="map-legend">
+    <div class="legend-title">Status</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--danger)"></div> Active conflict / closed</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--warn)"></div> High alert / restricted</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--safe)"></div> Relatively stable</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--info)"></div> Help offer/need pinned</div>
+  </div>
+</div>
+
+<!-- COUNTRIES VIEW -->
+<div id="countries-view" class="view">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-title">Country Status &amp; Resources</span>
+    </div>
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterCountries('all', this)">All</button>
+      <button class="filter-btn" onclick="filterCountries('danger', this)">⚠ High Risk</button>
+      <button class="filter-btn" onclick="filterCountries('warn', this)">⚡ Elevated</button>
+      <button class="filter-btn" onclick="filterCountries('safe', this)">✓ Stable</button>
+    </div>
+    <div class="countries-grid" id="countries-grid">
+      <!-- populated by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- HELP BOARD -->
+<div id="help-view" class="view">
+  <div class="container">
+    <div class="help-grid">
+      <!-- OFFER COLUMN -->
+      <div class="help-column">
+        <div class="column-header column-offer">
+          ↑ I CAN HELP — Offering resources
+        </div>
+        <div class="post-form">
+          <div class="form-title">Post an offer</div>
+          <p class="form-note"><strong>Your contact info will be visible.</strong> This is intentional — it lets people verify you're real and deters bad actors. Only post if you're genuinely offering help.</p>
+          <div class="form-row">
+            <label>What are you offering?</label>
+            <select id="offer-type">
+              <option value="">Select type...</option>
+              <option>Housing / spare room</option>
+              <option>Transportation / ride share</option>
+              <option>Food / supplies</option>
+              <option>Medical assistance</option>
+              <option>Translation / local knowledge</option>
+              <option>Cash / financial help</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Your location (city, country)</label>
+            <input type="text" id="offer-location" placeholder="e.g. Dubai, UAE">
+          </div>
+          <div class="form-row">
+            <label>Details</label>
+            <textarea id="offer-body" placeholder="Describe what you can offer, capacity, any conditions..."></textarea>
+          </div>
+          <div class="form-row">
+            <label>Your name</label>
+            <input type="text" id="offer-name" placeholder="First name or handle">
+          </div>
+          <div class="form-row">
+            <label>Contact (phone, email, or Telegram — will be public)</label>
+            <input type="text" id="offer-contact" placeholder="@telegram or email@example.com">
+          </div>
+          <button class="submit-btn" onclick="submitPost('offer')">Post Offer</button>
+        </div>
+        <div class="posts-list" id="offer-posts">
+          <!-- populated by JS -->
+        </div>
+      </div>
+
+      <!-- NEED COLUMN -->
+      <div class="help-column">
+        <div class="column-header column-need">
+          ↓ I NEED HELP — Requesting resources
+        </div>
+        <div class="post-form">
+          <div class="form-title">Post a request</div>
+          <p class="form-note"><strong>Your contact info will be visible.</strong> People who can help need to be able to reach you directly. Be specific so helpers can assess if they can assist.</p>
+          <div class="form-row">
+            <label>What do you need?</label>
+            <select id="need-type">
+              <option value="">Select type...</option>
+              <option>Shelter / housing</option>
+              <option>Transportation / evacuation help</option>
+              <option>Food / water / supplies</option>
+              <option>Medical help</option>
+              <option>Translation / guidance</option>
+              <option>Financial help</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Your current location</label>
+            <input type="text" id="need-location" placeholder="e.g. Deira, Dubai">
+          </div>
+          <div class="form-row">
+            <label>Details</label>
+            <textarea id="need-body" placeholder="How many people? Any special needs? How urgent?"></textarea>
+          </div>
+          <div class="form-row">
+            <label>Your name</label>
+            <input type="text" id="need-name" placeholder="First name or handle">
+          </div>
+          <div class="form-row">
+            <label>Contact (phone, email, or Telegram — will be public)</label>
+            <input type="text" id="need-contact" placeholder="@telegram or email@example.com">
+          </div>
+          <button class="submit-btn need" onclick="submitPost('need')">Post Request</button>
+        </div>
+        <div class="posts-list" id="need-posts">
+          <!-- populated by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESOURCES VIEW -->
+<div id="resources-view" class="view">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-title">NGOs, Hotlines &amp; Community Resources</span>
+    </div>
+    <div class="resources-grid" id="resources-grid">
+      <!-- populated by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title" id="modal-title"></div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA — Edit this or replace with fetch('./data.json')
+// ============================================================
+const LAST_UPDATED = "2026-03-01T12:00:00Z";
+
+const COUNTRIES = [
+  {
+    id: "uae",
+    name: "United Arab Emirates",
+    status: "danger",
+    advisory: "Shelter in place. Airspace closed. DXB/AUH suspended.",
+    embassy: {
+      usa: { phone: "+971-4-309-4000", email: "DubaiACS@state.gov", step: "https://step.state.gov" },
+      uk: { phone: "+971-4-309-4444", web: "https://www.gov.uk/foreign-travel-advice/united-arab-emirates" },
+      aus: { phone: "+971-2-508-7100", web: "https://www.smartraveller.gov.au" }
+    },
+    airspace: "CLOSED",
+    borders: [
+      { route: "Overland → Oman (E611)", status: "warn", note: "Open but drones reported near Omani port. Conditions change rapidly." },
+      { route: "Overland → Saudi Arabia", status: "warn", note: "Long (900+ km). Fill tank, carry water." }
+    ],
+    ngos: ["UNHCR", "Red Cross UAE", "IOM", "Caritas UAE"],
+    coords: [24.47, 54.37],
+    telegram: "https://t.me/gulfcrisis"
+  },
+  {
+    id: "bahrain",
+    name: "Bahrain",
+    status: "danger",
+    advisory: "High alert. Airspace restricted. US Naval base on lockdown.",
+    embassy: {
+      usa: { phone: "+973-1724-2700", email: "BahrainACS@state.gov", step: "https://step.state.gov" },
+      uk: { phone: "+973-1757-4100", web: "https://www.gov.uk/foreign-travel-advice/bahrain" }
+    },
+    airspace: "RESTRICTED",
+    borders: [
+      { route: "King Fahd Causeway → Saudi Arabia", status: "warn", note: "Road crossing open. Monitor Saudi entry requirements." }
+    ],
+    ngos: ["Red Crescent Bahrain", "UNHCR"],
+    coords: [26.07, 50.55],
+    telegram: null
+  },
+  {
+    id: "kuwait",
+    name: "Kuwait",
+    status: "danger",
+    advisory: "Airspace closed. US military base on heightened alert. Shelter in place.",
+    embassy: {
+      usa: { phone: "+965-2259-1001", step: "https://step.state.gov" },
+      uk: { phone: "+965-2259-4320", web: "https://www.gov.uk/foreign-travel-advice/kuwait" }
+    },
+    airspace: "CLOSED",
+    borders: [
+      { route: "Overland → Saudi Arabia (south)", status: "warn", note: "Monitor border crossing status hourly." }
+    ],
+    ngos: ["Kuwait Red Crescent", "UNHCR Kuwait"],
+    coords: [29.37, 47.97],
+    telegram: null
+  },
+  {
+    id: "qatar",
+    name: "Qatar",
+    status: "warn",
+    advisory: "Airspace partially restricted. US Al Udeid base active. Monitor advisories.",
+    embassy: {
+      usa: { phone: "+974-4496-6000", step: "https://step.state.gov" },
+      uk: { phone: "+974-4496-2100", web: "https://www.gov.uk/foreign-travel-advice/qatar" }
+    },
+    airspace: "RESTRICTED",
+    borders: [
+      { route: "Sea → Doha Port (limited)", status: "warn", note: "Some vessels operating. Check with carriers." }
+    ],
+    ngos: ["Qatar Red Crescent", "IOM Qatar"],
+    coords: [25.28, 51.53],
+    telegram: null
+  },
+  {
+    id: "oman",
+    name: "Oman",
+    status: "warn",
+    advisory: "Drone incident reported near Sohar port. Otherwise relatively stable. Monitor.",
+    embassy: {
+      usa: { phone: "+968-2464-3400", step: "https://step.state.gov" },
+      uk: { phone: "+968-2460-9000", web: "https://www.gov.uk/foreign-travel-advice/oman" }
+    },
+    airspace: "OPEN (monitor)",
+    borders: [
+      { route: "Overland from UAE (Hatta/Hafeet crossings)", status: "safe", note: "Currently open. Queues building. Fuel up before crossing." }
+    ],
+    ngos: ["Oman Red Crescent"],
+    coords: [23.61, 58.59],
+    telegram: null
+  },
+  {
+    id: "saudi",
+    name: "Saudi Arabia",
+    status: "warn",
+    advisory: "Airspace open to select routes. Receiving overland arrivals. Elevated security posture.",
+    embassy: {
+      usa: { phone: "+966-11-488-3800", step: "https://step.state.gov" },
+      uk: { phone: "+966-11-488-0077", web: "https://www.gov.uk/foreign-travel-advice/saudi-arabia" }
+    },
+    airspace: "PARTIALLY OPEN",
+    borders: [
+      { route: "Receiving arrivals from UAE, Kuwait, Bahrain", status: "safe", note: "Land borders open. Some delays at checkpoints." }
+    ],
+    ngos: ["Saudi Red Crescent", "King Salman Relief Centre"],
+    coords: [23.88, 45.07],
+    telegram: null
+  },
+  {
+    id: "iran",
+    name: "Iran",
+    status: "danger",
+    advisory: "DO NOT TRAVEL. Active military operations. No consular services for most Western nationals.",
+    embassy: {
+      usa: { phone: "N/A — no US embassy", email: "Consular services via Swiss Embassy: +98-21-2200-8333" },
+      uk: { phone: "UK has limited representation — contact +44-20-7008-5000 (London FCO)" }
+    },
+    airspace: "CLOSED",
+    borders: [
+      { route: "All border crossings: unstable / closed", status: "danger", note: "Do not attempt overland crossing into Iran." }
+    ],
+    ngos: ["ICRC (limited access)", "UNHCR"],
+    coords: [32.43, 53.68],
+    telegram: null
+  },
+  {
+    id: "iraq",
+    name: "Iraq",
+    status: "danger",
+    advisory: "Do not travel. Airspace closed. Active military activity near Iranian border.",
+    embassy: {
+      usa: { phone: "+964-760-030-7000", step: "https://step.state.gov" },
+      uk: { phone: "+964-7901-926-280", web: "https://www.gov.uk/foreign-travel-advice/iraq" }
+    },
+    airspace: "CLOSED",
+    borders: [
+      { route: "Jordan border (Al-Karama/Trebil)", status: "warn", note: "Open but slow. Long delays reported." }
+    ],
+    ngos: ["UNHCR Iraq", "IRC", "Médecins Sans Frontières", "NRC"],
+    coords: [33.22, 43.68],
+    telegram: null
+  },
+  {
+    id: "jordan",
+    name: "Jordan",
+    status: "warn",
+    advisory: "Airspace restricted over parts of country. Amman relatively stable. Monitor.",
+    embassy: {
+      usa: { phone: "+962-6-590-6000", step: "https://step.state.gov" },
+      uk: { phone: "+962-6-590-9200", web: "https://www.gov.uk/foreign-travel-advice/jordan" }
+    },
+    airspace: "PARTIALLY OPEN",
+    borders: [
+      { route: "Amman Airport (QAI) — some flights operating", status: "safe", note: "Check airline status. Some European carriers resuming." }
+    ],
+    ngos: ["UNHCR Jordan", "IRC Jordan", "Mercy Corps"],
+    coords: [30.58, 36.24],
+    telegram: null
+  }
+];
+
+const RESOURCES = [
+  { type: "Government", name: "US STEP Program", desc: "Register to receive emergency alerts from US Embassy. Essential for all Americans abroad.", url: "https://step.state.gov" },
+  { type: "Government", name: "UK FCDO Travel Advice", desc: "Live advisories and emergency consular support for British nationals.", url: "https://www.gov.uk/foreign-travel-advice" },
+  { type: "Government", name: "Australia Smartraveller", desc: "Australian DFAT travel advisories and emergency registration.", url: "https://www.smartraveller.gov.au" },
+  { type: "Government", name: "Canada ROCA", desc: "Register of Canadians Abroad — emergency alerts and consular help.", url: "https://travel.gc.ca/travelling/registration" },
+  { type: "NGO", name: "UNHCR Emergency", desc: "UN Refugee Agency — active in UAE, Iraq, Jordan. Can assist displaced persons.", url: "https://www.unhcr.org" },
+  { type: "NGO", name: "ICRC (Red Cross)", desc: "International Committee of the Red Cross — active across the conflict zone.", url: "https://www.icrc.org" },
+  { type: "NGO", name: "IOM — Intl Org for Migration", desc: "Coordinates emergency evacuation logistics for migrants and vulnerable populations.", url: "https://www.iom.int" },
+  { type: "NGO", name: "IRC — International Rescue Committee", desc: "Emergency relief in Iraq and Jordan. Crisis hotlines available.", url: "https://www.rescue.org" },
+  { type: "NGO", name: "Médecins Sans Frontières", desc: "Medical teams active in Iraq. Can assist with emergency medical needs.", url: "https://www.msf.org" },
+  { type: "Community", name: "r/dubai — Megathread", desc: "Reddit community aggregating real-time reports from expats on the ground.", url: "https://reddit.com/r/dubai" },
+  { type: "Community", name: "InterNations Gulf Crisis Group", desc: "Expat community network sharing resources and verified information.", url: "https://www.internations.org" },
+  { type: "Aviation", name: "FlightAware", desc: "Live airspace and flight status — check before going to any airport.", url: "https://flightaware.com" },
+  { type: "Aviation", name: "AviationStack API", desc: "Used by this site's auto-updater to track airspace closures.", url: "https://aviationstack.com" },
+  { type: "Info", name: "ReliefWeb", desc: "Comprehensive humanitarian news and NGO deployment tracking for the region.", url: "https://reliefweb.int" }
+];
+
+// ============================================================
+// SUPABASE CONFIG
+// 1. Create free project at https://supabase.com
+// 2. Run the SQL in supabase-setup.sql in your project's SQL editor
+// 3. Go to Project Settings → API
+// 4. Replace the two values below with your Project URL + anon public key
+// ============================================================
+const SUPABASE_URL  = 'https://YOUR_PROJECT_ID.supabase.co';
+const SUPABASE_ANON = 'YOUR_ANON_PUBLIC_KEY';
+
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// Local cache — loaded from DB on init, kept live via realtime subscription
+let posts = [];
+
+// ============================================================
+// VIEW SWITCHING
+// ============================================================
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(name + '-view').classList.add('active');
+  event.target.classList.add('active');
+
+  if (name === 'map' && !window._mapInit) initMap();
+  if (name === 'countries') renderCountries();
+  if (name === 'help') renderPosts();
+  if (name === 'resources') renderResources();
+}
+
+// ============================================================
+// MAP
+// ============================================================
+function initMap() {
+  window._mapInit = true;
+  const map = L.map('crisis-map', { zoomControl: false }).setView([26, 50], 5);
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '©OpenStreetMap ©CARTO',
+    maxZoom: 19
+  }).addTo(map);
+
+  const colors = { danger: '#ff4d00', warn: '#ffaa00', safe: '#00c853' };
+
+  COUNTRIES.forEach(c => {
+    const marker = L.circleMarker(c.coords, {
+      radius: 14,
+      fillColor: colors[c.status],
+      color: colors[c.status],
+      weight: 1,
+      opacity: 0.8,
+      fillOpacity: 0.25
+    }).addTo(map);
+
+    const pulse = L.circleMarker(c.coords, {
+      radius: 8,
+      fillColor: colors[c.status],
+      color: '#000',
+      weight: 1,
+      opacity: 1,
+      fillOpacity: 0.9
+    }).addTo(map);
+
+    pulse.bindPopup(`
+      <div style="font-family:'IBM Plex Mono',monospace;min-width:220px">
+        <div style="font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:${colors[c.status]};margin-bottom:0.5rem">${c.name}</div>
+        <div style="font-size:0.75rem;color:#e8e8e0;margin-bottom:0.75rem;line-height:1.5">${c.advisory}</div>
+        <div style="font-size:0.65rem;color:#666">Airspace: <span style="color:${c.airspace==='CLOSED'?'#ff4d00':c.airspace.includes('OPEN')?'#00c853':'#ffaa00'}">${c.airspace}</span></div>
+        ${c.telegram ? `<a href="${c.telegram}" style="color:#2979ff;font-size:0.65rem;display:block;margin-top:0.5rem" target="_blank">→ Telegram group</a>` : ''}
+        <div style="margin-top:0.75rem"><button onclick="window.filterAndShowCountry('${c.id}')" style="background:#ff4d00;border:none;color:#000;font-family:inherit;font-size:0.65rem;padding:0.3rem 0.6rem;cursor:pointer;letter-spacing:0.08em;text-transform:uppercase">Full info →</button></div>
+      </div>
+    `);
+  });
+
+  // Render help posts on map
+  renderPostsOnMap(map);
+  window._crisisMap = map;
+}
+
+function renderPostsOnMap(map) {
+  // placeholder - would geocode post locations
+}
+
+window.filterAndShowCountry = function(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('countries-view').classList.add('active');
+  document.querySelectorAll('nav button')[1].classList.add('active');
+  renderCountries(id);
+  setTimeout(() => {
+    const el = document.getElementById('card-' + id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+};
+
+// ============================================================
+// COUNTRIES
+// ============================================================
+function renderCountries(highlight) {
+  const grid = document.getElementById('countries-grid');
+  grid.innerHTML = COUNTRIES.map(c => renderCard(c, highlight === c.id)).join('');
+}
+
+function renderCard(c, highlighted) {
+  const statusLabel = { danger: 'High Risk', warn: 'Elevated', safe: 'Stable' }[c.status];
+  const embassyRows = Object.entries(c.embassy).map(([nation, info]) => `
+    <div class="info-row">
+      <span class="info-label">${nation.toUpperCase()} Embassy</span>
+      <span class="info-value">
+        ${info.phone ? `📞 ${info.phone}` : ''}
+        ${info.email ? ` · <a href="mailto:${info.email}">${info.email}</a>` : ''}
+        ${info.step ? ` · <a href="${info.step}" target="_blank">STEP →</a>` : ''}
+        ${info.web ? ` · <a href="${info.web}" target="_blank">Advisory →</a>` : ''}
+      </span>
+    </div>
+  `).join('');
+
+  const routeItems = c.borders.map(r => {
+    const icon = r.status === 'safe' ? '✅' : r.status === 'warn' ? '⚠️' : '🚫';
+    return `<li><span class="route-icon">${icon}</span><span><strong>${r.route}</strong> — ${r.note}</span></li>`;
+  }).join('');
+
+  return `
+    <div class="country-card" id="card-${c.id}" style="${highlighted ? 'border:1px solid var(--accent)' : ''}">
+      <div class="country-header">
+        <div class="country-name">${c.name}</div>
+        <div class="status-badge status-${c.status}">${statusLabel}</div>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Advisory</span>
+        <span class="info-value">${c.advisory}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Airspace</span>
+        <span class="info-value" style="color:${c.airspace==='CLOSED'?'var(--danger)':c.airspace.includes('OPEN')?'var(--safe)':'var(--warn)'}">${c.airspace}</span>
+      </div>
+      ${embassyRows}
+      <div class="info-row">
+        <span class="info-label">Exit Routes</span>
+        <span class="info-value">
+          <ul class="route-list">${routeItems}</ul>
+        </span>
+      </div>
+      <div class="ngos-section">
+        <div class="ngos-label">Active NGOs / Orgs</div>
+        ${c.ngos.map(n => `<span class="ngo-tag">${n}</span>`).join('')}
+        ${c.telegram ? `<div style="margin-top:0.5rem"><a href="${c.telegram}" target="_blank" style="color:var(--info);font-family:var(--mono);font-size:0.65rem">→ Telegram group</a></div>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function filterCountries(status, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const grid = document.getElementById('countries-grid');
+  const filtered = status === 'all' ? COUNTRIES : COUNTRIES.filter(c => c.status === status);
+  grid.innerHTML = filtered.map(c => renderCard(c, false)).join('');
+}
+
+// ============================================================
+// HELP POSTS — Supabase powered
+// ============================================================
+
+// Map DB row shape → internal shape
+function dbToPost(row) {
+  return {
+    id:       row.id,
+    type:     row.type,           // 'offer' | 'need'
+    postType: row.post_type,
+    location: row.location,
+    body:     row.body,
+    name:     row.name,
+    contact:  row.contact,
+    time:     row.created_at,
+    flagged:  row.flagged || false,
+  };
+}
+
+// Load all posts from Supabase and render
+async function loadPosts() {
+  setPostsLoading(true);
+  try {
+    const { data, error } = await _supabase
+      .from('help_posts')
+      .select('*')
+      .eq('flagged', false)          // hide flagged posts
+      .order('created_at', { ascending: false })
+      .limit(200);
+
+    if (error) throw error;
+    posts = (data || []).map(dbToPost);
+    renderPosts();
+  } catch (e) {
+    console.error('Failed to load posts:', e);
+    setPostsError('Could not load posts. Check Supabase config.');
+  } finally {
+    setPostsLoading(false);
+  }
+}
+
+// Subscribe to real-time inserts — new posts appear instantly for everyone
+function subscribeToPostStream() {
+  _supabase
+    .channel('help_posts_stream')
+    .on('postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'help_posts' },
+      (payload) => {
+        const newPost = dbToPost(payload.new);
+        if (!newPost.flagged) {
+          posts.unshift(newPost);
+          renderPosts();
+          flashNewPost(newPost.id);
+        }
+      }
+    )
+    .on('postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'help_posts' },
+      (payload) => {
+        // Handle flag updates — remove from view if flagged
+        if (payload.new.flagged) {
+          posts = posts.filter(p => p.id !== payload.new.id);
+          renderPosts();
+        }
+      }
+    )
+    .subscribe();
+}
+
+function flashNewPost(id) {
+  setTimeout(() => {
+    const el = document.querySelector(`[data-post-id="${id}"]`);
+    if (el) {
+      el.style.transition = 'background 0.3s';
+      el.style.background = 'rgba(255,77,0,0.12)';
+      setTimeout(() => { el.style.background = ''; }, 1200);
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, 100);
+}
+
+function setPostsLoading(loading) {
+  ['offer-posts', 'need-posts'].forEach(id => {
+    if (loading) document.getElementById(id).innerHTML =
+      `<div class="empty-state" style="color:var(--muted)">Loading posts...</div>`;
+  });
+}
+
+function setPostsError(msg) {
+  ['offer-posts', 'need-posts'].forEach(id => {
+    document.getElementById(id).innerHTML =
+      `<div class="empty-state" style="color:var(--danger)">${msg}</div>`;
+  });
+}
+
+function renderPosts() {
+  const offers = posts.filter(p => p.type === 'offer');
+  const needs  = posts.filter(p => p.type === 'need');
+
+  document.getElementById('offer-posts').innerHTML = offers.length
+    ? offers.map(renderPost).join('')
+    : `<div class="empty-state">No offers yet. Be the first.</div>`;
+
+  document.getElementById('need-posts').innerHTML = needs.length
+    ? needs.map(renderPost).join('')
+    : `<div class="empty-state">No requests yet.</div>`;
+}
+
+function renderPost(p) {
+  const time = new Date(p.time).toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+  // Linkify contact (Telegram, email, phone)
+  let contactDisplay = p.contact;
+  if (p.contact.startsWith('@')) {
+    contactDisplay = `<a href="https://t.me/${p.contact.slice(1)}" target="_blank">${p.contact}</a>`;
+  } else if (p.contact.includes('@') && !p.contact.startsWith('+')) {
+    contactDisplay = `<a href="mailto:${p.contact}">${p.contact}</a>`;
+  }
+
+  return `
+    <div class="post-card ${p.type}" data-post-id="${p.id}">
+      <div class="post-meta">
+        <span class="post-type ${p.type}">${p.postType}</span>
+        <span class="post-time">${time}</span>
+      </div>
+      <div class="post-location">📍 ${escHtml(p.location)}</div>
+      <div class="post-body">${escHtml(p.body)}</div>
+      <div class="post-contact">
+        <span class="contact-item">👤 ${escHtml(p.name)}</span>
+        <span class="contact-item">📬 ${contactDisplay}</span>
+        <span class="contact-item" style="margin-left:auto">
+          <button onclick="flagPost('${p.id}')" style="background:none;border:none;color:var(--muted);font-family:var(--mono);font-size:0.6rem;cursor:pointer;letter-spacing:0.05em" title="Flag as suspicious">⚑ flag</button>
+        </span>
+      </div>
+    </div>
+  `;
+}
+
+// Basic XSS protection
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+async function submitPost(type) {
+  const postType = document.getElementById(type + '-type').value;
+  const location = document.getElementById(type + '-location').value;
+  const body     = document.getElementById(type + '-body').value;
+  const name     = document.getElementById(type + '-name').value;
+  const contact  = document.getElementById(type + '-contact').value;
+
+  if (!postType || !location || !body || !name || !contact) {
+    alert('Please fill in all fields.');
+    return;
+  }
+
+  // Basic contact validation — must look like email, phone, or @handle
+  const contactOk = contact.includes('@') || contact.startsWith('+') || /\d{7,}/.test(contact);
+  if (!contactOk) {
+    alert('Please enter a valid contact: email, phone number, or @telegram handle.');
+    return;
+  }
+
+  const btn = document.querySelector(`.submit-btn${type === 'need' ? '.need' : ':not(.need)'}`);
+  const originalText = btn.textContent;
+  btn.textContent = 'Posting...';
+  btn.disabled = true;
+
+  try {
+    const { error } = await _supabase.from('help_posts').insert({
+      type,
+      post_type: postType,
+      location,
+      body,
+      name,
+      contact,
+      flagged: false,
+    });
+
+    if (error) throw error;
+
+    // Clear form on success
+    ['type','location','body','name','contact'].forEach(f => {
+      const el = document.getElementById(type + '-' + f);
+      el.tagName === 'SELECT' ? el.selectedIndex = 0 : el.value = '';
+    });
+
+    // Post will appear via realtime subscription — no need to manually add
+    btn.textContent = '✓ Posted!';
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }, 2000);
+
+  } catch (e) {
+    console.error('Post failed:', e);
+    alert('Failed to post. Check your connection and try again.\n\nError: ' + e.message);
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+}
+
+// Flag a post as suspicious — soft-delete via DB flag
+async function flagPost(id) {
+  if (!confirm('Flag this post as suspicious or fake? It will be hidden pending review.')) return;
+  const { error } = await _supabase
+    .from('help_posts')
+    .update({ flagged: true })
+    .eq('id', id);
+  if (!error) {
+    posts = posts.filter(p => p.id !== id);
+    renderPosts();
+  }
+}
+
+// ============================================================
+// RESOURCES
+// ============================================================
+function renderResources() {
+  const grid = document.getElementById('resources-grid');
+  grid.innerHTML = RESOURCES.map(r => `
+    <div class="resource-card">
+      <div class="resource-type">${r.type}</div>
+      <div class="resource-name">${r.name}</div>
+      <div class="resource-desc">${r.desc}</div>
+      <a href="${r.url}" target="_blank" class="resource-link">→ ${r.url.replace('https://','')}</a>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// SITREP COUNTER
+// ============================================================
+
+// Baseline known data (updated by scraper via data.json)
+// These are conservative floor estimates based on reported figures
+const SITREP_BASELINE = {
+  cancelled_flights: 1847,        // reported as of Mar 1 AM
+  avg_passengers_per_flight: 459, // Gulf hub average (Emirates, Qatar, Etihad wide-body heavy)
+  airports_closed: 5,             // DXB, AUH, KWI, BAH, DOH
+  airspace_closed_countries: 4,   // UAE, Iran, Iraq, Kuwait confirmed closed
+  land_routes_open: 3,            // UAE→Oman, UAE→Saudi, Bahrain→Saudi
+  last_updated: '2026-03-01T10:00:00Z',
+};
+
+// Animated counter — counts up from 0 to target
+function animateCount(elId, target, duration = 1200, prefix = '', suffix = '') {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const start = performance.now();
+  const startVal = 0;
+
+  function update(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    // Ease out cubic
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = Math.round(startVal + (target - startVal) * eased);
+    el.textContent = prefix + current.toLocaleString() + suffix;
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+function formatRelativeTime(isoString) {
+  const diff = Math.floor((Date.now() - new Date(isoString)) / 1000 / 60);
+  if (diff < 1)  return 'updated just now';
+  if (diff < 60) return `updated ${diff}m ago`;
+  return `updated ${Math.floor(diff/60)}h ago`;
+}
+
+async function refreshSitrep() {
+  const icon = document.getElementById('refresh-icon');
+  const label = document.getElementById('refresh-label');
+  icon.classList.add('spinning');
+  label.textContent = 'refreshing...';
+
+  let data = { ...SITREP_BASELINE };
+
+  // Try to pull live data.json from same origin (populated by GitHub Actions scraper)
+  try {
+    const res = await fetch('./data.json?t=' + Date.now());
+    if (res.ok) {
+      const json = await res.json();
+      // Merge in any live airport/cancellation data from scraper
+      if (json.sitrep) {
+        data = { ...data, ...json.sitrep };
+      }
+    }
+  } catch (e) {
+    // data.json not available yet — use baseline
+  }
+
+  // Pull live help post count from Supabase if configured
+  let helpPostCount = posts.length;
+  if (SUPABASE_URL !== 'https://YOUR_PROJECT_ID.supabase.co') {
+    try {
+      const { count } = await _supabase
+        .from('help_posts')
+        .select('*', { count: 'exact', head: true })
+        .eq('flagged', false);
+      if (count !== null) helpPostCount = count;
+    } catch (e) { /* use cached posts.length */ }
+  }
+
+  // Calculate estimated stranded
+  const estStranded = data.cancelled_flights * data.avg_passengers_per_flight;
+
+  // Animate all counters
+  animateCount('stat-stranded',         estStranded,                   1400);
+  animateCount('stat-cancelled',        data.cancelled_flights,        1000);
+  animateCount('stat-airports-closed',  data.airports_closed,           600);
+  animateCount('stat-airspace',         data.airspace_closed_countries, 600);
+  animateCount('stat-border-crossings', data.land_routes_open,          600);
+  animateCount('stat-help-posts',       helpPostCount,                  800);
+
+  icon.classList.remove('spinning');
+  label.textContent = formatRelativeTime(data.last_updated);
+
+  // Update ticker with live refresh time
+  updateRefreshLabel(data.last_updated);
+}
+
+function updateRefreshLabel(isoString) {
+  const label = document.getElementById('refresh-label');
+  if (label) label.textContent = formatRelativeTime(isoString);
+}
+
+// Auto-refresh sitrep every 5 minutes
+setInterval(refreshSitrep, 5 * 60 * 1000);
+
+// ============================================================
+document.getElementById('last-updated-label').textContent =
+  'Updated: ' + new Date(LAST_UPDATED).toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', timeZoneName:'short' });
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+// Boot map immediately
+initMap();
+
+// Boot sitrep counter
+refreshSitrep();
+
+// Boot Supabase — load posts + start live stream
+// (even if user hasn't clicked the help tab yet)
+if (SUPABASE_URL !== 'https://YOUR_PROJECT_ID.supabase.co') {
+  loadPosts();
+  subscribeToPostStream();
+} else {
+  // Supabase not configured yet — show setup notice on help tab
+  ['offer-posts','need-posts'].forEach(id => {
+    document.getElementById(id).innerHTML = `
+      <div class="empty-state" style="color:var(--warn)">
+        ⚙ Supabase not configured yet.<br>
+        See README → Supabase Setup to enable live posts.
+      </div>`;
+  });
+}
+</script>
+</body>
+</html>

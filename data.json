@@ -1,0 +1,30 @@
+{
+  "meta": {
+    "last_updated": "2026-03-01T10:00:00Z",
+    "update_duration_ms": 0,
+    "version": "1.0.0",
+    "note": "This file is auto-overwritten every 30 min by GitHub Actions. Edit baseline values in scraper/update.js"
+  },
+  "sitrep": {
+    "cancelled_flights": 1847,
+    "avg_passengers_per_flight": 459,
+    "airports_closed": 5,
+    "airspace_closed_countries": 4,
+    "land_routes_open": 3,
+    "last_updated": "2026-03-01T10:00:00Z"
+  },
+  "advisories": {
+    "state_dept": {},
+    "fcdo": {}
+  },
+  "airports": {},
+  "ngo_operations": [],
+  "news_ticker": [
+    "UAE airspace closed",
+    "Dubai Int'l Airport suspended",
+    "Strait of Hormuz closed by IRGC",
+    "Overland routes to Oman and Saudi remain open but conditions change rapidly",
+    "Register with your embassy STEP program",
+    "Shelter in place if no urgent need to move"
+  ]
+}

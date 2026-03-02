@@ -1,0 +1,35 @@
+name: Auto-update crisis data
+
+on:
+  schedule:
+    # Every 30 minutes
+    - cron: '*/30 * * * *'
+  workflow_dispatch: # Allow manual trigger from GitHub UI
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run updater
+        env:
+          AVIATIONSTACK_KEY: ${{ secrets.AVIATIONSTACK_KEY }}
+        run: node scraper/update.js
+
+      - name: Commit and push updated data.json
+        run: |
+          git config user.name "imstranded-bot"
+          git config user.email "bot@imstranded.org"
+          git add data.json
+          git diff --staged --quiet || git commit -m "auto: update crisis data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push
