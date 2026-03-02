@@ -821,12 +821,21 @@
 </div>
 <div id="map-view" class="view active">
   <div id="crisis-map"></div>
+  <div style="position:absolute;top:1rem;left:50%;transform:translateX(-50%);z-index:999;display:flex;gap:0.5rem;width:min(480px,90vw)">
+    <input id="map-search" type="text" placeholder="Search a city or location..." style="flex:1;background:#fff;border:1.5px solid var(--border);border-radius:6px;padding:0.55rem 1rem;font-family:var(--sans);font-size:0.85rem;color:var(--text);outline:none;box-shadow:0 2px 12px rgba(0,0,0,0.12)" onkeydown="if(event.key==='Enter')geocodeSearch()">
+    <button onclick="geocodeSearch()" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:0.55rem 1rem;font-family:var(--mono);font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;letter-spacing:0.04em">SEARCH</button>
+    <button onclick="pinMyLocation()" title="Drop a pin at my location" style="background:#fff;border:1.5px solid var(--border);border-radius:6px;padding:0.55rem 0.75rem;font-size:1rem;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.1)" title="Use my location">📍</button>
+  </div>
   <div class="map-legend">
-    <div class="legend-title">Status</div>
+    <div class="legend-title">Map Key</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--danger)"></div> Active conflict / closed</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--warn)"></div> High alert / restricted</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--safe)"></div> Relatively stable</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--info)"></div> Help offer/need pinned</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#2979ff"></div> Worldwide disruption</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#7c3aed"></div> Help offered</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#0ea5e9"></div> Help needed</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f59e0b;border:2px solid #fff"></div> Land route open</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ef4444;border:2px solid #fff"></div> Land route closed/risky</div>
   </div>
 </div>
 
@@ -838,13 +847,21 @@
       <div class="section-subtitle">Embassy contacts, exit routes and active NGOs by country</div>
     </div>
     <div class="filter-bar">
-      <button class="filter-btn active" onclick="filterCountries('all', this)">All</button>
+      <button class="filter-btn active" onclick="filterCountries('all', this)">Gulf Region</button>
       <button class="filter-btn" onclick="filterCountries('danger', this)">⚠ High Risk</button>
       <button class="filter-btn" onclick="filterCountries('warn', this)">⚡ Elevated</button>
       <button class="filter-btn" onclick="filterCountries('safe', this)">✓ Stable</button>
+      <button class="filter-btn" onclick="showWorldwide(this)" style="margin-left:1rem;border-color:var(--info);color:var(--info)">🌍 Stranded Worldwide</button>
     </div>
     <div class="countries-grid" id="countries-grid">
       <!-- populated by JS -->
+    </div>
+    <div id="worldwide-grid" style="display:none">
+      <div style="margin-bottom:1.5rem">
+        <div class="section-title" style="font-size:1.2rem">Stranded Outside the Gulf</div>
+        <div class="section-subtitle">People stranded worldwide due to Gulf airspace closure — broken connections, cancelled flights, separated families</div>
+      </div>
+      <div class="countries-grid" id="worldwide-cards"></div>
     </div>
   </div>
 </div>
@@ -890,6 +907,11 @@
             <label>Contact (phone, email, or Telegram — will be public)</label>
             <input type="text" id="offer-contact" placeholder="@telegram or email@example.com">
           </div>
+          <div class="form-row">
+            <label>X / Twitter handle <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+            <input type="text" id="offer-xhandle" placeholder="@yourhandle">
+            <div style="font-size:0.72rem;color:var(--muted);margin-top:0.4rem;line-height:1.5">📍 Your pin drops on the map. People can find and tip you <strong style="color:var(--accent2)">$HELP</strong> via your handle.</div>
+          </div>
           <button class="submit-btn" onclick="submitPost('offer')">Post Offer</button>
         </div>
         <div class="posts-list" id="offer-posts">
@@ -934,6 +956,11 @@
             <label>Contact (phone, email, or Telegram — will be public)</label>
             <input type="text" id="need-contact" placeholder="@telegram or email@example.com">
           </div>
+          <div class="form-row">
+            <label>X / Twitter handle <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+            <input type="text" id="need-xhandle" placeholder="@yourhandle">
+            <div style="font-size:0.72rem;color:var(--muted);margin-top:0.4rem;line-height:1.5">📍 Your pin drops on the map so helpers can find you.</div>
+          </div>
           <button class="submit-btn need" onclick="submitPost('need')">Post Request</button>
         </div>
         <div class="posts-list" id="need-posts">
@@ -972,21 +999,35 @@
 // ============================================================
 const LAST_UPDATED = "2026-03-01T12:00:00Z";
 
+// Embassy contact helper labels
+const EMBASSY_LABELS = {
+  usa: "🇺🇸 USA", uk: "🇬🇧 UK", aus: "🇦🇺 Australia", can: "🇨🇦 Canada",
+  ind: "🇮🇳 India", phl: "🇵🇭 Philippines", pak: "🇵🇰 Pakistan",
+  bgd: "🇧🇩 Bangladesh", npl: "🇳🇵 Nepal", deu: "🇩🇪 Germany",
+  fra: "🇫🇷 France", eu: "🇪🇺 EU"
+};
+
 const COUNTRIES = [
   {
     id: "uae",
     name: "United Arab Emirates",
     status: "danger",
-    advisory: "Shelter in place. Airspace closed. DXB/AUH suspended.",
+    advisory: "Shelter in place. Airspace closed. DXB/AUH suspended. Iranian missile debris reported in civilian areas.",
     embassy: {
-      usa: { phone: "+971-4-309-4000", email: "DubaiACS@state.gov", step: "https://step.state.gov" },
-      uk: { phone: "+971-4-309-4444", web: "https://www.gov.uk/foreign-travel-advice/united-arab-emirates" },
-      aus: { phone: "+971-2-508-7100", web: "https://www.smartraveller.gov.au" }
+      usa: { phone: "+971-2-414-2200", email: "ACSAbuDhabi@state.gov", step: "https://step.state.gov" },
+      uk:  { phone: "+971-2-610-1100", web: "https://www.gov.uk/foreign-travel-advice/united-arab-emirates" },
+      aus: { phone: "+61-2-6261-3305", note: "Consular Emergency Centre (Canberra)", web: "https://www.smartraveller.gov.au" },
+      can: { phone: "+971-2-694-0300", web: "https://travel.gc.ca/travelling/registration" },
+      ind: { phone: "800-46342 (toll-free)", whatsapp: "+971543090571", email: "pbsk.dubai@mea.gov.in" },
+      phl: { phone: "+971-50-813-7836", note: "OWWA emergency hotline", web: "https://dubaipcg.dfa.gov.ph" },
+      pak: { phone: "+971-50-254-8975", alt: "+971-2-444-7800", web: "https://pakconsdubai.com" },
+      bgd: { phone: "+971-2-665-5336", note: "Bangladesh Embassy Abu Dhabi" },
+      npl: { phone: "+971-2-444-7804", note: "Nepal Embassy Abu Dhabi" },
     },
     airspace: "CLOSED",
     borders: [
-      { route: "Overland → Oman (E611)", status: "warn", note: "Open but drones reported near Omani port. Conditions change rapidly." },
-      { route: "Overland → Saudi Arabia", status: "warn", note: "Long (900+ km). Fill tank, carry water." }
+      { route: "Overland → Oman (E611)", status: "warn", note: "Open but drone activity reported near Omani border. Conditions change rapidly." },
+      { route: "Overland → Saudi Arabia", status: "warn", note: "Long (900+ km). Fill tank, carry water, monitor checkpoints." }
     ],
     ngos: ["UNHCR", "Red Cross UAE", "IOM", "Caritas UAE"],
     coords: [24.47, 54.37],
@@ -996,10 +1037,14 @@ const COUNTRIES = [
     id: "bahrain",
     name: "Bahrain",
     status: "danger",
-    advisory: "High alert. Airspace restricted. US Naval base on lockdown.",
+    advisory: "High alert. Airspace restricted. US Naval base on lockdown. Missile strikes reported.",
     embassy: {
       usa: { phone: "+973-1724-2700", email: "BahrainACS@state.gov", step: "https://step.state.gov" },
-      uk: { phone: "+973-1757-4100", web: "https://www.gov.uk/foreign-travel-advice/bahrain" }
+      uk:  { phone: "+973-1757-4100", web: "https://www.gov.uk/foreign-travel-advice/bahrain" },
+      ind: { phone: "+973-1771-2785", note: "Indian Embassy Manama" },
+      phl: { phone: "+973-3995-3235", note: "OWWA emergency hotline" },
+      pak: { phone: "+973-1771-1789", note: "Pakistan Embassy Manama" },
+      bgd: { phone: "+973-1753-3271", note: "Bangladesh Embassy Manama — shelter in place advisory issued" },
     },
     airspace: "RESTRICTED",
     borders: [
@@ -1013,10 +1058,14 @@ const COUNTRIES = [
     id: "kuwait",
     name: "Kuwait",
     status: "danger",
-    advisory: "Airspace closed. US military base on heightened alert. Shelter in place.",
+    advisory: "Airspace closed. Airport struck. US military base on heightened alert. Shelter in place.",
     embassy: {
       usa: { phone: "+965-2259-1001", step: "https://step.state.gov" },
-      uk: { phone: "+965-2259-4320", web: "https://www.gov.uk/foreign-travel-advice/kuwait" }
+      uk:  { phone: "+965-2259-4320", web: "https://www.gov.uk/foreign-travel-advice/kuwait" },
+      ind: { phone: "+965-6550-1946", email: "community.kuwait@mea.gov.in" },
+      phl: { phone: "+965-2220-5571", note: "OWWA emergency hotline" },
+      pak: { note: "Pakistan Embassy Kuwait City — contact via CMU: +92-51-9207887" },
+      bgd: { phone: "+965-6992-0013", alt: "+965-6651-6404", email: "kuwaitembassy@mofa.gov.bd" },
     },
     airspace: "CLOSED",
     borders: [
@@ -1030,10 +1079,15 @@ const COUNTRIES = [
     id: "qatar",
     name: "Qatar",
     status: "warn",
-    advisory: "Airspace partially restricted. US Al Udeid base active. Monitor advisories.",
+    advisory: "Airspace restricted. US Al Udeid base sheltering in place. Monitor advisories closely.",
     embassy: {
       usa: { phone: "+974-4496-6000", step: "https://step.state.gov" },
-      uk: { phone: "+974-4496-2100", web: "https://www.gov.uk/foreign-travel-advice/qatar" }
+      uk:  { phone: "+974-4496-2100", web: "https://www.gov.uk/foreign-travel-advice/qatar" },
+      aus: { phone: "+61-2-6261-3305", note: "Consular Emergency Centre" },
+      ind: { phone: "+974-5564-7502", email: "cons.doha@mea.gov.in" },
+      phl: { phone: "+974-4483-1585", note: "OWWA/Philippine Embassy Doha", web: "https://dohape.dfa.gov.ph" },
+      pak: { note: "Pakistan Embassy Doha — contact CMU: +92-51-9207887" },
+      bgd: { note: "Bangladesh Embassy Doha — avoid military areas advisory issued" },
     },
     airspace: "RESTRICTED",
     borders: [
@@ -1047,14 +1101,16 @@ const COUNTRIES = [
     id: "oman",
     name: "Oman",
     status: "warn",
-    advisory: "Drone incident reported near Sohar port. Otherwise relatively stable. Monitor.",
+    advisory: "Drone incident near Sohar port. Relatively stable. Receiving overland arrivals from UAE.",
     embassy: {
       usa: { phone: "+968-2464-3400", step: "https://step.state.gov" },
-      uk: { phone: "+968-2460-9000", web: "https://www.gov.uk/foreign-travel-advice/oman" }
+      uk:  { phone: "+968-2460-9000", web: "https://www.gov.uk/foreign-travel-advice/oman" },
+      ind: { phone: "8007-1234 (toll-free)", whatsapp: "+968-9828-2270", email: "cw.muscat@mea.gov.in" },
+      phl: { phone: "+968-7990-5211", note: "OWWA emergency hotline" },
     },
     airspace: "OPEN (monitor)",
     borders: [
-      { route: "Overland from UAE (Hatta/Hafeet crossings)", status: "safe", note: "Currently open. Queues building. Fuel up before crossing." }
+      { route: "Overland from UAE (Hatta/Hafeet crossings)", status: "safe", note: "Open. Queues building fast. Fuel up before crossing." }
     ],
     ngos: ["Oman Red Crescent"],
     coords: [23.61, 58.59],
@@ -1064,14 +1120,17 @@ const COUNTRIES = [
     id: "saudi",
     name: "Saudi Arabia",
     status: "warn",
-    advisory: "Airspace open to select routes. Receiving overland arrivals. Elevated security posture.",
+    advisory: "Airspace open on select routes. Receiving overland arrivals. Elevated security posture.",
     embassy: {
       usa: { phone: "+966-11-488-3800", step: "https://step.state.gov" },
-      uk: { phone: "+966-11-488-0077", web: "https://www.gov.uk/foreign-travel-advice/saudi-arabia" }
+      uk:  { phone: "+966-11-488-0077", web: "https://www.gov.uk/foreign-travel-advice/saudi-arabia" },
+      ind: { phone: "+966-11-488-4697", whatsapp: "+966-542126748", tollfree: "800-247-1234", email: "cw.riyadh@mea.gov.in" },
+      phl: { phone: "+966-56-989-3301", note: "OWWA Saudi emergency hotline" },
+      pak: { note: "Pakistan Consulate Jeddah — CMU: +92-51-9207887" },
     },
     airspace: "PARTIALLY OPEN",
     borders: [
-      { route: "Receiving arrivals from UAE, Kuwait, Bahrain", status: "safe", note: "Land borders open. Some delays at checkpoints." }
+      { route: "Receiving arrivals from UAE, Kuwait, Bahrain", status: "safe", note: "Land borders open. Delays at checkpoints." }
     ],
     ngos: ["Saudi Red Crescent", "King Salman Relief Centre"],
     coords: [23.88, 45.07],
@@ -1083,12 +1142,14 @@ const COUNTRIES = [
     status: "danger",
     advisory: "DO NOT TRAVEL. Active military operations. No consular services for most Western nationals.",
     embassy: {
-      usa: { phone: "N/A — no US embassy", email: "Consular services via Swiss Embassy: +98-21-2200-8333" },
-      uk: { phone: "UK has limited representation — contact +44-20-7008-5000 (London FCO)" }
+      usa: { note: "No US Embassy — Swiss Embassy protecting interests: +98-21-2200-8333" },
+      uk:  { note: "Limited UK representation — London FCO: +44-20-7008-5000" },
+      ind: { note: "Indian Embassy Tehran — shelter in place, avoid movements" },
+      pak: { phone: "+98-21-669413-88", alt: "+98-9107648298", note: "Pakistan Embassy Tehran" },
     },
     airspace: "CLOSED",
     borders: [
-      { route: "All border crossings: unstable / closed", status: "danger", note: "Do not attempt overland crossing into Iran." }
+      { route: "All crossings: unstable / closed", status: "danger", note: "Do not attempt overland crossing into Iran." }
     ],
     ngos: ["ICRC (limited access)", "UNHCR"],
     coords: [32.43, 53.68],
@@ -1098,14 +1159,16 @@ const COUNTRIES = [
     id: "iraq",
     name: "Iraq",
     status: "danger",
-    advisory: "Do not travel. Airspace closed. Active military activity near Iranian border.",
+    advisory: "Do not travel. Airspace closed. US diplomatic facilities targeted. Active military near Iranian border.",
     embassy: {
-      usa: { phone: "+964-760-030-7000", step: "https://step.state.gov" },
-      uk: { phone: "+964-7901-926-280", web: "https://www.gov.uk/foreign-travel-advice/iraq" }
+      usa: { phone: "+964-760-030-7000", step: "https://step.state.gov", note: "Shelter in place — embassy may be targeted" },
+      uk:  { phone: "+964-7901-926-280", web: "https://www.gov.uk/foreign-travel-advice/iraq" },
+      ind: { note: "Indian Embassy Baghdad — advising nationals to shelter" },
+      bgd: { whatsapp: "+964-7827-883680", email: "iraq@mofa.gov.bd", note: "Bangladesh Embassy Baghdad" },
     },
     airspace: "CLOSED",
     borders: [
-      { route: "Jordan border (Al-Karama/Trebil)", status: "warn", note: "Open but slow. Long delays reported." }
+      { route: "Jordan border (Al-Karama/Trebil)", status: "warn", note: "Open but very slow. Long delays reported." }
     ],
     ngos: ["UNHCR Iraq", "IRC", "Médecins Sans Frontières", "NRC"],
     coords: [33.22, 43.68],
@@ -1115,10 +1178,12 @@ const COUNTRIES = [
     id: "jordan",
     name: "Jordan",
     status: "warn",
-    advisory: "Airspace restricted over parts of country. Amman relatively stable. Monitor.",
+    advisory: "Airspace restricted. US Embassy sheltering staff. Amman relatively stable. Monitor hourly.",
     embassy: {
-      usa: { phone: "+962-6-590-6000", step: "https://step.state.gov" },
-      uk: { phone: "+962-6-590-9200", web: "https://www.gov.uk/foreign-travel-advice/jordan" }
+      usa: { phone: "+962-6-590-6000", step: "https://step.state.gov", note: "Shelter-in-place for staff — avoid embassy compound" },
+      uk:  { phone: "+962-6-590-9200", web: "https://www.gov.uk/foreign-travel-advice/jordan" },
+      aus: { phone: "+61-2-6261-3305", note: "Consular Emergency Centre" },
+      phl: { phone: "+962-7-7907-7775", note: "OWWA Jordan emergency hotline" },
     },
     airspace: "PARTIALLY OPEN",
     borders: [
@@ -1127,7 +1192,127 @@ const COUNTRIES = [
     ngos: ["UNHCR Jordan", "IRC Jordan", "Mercy Corps"],
     coords: [30.58, 36.24],
     telegram: null
+  },
+  {
+    id: "israel",
+    name: "Israel & Palestinian Territories",
+    status: "danger",
+    advisory: "Active missile strikes. Ben Gurion airport closed. Iron Dome active. Gaza: extreme humanitarian crisis, movement nearly impossible.",
+    embassy: {
+      usa: { phone: "+972-2-630-4000", step: "https://step.state.gov", note: "Embassy Jerusalem — shelter in place order in effect" },
+      uk:  { phone: "+972-2-671-7150", web: "https://www.gov.uk/foreign-travel-advice/israel" },
+      aus: { phone: "+61-2-6261-3305", note: "Consular Emergency Centre (no embassy on-site currently)" },
+      can: { phone: "+972-3-636-3300", note: "Canadian Embassy Tel Aviv" },
+      deu: { phone: "+972-3-693-9183", note: "German Embassy Tel Aviv" },
+      fra: { phone: "+972-3-520-8500", note: "French Embassy Tel Aviv" },
+    },
+    airspace: "CLOSED",
+    borders: [
+      { route: "Allenby/King Hussein Bridge → Jordan", status: "warn", note: "Periodically open. Check hours before attempting. Long queues." },
+      { route: "Rafah Crossing (Gaza → Egypt)", status: "danger", note: "Effectively closed. Extreme danger. Coordinate only through ICRC." },
+      { route: "Taba → Egypt (Eilat side)", status: "warn", note: "Possible but monitor military activity near Eilat." }
+    ],
+    ngos: ["ICRC", "UNRWA (Gaza)", "Magen David Adom", "MSF", "World Food Programme"],
+    coords: [31.85, 35.22],
+    telegram: null
   }
+];
+
+// ============================================================
+// WORLDWIDE — People stranded outside Gulf due to flight disruption
+// ============================================================
+const WORLDWIDE_REGIONS = [
+  {
+    id: "bali",
+    name: "Bali / Indonesia",
+    note: "Heavily affected. Europe↔Bali routes via DXB/DOH all cancelled. Thousands stranded at Ngurah Rai Airport.",
+    contacts: [
+      { label: "Australian Consular Emergency", value: "+61-2-6261-3305" },
+      { label: "UK FCDO Helpline", value: "+44-20-7008-5000" },
+      { label: "US Embassy Jakarta", value: "+62-21-5083-1000" },
+      { label: "Bali Airport Info", value: "+62-361-9351011" },
+    ],
+    resources: ["https://www.smartraveller.gov.au", "https://step.state.gov"],
+    coords: [-8.34, 115.09]
+  },
+  {
+    id: "india",
+    name: "India (Mumbai / Delhi)",
+    note: "Air India, IndiGo cancelled Gulf + Europe routes. Millions of diaspora families separated. Migrant workers unable to reach Gulf jobs.",
+    contacts: [
+      { label: "MOIA 24/7 Helpline", value: "1800-11-3090 (toll-free India)" },
+      { label: "MEA Emergency", value: "+91-11-2301-2113" },
+    ],
+    resources: ["https://www.mea.gov.in", "https://www.pravasisampark.gov.in"],
+    coords: [20.59, 78.96]
+  },
+  {
+    id: "philippines",
+    name: "Philippines",
+    note: "Massive OFW disruption. Remittance workers unable to reach Gulf postings. OWWA coordinating repatriation assistance.",
+    contacts: [
+      { label: "OWWA International Hotline", value: "+632-1348" },
+      { label: "DFA OFW 24/7 Hotline", value: "+632-8651-9400" },
+      { label: "DOLE Hotline", value: "1349 (within PH)" },
+    ],
+    resources: ["https://owwa.gov.ph", "https://dfa.gov.ph"],
+    coords: [12.88, 121.77]
+  },
+  {
+    id: "pakistan",
+    name: "Pakistan",
+    note: "PIA and other carriers suspended Gulf routes. One Pakistani national killed in UAE. CMU activated 24/7.",
+    contacts: [
+      { label: "Pakistan CMU (24/7)", value: "+92-51-9207887" },
+      { label: "Ministry of Foreign Affairs", value: "+92-51-9207354" },
+    ],
+    resources: ["https://mofa.gov.pk"],
+    coords: [30.38, 69.35]
+  },
+  {
+    id: "bangladesh",
+    name: "Bangladesh",
+    note: "Hundreds of thousands of garment and construction workers stranded. Multiple embassies issued urgent advisories.",
+    contacts: [
+      { label: "Bangladesh MOFA Helpline", value: "+880-2-9554000" },
+      { label: "BOESL Emergency", value: "+880-2-9144817" },
+    ],
+    resources: ["https://www.mofa.gov.bd", "https://boesl.gov.bd"],
+    coords: [23.68, 90.35]
+  },
+  {
+    id: "uk_europe",
+    name: "UK / Europe",
+    note: "Long-haul disruption. Flights to South/Southeast Asia cancelled or rerouted via Africa adding 5–8 hours.",
+    contacts: [
+      { label: "FCDO Helpline (24/7)", value: "+44-20-7008-5000" },
+      { label: "FCDO WhatsApp", value: "+44-7973-383750" },
+    ],
+    resources: ["https://www.gov.uk/foreign-travel-advice", "https://www.flightaware.com"],
+    coords: [51.5, 10.5]
+  },
+  {
+    id: "australia",
+    name: "Australia / NZ",
+    note: "Gulf routing dependency severe. Smartraveller raised UAE/Iran to Do Not Travel. Consular Emergency Centre handling high volume.",
+    contacts: [
+      { label: "Consular Emergency Centre", value: "+61-2-6261-3305 (overseas)" },
+      { label: "Consular Emergency Centre", value: "1300-555-135 (in Australia)" },
+    ],
+    resources: ["https://www.smartraveller.gov.au/news-and-updates/middle-east-conflict"],
+    coords: [-25.27, 133.77]
+  },
+  {
+    id: "east_africa",
+    name: "East Africa (Kenya / Ethiopia)",
+    note: "Nairobi and Addis Ababa are Gulf hub transit points. Thousands stranded on Asia↔Africa routes.",
+    contacts: [
+      { label: "US Embassy Nairobi", value: "+254-20-363-6000" },
+      { label: "UK Embassy Nairobi", value: "+254-20-284-4000" },
+    ],
+    resources: ["https://step.state.gov", "https://www.gov.uk/foreign-travel-advice"],
+    coords: [1.29, 37.42]
+  },
 ];
 
 const RESOURCES = [
@@ -1149,10 +1334,8 @@ const RESOURCES = [
 
 // ============================================================
 // SUPABASE CONFIG
-// 1. Create free project at https://supabase.com
-// 2. Run the SQL in supabase-setup.sql in your project's SQL editor
-// 3. Go to Project Settings → API
-// 4. Replace the two values below with your Project URL + anon public key
+// Run supabase-setup.sql first, then add xhandle column:
+//   ALTER TABLE help_posts ADD COLUMN IF NOT EXISTS xhandle text;
 // ============================================================
 const SUPABASE_URL  = 'https://YOUR_PROJECT_ID.supabase.co';
 const SUPABASE_ANON = 'YOUR_ANON_PUBLIC_KEY';
@@ -1182,9 +1365,27 @@ function showView(name) {
 // ============================================================
 // MAP
 // ============================================================
+
+// Land routes: [from_coords, to_coords, status, label]
+const LAND_ROUTES = [
+  { from: [24.47, 54.37], to: [23.61, 58.59], status: 'warn',   label: 'UAE → Oman (E611)' },
+  { from: [24.47, 54.37], to: [23.88, 45.07], status: 'warn',   label: 'UAE → Saudi Arabia' },
+  { from: [26.07, 50.55], to: [23.88, 45.07], status: 'warn',   label: 'Bahrain → Saudi (King Fahd Causeway)' },
+  { from: [29.37, 47.97], to: [23.88, 45.07], status: 'warn',   label: 'Kuwait → Saudi Arabia' },
+  { from: [33.22, 43.68], to: [30.58, 36.24], status: 'warn',   label: 'Iraq → Jordan (Trebil/Al-Karama)' },
+  { from: [30.58, 36.24], to: [31.85, 35.22], status: 'warn',   label: 'Jordan → Israel (Allenby Bridge)' },
+  { from: [31.85, 35.22], to: [30.00, 32.25], status: 'danger', label: 'Israel → Egypt (Taba)' },
+  { from: [31.30, 34.30], to: [30.00, 32.25], status: 'danger', label: 'Gaza → Egypt (Rafah — effectively closed)' },
+  { from: [23.61, 58.59], to: [25.28, 51.53], status: 'warn',   label: 'Oman → Qatar (sea route)' },
+];
+
+let _userLocationMarker = null;
+let _searchMarker = null;
+let _postMarkers = [];
+
 function initMap() {
   window._mapInit = true;
-  const map = L.map('crisis-map', { zoomControl: false }).setView([26, 50], 5);
+  const map = L.map('crisis-map', { zoomControl: false }).setView([28, 45], 5);
   L.control.zoom({ position: 'bottomright' }).addTo(map);
 
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
@@ -1192,45 +1393,148 @@ function initMap() {
     maxZoom: 19
   }).addTo(map);
 
-  const colors = { danger: '#ff4d00', warn: '#ffaa00', safe: '#00b248' };
+  const statusColors = { danger: '#ff4d00', warn: '#ffaa00', safe: '#00b248' };
 
+  // ── Country markers ──────────────────────────────────────
   COUNTRIES.forEach(c => {
-    const marker = L.circleMarker(c.coords, {
-      radius: 14,
-      fillColor: colors[c.status],
-      color: colors[c.status],
-      weight: 1,
-      opacity: 0.8,
-      fillOpacity: 0.25
+    const col = statusColors[c.status];
+
+    // Outer glow ring
+    L.circleMarker(c.coords, {
+      radius: 16, fillColor: col, color: col,
+      weight: 1, opacity: 0.5, fillOpacity: 0.15
     }).addTo(map);
 
-    const pulse = L.circleMarker(c.coords, {
-      radius: 8,
-      fillColor: colors[c.status],
-      color: '#000',
-      weight: 1,
-      opacity: 1,
-      fillOpacity: 0.9
-    }).addTo(map);
-
-    pulse.bindPopup(`
-      <div style="font-family:'Barlow',sans-serif;min-width:220px">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;font-weight:700;letter-spacing:0.03em;color:${colors[c.status]};margin-bottom:0.5rem;text-transform:uppercase">${c.name}</div>
-        <div style="font-size:0.82rem;color:#3d4450;margin-bottom:0.75rem;line-height:1.5">${c.advisory}</div>
-        <div style="font-size:0.72rem;color:#8a909e">Airspace: <span style="color:${c.airspace==='CLOSED'?'#ff4d00':c.airspace.includes('OPEN')?'#00b248':'#ffaa00'};font-weight:700">${c.airspace}</span></div>
-        ${c.telegram ? `<a href="${c.telegram}" style="color:#2979ff;font-size:0.75rem;display:block;margin-top:0.5rem;font-weight:600" target="_blank">→ Telegram group</a>` : ''}
-        <div style="margin-top:0.85rem"><button onclick="window.filterAndShowCountry('${c.id}')" style="background:#ff4d00;border:none;color:#fff;font-family:'Barlow',sans-serif;font-size:0.78rem;font-weight:700;padding:0.4rem 0.85rem;cursor:pointer;border-radius:4px;letter-spacing:0.03em">FULL INFO →</button></div>
+    // Inner dot
+    L.circleMarker(c.coords, {
+      radius: 8, fillColor: col, color: '#fff',
+      weight: 1.5, opacity: 1, fillOpacity: 0.95
+    }).addTo(map).bindPopup(`
+      <div style="font-family:'Barlow',sans-serif;min-width:230px">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;font-weight:700;color:${col};margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.04em">${c.name}</div>
+        <div style="font-size:0.82rem;color:#3d4450;margin-bottom:0.6rem;line-height:1.5">${c.advisory}</div>
+        <div style="font-size:0.72rem;margin-bottom:0.75rem">
+          <span style="color:#8a909e">Airspace: </span>
+          <strong style="color:${c.airspace==='CLOSED'?'#ff4d00':c.airspace.includes('OPEN')?'#00b248':'#ffaa00'}">${c.airspace}</strong>
+        </div>
+        ${c.telegram ? `<a href="${c.telegram}" style="color:#2979ff;font-size:0.75rem;display:block;margin-bottom:0.6rem;font-weight:600" target="_blank">→ Telegram group</a>` : ''}
+        <button onclick="window.filterAndShowCountry('${c.id}')" style="background:#ff4d00;border:none;color:#fff;font-family:'Barlow',sans-serif;font-size:0.78rem;font-weight:700;padding:0.4rem 1rem;cursor:pointer;border-radius:4px;letter-spacing:0.03em;width:100%">FULL INFO & EMBASSIES →</button>
       </div>
     `);
   });
 
-  // Render help posts on map
+  // ── Land routes ──────────────────────────────────────────
+  LAND_ROUTES.forEach(r => {
+    const color = r.status === 'safe' ? '#22c55e' : r.status === 'warn' ? '#f59e0b' : '#ef4444';
+    const dash  = r.status === 'danger' ? '6,8' : r.status === 'warn' ? '8,4' : null;
+
+    L.polyline([r.from, r.to], {
+      color, weight: 3, opacity: 0.75,
+      dashArray: dash
+    }).addTo(map).bindPopup(`
+      <div style="font-family:'Barlow',sans-serif">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.95rem;color:${color};margin-bottom:0.3rem">${r.label}</div>
+        <div style="font-size:0.75rem;color:#8a909e">Status: <strong style="color:${color}">${r.status.toUpperCase()}</strong></div>
+      </div>
+    `);
+  });
+
+  // ── Worldwide region markers ─────────────────────────────
+  WORLDWIDE_REGIONS.forEach(r => {
+    L.circleMarker(r.coords, {
+      radius: 9, fillColor: '#2979ff', color: '#fff',
+      weight: 1.5, opacity: 0.8, fillOpacity: 0.5
+    }).addTo(map).bindPopup(`
+      <div style="font-family:'Barlow',sans-serif;min-width:200px">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;color:#2979ff;margin-bottom:0.4rem;text-transform:uppercase">🌍 ${r.name}</div>
+        <div style="font-size:0.8rem;color:#3d4450;line-height:1.5;margin-bottom:0.5rem">${r.note}</div>
+        <div style="font-size:0.72rem;color:#8a909e">${r.contacts[0]?.label}: <strong>${r.contacts[0]?.value}</strong></div>
+      </div>
+    `);
+  });
+
+  // ── Help post markers ────────────────────────────────────
   renderPostsOnMap(map);
   window._crisisMap = map;
 }
 
+// Geocode a city string using Nominatim (free, no key)
+async function geocodeCity(city) {
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`, {
+      headers: { 'Accept-Language': 'en', 'User-Agent': 'ImStranded/1.0' }
+    });
+    const data = await res.json();
+    if (data && data[0]) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon), name: data[0].display_name };
+    return null;
+  } catch(e) { return null; }
+}
+
+async function geocodeSearch() {
+  const query = document.getElementById('map-search').value.trim();
+  if (!query) return;
+  const result = await geocodeCity(query);
+  if (!result) { alert('Location not found. Try a city or country name.'); return; }
+  const map = window._crisisMap;
+  if (_searchMarker) map.removeLayer(_searchMarker);
+  _searchMarker = L.marker([result.lat, result.lng], {
+    icon: L.divIcon({
+      className: '',
+      html: `<div style="background:#111;color:#fff;padding:0.3rem 0.6rem;border-radius:4px;font-family:'Barlow',sans-serif;font-size:0.72rem;font-weight:600;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.3)">📍 ${query}</div>`,
+      iconAnchor: [0, 0]
+    })
+  }).addTo(map);
+  map.flyTo([result.lat, result.lng], 10, { duration: 1.2 });
+}
+
+function pinMyLocation() {
+  if (!navigator.geolocation) { alert('Geolocation not supported by your browser.'); return; }
+  navigator.geolocation.getCurrentPosition(pos => {
+    const map = window._crisisMap;
+    const { latitude: lat, longitude: lng } = pos.coords;
+    if (_userLocationMarker) map.removeLayer(_userLocationMarker);
+    _userLocationMarker = L.circleMarker([lat, lng], {
+      radius: 10, fillColor: '#7c3aed', color: '#fff',
+      weight: 2, opacity: 1, fillOpacity: 0.9
+    }).addTo(map).bindPopup(`
+      <div style="font-family:'Barlow',sans-serif">
+        <strong>You are here</strong><br>
+        <span style="font-size:0.75rem;color:#8a909e">${lat.toFixed(4)}, ${lng.toFixed(4)}</span><br>
+        <a href="#" onclick="document.querySelectorAll('nav button')[2].click();return false" style="color:#7c3aed;font-size:0.78rem;font-weight:600">→ Post for help or offer help</a>
+      </div>
+    `).openPopup();
+    map.flyTo([lat, lng], 11, { duration: 1.2 });
+  }, () => alert('Unable to get your location. Check browser permissions.'));
+}
+
+// Render help post pins — purple for offers, blue for needs
 function renderPostsOnMap(map) {
-  // placeholder - would geocode post locations
+  // Clear old markers
+  _postMarkers.forEach(m => map.removeLayer(m));
+  _postMarkers = [];
+
+  posts.forEach(async p => {
+    if (!p.location) return;
+    const geo = await geocodeCity(p.location);
+    if (!geo) return;
+
+    const isOffer = p.type === 'offer';
+    const color   = isOffer ? '#7c3aed' : '#0ea5e9';
+    const icon    = isOffer ? '🟣' : '🔵';
+
+    const marker = L.circleMarker([geo.lat, geo.lng], {
+      radius: 7, fillColor: color, color: '#fff',
+      weight: 1.5, opacity: 1, fillOpacity: 0.9
+    }).addTo(map).bindPopup(`
+      <div style="font-family:'Barlow',sans-serif;min-width:200px">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:0.85rem;font-weight:700;color:${color};text-transform:uppercase;margin-bottom:0.3rem">${icon} ${p.postType}</div>
+        <div style="font-size:0.8rem;color:#3d4450;margin-bottom:0.4rem;line-height:1.5">${p.body.slice(0,120)}${p.body.length > 120 ? '…' : ''}</div>
+        <div style="font-size:0.72rem;color:#8a909e">📍 ${p.location} · 👤 ${p.name}</div>
+        ${p.xhandle ? `<a href="https://x.com/${p.xhandle}" target="_blank" style="display:inline-block;margin-top:0.5rem;background:${isOffer?'#fef3c7':'#e0f2fe'};color:${isOffer?'#92400e':'#0369a1'};font-size:0.7rem;font-weight:700;padding:0.2rem 0.5rem;border-radius:4px;text-decoration:none">${isOffer?'Tip $HELP →':'@'+p.xhandle}</a>` : ''}
+      </div>
+    `);
+    _postMarkers.push(marker);
+  });
 }
 
 window.filterAndShowCountry = function(id) {
@@ -1249,23 +1553,70 @@ window.filterAndShowCountry = function(id) {
 // COUNTRIES
 // ============================================================
 function renderCountries(highlight) {
+  document.getElementById('worldwide-grid').style.display = 'none';
+  document.getElementById('countries-grid').style.display = '';
   const grid = document.getElementById('countries-grid');
   grid.innerHTML = COUNTRIES.map(c => renderCard(c, highlight === c.id)).join('');
 }
 
+function showWorldwide(btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('countries-grid').style.display = 'none';
+  document.getElementById('worldwide-grid').style.display = 'block';
+  const grid = document.getElementById('worldwide-cards');
+  grid.innerHTML = WORLDWIDE_REGIONS.map(renderWorldwideCard).join('');
+}
+
+function renderWorldwideCard(r) {
+  const contactItems = r.contacts.map(c =>
+    `<div class="info-row">
+      <span class="info-label" style="min-width:120px">${c.label}</span>
+      <span class="info-value"><strong>${c.value}</strong></span>
+    </div>`
+  ).join('');
+  const links = r.resources.map(url =>
+    `<a href="${url}" target="_blank" class="resource-link" style="display:inline-flex;margin-right:1rem">→ ${url.replace('https://','').replace('www.','').split('/')[0]}</a>`
+  ).join('');
+  return `
+    <div class="country-card">
+      <div class="country-header">
+        <div class="country-name">${r.name}</div>
+        <div class="status-badge" style="color:var(--info);background:var(--info-soft)">DISRUPTED</div>
+      </div>
+      <div class="info-row" style="margin-bottom:0.75rem">
+        <span class="info-value" style="color:var(--text2);font-size:0.82rem">${r.note}</span>
+      </div>
+      ${contactItems}
+      <div class="ngos-section">
+        <div class="ngos-label">Official Resources</div>
+        ${links}
+      </div>
+    </div>
+  `;
+}
+
 function renderCard(c, highlighted) {
   const statusLabel = { danger: 'High Risk', warn: 'Elevated', safe: 'Stable' }[c.status];
-  const embassyRows = Object.entries(c.embassy).map(([nation, info]) => `
-    <div class="info-row">
-      <span class="info-label">${nation.toUpperCase()} Embassy</span>
-      <span class="info-value">
-        ${info.phone ? `📞 ${info.phone}` : ''}
-        ${info.email ? ` · <a href="mailto:${info.email}">${info.email}</a>` : ''}
-        ${info.step ? ` · <a href="${info.step}" target="_blank">STEP →</a>` : ''}
-        ${info.web ? ` · <a href="${info.web}" target="_blank">Advisory →</a>` : ''}
-      </span>
-    </div>
-  `).join('');
+
+  const embassyRows = Object.entries(c.embassy).map(([nation, info]) => {
+    const label = EMBASSY_LABELS[nation] || nation.toUpperCase();
+    const parts = [];
+    if (info.phone)    parts.push(`📞 ${info.phone}`);
+    if (info.alt)      parts.push(`📞 ${info.alt}`);
+    if (info.tollfree) parts.push(`☎️ ${info.tollfree} (toll-free)`);
+    if (info.whatsapp) parts.push(`💬 ${info.whatsapp} (WhatsApp)`);
+    if (info.email)    parts.push(`<a href="mailto:${info.email}">${info.email}</a>`);
+    if (info.step)     parts.push(`<a href="${info.step}" target="_blank">STEP →</a>`);
+    if (info.web)      parts.push(`<a href="${info.web}" target="_blank">Advisory →</a>`);
+    if (info.note)     parts.push(`<em style="color:var(--muted);font-size:0.75rem">${info.note}</em>`);
+    return `
+      <div class="info-row">
+        <span class="info-label" style="min-width:90px">${label}</span>
+        <span class="info-value" style="font-size:0.78rem;line-height:1.6">${parts.join(' · ')}</span>
+      </div>
+    `;
+  }).join('');
 
   const routeItems = c.borders.map(r => {
     const icon = r.status === 'safe' ? '✅' : r.status === 'warn' ? '⚠️' : '🚫';
@@ -1273,7 +1624,7 @@ function renderCard(c, highlighted) {
   }).join('');
 
   return `
-    <div class="country-card" id="card-${c.id}" style="${highlighted ? 'border:1px solid var(--accent)' : ''}">
+    <div class="country-card" id="card-${c.id}" style="${highlighted ? 'border-color:var(--accent)' : ''}">
       <div class="country-header">
         <div class="country-name">${c.name}</div>
         <div class="status-badge status-${c.status}">${statusLabel}</div>
@@ -1284,10 +1635,11 @@ function renderCard(c, highlighted) {
       </div>
       <div class="info-row">
         <span class="info-label">Airspace</span>
-        <span class="info-value" style="color:${c.airspace==='CLOSED'?'var(--danger)':c.airspace.includes('OPEN')?'var(--safe)':'var(--warn)'}">${c.airspace}</span>
+        <span class="info-value" style="color:${c.airspace==='CLOSED'?'var(--danger)':c.airspace.includes('OPEN')?'var(--safe)':'var(--warn)'};font-weight:600">${c.airspace}</span>
       </div>
+      <div style="margin:0.75rem 0 0.25rem;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted)">Embassy Contacts</div>
       ${embassyRows}
-      <div class="info-row">
+      <div class="info-row" style="margin-top:0.5rem">
         <span class="info-label">Exit Routes</span>
         <span class="info-value">
           <ul class="route-list">${routeItems}</ul>
@@ -1296,7 +1648,7 @@ function renderCard(c, highlighted) {
       <div class="ngos-section">
         <div class="ngos-label">Active NGOs / Orgs</div>
         ${c.ngos.map(n => `<span class="ngo-tag">${n}</span>`).join('')}
-        ${c.telegram ? `<div style="margin-top:0.5rem"><a href="${c.telegram}" target="_blank" style="color:var(--info);font-family:var(--mono);font-size:0.65rem">→ Telegram group</a></div>` : ''}
+        ${c.telegram ? `<div style="margin-top:0.5rem"><a href="${c.telegram}" target="_blank" style="color:var(--info);font-size:0.72rem;font-weight:600">→ Telegram group</a></div>` : ''}
       </div>
     </div>
   `;
@@ -1305,6 +1657,8 @@ function renderCard(c, highlighted) {
 function filterCountries(status, btn) {
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  document.getElementById('worldwide-grid').style.display = 'none';
+  document.getElementById('countries-grid').style.display = '';
   const grid = document.getElementById('countries-grid');
   const filtered = status === 'all' ? COUNTRIES : COUNTRIES.filter(c => c.status === status);
   grid.innerHTML = filtered.map(c => renderCard(c, false)).join('');
@@ -1318,12 +1672,13 @@ function filterCountries(status, btn) {
 function dbToPost(row) {
   return {
     id:       row.id,
-    type:     row.type,           // 'offer' | 'need'
+    type:     row.type,
     postType: row.post_type,
     location: row.location,
     body:     row.body,
     name:     row.name,
     contact:  row.contact,
+    xhandle:  row.xhandle || null,
     time:     row.created_at,
     flagged:  row.flagged || false,
   };
@@ -1343,6 +1698,8 @@ async function loadPosts() {
     if (error) throw error;
     posts = (data || []).map(dbToPost);
     renderPosts();
+    // Refresh map pins if map is open
+    if (window._crisisMap) renderPostsOnMap(window._crisisMap);
   } catch (e) {
     console.error('Failed to load posts:', e);
     setPostsError('Could not load posts. Check Supabase config.');
@@ -1363,6 +1720,7 @@ function subscribeToPostStream() {
           posts.unshift(newPost);
           renderPosts();
           flashNewPost(newPost.id);
+          if (window._crisisMap) renderPostsOnMap(window._crisisMap);
         }
       }
     )
@@ -1420,13 +1778,24 @@ function renderPosts() {
 
 function renderPost(p) {
   const time = new Date(p.time).toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
-  // Linkify contact (Telegram, email, phone)
   let contactDisplay = p.contact;
   if (p.contact.startsWith('@')) {
     contactDisplay = `<a href="https://t.me/${p.contact.slice(1)}" target="_blank">${p.contact}</a>`;
   } else if (p.contact.includes('@') && !p.contact.startsWith('+')) {
     contactDisplay = `<a href="mailto:${p.contact}">${p.contact}</a>`;
   }
+
+  const xHandle = p.xhandle ? p.xhandle.replace('@','') : null;
+  const xSection = xHandle ? `
+    <span class="contact-item">
+      𝕏 <a href="https://x.com/${xHandle}" target="_blank">@${xHandle}</a>
+    </span>
+    ${p.type === 'offer' ? `<span class="contact-item" style="margin-left:auto">
+      <a href="https://x.com/${xHandle}" target="_blank" style="background:var(--accent2-soft);color:var(--accent2);font-size:0.68rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:4px;text-decoration:none;border:1px solid var(--warn)">
+        Tip $HELP →
+      </a>
+    </span>` : ''}
+  ` : '';
 
   return `
     <div class="post-card ${p.type}" data-post-id="${p.id}">
@@ -1439,7 +1808,8 @@ function renderPost(p) {
       <div class="post-contact">
         <span class="contact-item">👤 ${escHtml(p.name)}</span>
         <span class="contact-item">📬 ${contactDisplay}</span>
-        <span class="contact-item" style="margin-left:auto">
+        ${xSection}
+        ${!xHandle ? `<span class="contact-item" style="margin-left:auto">` : `<span class="contact-item">`}
           <button onclick="flagPost('${p.id}')" style="background:none;border:none;color:var(--muted);font-family:var(--mono);font-size:0.6rem;cursor:pointer;letter-spacing:0.05em" title="Flag as suspicious">⚑ flag</button>
         </span>
       </div>
@@ -1462,20 +1832,22 @@ async function submitPost(type) {
   const body     = document.getElementById(type + '-body').value;
   const name     = document.getElementById(type + '-name').value;
   const contact  = document.getElementById(type + '-contact').value;
+  const xhandle  = (document.getElementById(type + '-xhandle').value || '').trim().replace(/^@+/, '');
 
   if (!postType || !location || !body || !name || !contact) {
-    alert('Please fill in all fields.');
+    alert('Please fill in all required fields.');
     return;
   }
 
-  // Basic contact validation — must look like email, phone, or @handle
   const contactOk = contact.includes('@') || contact.startsWith('+') || /\d{7,}/.test(contact);
   if (!contactOk) {
     alert('Please enter a valid contact: email, phone number, or @telegram handle.');
     return;
   }
 
-  const btn = document.querySelector(`.submit-btn${type === 'need' ? '.need' : ':not(.need)'}`);
+  const btn = type === 'offer'
+    ? document.querySelector('.submit-btn:not(.need)')
+    : document.querySelector('.submit-btn.need');
   const originalText = btn.textContent;
   btn.textContent = 'Posting...';
   btn.disabled = true;
@@ -1488,23 +1860,19 @@ async function submitPost(type) {
       body,
       name,
       contact,
+      xhandle: xhandle || null,
       flagged: false,
     });
 
     if (error) throw error;
 
-    // Clear form on success
-    ['type','location','body','name','contact'].forEach(f => {
+    ['type','location','body','name','contact','xhandle'].forEach(f => {
       const el = document.getElementById(type + '-' + f);
-      el.tagName === 'SELECT' ? el.selectedIndex = 0 : el.value = '';
+      if (el) el.tagName === 'SELECT' ? el.selectedIndex = 0 : el.value = '';
     });
 
-    // Post will appear via realtime subscription — no need to manually add
     btn.textContent = '✓ Posted!';
-    setTimeout(() => {
-      btn.textContent = originalText;
-      btn.disabled = false;
-    }, 2000);
+    setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 2000);
 
   } catch (e) {
     console.error('Post failed:', e);
