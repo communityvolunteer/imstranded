@@ -277,19 +277,18 @@ nav button:hover:not(.active){color:var(--text);}
     height:100dvh;overflow:hidden;
   }
 
-  /* ── Scrollable stat filter bar at top ── */
+  /* ── Stat bar: 4 equal items, no scroll ── */
   #m-statbar{
     background:#fff;border-bottom:1px solid var(--border);
-    display:flex;overflow-x:auto;scrollbar-width:none;
-    flex-shrink:0;height:62px;
+    display:grid;grid-template-columns:repeat(4,1fr);
+    flex-shrink:0;
   }
-  #m-statbar::-webkit-scrollbar{display:none;}
-
   .m-stat{
     display:flex;flex-direction:column;align-items:center;justify-content:center;
-    flex-shrink:0;min-width:90px;padding:0 .75rem;
+    padding:.55rem .25rem;
     border-right:1px solid var(--border);cursor:pointer;
     transition:background .15s;position:relative;user-select:none;
+    min-height:56px;
   }
   .m-stat:last-child{border-right:none;}
   .m-stat:hover{background:#fafaf8;}
@@ -299,15 +298,33 @@ nav button:hover:not(.active){color:var(--text);}
     height:3px;background:var(--coral);border-radius:3px 3px 0 0;
   }
   .m-stat-num{
-    font-size:1.3rem;font-weight:800;letter-spacing:-.03em;line-height:1;
-    display:block;
+    font-size:1.35rem;font-weight:800;letter-spacing:-.03em;line-height:1;display:block;
   }
   .m-stat-num.danger{color:var(--danger);}
   .m-stat-num.warn  {color:var(--warn);}
   .m-stat-num.safe  {color:var(--safe);}
   .m-stat-num.green {color:var(--green);}
   .m-stat-num.info  {color:var(--info);}
-  .m-stat-label{font-size:.48rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-top:.1rem;text-align:center;line-height:1.2;}
+  .m-stat-label{font-size:.44rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-top:.12rem;text-align:center;line-height:1.2;}
+
+  /* ── Sub-bar: map key filter chips ── */
+  #m-subbar{
+    background:#fafaf8;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-around;
+    padding:.3rem .5rem;flex-shrink:0;gap:.3rem;
+  }
+  .m-subchip{
+    display:flex;align-items:center;gap:.3rem;
+    background:none;border:1.5px solid var(--border);
+    border-radius:999px;padding:.25rem .65rem;
+    font-family:'Inter',sans-serif;font-size:.58rem;font-weight:600;
+    color:var(--muted);cursor:pointer;flex:1;justify-content:center;
+    transition:all .15s;white-space:nowrap;
+  }
+  .m-subchip:hover{border-color:var(--coral);color:var(--coral);}
+  .m-subchip.active{background:var(--coral-soft);border-color:var(--coral);color:var(--coral);}
+  #m-clear-chip{color:var(--muted);}
+  .m-subchip-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 
   /* ── Map area ── */
   #m-map-wrap{flex:1;position:relative;overflow:hidden;min-height:0;}
@@ -394,7 +411,7 @@ nav button:hover:not(.active){color:var(--text);}
     z-index:900;background:#fff;
     border-top:1px solid var(--border);
     border-radius:16px 16px 0 0;
-    max-height:calc(100dvh - 62px - 64px - 40px);
+    max-height:calc(100dvh - 56px - 30px - 64px - 32px);
     display:flex;flex-direction:column;
     transform:translateY(100%);
     transition:transform .3s cubic-bezier(.4,0,.2,1);
@@ -529,16 +546,22 @@ nav button:hover:not(.active){color:var(--text);}
 
   <!-- Scrollable stat filter bar -->
   <div id="m-statbar">
-    <div class="m-stat" id="mss-stranded"  onclick="mFilterMap('stranded')"> <span class="m-stat-num danger" id="m-stat-stranded">—</span>  <span class="m-stat-label">Stranded</span></div>
-    <div class="m-stat" id="mss-cancelled" onclick="mFilterMap('cancelled')"><span class="m-stat-num warn"   id="m-stat-cancelled">—</span><span class="m-stat-label">Cancelled</span></div>
+    <div class="m-stat" id="mss-stranded"  onclick="mFilterMap('stranded')"> <span class="m-stat-num danger" id="m-stat-stranded">—</span>  <span class="m-stat-label">EST.<br>Stranded</span></div>
+    <div class="m-stat" id="mss-cancelled" onclick="mFilterMap('cancelled')"><span class="m-stat-num warn"   id="m-stat-cancelled">—</span><span class="m-stat-label">Flights<br>Cancelled</span></div>
     <div class="m-stat" id="mss-airports"  onclick="mFilterMap('airports')"> <span class="m-stat-num danger" id="m-stat-airports">—</span>   <span class="m-stat-label">Airports<br>Closed</span></div>
-    <div class="m-stat" id="mss-airspace"  onclick="mFilterMap('airspace')"> <span class="m-stat-num warn"   id="m-stat-airspace">—</span>   <span class="m-stat-label">Airspace<br>Closed</span></div>
-    <div class="m-stat" id="mss-routes"    onclick="mFilterMap('routes')">   <span class="m-stat-num safe"   id="m-stat-routes">—</span>     <span class="m-stat-label">Routes<br>Open</span></div>
-    <div class="m-stat" id="mss-help"      onclick="mFilterMap('help')">     <span class="m-stat-num green"  id="m-stat-help">—</span>       <span class="m-stat-label">Help<br>Posts</span></div>
-    <div class="m-stat" onclick="mFilterMap('danger')" style="min-width:72px"><span style="font-size:.85rem">🔴</span><span class="m-stat-label">Conflict</span></div>
-    <div class="m-stat" onclick="mFilterMap('routes')" style="min-width:72px"><span style="font-size:.85rem">🟡</span><span class="m-stat-label">Routes</span></div>
-    <div class="m-stat" onclick="mFilterMap('worldwide')" style="min-width:72px"><span style="font-size:.85rem">🔵</span><span class="m-stat-label">Worldwide</span></div>
-    <div class="m-stat" onclick="mFilterMap('all')" style="min-width:72px"><span style="font-size:.72rem;color:var(--muted)">✕</span><span class="m-stat-label">Clear</span></div>
+    <div class="m-stat" id="mss-help"      onclick="mFilterMap('help')">     <span class="m-stat-num green"  id="m-stat-help">—</span>       <span class="m-stat-label">Help<br>Offered</span></div>
+  </div>
+  <!-- Sub-bar: map key filters -->
+  <div id="m-subbar">
+    <button class="m-subchip" onclick="mFilterMap('routes')">
+      <span class="m-subchip-dot" style="background:#c47c14"></span>Land Routes
+    </button>
+    <button class="m-subchip" onclick="mFilterMap('worldwide')">
+      <span class="m-subchip-dot" style="background:#1a56db"></span>Worldwide
+    </button>
+    <button class="m-subchip" onclick="mFilterMap('all')" id="m-clear-chip">
+      ✕ Clear Filter
+    </button>
   </div>
 
   <!-- Map -->
@@ -743,10 +766,16 @@ function filterMap(type) {
   _mk.worldwide.forEach(m=>{ showW?m.addTo(map):map.removeLayer(m); });
   _mk.help.forEach(m=>{ showH?m.addTo(map):map.removeLayer(m); });
 
-  if (type==='airports') _mk.country.forEach(({marker,country})=>{ if(country?.airspace==='CLOSED'){try{marker.openPopup();}catch(e){}} });
+  if (type==='airports'||type==='cancelled'||type==='stranded') {
+    renderAirportPins(map);
+    map.flyTo([28,47],5,{duration:1});
+    if(type==='airports') _mk.country.forEach(({marker,country})=>{ if(country?.airspace==='CLOSED'){try{marker.openPopup();}catch(e){}} });
+  } else {
+    clearDataPins(map);
+  }
   if (type==='routes')   map.flyTo([28,46],5,{duration:1});
   if (type==='help')     map.flyTo([28,45],5,{duration:1});
-  if (type==='all')      map.flyTo([28,45],5,{duration:1});
+  if (type==='all')    { clearDataPins(map); map.flyTo([28,45],5,{duration:1}); }
   showView('map');
 }
 
@@ -791,7 +820,58 @@ function initMap() {
   window._crisisMap = map;
 }
 
-function renderPostsOnMap(map) {
+// ── Live airport & flight data pins ─────────────────────────
+// Simulated live data — replace with AviationStack/FlightAware API
+const AIRPORT_DATA = [
+  {city:'Dubai',code:'DXB',coords:[25.252,55.364],cancelled:312,status:'CLOSED',stranded:56160,updated:'06:14 GST'},
+  {city:'Abu Dhabi',code:'AUH',coords:[24.432,54.651],cancelled:198,status:'CLOSED',stranded:35640,updated:'06:22 GST'},
+  {city:'Kuwait City',code:'KWI',coords:[29.226,47.968],cancelled:143,status:'CLOSED',stranded:25740,updated:'05:58 GST'},
+  {city:'Doha',code:'DOH',coords:[25.273,51.608],cancelled:117,status:'RESTRICTED',stranded:18720,updated:'06:10 GST'},
+  {city:'Bahrain',code:'BAH',coords:[26.270,50.633],cancelled:89,status:'CLOSED',stranded:16020,updated:'06:01 GST'},
+  {city:'Muscat',code:'MCT',coords:[23.593,58.284],cancelled:34,status:'OPEN',stranded:2720,updated:'06:18 GST'},
+  {city:'Riyadh',code:'RUH',coords:[24.957,46.698],cancelled:41,status:'PARTIALLY OPEN',stranded:3280,updated:'06:05 GST'},
+  {city:'Tehran',code:'IKA',coords:[35.416,51.152],cancelled:201,status:'CLOSED',stranded:36180,updated:'05:44 GST'},
+  {city:'Baghdad',code:'BGW',coords:[33.262,44.235],cancelled:88,status:'CLOSED',stranded:15840,updated:'05:52 GST'},
+];
+
+const _dataPins = {airports:[], flights:[]};
+
+function renderAirportPins(map) {
+  _dataPins.airports.forEach(m=>{try{map.removeLayer(m);}catch(e){}});
+  _dataPins.airports=[];
+  AIRPORT_DATA.forEach(a=>{
+    const col = a.status==='CLOSED'?'#d72c0d':a.status==='OPEN'?'#007a5c':'#c47c14';
+    const bgCol = a.status==='CLOSED'?'#fef0ee':a.status==='OPEN'?'#eaf7f3':'#fff8ec';
+    const icon = L.divIcon({
+      className:'',
+      html:`<div style="background:#fff;border:2px solid ${col};border-radius:8px;padding:4px 7px;font-family:'Inter',sans-serif;font-size:10px;font-weight:700;color:${col};box-shadow:0 2px 8px rgba(0,0,0,.12);white-space:nowrap;line-height:1.2">
+        ✈ ${a.code}<br><span style="font-size:9px;font-weight:600">${a.cancelled} cancelled</span>
+      </div>`,
+      iconAnchor:[0,0]
+    });
+    const m = L.marker(a.coords,{icon}).addTo(map).bindPopup(`
+      <div style="font-family:'Inter',sans-serif;min-width:220px">
+        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${col};margin-bottom:.3rem">✈ ${a.city} — ${a.code}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem .8rem;margin-bottom:.55rem">
+          <div><div style="font-size:1.4rem;font-weight:800;color:${col};letter-spacing:-.03em;line-height:1">${a.cancelled.toLocaleString()}</div><div style="font-size:.6rem;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.04em">Flights cancelled</div></div>
+          <div><div style="font-size:1.4rem;font-weight:800;color:#d72c0d;letter-spacing:-.03em;line-height:1">${a.stranded.toLocaleString()}</div><div style="font-size:.6rem;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.04em">Est. stranded</div></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:.35rem .5rem;background:${bgCol};border-radius:6px;align-items:center">
+          <span style="font-size:.7rem;font-weight:700;color:${col}">Status: ${a.status}</span>
+          <span style="font-size:.62rem;color:#888">Updated ${a.updated}</span>
+        </div>
+      </div>
+    `);
+    _dataPins.airports.push(m);
+  });
+}
+
+function clearDataPins(map) {
+  [..._dataPins.airports,..._dataPins.flights].forEach(m=>{try{map.removeLayer(m);}catch(e){}});
+  _dataPins.airports=[]; _dataPins.flights=[];
+}
+
+
   _mk.help.forEach(m=>{try{map.removeLayer(m);}catch(e){}});
   _mk.help.length=0; _postMarkers.forEach(m=>{try{map.removeLayer(m);}catch(e){}}); _postMarkers=[];
   posts.forEach(async p=>{
@@ -801,7 +881,7 @@ function renderPostsOnMap(map) {
       .bindPopup(`<div style="font-family:'Inter',sans-serif;min-width:200px"><div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#007a5c;margin-bottom:.2rem">Help offered</div><div style="font-weight:600;font-size:.84rem;margin-bottom:.2rem">${p.name}</div><div style="font-size:.77rem;color:#555;line-height:1.5;margin-bottom:.4rem">${p.body.slice(0,100)}${p.body.length>100?'…':''}</div><div style="font-size:.7rem;color:#888">📍 ${p.location}</div>${p.xhandle?`<a href="https://x.com/${p.xhandle}" target="_blank" style="display:inline-block;margin-top:.4rem;background:#007a5c;color:#fff;font-size:.68rem;font-weight:600;padding:.2rem .55rem;border-radius:5px;text-decoration:none">Tip $HELP →</a>`:''}</div>`);
     _mk.help.push(m); _postMarkers.push(m);
   });
-}
+
 
 async function geocodeCity(city){
   try{const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`,{headers:{'Accept-Language':'en','User-Agent':'ImStranded/1.0'}});const d=await r.json();if(d&&d[0])return{lat:parseFloat(d[0].lat),lng:parseFloat(d[0].lon)};}catch(e){}return null;
@@ -916,33 +996,42 @@ async function submitPost(type){
 // SITREP STATS
 // ============================================================
 function animCount(id, target, dur){
-  const el=document.getElementById(id); if(!el||!target)return;
-  const start=Date.now(), startVal=parseInt(el.textContent.replace(/,/g,''))||0;
-  const step=()=>{ const p=Math.min((Date.now()-start)/dur,1),v=Math.round(startVal+(target-startVal)*(1-Math.pow(1-p,3)));el.textContent=v.toLocaleString();if(p<1)requestAnimationFrame(step); };
+  const el=document.getElementById(id); if(!el) return;
+  if(target === null || target === undefined) return;
+  const raw = el.textContent.replace(/[^0-9]/g,'');
+  const startVal = raw.length ? parseInt(raw) : 0;
+  const start=Date.now();
+  const step=()=>{
+    const p=Math.min((Date.now()-start)/dur,1);
+    const v=Math.round(startVal+(target-startVal)*(1-Math.pow(1-p,3)));
+    el.textContent=v.toLocaleString();
+    if(p<1)requestAnimationFrame(step);
+  };
   requestAnimationFrame(step);
 }
 
 async function refreshSitrep(){
   const icon=document.getElementById('refresh-icon'),lbl=document.getElementById('refresh-label');
   if(icon)icon.classList.add('spinning');
-  // Hardcoded fallback values (replace with live API)
-  const vals = {stranded:847773,cancelled:1847,airports:5,airspace:4,routes:3};
-  animCount('stat-stranded',vals.stranded,1200);
-  animCount('stat-cancelled',vals.cancelled,800);
-  animCount('stat-airports-closed',vals.airports,500);
-  animCount('stat-airspace',vals.airspace,500);
-  animCount('stat-border-crossings',vals.routes,500);
-  // Sync mobile stats
-  animCount('m-stat-stranded',vals.stranded,1200);
-  animCount('m-stat-cancelled',vals.cancelled,800);
-  animCount('m-stat-airports',vals.airports,500);
-  animCount('m-stat-airspace',vals.airspace,500);
-  animCount('m-stat-routes',vals.routes,500);
+  // Demo values — replace with live aviation API
+  const vals = {stranded:847773, cancelled:1847, airports:5, airspace:4, routes:3, helpPosts:0};
+  // Desktop
+  animCount('stat-stranded',         vals.stranded,  1200);
+  animCount('stat-cancelled',        vals.cancelled, 800);
+  animCount('stat-airports-closed',  vals.airports,  500);
+  animCount('stat-airspace',         vals.airspace,  500);
+  animCount('stat-border-crossings', vals.routes,    500);
+  // Mobile (4-item bar: stranded, cancelled, airports, help)
+  animCount('m-stat-stranded',  vals.stranded,  1200);
+  animCount('m-stat-cancelled', vals.cancelled, 800);
+  animCount('m-stat-airports',  vals.airports,  500);
 
   if(SB_ON){
     const{count}=await _sb.from('help_posts').select('*',{count:'exact',head:true}).eq('flagged',false);
-    animCount('stat-help-posts',count||0,600);
-    animCount('m-stat-help',count||0,600);
+    const helpCount = count||0;
+    animCount('stat-help-posts', helpCount, 600);
+    animCount('m-stat-help',     helpCount, 600);
+    vals.helpPosts = helpCount;
   } else {
     ['stat-help-posts','m-stat-help'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='0';});
   }
@@ -998,16 +1087,27 @@ function initMobile(){
   mRenderResources();
 }
 
-// Mobile map filter (same stat IDs with 'm-' prefix)
+// Mobile map filter
 function mFilterMap(type){
+  // Update active state on stat bar
   document.querySelectorAll('.m-stat').forEach(s=>s.classList.remove('active-filter'));
-  const msMap={stranded:'mss-stranded',cancelled:'mss-cancelled',airports:'mss-airports',airspace:'mss-airspace',routes:'mss-routes',help:'mss-help'};
+  document.querySelectorAll('.m-subchip').forEach(s=>s.classList.remove('active'));
+  const msMap={stranded:'mss-stranded',cancelled:'mss-cancelled',airports:'mss-airports',help:'mss-help'};
   if(msMap[type]) document.getElementById(msMap[type])?.classList.add('active-filter');
-  // Visual only on mobile map — pan/zoom based on filter
+  // Sub-bar chips
+  if(type==='routes') document.querySelectorAll('.m-subchip')[0]?.classList.add('active');
+  if(type==='worldwide') document.querySelectorAll('.m-subchip')[1]?.classList.add('active');
+
   const mm=window._mobileMap; if(!mm)return;
-  if(type==='routes'||type==='airspace'||type==='airports') mm.flyTo([28,46],5,{duration:1});
+  if(type==='airports'||type==='cancelled'||type==='stranded'){
+    renderAirportPins(mm);
+    mm.flyTo([28,47],5,{duration:1});
+  } else {
+    clearDataPins(mm);
+  }
+  if(type==='routes')    mm.flyTo([28,46],5,{duration:1});
   if(type==='worldwide') mm.flyTo([20,40],3,{duration:1.2});
-  if(type==='all') mm.flyTo([28,45],4,{duration:1});
+  if(type==='all')     { clearDataPins(mm); mm.flyTo([28,45],4,{duration:1}); }
 }
 
 // Open full-screen country popup
