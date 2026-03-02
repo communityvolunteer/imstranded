@@ -11,33 +11,50 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
-    --bg: #ffffff;
-    --bg2: #f4f5f7;
-    --surface: #ffffff;
-    --surface2: #f8f9fa;
-    --border: #e2e5eb;
-    --border2: #c8cdd8;
-    --text: #111318;
-    --text2: #3d4450;
-    --muted: #8a909e;
-    --accent: #ff4d00;
-    --accent-soft: #fff2ee;
-    --accent2: #ffaa00;
-    --accent2-soft: #fff8e6;
-    --safe: #00b248;
-    --safe-soft: #e8f9f0;
-    --warn: #ffaa00;
-    --warn-soft: #fff8e6;
-    --danger: #ff4d00;
-    --danger-soft: #fff2ee;
-    --info: #2979ff;
-    --info-soft: #eef3ff;
+    /* ── Base — cool blue-gray operational surface ── */
+    --bg:       #f0f2f5;        /* cool light gray — never pure white */
+    --bg2:      #e8ebf0;        /* slightly deeper for alternating surfaces */
+    --surface:  #ffffff;        /* panels and cards */
+    --surface2: #f5f7fa;        /* nested surfaces */
+    --border:   #d6dae4;        /* subtle cool border */
+    --border2:  #b8bfce;        /* stronger dividers */
+
+    /* ── Text ── */
+    --text:     #0f1824;        /* near-black with blue undertone */
+    --text2:    #2e3d52;        /* body text — navy-gray */
+    --muted:    #7a8799;        /* secondary — blue-toned gray */
+
+    /* ── Primary brand — steel blue, institutional ── */
+    --primary:       #1a4b8c;   /* deep navy-blue — logo, headings, active states */
+    --primary-mid:   #2563b0;   /* mid blue — links, interactive */
+    --primary-light: #3b82d4;   /* lighter blue — hover states */
+    --primary-soft:  #e8f0fb;   /* very light blue — active bg tint */
+
+    /* ── Alert voltage — orange ONLY for crisis signals ── */
+    --accent:      #e8500a;     /* slightly deeper orange — not as hot, more credible */
+    --accent-soft: #fef0e8;
+    --accent2:     #d4860a;     /* amber — secondary alert */
+    --accent2-soft:#fef6e8;
+
+    /* ── Status colors — kept vivid to pop on cool bg ── */
+    --safe:      #0f9d5a;       /* green — open routes, stable */
+    --safe-soft: #e6f7ef;
+    --warn:      #d4860a;       /* amber — elevated/restricted */
+    --warn-soft: #fef6e8;
+    --danger:    #e8500a;       /* orange-red — crisis/closed */
+    --danger-soft:#fef0e8;
+    --info:      #2563b0;       /* blue — worldwide/neutral info */
+    --info-soft: #e8f0fb;
+
+    /* ── Fonts ── */
     --mono: 'Barlow Condensed', sans-serif;
     --sans: 'Barlow', sans-serif;
-    --radius: 8px;
+
+    /* ── Shape ── */
+    --radius:    8px;
     --radius-sm: 5px;
-    --shadow: 0 1px 4px rgba(17,19,24,0.07), 0 4px 12px rgba(17,19,24,0.05);
-    --shadow-lg: 0 4px 16px rgba(17,19,24,0.1), 0 12px 40px rgba(17,19,24,0.08);
+    --shadow:    0 1px 3px rgba(15,24,36,0.06), 0 4px 12px rgba(15,24,36,0.06);
+    --shadow-lg: 0 4px 20px rgba(15,24,36,0.10), 0 12px 40px rgba(15,24,36,0.08);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -53,36 +70,35 @@
 
   /* HEADER */
   header {
-    border-bottom: 1px solid var(--border);
+    border-bottom: 2px solid var(--primary);
     padding: 0 2rem;
     position: sticky;
     top: 0;
     z-index: 1000;
-    background: rgba(255,255,255,0.97);
-    backdrop-filter: blur(16px);
+    background: var(--primary);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 60px;
-    box-shadow: 0 1px 0 var(--border), 0 4px 16px rgba(17,19,24,0.04);
+    height: 56px;
+    box-shadow: 0 2px 16px rgba(15,24,36,0.18);
   }
 
   .logo {
     font-family: var(--mono);
     font-size: 1rem;
     font-weight: 700;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--text);
+    color: #ffffff;
     display: flex;
     align-items: center;
     gap: 0.6rem;
   }
 
-  .logo span { color: var(--accent); font-style: normal; }
+  .logo span { color: #ffb347; font-style: normal; } /* warm amber — logo accent only */
 
   .pulse-dot {
-    width: 9px; height: 9px;
+    width: 8px; height: 8px;
     background: var(--accent);
     border-radius: 50%;
     animation: pulse 2s infinite;
@@ -90,49 +106,52 @@
   }
 
   @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(193,68,14,0.4); }
-    50% { opacity: 0.8; transform: scale(0.85); box-shadow: 0 0 0 6px rgba(193,68,14,0); }
+    0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(232,80,10,0.5); }
+    50% { opacity: 0.85; transform: scale(0.85); box-shadow: 0 0 0 6px rgba(232,80,10,0); }
   }
 
   .last-updated {
-    font-size: 0.72rem;
-    color: var(--muted);
+    font-size: 0.68rem;
+    color: rgba(255,255,255,0.55);
     font-weight: 400;
+    letter-spacing: 0.04em;
   }
 
-  nav { display: flex; gap: 0.25rem; }
+  nav { display: flex; gap: 0.15rem; }
 
   nav button {
     background: none;
     border: none;
-    border-radius: 20px;
-    color: var(--muted);
-    font-family: var(--sans);
-    font-size: 0.82rem;
-    font-weight: 500;
-    padding: 0.4rem 1rem;
+    border-radius: 4px;
+    color: rgba(255,255,255,0.65);
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.9rem;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.15s;
   }
 
   nav button.active {
-    color: var(--accent);
-    background: var(--accent-soft);
-    font-weight: 600;
+    color: #ffffff;
+    background: rgba(255,255,255,0.15);
+    border-bottom: 2px solid var(--accent);
   }
 
   nav button:hover:not(.active) {
-    color: var(--text);
-    background: var(--bg2);
+    color: #ffffff;
+    background: rgba(255,255,255,0.08);
   }
 
-  /* ALERT BANNER */
+  /* ALERT BANNER — orange voltage strip */
   .alert-banner {
-    background: linear-gradient(90deg, #fff2ee, #ffffff);
-    border-bottom: 1px solid #ffd4c2;
-    padding: 0.55rem 2rem;
-    font-size: 0.78rem;
-    color: var(--accent);
+    background: #1c3d70;        /* dark navy — just below header */
+    border-bottom: 1px solid #0f2a55;
+    padding: 0.5rem 2rem;
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.75);
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -143,9 +162,9 @@
     background: var(--accent);
     color: #fff;
     font-weight: 700;
-    padding: 0.2rem 0.6rem;
-    border-radius: 4px;
-    font-size: 0.65rem;
+    padding: 0.18rem 0.55rem;
+    border-radius: 3px;
+    font-size: 0.62rem;
     letter-spacing: 0.08em;
     flex-shrink: 0;
   }
@@ -175,25 +194,26 @@
 
   .map-legend {
     position: absolute;
-    bottom: 2rem;
+    bottom: 9rem;
     left: 2rem;
     z-index: 999;
-    background: rgba(255,255,255,0.95);
-    border: 1px solid var(--border);
+    background: rgba(15,30,53,0.92);
+    border: 1px solid rgba(255,255,255,0.08);
     border-radius: var(--radius-sm);
     padding: 1rem 1.25rem;
     font-size: 0.75rem;
-    box-shadow: var(--shadow);
-    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 20px rgba(15,24,36,0.3);
+    backdrop-filter: blur(12px);
   }
 
   .legend-title {
-    color: var(--muted);
+    color: rgba(255,255,255,0.4);
     margin-bottom: 0.6rem;
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    font-weight: 600;
+    letter-spacing: 0.12em;
+    font-weight: 700;
+    font-family: var(--mono);
   }
 
   .legend-item {
@@ -201,70 +221,70 @@
     align-items: center;
     gap: 0.6rem;
     margin-bottom: 0.3rem;
-    color: var(--text2);
-    font-size: 0.75rem;
+    color: rgba(255,255,255,0.65);
+    font-size: 0.72rem;
   }
 
-  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
 
-  /* SITREP BAR */
+  /* SITREP BAR — dark ops dashboard strip */
   .sitrep-bar {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
+    background: #0f1e35;        /* deep navy — operations center feel */
+    border-bottom: 1px solid #0a1628;
     padding: 0 2rem;
     display: flex;
     gap: 0;
     overflow-x: auto;
     scrollbar-width: none;
-    box-shadow: var(--shadow);
+    box-shadow: 0 2px 12px rgba(15,24,36,0.2);
   }
   .sitrep-bar::-webkit-scrollbar { display: none; }
 
   .sitrep-stat {
     flex: 1;
     min-width: 150px;
-    padding: 1rem 1.5rem;
-    border-right: 1px solid var(--border);
+    padding: 0.85rem 1.5rem;
+    border-right: 1px solid rgba(255,255,255,0.07);
     text-align: center;
   }
   .sitrep-stat:last-child { border-right: none; }
 
   .sitrep-number {
     font-family: var(--mono);
-    font-size: 2.2rem;
+    font-size: 2rem;
     font-weight: 700;
-    letter-spacing: 0.01em;
+    letter-spacing: 0.02em;
     line-height: 1;
     margin-bottom: 0.2rem;
   }
 
   .sitrep-label {
     font-family: var(--mono);
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--muted);
+    letter-spacing: 0.12em;
+    color: rgba(255,255,255,0.4);
   }
 
   .sitrep-sublabel {
-    font-size: 0.6rem;
-    color: var(--muted);
-    opacity: 0.7;
+    font-size: 0.56rem;
+    color: rgba(255,255,255,0.25);
     margin-top: 0.1rem;
   }
 
-  .sitrep-number.danger { color: var(--danger); }
-  .sitrep-number.warn   { color: var(--warn); }
-  .sitrep-number.safe   { color: var(--safe); }
-  .sitrep-number.info   { color: var(--info); }
+  /* Orange = crisis signal. Blue = operational info. Green = safe. */
+  .sitrep-number.danger { color: #ff6b35; }   /* hot orange — stranded, closed */
+  .sitrep-number.warn   { color: #f0a500; }   /* amber */
+  .sitrep-number.safe   { color: #34c77b; }   /* green */
+  .sitrep-number.info   { color: #60a5fa; }   /* soft blue — help posts */
 
   .sitrep-refresh {
     display: flex;
     align-items: center;
     padding: 0 1.25rem;
-    font-size: 0.68rem;
-    color: var(--muted);
+    font-size: 0.62rem;
+    color: rgba(255,255,255,0.35);
     gap: 0.4rem;
     white-space: nowrap;
     cursor: pointer;
@@ -274,7 +294,7 @@
     font-weight: 500;
     transition: color 0.2s;
   }
-  .sitrep-refresh:hover { color: var(--text); }
+  .sitrep-refresh:hover { color: rgba(255,255,255,0.8); }
 
   @keyframes spin { to { transform: rotate(360deg); } }
   .spinning { animation: spin 1s linear infinite; display: inline-block; }
@@ -290,7 +310,7 @@
     font-weight: 700;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: var(--text);
+    color: var(--primary);
     margin-bottom: 0.2rem;
   }
 
@@ -310,19 +330,21 @@
     background: var(--surface);
     border: 1.5px solid var(--border);
     color: var(--text2);
-    font-family: var(--sans);
-    font-size: 0.78rem;
-    font-weight: 500;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
     padding: 0.4rem 1rem;
-    border-radius: 20px;
+    border-radius: 4px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.15s;
   }
 
   .filter-btn.active, .filter-btn:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: var(--accent-soft);
+    border-color: var(--primary-mid);
+    color: var(--primary);
+    background: var(--primary-soft);
   }
 
   .countries-grid {
@@ -341,7 +363,7 @@
   }
 
   .country-card:hover {
-    border-color: var(--border2);
+    border-color: var(--primary-mid);
     box-shadow: var(--shadow-lg);
     transform: translateY(-1px);
   }
@@ -356,8 +378,10 @@
   .country-name {
     font-family: var(--mono);
     font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--text);
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
   }
 
   .status-badge {
@@ -464,8 +488,8 @@
     gap: 0.6rem;
   }
 
-  .column-offer { background: var(--safe-soft); color: var(--safe); }
-  .column-need  { background: var(--danger-soft); color: var(--danger); }
+  .column-offer { background: var(--primary-soft); color: var(--primary); border-left: 3px solid var(--primary-mid); }
+  .column-need  { background: var(--danger-soft);  color: var(--danger);  border-left: 3px solid var(--accent); }
 
   .post-form {
     background: var(--surface);
@@ -515,8 +539,8 @@
   .form-row input:focus,
   .form-row textarea:focus,
   .form-row select:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(193,68,14,0.1);
+    border-color: var(--primary-mid);
+    box-shadow: 0 0 0 3px rgba(37,99,176,0.12);
   }
 
   .form-row textarea { resize: vertical; min-height: 90px; }
@@ -526,15 +550,18 @@
     color: var(--muted);
     margin-bottom: 1rem;
     line-height: 1.6;
-    background: var(--bg2);
+    background: var(--primary-soft);
     border-radius: var(--radius-sm);
     padding: 0.65rem 0.9rem;
+    border-left: 3px solid var(--primary-mid);
   }
 
-  .form-note strong { color: var(--accent2); }
+  .form-note strong { color: var(--primary); }
 
+  /* Offer = blue (calm, institutional — you're the helper)
+     Need = orange (urgent signal — person in crisis) */
   .submit-btn {
-    background: var(--accent);
+    background: var(--primary-mid);
     color: #fff;
     border: none;
     border-radius: var(--radius-sm);
@@ -549,13 +576,13 @@
     width: 100%;
   }
 
-  .submit-btn:hover { background: #e04000; box-shadow: 0 4px 12px rgba(255,77,0,0.3); }
+  .submit-btn:hover { background: var(--primary); box-shadow: 0 4px 12px rgba(26,75,140,0.3); }
   .submit-btn.need {
-    background: transparent;
-    border: 2px solid var(--danger);
-    color: var(--danger);
+    background: var(--accent);
+    border: none;
+    color: #fff;
   }
-  .submit-btn.need:hover { background: var(--danger-soft); }
+  .submit-btn.need:hover { background: #c94508; box-shadow: 0 4px 12px rgba(232,80,10,0.3); }
 
   .posts-list { display: flex; flex-direction: column; gap: 0.9rem; }
 
@@ -724,11 +751,8 @@
     font-family: var(--mono);
     font-size: 1.1rem;
     font-weight: 600;
-    color: var(--accent);
+    color: var(--primary);
     margin-bottom: 1rem;
-  }
-
-  .modal-close {
     position: absolute;
     top: 1rem; right: 1rem;
     background: var(--bg2);
@@ -745,16 +769,16 @@
   .modal-close:hover { background: var(--border); color: var(--text); }
 
   /* Leaflet overrides */
-  .leaflet-container { background: #f4f5f7 !important; }
+  .leaflet-container { background: #dce4ee !important; }
   .leaflet-popup-content-wrapper {
-    background: var(--surface) !important;
-    border: 1.5px solid var(--border) !important;
+    background: #ffffff !important;
+    border: 1px solid var(--border) !important;
     color: var(--text) !important;
     border-radius: var(--radius) !important;
-    box-shadow: var(--shadow-lg) !important;
+    box-shadow: 0 4px 20px rgba(15,24,36,0.15) !important;
     font-family: var(--sans) !important;
   }
-  .leaflet-popup-tip { background: var(--surface) !important; }
+  .leaflet-popup-tip { background: #ffffff !important; }
   .leaflet-popup-content { margin: 1rem !important; }
 </style>
 </head>
@@ -1388,7 +1412,7 @@ function initMap() {
   const map = L.map('crisis-map', { zoomControl: false }).setView([28, 45], 5);
   L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
     attribution: '©OpenStreetMap ©CARTO',
     maxZoom: 19
   }).addTo(map);
@@ -1418,7 +1442,7 @@ function initMap() {
           <strong style="color:${c.airspace==='CLOSED'?'#ff4d00':c.airspace.includes('OPEN')?'#00b248':'#ffaa00'}">${c.airspace}</strong>
         </div>
         ${c.telegram ? `<a href="${c.telegram}" style="color:#2979ff;font-size:0.75rem;display:block;margin-bottom:0.6rem;font-weight:600" target="_blank">→ Telegram group</a>` : ''}
-        <button onclick="window.filterAndShowCountry('${c.id}')" style="background:#ff4d00;border:none;color:#fff;font-family:'Barlow',sans-serif;font-size:0.78rem;font-weight:700;padding:0.4rem 1rem;cursor:pointer;border-radius:4px;letter-spacing:0.03em;width:100%">FULL INFO & EMBASSIES →</button>
+        <button onclick="window.filterAndShowCountry('${c.id}')" style="background:#1a4b8c;border:none;color:#fff;font-family:'Barlow',sans-serif;font-size:0.78rem;font-weight:700;padding:0.4rem 1rem;cursor:pointer;border-radius:4px;letter-spacing:0.03em;width:100%">FULL INFO & EMBASSIES →</button>
       </div>
     `);
   });
@@ -1742,7 +1766,7 @@ function flashNewPost(id) {
     const el = document.querySelector(`[data-post-id="${id}"]`);
     if (el) {
       el.style.transition = 'background 0.3s';
-      el.style.background = 'rgba(255,77,0,0.12)';
+      el.style.background = 'rgba(37,99,176,0.10)';
       setTimeout(() => { el.style.background = ''; }, 1200);
       el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
@@ -2015,7 +2039,7 @@ function subscribeSitrep() {
         // Flash the bar to signal update
         const bar = document.getElementById('sitrep-bar');
         bar.style.transition = 'background 0.4s';
-        bar.style.background = 'rgba(255,77,0,0.08)';
+        bar.style.background = 'rgba(37,99,176,0.06)';
         setTimeout(() => { bar.style.background = ''; }, 1000);
       }
     )
