@@ -635,7 +635,7 @@ function mTab(tab,btn){
   document.querySelectorAll('.m-tab,.m-tab-offer').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');_mCurrentTab=tab;
   if(tab==='map'){_mSheetOpen=false;sheet.classList.remove('open');}
-  else if(tab==='resources') mShowSheetContent('resources','Resources');
+  else if(tab==='resources') mShowSheetContent('resources','ADDITIONAL RESOURCES');
   else if(tab==='offer')     mShowSheetContent('offer','OFFER HELP');
 }
 
