@@ -532,10 +532,30 @@ function initMobile(){
   document.getElementById('m-shell').style.display='flex';
   const mmap=L.map('m-crisis-map',{zoomControl:false,attributionControl:false}).setView([28,45],4);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mmap);
-  COUNTRIES.forEach(c=>{
-    L.circleMarker(c.coords,{radius:10,fillColor:SC[c.status],color:'#fff',weight:2,opacity:1,fillOpacity:.92}).addTo(mmap)
-      .on('click',()=>openMCountryPopup(c.id));
-  });
+  COUNTRIES.forEach(c => {
+  const col = SC[c.status];
+
+  // 🔴 RED GLOW (same as desktop)
+  L.circleMarker(c.coords, {
+    radius: 15,
+    fillColor: '#ec3452',
+    color: '#ec3452',
+    weight: 1,
+    opacity: .4,
+    fillOpacity: .2
+  }).addTo(mmap);
+
+  // 🔵 ACTUAL DOT
+  L.circleMarker(c.coords, {
+    radius: 10,
+    fillColor: col,
+    color: '#fff',
+    weight: 2,
+    opacity: 1,
+    fillOpacity: .92
+  }).addTo(mmap)
+    .on('click', () => openMCountryPopup(c.id));
+});
   
   WORLDWIDE.forEach(r=>{
     L.circleMarker(r.coords,{radius:7,fillColor:'#a855f7',color:'#fff',weight:1.5,opacity:.9,fillOpacity:.5}).addTo(mmap)
