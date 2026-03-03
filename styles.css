@@ -424,14 +424,14 @@ transform: translateX(-50%);
   /* Country full-screen popup */
   #m-country-popup{
     position:absolute;inset:0;z-index:950;
-    background:var(--surface);overflow-y:auto;
+    background:#000;overflow-y:auto;
     transform:translateY(100%);
     transition:transform .3s cubic-bezier(.4,0,.2,1);
     -webkit-overflow-scrolling:touch;
   }
   #m-country-popup.open{transform:translateY(0);}
   .m-popup-header{
-    position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--border);
+    position:sticky;top:0;background:#000;border-bottom:1px solid var(--border);
     padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;z-index:1;
   }
   .m-popup-title{font-size:1rem;font-weight:700;}
