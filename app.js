@@ -253,7 +253,7 @@ function initMap() {
       .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:240px">
         <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#fcd34d;margin-bottom:.4rem">${c.name}</div>
         <div style="font-size:.82rem;color:rgba(255,255,255,.85);line-height:1.55;margin-bottom:.6rem">${c.advisory}</div>
-        <div style="font-size:.72rem;margin-bottom:.75rem;color:rgba(255,255,255,.6)">Airspace: <strong style="color:${c.airspace==='CLOSED'?'#ec3452':c.airspace.includes('OPEN')?'#6ee7b7':'#fcd34d'}">${c.airspace}</strong></div>
+        <div style="font-size:.72rem;margin-bottom:.75rem;color:rgba(255,255,255,.6)">Airspace: <strong style="color:${c.airspace==='CLOSED'?'#ec3452':c.airspace.includes('OPEN')?'#17bc7b':'#fcd34d'}">${c.airspace}</strong></div>
         ${c.telegram?`<a href="${c.telegram}" style="color:#3498ec;font-size:.76rem;font-weight:500;display:block;margin-bottom:.6rem" target="_blank">→ Telegram group</a>`:''}
         <button onclick="window.showCountryDetail('${c.id}')" style="background:#3498ec;border:none;color:#fff;font-family:Inter,sans-serif;font-size:.82rem;font-weight:700;padding:.55rem 1rem;cursor:pointer;border-radius:8px;width:100%">Full info &amp; embassies →</button>
       </div>`);
@@ -263,7 +263,7 @@ function initMap() {
 
   LAND_ROUTES.forEach(r => {
     const col = r.status==='safe'?'#059669':r.status==='warn'?'#d97706':'#dc2626';
-    const lc  = r.status==='safe'?'#6ee7b7':r.status==='warn'?'#fcd34d':'#ec3452';
+    const lc  = r.status==='safe'?'#17bc7b':r.status==='warn'?'#fcd34d':'#ec3452';
     const line = L.polyline([r.from,r.to],{color:col,weight:3,opacity:.85,
       dashArray:r.status==='danger'?'6,8':r.status==='warn'?'8,4':null}).addTo(map)
       .bindPopup(`<div style="font-family:Inter,sans-serif"><div style="font-weight:700;font-size:.85rem;color:${lc};margin-bottom:.2rem">${r.label}</div><div style="font-size:.72rem;color:rgba(255,255,255,.55)">${r.status.toUpperCase()}</div></div>`);
