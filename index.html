@@ -31,7 +31,7 @@
   --brand:       #0e7490;   /* primary teal-blue */
   --brand-dark:  #0a5c73;
   --brand-light: #cffafe;
-  --brand-mid:   #164e63;   /* deep teal for headers */
+  --brand-mid:   #0a1e39;   /* deep teal for headers */
 
   /* Status — saturated, not muted */
   --danger:      #dc2626;   /* vivid red */
@@ -68,9 +68,9 @@ header{
   display:flex;align-items:center;gap:.5rem;
   justify-self:start;white-space:nowrap;
 }
-.logo-accent{color:#67e8f9;}  /* cyan accent */
+.logo-accent{color:#35e7ff;}  /* cyan accent */
 .pulse-dot{
-  width:8px;height:8px;border-radius:50%;background:#67e8f9;
+  width:8px;height:8px;border-radius:50%;background:#35e7ff;
   flex-shrink:0;animation:pdot 2s infinite;
 }
 @keyframes pdot{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(103,232,249,.5);}50%{transform:scale(.8);box-shadow:0 0 0 5px rgba(103,232,249,0);}}
@@ -81,64 +81,64 @@ nav button{
   color:rgba(255,255,255,.65);font-family:'Inter',sans-serif;font-size:.85rem;font-weight:500;
   padding:0 1.1rem;height:56px;margin-bottom:-1px;cursor:pointer;transition:all .15s;white-space:nowrap;
 }
-nav button.active{color:#fff;border-bottom-color:#67e8f9;}
+nav button.active{color:#fff;border-bottom-color:#35e7ff;}
 nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 
 .header-right{display:flex;align-items:center;gap:.75rem;justify-self:end;}
 .last-updated{font-size:.67rem;color:rgba(255,255,255,.5);white-space:nowrap;}
 
 .cta-pill{
-  background:#67e8f9;color:var(--brand-mid);border:none;border-radius:999px;
-  padding:.45rem 1.1rem;font-family:'Inter',sans-serif;font-size:.82rem;font-weight:700;
+  background:#35e7ff;color:var(--brand-mid);border:2px solid #35e7ff;border-radius:8px;
+  padding:.42rem 1.1rem;font-family:'Inter',sans-serif;font-size:.84rem;font-weight:700;
   cursor:pointer;display:flex;align-items:center;gap:.35rem;white-space:nowrap;
-  transition:background .15s,transform .1s;box-shadow:0 2px 8px rgba(0,0,0,.2);
+  transition:all .15s;letter-spacing:.01em;
 }
-.cta-pill:hover{background:#a5f3fc;transform:scale(1.02);}
+.cta-pill:hover{background:#a5f3fc;border-color:#a5f3fc;transform:scale(1.01);}
 
 /* ── SITREP BAR ─────────────────────────────────────────── */
 .sitrep-bar{
-  background:var(--surface);border-bottom:1px solid var(--border);
+  background:var(--brand-mid);
   display:flex;overflow-x:auto;scrollbar-width:none;
-  min-height:72px;
+  min-height:80px;
 }
 .sitrep-bar::-webkit-scrollbar{display:none;}
 
 .sitrep-stat{
-  flex:1;min-width:115px;
-  padding:.75rem 1rem;border-right:1px solid var(--border);
+  flex:1;min-width:130px;
+  padding:.85rem 1rem;border-right:1px solid rgba(255,255,255,.12);
   text-align:center;cursor:pointer;
   user-select:none;position:relative;
   transition:background .15s;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
 }
-.sitrep-stat:last-of-type{border-right:none;}
-.sitrep-stat:hover{background:var(--surface2);}
-.sitrep-stat.active-filter{background:var(--brand-light);}
+.sitrep-stat:hover{background:rgba(255,255,255,.07);}
+.sitrep-stat.active-filter{background:rgba(103,232,249,.15);}
 .sitrep-stat.active-filter::after{
   content:'';position:absolute;bottom:0;left:0;right:0;
-  height:3px;background:var(--brand);border-radius:3px 3px 0 0;
+  height:3px;background:#35e7ff;border-radius:3px 3px 0 0;
 }
 .sitrep-num{
-  font-size:1.8rem;font-weight:800;letter-spacing:-.04em;
-  line-height:1;margin-bottom:.14rem;display:block;
-  font-variant-numeric:tabular-nums;
+  font-size:2.1rem;font-weight:800;letter-spacing:-.04em;
+  line-height:1;margin-bottom:.18rem;display:block;
+  color:#fff;font-variant-numeric:tabular-nums;
 }
-.sitrep-num.danger{color:var(--danger);}
-.sitrep-num.warn  {color:var(--warn);}
-.sitrep-num.safe  {color:var(--safe);}
-.sitrep-num.green {color:var(--green);}
-.sitrep-num.info  {color:var(--info);}
-.sitrep-num.brand {color:var(--brand);}
-.sitrep-label{font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);line-height:1.2;}
-.sitrep-sub  {font-size:.55rem;color:var(--muted);opacity:.7;margin-top:.12rem;}
+.sitrep-num.danger{color:#fca5a5;}
+.sitrep-num.warn  {color:#fcd34d;}
+.sitrep-num.safe  {color:#6ee7b7;}
+.sitrep-num.green {color:#6ee7b7;}
+.sitrep-num.info  {color:#93c5fd;}
+.sitrep-num.brand {color:#35e7ff;}
+.sitrep-label{font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.55);line-height:1.2;}
+.sitrep-sub  {font-size:.53rem;color:rgba(255,255,255,.35);margin-top:.12rem;}
 
 .sitrep-refresh{
-  display:flex;align-items:center;padding:0 1rem;flex-shrink:0;
-  font-size:.67rem;color:var(--muted);gap:.35rem;
-  white-space:nowrap;cursor:pointer;border:none;background:none;
-  font-family:'Inter',sans-serif;transition:color .2s;
+  display:flex;align-items:center;justify-content:center;
+  padding:0 1.1rem;flex-shrink:0;
+  cursor:pointer;border:none;background:none;
+  color:rgba(255,255,255,.5);transition:color .2s;
 }
-.sitrep-refresh:hover{color:var(--brand);}
+.sitrep-refresh:hover{color:#35e7ff;}
+.sitrep-refresh svg{width:22px;height:22px;}
 @keyframes spin{to{transform:rotate(360deg);}}
 .spinning{animation:spin 1s linear infinite;display:inline-block;}
 
@@ -147,35 +147,35 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 .view{display:none;}.view.active{display:block;}
 
 /* ── MAP VIEW ───────────────────────────────────────────── */
-#map-view{position:relative;height:calc(100vh - 56px - 73px);}
+#map-view{position:relative;height:calc(100vh - 56px - 80px);}
 #crisis-map{width:100%;height:100%;}
 
 .map-legend{
   position:absolute;bottom:2rem;left:1.5rem;z-index:999;
-  background:rgba(255,255,255,.97);border:1px solid var(--border);
-  border-radius:var(--radius);padding:.85rem 1rem;
-  box-shadow:var(--shadow-md);min-width:182px;
+  background:var(--brand-mid);border:1px solid rgba(255,255,255,.1);
+  border-radius:var(--radius);padding:.9rem 1.1rem;
+  box-shadow:var(--shadow-lg);min-width:188px;
 }
-.legend-title{font-size:.59rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--brand);margin-bottom:.5rem;}
+.legend-title{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#fff;margin-bottom:.55rem;}
 .legend-item{
-  display:flex;align-items:center;gap:.55rem;
-  margin-bottom:.28rem;font-size:.76rem;color:var(--text2);
+  display:flex;align-items:center;gap:.6rem;
+  margin-bottom:.32rem;font-size:.78rem;color:rgba(255,255,255,.8);
   cursor:pointer;border-radius:5px;padding:.15rem .35rem;transition:background .15s;
 }
-.legend-item:hover{background:var(--surface2);}
-.legend-item.active-legend{background:var(--brand-light);color:var(--brand);font-weight:600;}
-.legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
-.legend-clear{font-size:.68rem;color:var(--muted);margin-top:.45rem;cursor:pointer;padding:.15rem .35rem;border-radius:4px;}
-.legend-clear:hover{color:var(--brand);}
+.legend-item:hover{background:rgba(255,255,255,.08);}
+.legend-item.active-legend{background:rgba(103,232,249,.18);color:#35e7ff;font-weight:600;}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.legend-clear{font-size:.7rem;color:#35e7ff;margin-top:.5rem;cursor:pointer;padding:.15rem .35rem;border-radius:4px;display:flex;align-items:center;gap:.3rem;}
+.legend-clear:hover{color:#a5f3fc;}
 
-/* Leaflet — cool slate-gray map tiles via Stamen Toner Lite style */
+/* Leaflet — dark teal popups matching design */
 .leaflet-container{background:#c9d2d8 !important;}
 .leaflet-popup-content-wrapper{
-  background:#fff !important;border:1px solid var(--border) !important;
-  color:var(--text) !important;border-radius:var(--radius) !important;
+  background:var(--brand-mid) !important;border:1px solid rgba(255,255,255,.12) !important;
+  color:#fff !important;border-radius:var(--radius) !important;
   box-shadow:var(--shadow-lg) !important;font-family:'Inter',sans-serif !important;
 }
-.leaflet-popup-tip{background:#fff !important;}
+.leaflet-popup-tip{background:var(--brand-mid) !important;}
 .leaflet-popup-content{margin:.85rem 1rem !important;}
 
 /* Airport data pins */
@@ -312,7 +312,7 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
   .m-stat.active-filter{background:rgba(103,232,249,.2);}
   .m-stat.active-filter::after{
     content:'';position:absolute;bottom:0;left:0;right:0;
-    height:3px;background:#67e8f9;border-radius:3px 3px 0 0;
+    height:3px;background:#35e7ff;border-radius:3px 3px 0 0;
   }
   .m-stat-num{font-size:1.25rem;font-weight:800;letter-spacing:-.03em;line-height:1;display:block;color:#fff;font-variant-numeric:tabular-nums;}
   .m-stat-num.danger{color:#fca5a5;}
@@ -320,6 +320,7 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
   .m-stat-num.safe  {color:#6ee7b7;}
   .m-stat-num.green {color:#6ee7b7;}
   .m-stat-num.info  {color:#93c5fd;}
+  .m-stat-num.glue {color:#35e7ff;}
   .m-stat-label{font-size:.43rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:rgba(255,255,255,.6);margin-top:.1rem;text-align:center;line-height:1.2;}
 
   /* ── Sub-bar: map key filters ── */
@@ -451,44 +452,48 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
   </nav>
   <div class="header-right">
     <div class="last-updated" id="last-updated-label">Loading…</div>
-    <button class="cta-pill" onclick="showView('help')">Share a Spare Room ♥</button>
+    <button class="cta-pill" onclick="showView('help')">+ Offer a Spare Room</button>
   </div>
 </header>
 
 <!-- ── SITREP BAR ─────────────────────────────────────────── -->
 <div class="sitrep-bar" id="sitrep-bar">
   <div class="sitrep-stat" id="ss-stranded"  onclick="filterMap('stranded')">
-    <span class="sitrep-num danger" id="stat-stranded" style="color:#dc2626">847,773</span>
+    <span class="sitrep-num danger" id="stat-stranded" style="color:#35e7ff">847,773</span>
     <div class="sitrep-label">Est. Stranded</div>
     <div class="sitrep-sub">tap · filter map</div>
   </div>
   <div class="sitrep-stat" id="ss-cancelled" onclick="filterMap('cancelled')">
-    <span class="sitrep-num warn" id="stat-cancelled" style="color:#d97706">1,847</span>
+    <span class="sitrep-num warn" id="stat-cancelled" style="color:#35e7ff">1,847</span>
     <div class="sitrep-label">Flights Cancelled</div>
     <div class="sitrep-sub">tap · filter map</div>
   </div>
   <div class="sitrep-stat" id="ss-airports"  onclick="filterMap('airports')">
-    <span class="sitrep-num danger" id="stat-airports-closed" style="color:#dc2626">5</span>
+    <span class="sitrep-num danger" id="stat-airports-closed" style="color:#35e7ff">5</span>
     <div class="sitrep-label">Airports Closed</div>
     <div class="sitrep-sub">tap · filter map</div>
   </div>
   <div class="sitrep-stat" id="ss-airspace"  onclick="filterMap('airspace')">
-    <span class="sitrep-num warn" id="stat-airspace" style="color:#d97706">4</span>
+    <span class="sitrep-num warn" id="stat-airspace" style="color:#35e7ff">4</span>
     <div class="sitrep-label">Airspace Closed</div>
     <div class="sitrep-sub">tap · filter map</div>
   </div>
   <div class="sitrep-stat" id="ss-routes"    onclick="filterMap('routes')">
-    <span class="sitrep-num safe" id="stat-border-crossings" style="color:#059669">3</span>
+    <span class="sitrep-num safe" id="stat-border-crossings" style="color:#35e7ff">3</span>
     <div class="sitrep-label">Land Routes Open</div>
     <div class="sitrep-sub">tap · filter map</div>
   </div>
   <div class="sitrep-stat" id="ss-help"      onclick="filterMap('help')">
-    <span class="sitrep-num green" id="stat-help-posts" style="color:#059669">0</span>
+    <span class="sitrep-num green" id="stat-help-posts" style="color:#35e7ff">0</span>
     <div class="sitrep-label">Help Posts Live</div>
     <div class="sitrep-sub">tap · filter map</div>
   </div>
-  <button class="sitrep-refresh" onclick="refreshSitrep()">
-    <span id="refresh-icon">↻</span> <span id="refresh-label">just now</span>
+  <button class="sitrep-refresh" onclick="refreshSitrep()" title="Refresh data">
+    <span id="refresh-icon" style="display:flex;align-items:center">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+      </svg>
+    </span>
   </button>
 </div>
 
@@ -558,10 +563,10 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 
   <!-- 4-stat filter bar -->
   <div id="m-statbar">
-    <div class="m-stat" id="mss-stranded"  onclick="mFilterMap('stranded')"><span class="m-stat-num danger" id="m-stat-stranded">847,773</span><span class="m-stat-label">EST.<br>Stranded</span></div>
-    <div class="m-stat" id="mss-cancelled" onclick="mFilterMap('cancelled')"><span class="m-stat-num warn"   id="m-stat-cancelled">1,847</span>  <span class="m-stat-label">Flights<br>Cancelled</span></div>
-    <div class="m-stat" id="mss-airports"  onclick="mFilterMap('airports')"> <span class="m-stat-num danger" id="m-stat-airports">5</span>         <span class="m-stat-label">Airports<br>Closed</span></div>
-    <div class="m-stat" id="mss-help"      onclick="mFilterMap('help')">     <span class="m-stat-num green"  id="m-stat-help">0</span>             <span class="m-stat-label">Help<br>Offered</span></div>
+    <div class="m-stat" id="mss-stranded"  onclick="mFilterMap('stranded')"><span class="m-stat-num blue" id="m-stat-stranded">847,773</span><span class="m-stat-label">EST.<br>Stranded</span></div>
+    <div class="m-stat" id="mss-cancelled" onclick="mFilterMap('cancelled')"><span class="m-stat-num blue"   id="m-stat-cancelled">1,847</span>  <span class="m-stat-label">Flights<br>Cancelled</span></div>
+    <div class="m-stat" id="mss-airports"  onclick="mFilterMap('airports')"> <span class="m-stat-num blue" id="m-stat-airports">5</span>         <span class="m-stat-label">Airports<br>Closed</span></div>
+    <div class="m-stat" id="mss-help"      onclick="mFilterMap('help')">     <span class="m-stat-num blue"  id="m-stat-help">0</span>             <span class="m-stat-label">Help<br>Offered</span></div>
   </div>
 
   <!-- Sub-bar: map key + clear -->
@@ -798,28 +803,29 @@ function initMap() {
     const col = SC[c.status];
     const glow = L.circleMarker(c.coords,{radius:15,fillColor:col,color:col,weight:1,opacity:.25,fillOpacity:.1}).addTo(map);
     const dot  = L.circleMarker(c.coords,{radius:8,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.95}).addTo(map)
-      .bindPopup(`<div style="font-family:'Inter',sans-serif;min-width:230px">
-        <div style="font-size:.9rem;font-weight:700;color:${col};margin-bottom:.3rem">${c.name}</div>
-        <div style="font-size:.77rem;color:#555;line-height:1.5;margin-bottom:.5rem">${c.advisory}</div>
-        <div style="font-size:.7rem;margin-bottom:.6rem">Airspace: <strong style="color:${c.airspace==='CLOSED'?'#d72c0d':c.airspace.includes('OPEN')?'#007a5c':'#c47c14'}">${c.airspace}</strong></div>
-        ${c.telegram?`<a href="${c.telegram}" style="color:#1a56db;font-size:.75rem;font-weight:500;display:block;margin-bottom:.5rem" target="_blank">→ Telegram group</a>`:''}
-        <button onclick="window.showCountryDetail('${c.id}')" style="background:#0e7490;border:none;color:#fff;font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;padding:.4rem .9rem;cursor:pointer;border-radius:8px;width:100%">Full info &amp; embassies →</button>
+      .bindPopup(`<div style="font-family:'Inter',sans-serif;min-width:240px">
+        <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#fcd34d;margin-bottom:.4rem">${c.name}</div>
+        <div style="font-size:.82rem;color:rgba(255,255,255,.85);line-height:1.55;margin-bottom:.6rem">${c.advisory}</div>
+        <div style="font-size:.72rem;margin-bottom:.75rem;color:rgba(255,255,255,.6)">Airspace: <strong style="color:${c.airspace==='CLOSED'?'#fca5a5':c.airspace.includes('OPEN')?'#6ee7b7':'#fcd34d'}">${c.airspace}</strong></div>
+        ${c.telegram?`<a href="${c.telegram}" style="color:#35e7ff;font-size:.76rem;font-weight:500;display:block;margin-bottom:.6rem" target="_blank">→ Telegram group</a>`:''}
+        <button onclick="window.showCountryDetail('${c.id}')" style="background:#35e7ff;border:none;color:#0a1e39;font-family:'Inter',sans-serif;font-size:.82rem;font-weight:700;padding:.5rem 1rem;cursor:pointer;border-radius:8px;width:100%;letter-spacing:.01em">Full info &amp; embassies →</button>
       </div>`);
     _mk.country.push({marker:glow,status:c.status,country:c});
     _mk.country.push({marker:dot, status:c.status,country:c});
   });
 
   LAND_ROUTES.forEach(r=>{
-    const col = r.status==='safe'?'#007a5c':r.status==='warn'?'#c47c14':'#d72c0d';
-    const line = L.polyline([r.from,r.to],{color:col,weight:3,opacity:.8,
+    const col = r.status==='safe'?'#059669':r.status==='warn'?'#d97706':'#dc2626';
+    const labelCol = r.status==='safe'?'#6ee7b7':r.status==='warn'?'#fcd34d':'#fca5a5';
+    const line = L.polyline([r.from,r.to],{color:col,weight:3,opacity:.85,
       dashArray:r.status==='danger'?'6,8':r.status==='warn'?'8,4':null}).addTo(map)
-      .bindPopup(`<div style="font-family:'Inter',sans-serif"><div style="font-weight:700;font-size:.85rem;color:${col};margin-bottom:.2rem">${r.label}</div><div style="font-size:.72rem;color:#888">${r.status.toUpperCase()}</div></div>`);
+      .bindPopup(`<div style="font-family:'Inter',sans-serif"><div style="font-weight:700;font-size:.85rem;color:${labelCol};margin-bottom:.2rem">${r.label}</div><div style="font-size:.72rem;color:rgba(255,255,255,.55)">${r.status.toUpperCase()}</div></div>`);
     _mk.routes.push({marker:line,status:r.status});
   });
 
   WORLDWIDE.forEach(r=>{
     const m = L.circleMarker(r.coords,{radius:7,fillColor:'#2563eb',color:'#fff',weight:2,opacity:.9,fillOpacity:.5}).addTo(map)
-      .bindPopup(`<div style="font-family:'Inter',sans-serif;min-width:190px"><div style="font-size:.85rem;font-weight:700;color:#1a56db;margin-bottom:.25rem">🌍 ${r.name}</div><div style="font-size:.75rem;color:#555;line-height:1.5;margin-bottom:.4rem">${r.note}</div><div style="font-size:.7rem;color:#888">${r.contacts[0]?.label}: <strong style="color:#222">${r.contacts[0]?.value}</strong></div></div>`);
+      .bindPopup(`<div style="font-family:'Inter',sans-serif;min-width:200px"><div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#93c5fd;margin-bottom:.3rem">🌍 ${r.name}</div><div style="font-size:.78rem;color:rgba(255,255,255,.8);line-height:1.5;margin-bottom:.4rem">${r.note}</div><div style="font-size:.7rem;color:rgba(255,255,255,.5)">${r.contacts[0]?.label}: <strong style="color:#fff">${r.contacts[0]?.value}</strong></div></div>`);
     _mk.worldwide.push(m);
   });
 
@@ -863,20 +869,20 @@ function renderAirportPins(map, mode) {
     });
     const m = L.marker(a.coords,{icon}).addTo(map).bindPopup(`
       <div style="font-family:'Inter',sans-serif;min-width:230px">
-        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${col};margin-bottom:.4rem">✈ ${a.city} — ${a.code}</div>
+        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fcd34d;margin-bottom:.45rem">✈ ${a.city} — ${a.code}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem .85rem;margin-bottom:.55rem">
           <div>
-            <div style="font-size:1.5rem;font-weight:800;color:#dc2626;letter-spacing:-.03em;line-height:1">${a.stranded.toLocaleString()}</div>
-            <div style="font-size:.58rem;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-top:.15rem">Est. Stranded</div>
+            <div style="font-size:1.5rem;font-weight:800;color:#fca5a5;letter-spacing:-.03em;line-height:1">${a.stranded.toLocaleString()}</div>
+            <div style="font-size:.58rem;color:rgba(255,255,255,.5);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-top:.15rem">Est. Stranded</div>
           </div>
           <div>
-            <div style="font-size:1.5rem;font-weight:800;color:${col};letter-spacing:-.03em;line-height:1">${a.cancelled.toLocaleString()}</div>
-            <div style="font-size:.58rem;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-top:.15rem">Flights Cancelled</div>
+            <div style="font-size:1.5rem;font-weight:800;color:#fcd34d;letter-spacing:-.03em;line-height:1">${a.cancelled.toLocaleString()}</div>
+            <div style="font-size:.58rem;color:rgba(255,255,255,.5);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-top:.15rem">Flights Cancelled</div>
           </div>
         </div>
-        <div style="display:flex;justify-content:space-between;padding:.35rem .55rem;background:${bgCol};border-radius:6px;align-items:center;border:1px solid ${col}22">
-          <span style="font-size:.7rem;font-weight:700;color:${col}">Status: ${a.status}</span>
-          <span style="font-size:.62rem;color:#888">Updated ${a.updated}</span>
+        <div style="display:flex;justify-content:space-between;padding:.35rem .55rem;background:rgba(255,255,255,.08);border-radius:6px;align-items:center;border:1px solid rgba(255,255,255,.1)">
+          <span style="font-size:.7rem;font-weight:700;color:${col==='#dc2626'?'#fca5a5':col==='#059669'?'#6ee7b7':'#fcd34d'}">Status: ${a.status}</span>
+          <span style="font-size:.62rem;color:rgba(255,255,255,.45)">Updated ${a.updated}</span>
         </div>
       </div>
     `);
@@ -896,7 +902,7 @@ function clearDataPins(map) {
     if(!p.location)return;
     const geo=await geocodeCity(p.location); if(!geo)return;
     const m=L.circleMarker([geo.lat,geo.lng],{radius:7,fillColor:'#007a5c',color:'#fff',weight:2,opacity:1,fillOpacity:.9}).addTo(map)
-      .bindPopup(`<div style="font-family:'Inter',sans-serif;min-width:200px"><div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#007a5c;margin-bottom:.2rem">Help offered</div><div style="font-weight:600;font-size:.84rem;margin-bottom:.2rem">${p.name}</div><div style="font-size:.77rem;color:#555;line-height:1.5;margin-bottom:.4rem">${p.body.slice(0,100)}${p.body.length>100?'…':''}</div><div style="font-size:.7rem;color:#888">📍 ${p.location}</div>${p.xhandle?`<a href="https://x.com/${p.xhandle}" target="_blank" style="display:inline-block;margin-top:.4rem;background:#007a5c;color:#fff;font-size:.68rem;font-weight:600;padding:.2rem .55rem;border-radius:5px;text-decoration:none">Tip $HELP →</a>`:''}</div>`);
+      .bindPopup(`<div style="font-family:'Inter',sans-serif;min-width:200px"><div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6ee7b7;margin-bottom:.25rem">Help offered</div><div style="font-weight:600;font-size:.84rem;margin-bottom:.2rem;color:#fff">${p.name}</div><div style="font-size:.77rem;color:rgba(255,255,255,.75);line-height:1.5;margin-bottom:.4rem">${p.body.slice(0,100)}${p.body.length>100?'…':''}</div><div style="font-size:.7rem;color:rgba(255,255,255,.5)">📍 ${p.location}</div>${p.xhandle?`<a href="https://x.com/${p.xhandle}" target="_blank" style="display:inline-block;margin-top:.4rem;background:#6ee7b7;color:#0a1e39;font-size:.68rem;font-weight:700;padding:.2rem .55rem;border-radius:5px;text-decoration:none">Tip $HELP →</a>`:''}</div>`);
     _mk.help.push(m); _postMarkers.push(m);
   });
 
@@ -1039,8 +1045,6 @@ async function refreshSitrep(){
   setNow('stat-border-crossings', vals.routes);
   setNow('m-stat-stranded', vals.stranded); setNow('m-stat-cancelled', vals.cancelled);
   setNow('m-stat-airports', vals.airports);
-  // Then animate up from 0 for a nice effect
-  ['stat-stranded','m-stat-stranded'].forEach(id=>animCount(id, vals.stranded, 1200));
   ['stat-cancelled','m-stat-cancelled'].forEach(id=>animCount(id, vals.cancelled, 800));
   ['stat-airports-closed','m-stat-airports'].forEach(id=>animCount(id, vals.airports, 500));
   animCount('stat-airspace', vals.airspace, 500);
@@ -1058,7 +1062,6 @@ async function refreshSitrep(){
 
   const now=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
   document.getElementById('last-updated-label').textContent='Updated: '+now;
-  if(lbl)lbl.textContent='just now';
   if(icon)icon.classList.remove('spinning');
 }
 
