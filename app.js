@@ -261,15 +261,6 @@ function initMap() {
     _mk.country.push({marker:dot,status:c.status});
   });
 
-  LAND_ROUTES.forEach(r => {
-    const col = r.status==='safe'?'#059669':r.status==='warn'?'#d97706':'#dc2626';
-    const lc  = r.status==='safe'?'#17bc7b':r.status==='warn'?'#fcd34d':'#ec3452';
-    const line = L.polyline([r.from,r.to],{color:col,weight:3,opacity:.85,
-      dashArray:r.status==='danger'?'6,8':r.status==='warn'?'8,4':null}).addTo(map)
-      .bindPopup(`<div style="font-family:Inter,sans-serif"><div style="font-weight:700;font-size:.85rem;color:${lc};margin-bottom:.2rem">${r.label}</div><div style="font-size:.72rem;color:rgba(255,255,255,.55)">${r.status.toUpperCase()}</div></div>`);
-    _mk.routes.push({marker:line,status:r.status});
-  });
-
   WORLDWIDE.forEach(r => {
     const m = L.circleMarker(r.coords,{radius:7,fillColor:'#a855f7',color:'#fff',weight:2,opacity:.9,fillOpacity:.55}).addTo(map)
       .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:200px">
