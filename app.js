@@ -248,7 +248,7 @@ function initMap() {
 
   COUNTRIES.forEach(c => {
     const col = SC[c.status];
-    const glow = L.circleMarker(c.coords,{radius:15,fillColor:'#ec3452',color:col,weight:1,opacity:.2,fillOpacity:.1}).addTo(map);
+    const glow = L.circleMarker(c.coords,{radius:15,fillColor:'#ec3452',color:'#ec3452',weight:1,opacity:.2,fillOpacity:.1}).addTo(map);
     const dot  = L.circleMarker(c.coords,{radius:8,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.95}).addTo(map)
       .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:240px">
         <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#fcd34d;margin-bottom:.4rem">${c.name}</div>
