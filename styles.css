@@ -520,7 +520,7 @@ transform: translateX(-50%);
   .m-res-row:last-child{border-bottom:none;}
   .m-res-name{font-size:.82rem;font-weight:600;flex:1;color:#fff;}
   .m-res-type{font-size:.6rem;color:rgba(255,255,255,.45);display:block;margin-top:.1rem;}
-  .m-res-go{background:rgba(103,232,249,.15);border:1.5px solid rgba(103,232,249,.3);color:#3498ec;border-radius:6px;padding:.28rem .6rem;font-size:.7rem;font-weight:600;text-decoration:none;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;}
+  .m-res-go{background:#3498ec;border:1.5px solid rgba(103,232,249,.3);color:#fff;border-radius:6px;padding:.28rem .6rem;font-size:.7rem;font-weight:600;text-decoration:none;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;}
 
   .m-emb-section{margin-bottom:.85rem;}
   .m-emb-country-title{font-size:.72rem;font-weight:700;color:#fff;background:rgba(255,255,255,.08);border-radius:6px;padding:.38rem .6rem;margin-bottom:.38rem;}
