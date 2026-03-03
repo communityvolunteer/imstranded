@@ -356,8 +356,8 @@ transform: translateX(-50%);
     height:3px;background:#ec3452;border-radius:3px 3px 0 0;
   }
   /* Help Offered stat — coral/red bg */
-  .m-stat--help{background:#ec3452 !important;}
-  .m-stat--help:hover{background:#ce2c47 !important;}
+  .m-stat--help{background:#3498ec !important;}
+  .m-stat--help:hover{background:#3498ec !important;}
   .m-stat--help .m-stat-num{color:#fff !important;}
   .m-stat--help .m-stat-label{color:rgba(255,255,255,.85) !important;}
 
