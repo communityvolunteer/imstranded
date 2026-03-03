@@ -253,9 +253,9 @@ function initMap() {
       .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:240px">
         <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#fcd34d;margin-bottom:.4rem">${c.name}</div>
         <div style="font-size:.82rem;color:rgba(255,255,255,.85);line-height:1.55;margin-bottom:.6rem">${c.advisory}</div>
-        <div style="font-size:.72rem;margin-bottom:.75rem;color:rgba(255,255,255,.6)">Airspace: <strong style="color:${c.airspace==='CLOSED'?'#fca5a5':c.airspace.includes('OPEN')?'#6ee7b7':'#fcd34d'}">${c.airspace}</strong></div>
-        ${c.telegram?`<a href="${c.telegram}" style="color:#67e8f9;font-size:.76rem;font-weight:500;display:block;margin-bottom:.6rem" target="_blank">→ Telegram group</a>`:''}
-        <button onclick="window.showCountryDetail('${c.id}')" style="background:#67e8f9;border:none;color:#0a1e39;font-family:Inter,sans-serif;font-size:.82rem;font-weight:700;padding:.55rem 1rem;cursor:pointer;border-radius:8px;width:100%">Full info &amp; embassies →</button>
+        <div style="font-size:.72rem;margin-bottom:.75rem;color:rgba(255,255,255,.6)">Airspace: <strong style="color:${c.airspace==='CLOSED'?'#ec3452':c.airspace.includes('OPEN')?'#6ee7b7':'#fcd34d'}">${c.airspace}</strong></div>
+        ${c.telegram?`<a href="${c.telegram}" style="color:#3498ec;font-size:.76rem;font-weight:500;display:block;margin-bottom:.6rem" target="_blank">→ Telegram group</a>`:''}
+        <button onclick="window.showCountryDetail('${c.id}')" style="background:#3498ec;border:none;color:#0a1e39;font-family:Inter,sans-serif;font-size:.82rem;font-weight:700;padding:.55rem 1rem;cursor:pointer;border-radius:8px;width:100%">Full info &amp; embassies →</button>
       </div>`);
     _mk.country.push({marker:glow,status:c.status});
     _mk.country.push({marker:dot,status:c.status});
@@ -263,7 +263,7 @@ function initMap() {
 
   LAND_ROUTES.forEach(r => {
     const col = r.status==='safe'?'#059669':r.status==='warn'?'#d97706':'#dc2626';
-    const lc  = r.status==='safe'?'#6ee7b7':r.status==='warn'?'#fcd34d':'#fca5a5';
+    const lc  = r.status==='safe'?'#6ee7b7':r.status==='warn'?'#fcd34d':'#ec3452';
     const line = L.polyline([r.from,r.to],{color:col,weight:3,opacity:.85,
       dashArray:r.status==='danger'?'6,8':r.status==='warn'?'8,4':null}).addTo(map)
       .bindPopup(`<div style="font-family:Inter,sans-serif"><div style="font-weight:700;font-size:.85rem;color:${lc};margin-bottom:.2rem">${r.label}</div><div style="font-size:.72rem;color:rgba(255,255,255,.55)">${r.status.toUpperCase()}</div></div>`);
@@ -303,11 +303,11 @@ function renderAirportPins(map, mode) {
       <div style="font-family:Inter,sans-serif;min-width:230px">
         <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fcd34d;margin-bottom:.45rem">✈ ${a.city} — ${a.code}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem .85rem;margin-bottom:.55rem">
-          <div><div style="font-size:1.5rem;font-weight:800;color:#fca5a5;letter-spacing:-.03em;line-height:1">${a.stranded.toLocaleString()}</div><div style="font-size:.58rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.04em;margin-top:.15rem">Est. Stranded</div></div>
+          <div><div style="font-size:1.5rem;font-weight:800;color:#ec3452;letter-spacing:-.03em;line-height:1">${a.stranded.toLocaleString()}</div><div style="font-size:.58rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.04em;margin-top:.15rem">Est. Stranded</div></div>
           <div><div style="font-size:1.5rem;font-weight:800;color:#fcd34d;letter-spacing:-.03em;line-height:1">${a.cancelled.toLocaleString()}</div><div style="font-size:.58rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.04em;margin-top:.15rem">Flights Cancelled</div></div>
         </div>
         <div style="display:flex;justify-content:space-between;padding:.35rem .55rem;background:rgba(255,255,255,.08);border-radius:6px;align-items:center;border:1px solid rgba(255,255,255,.1)">
-          <span style="font-size:.7rem;font-weight:700;color:${col==='#ef4444'?'#fca5a5':col==='#22c55e'?'#86efac':'#fcd34d'}">Status: ${a.status}</span>
+          <span style="font-size:.7rem;font-weight:700;color:${col==='#ef4444'?'#ec3452':col==='#22c55e'?'#86efac':'#fcd34d'}">Status: ${a.status}</span>
           <span style="font-size:.62rem;color:rgba(255,255,255,.45)">${a.updated !== '--:--' ? 'Updated '+a.updated : 'Seeded data'}</span>
         </div>
       </div>
@@ -334,7 +334,7 @@ async function renderPostsOnMap(map) {
     const fillCol = isOffer ? '#3b82f6' : '#ef4444';
     const m = L.circleMarker([geo.lat,geo.lng],{radius:7,fillColor:fillCol,color:'#fff',weight:2,opacity:1,fillOpacity:.9}).addTo(map)
       .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:200px">
-        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${isOffer?'#93c5fd':'#fca5a5'};margin-bottom:.25rem">${isOffer?'Help offered':'Needs help'}</div>
+        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${isOffer?'#93c5fd':'#ec3452'};margin-bottom:.25rem">${isOffer?'Help offered':'Needs help'}</div>
         <div style="font-weight:600;font-size:.84rem;margin-bottom:.2rem;color:#fff">${p.name}</div>
         <div style="font-size:.77rem;color:rgba(255,255,255,.75);line-height:1.5;margin-bottom:.4rem">${(p.body||'').slice(0,100)}${(p.body||'').length>100?'...':''}</div>
         <div style="font-size:.7rem;color:rgba(255,255,255,.5)">${p.location}</div>
