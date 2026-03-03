@@ -492,10 +492,10 @@ transform: translateX(-50%);
   #m-sheet.open{transform:translateY(0);}
   #m-sheet-handle{padding:.7rem .75rem .2rem;display:flex;flex-direction:column;align-items:center;gap:.4rem;cursor:pointer;flex-shrink:0;}
   .m-handle-bar{width:36px;height:4px;background:rgba(255,255,255,.25);border-radius:2px;}
-  .m-sheet-title{font-size:1.3rem;font-weight:800;color:#3498ec;text-align:center;padding:.4rem 0 .2rem;}
+  .m-sheet-title{font-size:1.3rem;font-weight:800;color:#fff;text-align:center;padding:.4rem 0 .2rem;}
   #m-sheet-body{overflow-y:auto;flex:1;padding:0 1.2rem 1.2rem;-webkit-overflow-scrolling:touch;}
 
-  .m-form-label{display:block;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#3498ec;margin-bottom:.32rem;}
+  .m-form-label{display:block;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#fff;margin-bottom:.32rem;}
   .m-form-label span{color:rgba(255,255,255,.45);font-weight:500;text-transform:none;letter-spacing:0;}
   .m-form-row{margin-bottom:.9rem;}
   .m-form-row input,.m-form-row select,.m-form-row textarea{
