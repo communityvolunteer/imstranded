@@ -484,7 +484,7 @@ transform: translateX(-50%);
   /* Bottom sheet */
   #m-sheet{
     position:absolute;bottom:65px;left:0;right:0;z-index:900;
-    background:#000000;border-top:1px solid rgba(255,255,255,.1);border-radius:20px 20px 0 0;
+    background:#000000;border-radius:20px 20px 0 0;
     max-height:calc(100dvh - 65px - 65px - 20px);
     display:flex;flex-direction:column;
     transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
