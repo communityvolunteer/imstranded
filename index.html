@@ -10,36 +10,45 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-/* ── TOKENS ─────────────────────────────────────────────── */
+/* ── DESIGN TOKENS ─────────────────────────────────────────
+   Palette: cool blue-teal brand, cool gray neutrals,
+   saturated status colors, muted parchment backgrounds
+   ──────────────────────────────────────────────────────── */
 :root {
-  --bg:          #f0ede8;   /* muted warm parchment */
-  --surface:     #ffffff;
-  --border:      #ddd9d3;
-  --text:        #1a1a1a;
-  --text2:       #444;
-  --muted:       #767676;
+  /* Backgrounds — cool gray neutrals, not warm parchment */
+  --bg:         #f2f4f6;   /* cool light gray */
+  --surface:    #ffffff;
+  --surface2:   #f8f9fa;
+  --border:     #dde1e7;
+  --border2:    #c8cdd6;
 
-  /* Coral brand */
-  --coral:       #f03a5f;
-  --coral-dark:  #d4204a;
-  --coral-soft:  #fff0f3;
+  /* Text */
+  --text:       #111827;
+  --text2:      #374151;
+  --muted:      #6b7280;
 
-  /* Status — more saturated */
-  --danger:      #d72c0d;
-  --danger-soft: #fef0ee;
-  --warn:        #c47c14;
-  --warn-soft:   #fff8ec;
-  --safe:        #007a5c;
-  --safe-soft:   #eaf7f3;
-  --info:        #1a56db;
-  --info-soft:   #eef3ff;
-  --green:       #007a5c;  /* help = same green as safe */
-  --green-soft:  #eaf7f3;
+  /* Brand — teal-blue (from logo palette) */
+  --brand:       #0e7490;   /* primary teal-blue */
+  --brand-dark:  #0a5c73;
+  --brand-light: #cffafe;
+  --brand-mid:   #164e63;   /* deep teal for headers */
+
+  /* Status — saturated, not muted */
+  --danger:      #dc2626;   /* vivid red */
+  --danger-soft: #fef2f2;
+  --warn:        #d97706;   /* vivid amber */
+  --warn-soft:   #fffbeb;
+  --safe:        #059669;   /* vivid emerald */
+  --safe-soft:   #ecfdf5;
+  --info:        #2563eb;   /* vivid blue */
+  --info-soft:   #eff6ff;
+  --green:       #059669;
+  --green-soft:  #ecfdf5;
 
   --radius:    12px;
   --radius-sm: 8px;
-  --shadow:    0 1px 4px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04);
-  --shadow-md: 0 4px 16px rgba(0,0,0,.10);
+  --shadow:    0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.09);
   --shadow-lg: 0 8px 32px rgba(0,0,0,.13);
 }
 
@@ -48,84 +57,88 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;line-
 
 /* ── HEADER ─────────────────────────────────────────────── */
 header{
-  background:#fff;border-bottom:1px solid var(--border);
+  background:var(--brand-mid);
+  border-bottom:1px solid rgba(255,255,255,.1);
   position:sticky;top:0;z-index:1000;
   display:grid;grid-template-columns:1fr auto 1fr;
-  align-items:center;height:60px;padding:0 1.5rem;
-  box-shadow:0 1px 0 var(--border);
+  align-items:center;height:56px;padding:0 1.5rem;
 }
 .logo{
-  font-size:.9rem;font-weight:700;color:var(--text);
+  font-size:.9rem;font-weight:700;color:#fff;
   display:flex;align-items:center;gap:.5rem;
   justify-self:start;white-space:nowrap;
 }
-.logo span{color:var(--coral);}
+.logo-accent{color:#67e8f9;}  /* cyan accent */
 .pulse-dot{
-  width:8px;height:8px;border-radius:50%;background:var(--coral);
+  width:8px;height:8px;border-radius:50%;background:#67e8f9;
   flex-shrink:0;animation:pdot 2s infinite;
 }
-@keyframes pdot{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(240,58,95,.4);}50%{transform:scale(.82);box-shadow:0 0 0 5px rgba(240,58,95,0);}}
+@keyframes pdot{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(103,232,249,.5);}50%{transform:scale(.8);box-shadow:0 0 0 5px rgba(103,232,249,0);}}
 
 nav{display:flex;justify-self:center;}
 nav button{
   background:none;border:none;border-bottom:2px solid transparent;
-  color:var(--muted);font-family:'Inter',sans-serif;font-size:.85rem;font-weight:500;
-  padding:0 1.1rem;height:60px;margin-bottom:-1px;cursor:pointer;transition:all .15s;white-space:nowrap;
+  color:rgba(255,255,255,.65);font-family:'Inter',sans-serif;font-size:.85rem;font-weight:500;
+  padding:0 1.1rem;height:56px;margin-bottom:-1px;cursor:pointer;transition:all .15s;white-space:nowrap;
 }
-nav button.active{color:var(--text);border-bottom-color:var(--coral);}
-nav button:hover:not(.active){color:var(--text);}
+nav button.active{color:#fff;border-bottom-color:#67e8f9;}
+nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 
-.header-right{display:flex;align-items:center;gap:.85rem;justify-self:end;}
-.last-updated{font-size:.68rem;color:var(--muted);white-space:nowrap;}
+.header-right{display:flex;align-items:center;gap:.75rem;justify-self:end;}
+.last-updated{font-size:.67rem;color:rgba(255,255,255,.5);white-space:nowrap;}
 
 .cta-pill{
-  background:var(--coral);color:#fff;border:none;border-radius:999px;
-  padding:.5rem 1.15rem;font-family:'Inter',sans-serif;font-size:.82rem;font-weight:600;
+  background:#67e8f9;color:var(--brand-mid);border:none;border-radius:999px;
+  padding:.45rem 1.1rem;font-family:'Inter',sans-serif;font-size:.82rem;font-weight:700;
   cursor:pointer;display:flex;align-items:center;gap:.35rem;white-space:nowrap;
-  transition:background .15s,transform .1s;box-shadow:0 2px 8px rgba(240,58,95,.3);
+  transition:background .15s,transform .1s;box-shadow:0 2px 8px rgba(0,0,0,.2);
 }
-.cta-pill:hover{background:var(--coral-dark);transform:scale(1.02);}
+.cta-pill:hover{background:#a5f3fc;transform:scale(1.02);}
 
 /* ── SITREP BAR ─────────────────────────────────────────── */
 .sitrep-bar{
-  background:#fff;border-bottom:1px solid var(--border);
+  background:var(--surface);border-bottom:1px solid var(--border);
   display:flex;overflow-x:auto;scrollbar-width:none;
+  min-height:72px;
 }
 .sitrep-bar::-webkit-scrollbar{display:none;}
 
 .sitrep-stat{
-  flex:1;min-width:120px;
-  padding:.8rem 1.1rem;border-right:1px solid var(--border);
-  text-align:center;cursor:pointer;transition:background .15s;
+  flex:1;min-width:115px;
+  padding:.75rem 1rem;border-right:1px solid var(--border);
+  text-align:center;cursor:pointer;
   user-select:none;position:relative;
+  transition:background .15s;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
 }
 .sitrep-stat:last-of-type{border-right:none;}
-.sitrep-stat:hover{background:#fafaf8;}
-.sitrep-stat.active-filter{background:var(--coral-soft);}
+.sitrep-stat:hover{background:var(--surface2);}
+.sitrep-stat.active-filter{background:var(--brand-light);}
 .sitrep-stat.active-filter::after{
   content:'';position:absolute;bottom:0;left:0;right:0;
-  height:3px;background:var(--coral);border-radius:3px 3px 0 0;
+  height:3px;background:var(--brand);border-radius:3px 3px 0 0;
 }
 .sitrep-num{
-  font-size:1.85rem;font-weight:800;letter-spacing:-.03em;
-  line-height:1;margin-bottom:.15rem;display:block;
+  font-size:1.8rem;font-weight:800;letter-spacing:-.04em;
+  line-height:1;margin-bottom:.14rem;display:block;
+  font-variant-numeric:tabular-nums;
 }
 .sitrep-num.danger{color:var(--danger);}
 .sitrep-num.warn  {color:var(--warn);}
 .sitrep-num.safe  {color:var(--safe);}
 .sitrep-num.green {color:var(--green);}
 .sitrep-num.info  {color:var(--info);}
-.sitrep-num.coral {color:var(--coral);}
-.sitrep-label{font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);}
-.sitrep-sub  {font-size:.57rem;color:var(--muted);opacity:.75;margin-top:.1rem;}
+.sitrep-num.brand {color:var(--brand);}
+.sitrep-label{font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);line-height:1.2;}
+.sitrep-sub  {font-size:.55rem;color:var(--muted);opacity:.7;margin-top:.12rem;}
 
 .sitrep-refresh{
   display:flex;align-items:center;padding:0 1rem;flex-shrink:0;
-  font-size:.68rem;color:var(--muted);gap:.35rem;
+  font-size:.67rem;color:var(--muted);gap:.35rem;
   white-space:nowrap;cursor:pointer;border:none;background:none;
   font-family:'Inter',sans-serif;transition:color .2s;
 }
-.sitrep-refresh:hover{color:var(--coral);}
+.sitrep-refresh:hover{color:var(--brand);}
 @keyframes spin{to{transform:rotate(360deg);}}
 .spinning{animation:spin 1s linear infinite;display:inline-block;}
 
@@ -134,29 +147,29 @@ nav button:hover:not(.active){color:var(--text);}
 .view{display:none;}.view.active{display:block;}
 
 /* ── MAP VIEW ───────────────────────────────────────────── */
-#map-view{position:relative;height:calc(100vh - 121px);}
+#map-view{position:relative;height:calc(100vh - 56px - 73px);}
 #crisis-map{width:100%;height:100%;}
 
 .map-legend{
   position:absolute;bottom:2rem;left:1.5rem;z-index:999;
   background:rgba(255,255,255,.97);border:1px solid var(--border);
   border-radius:var(--radius);padding:.85rem 1rem;
-  box-shadow:var(--shadow-md);min-width:180px;
+  box-shadow:var(--shadow-md);min-width:182px;
 }
-.legend-title{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--coral);margin-bottom:.5rem;}
+.legend-title{font-size:.59rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--brand);margin-bottom:.5rem;}
 .legend-item{
   display:flex;align-items:center;gap:.55rem;
   margin-bottom:.28rem;font-size:.76rem;color:var(--text2);
   cursor:pointer;border-radius:5px;padding:.15rem .35rem;transition:background .15s;
 }
-.legend-item:hover{background:#f5f2ef;}
-.legend-item.active-legend{background:var(--coral-soft);color:var(--coral);font-weight:600;}
+.legend-item:hover{background:var(--surface2);}
+.legend-item.active-legend{background:var(--brand-light);color:var(--brand);font-weight:600;}
 .legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
 .legend-clear{font-size:.68rem;color:var(--muted);margin-top:.45rem;cursor:pointer;padding:.15rem .35rem;border-radius:4px;}
-.legend-clear:hover{color:var(--coral);}
+.legend-clear:hover{color:var(--brand);}
 
-/* Leaflet */
-.leaflet-container{background:#d6cfc4 !important;}
+/* Leaflet — cool slate-gray map tiles via Stamen Toner Lite style */
+.leaflet-container{background:#c9d2d8 !important;}
 .leaflet-popup-content-wrapper{
   background:#fff !important;border:1px solid var(--border) !important;
   color:var(--text) !important;border-radius:var(--radius) !important;
@@ -165,32 +178,46 @@ nav button:hover:not(.active){color:var(--text);}
 .leaflet-popup-tip{background:#fff !important;}
 .leaflet-popup-content{margin:.85rem 1rem !important;}
 
-/* ── COUNTRIES VIEW ─────────────────────────────────────── */
-#countries-view{padding:2.5rem 0;}
+/* Airport data pins */
+.airport-pin-label{
+  background:#fff;
+  border-radius:7px;
+  padding:4px 8px;
+  font-family:'Inter',sans-serif;
+  font-size:11px;font-weight:700;
+  line-height:1.25;
+  box-shadow:0 2px 8px rgba(0,0,0,.14);
+  white-space:nowrap;
+  width:fit-content !important;
+  max-width:none !important;
+}
+
+/* ── RESOURCES VIEW ─────────────────────────────────────── */
+#resources-view{padding:2.5rem 0;}
 .section-header{margin-bottom:1.5rem;}
-.section-title{font-size:1.45rem;font-weight:700;margin-bottom:.3rem;}
+.section-title{font-size:1.4rem;font-weight:700;margin-bottom:.3rem;}
 .section-subtitle{font-size:.88rem;color:var(--muted);}
 
 .filter-bar{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem;}
 .filter-btn{
-  background:#fff;border:1.5px solid var(--border);color:var(--muted);
+  background:var(--surface);border:1.5px solid var(--border);color:var(--muted);
   border-radius:999px;padding:.38rem 1rem;font-family:'Inter',sans-serif;
   font-size:.8rem;font-weight:500;cursor:pointer;transition:all .15s;
 }
-.filter-btn.active,.filter-btn:hover{border-color:var(--coral);color:var(--coral);background:var(--coral-soft);}
+.filter-btn.active,.filter-btn:hover{border-color:var(--brand);color:var(--brand);background:var(--brand-light);}
 
 .countries-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1.2rem;}
 
 .country-card{
-  background:#fff;border:1px solid var(--border);
-  border-top:3px solid var(--border);border-radius:var(--radius);
+  background:var(--surface);border:1px solid var(--border);
+  border-top:3px solid var(--border2);border-radius:var(--radius);
   padding:1.2rem;box-shadow:var(--shadow);transition:box-shadow .2s;
 }
 .country-card:hover{box-shadow:var(--shadow-md);}
 .country-card.danger{border-top-color:var(--danger);}
 .country-card.warn  {border-top-color:var(--warn);}
 .country-card.safe  {border-top-color:var(--safe);}
-.country-card.highlight{box-shadow:var(--shadow-md);border-color:var(--coral);}
+.country-card.highlight{box-shadow:var(--shadow-md);border-color:var(--brand);}
 
 .card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.55rem;}
 .card-name{font-size:1rem;font-weight:700;}
@@ -200,23 +227,22 @@ nav button:hover:not(.active){color:var(--text);}
 .status-badge.safe  {background:var(--safe-soft);  color:var(--safe);}
 
 .card-advisory{font-size:.82rem;color:var(--text2);line-height:1.55;margin-bottom:.85rem;}
-
 .info-row{display:flex;justify-content:space-between;align-items:center;padding:.28rem 0;border-bottom:1px solid var(--border);font-size:.8rem;}
 .info-row:last-child{border-bottom:none;}
 .info-label{color:var(--muted);font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
 
 .embassy-section{margin-top:.85rem;}
-.embassy-title{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.45rem;}
+.embassy-title{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.45rem;}
 .embassy-row{display:flex;align-items:center;gap:.6rem;padding:.38rem 0;border-bottom:1px solid var(--border);font-size:.8rem;}
 .embassy-row:last-child{border-bottom:none;}
 .embassy-name{flex:1;font-weight:500;color:var(--text2);}
 .embassy-note{font-size:.7rem;color:var(--muted);}
 .call-btn{
-  background:var(--coral);color:#fff;border:none;border-radius:6px;
+  background:var(--brand);color:#fff;border:none;border-radius:6px;
   padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;
   white-space:nowrap;text-decoration:none;font-family:'Inter',sans-serif;
 }
-.call-btn:hover{background:var(--coral-dark);}
+.call-btn:hover{background:var(--brand-dark);}
 
 .ngo-tags{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.5rem;}
 .ngo-tag{background:var(--info-soft);color:var(--info);font-size:.63rem;font-weight:600;border-radius:4px;padding:.14rem .48rem;}
@@ -224,9 +250,18 @@ nav button:hover:not(.active){color:var(--text);}
 .telegram-link{display:inline-flex;align-items:center;gap:.4rem;color:var(--info);font-size:.8rem;font-weight:500;text-decoration:none;margin-top:.6rem;}
 .telegram-link:hover{text-decoration:underline;}
 
+.resources-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(285px,1fr));gap:1rem;margin-top:1rem;}
+.resource-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem;box-shadow:var(--shadow);transition:box-shadow .2s;}
+.resource-card:hover{box-shadow:var(--shadow-md);}
+.resource-type{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--brand);margin-bottom:.3rem;}
+.resource-name{font-size:.9rem;font-weight:700;margin-bottom:.3rem;}
+.resource-desc{font-size:.78rem;color:var(--muted);line-height:1.5;margin-bottom:.7rem;}
+.resource-link{color:var(--brand);font-size:.8rem;font-weight:600;text-decoration:none;}
+.resource-link:hover{text-decoration:underline;}
+
 /* ── HELP VIEW ──────────────────────────────────────────── */
 #help-view{padding:2.5rem 0;}
-.post-form{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.25rem;}
+.post-form{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.25rem;}
 .form-title{font-size:.92rem;font-weight:700;margin-bottom:.25rem;}
 .form-note{font-size:.78rem;color:var(--muted);line-height:1.5;margin-bottom:1rem;background:var(--bg);border-radius:6px;padding:.6rem .75rem;border-left:3px solid var(--green);}
 .form-row{margin-bottom:.9rem;}
@@ -234,16 +269,15 @@ nav button:hover:not(.active){color:var(--text);}
 .form-row input,.form-row select,.form-row textarea{
   width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm);
   padding:.55rem .85rem;font-family:'Inter',sans-serif;font-size:.88rem;
-  color:var(--text);background:#fff;outline:none;transition:border-color .15s;
+  color:var(--text);background:var(--surface);outline:none;transition:border-color .15s;
 }
-.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--coral);box-shadow:0 0 0 3px var(--coral-soft);}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(14,116,144,.12);}
 .form-row textarea{min-height:80px;resize:vertical;}
-.submit-btn{background:var(--coral);color:#fff;border:none;border-radius:var(--radius-sm);padding:.65rem 1.5rem;font-family:'Inter',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:background .15s;}
-.submit-btn:hover{background:var(--coral-dark);}
+.submit-btn{background:var(--brand);color:#fff;border:none;border-radius:var(--radius-sm);padding:.65rem 1.5rem;font-family:'Inter',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:background .15s;}
+.submit-btn:hover{background:var(--brand-dark);}
 
 .posts-list{display:flex;flex-direction:column;gap:.75rem;}
-.post-card{background:#fff;border:1px solid var(--border);border-left:3px solid var(--green);border-radius:var(--radius-sm);padding:1rem;transition:box-shadow .2s;}
-.post-card:hover{box-shadow:var(--shadow);}
+.post-card{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:var(--radius-sm);padding:1rem;}
 .post-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem;}
 .post-type{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--green);}
 .post-time{font-size:.63rem;color:var(--muted);}
@@ -253,132 +287,96 @@ nav button:hover:not(.active){color:var(--text);}
 .tip-btn{background:var(--green);color:#fff;border:none;border-radius:6px;padding:.2rem .6rem;font-size:.68rem;font-weight:600;cursor:pointer;text-decoration:none;font-family:'Inter',sans-serif;}
 .empty-state{padding:2rem 1rem;text-align:center;color:var(--muted);font-size:.88rem;}
 
-/* ── RESOURCES VIEW ─────────────────────────────────────── */
-#resources-view{padding:2.5rem 0;}
-.resources-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:1rem;}
-.resource-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem;box-shadow:var(--shadow);transition:box-shadow .2s;}
-.resource-card:hover{box-shadow:var(--shadow-md);}
-.resource-type{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--coral);margin-bottom:.3rem;}
-.resource-name{font-size:.9rem;font-weight:700;margin-bottom:.3rem;}
-.resource-desc{font-size:.78rem;color:var(--muted);line-height:1.5;margin-bottom:.7rem;}
-.resource-link{color:var(--coral);font-size:.8rem;font-weight:600;text-decoration:none;}
-.resource-link:hover{text-decoration:underline;}
-
 /* ── MOBILE ≤600px ──────────────────────────────────────── */
 @media (max-width:600px){
-  /* Hide all desktop chrome */
   header,.sitrep-bar{display:none !important;}
   body{overflow:hidden;height:100dvh;background:var(--bg);}
   .view{display:none !important;}
 
-  /* ── Shell ── */
-  #m-shell{
-    display:flex;flex-direction:column;
-    height:100dvh;overflow:hidden;
-  }
+  #m-shell{display:flex;flex-direction:column;height:100dvh;overflow:hidden;}
 
-  /* ── Stat bar: 4 equal items, no scroll ── */
+  /* ── 4-stat bar: equal grid, no overflow ── */
   #m-statbar{
-    background:#fff;border-bottom:1px solid var(--border);
+    background:var(--brand-mid);
     display:grid;grid-template-columns:repeat(4,1fr);
     flex-shrink:0;
   }
   .m-stat{
     display:flex;flex-direction:column;align-items:center;justify-content:center;
-    padding:.55rem .25rem;
-    border-right:1px solid var(--border);cursor:pointer;
+    padding:.5rem .2rem;min-height:54px;
+    border-right:1px solid rgba(255,255,255,.15);cursor:pointer;
     transition:background .15s;position:relative;user-select:none;
-    min-height:56px;
   }
   .m-stat:last-child{border-right:none;}
-  .m-stat:hover{background:#fafaf8;}
-  .m-stat.active-filter{background:var(--coral-soft);}
+  .m-stat:hover{background:rgba(255,255,255,.1);}
+  .m-stat.active-filter{background:rgba(103,232,249,.2);}
   .m-stat.active-filter::after{
     content:'';position:absolute;bottom:0;left:0;right:0;
-    height:3px;background:var(--coral);border-radius:3px 3px 0 0;
+    height:3px;background:#67e8f9;border-radius:3px 3px 0 0;
   }
-  .m-stat-num{
-    font-size:1.35rem;font-weight:800;letter-spacing:-.03em;line-height:1;display:block;
-  }
-  .m-stat-num.danger{color:var(--danger);}
-  .m-stat-num.warn  {color:var(--warn);}
-  .m-stat-num.safe  {color:var(--safe);}
-  .m-stat-num.green {color:var(--green);}
-  .m-stat-num.info  {color:var(--info);}
-  .m-stat-label{font-size:.44rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-top:.12rem;text-align:center;line-height:1.2;}
+  .m-stat-num{font-size:1.25rem;font-weight:800;letter-spacing:-.03em;line-height:1;display:block;color:#fff;font-variant-numeric:tabular-nums;}
+  .m-stat-num.danger{color:#fca5a5;}
+  .m-stat-num.warn  {color:#fcd34d;}
+  .m-stat-num.safe  {color:#6ee7b7;}
+  .m-stat-num.green {color:#6ee7b7;}
+  .m-stat-num.info  {color:#93c5fd;}
+  .m-stat-label{font-size:.43rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:rgba(255,255,255,.6);margin-top:.1rem;text-align:center;line-height:1.2;}
 
-  /* ── Sub-bar: map key filter chips ── */
+  /* ── Sub-bar: map key filters ── */
   #m-subbar{
-    background:#fafaf8;border-bottom:1px solid var(--border);
+    background:var(--surface2);border-bottom:1px solid var(--border);
     display:flex;align-items:center;justify-content:space-around;
-    padding:.3rem .5rem;flex-shrink:0;gap:.3rem;
+    padding:.28rem .4rem;flex-shrink:0;gap:.25rem;
   }
   .m-subchip{
-    display:flex;align-items:center;gap:.3rem;
-    background:none;border:1.5px solid var(--border);
-    border-radius:999px;padding:.25rem .65rem;
-    font-family:'Inter',sans-serif;font-size:.58rem;font-weight:600;
+    display:flex;align-items:center;gap:.28rem;
+    background:none;border:1.5px solid var(--border);border-radius:999px;
+    padding:.22rem .58rem;font-family:'Inter',sans-serif;font-size:.56rem;font-weight:600;
     color:var(--muted);cursor:pointer;flex:1;justify-content:center;
     transition:all .15s;white-space:nowrap;
   }
-  .m-subchip:hover{border-color:var(--coral);color:var(--coral);}
-  .m-subchip.active{background:var(--coral-soft);border-color:var(--coral);color:var(--coral);}
-  #m-clear-chip{color:var(--muted);}
-  .m-subchip-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+  .m-subchip:hover{border-color:var(--brand);color:var(--brand);}
+  .m-subchip.active{background:var(--brand-light);border-color:var(--brand);color:var(--brand);}
+  .m-subchip-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
 
-  /* ── Map area ── */
+  /* ── Map ── */
   #m-map-wrap{flex:1;position:relative;overflow:hidden;min-height:0;}
   #m-crisis-map{width:100%;height:100%;}
 
-  /* ── Country full-screen popup (replaces sheet for map taps) ── */
+  /* ── Country full-screen popup ── */
   #m-country-popup{
     position:absolute;inset:0;z-index:950;
-    background:#fff;overflow-y:auto;
+    background:var(--surface);overflow-y:auto;
     transform:translateY(100%);
     transition:transform .3s cubic-bezier(.4,0,.2,1);
     -webkit-overflow-scrolling:touch;
   }
   #m-country-popup.open{transform:translateY(0);}
-
   .m-popup-header{
-    position:sticky;top:0;background:#fff;border-bottom:1px solid var(--border);
+    position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--border);
     padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;z-index:1;
   }
   .m-popup-title{font-size:1rem;font-weight:700;}
-  .m-popup-close{
-    background:none;border:none;font-size:1.3rem;cursor:pointer;
-    color:var(--muted);width:36px;height:36px;
-    display:flex;align-items:center;justify-content:center;
-    border-radius:50%;transition:background .15s;
-  }
+  .m-popup-close{background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--muted);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:background .15s;}
   .m-popup-close:hover{background:var(--bg);}
   .m-popup-body{padding:1rem;}
-  .m-popup-badge{
-    display:inline-block;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
-    border-radius:999px;padding:.22rem .7rem;margin-bottom:.65rem;
-  }
+  .m-popup-badge{display:inline-block;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-radius:999px;padding:.22rem .7rem;margin-bottom:.65rem;}
   .m-popup-advisory{font-size:.84rem;color:var(--text2);line-height:1.6;margin-bottom:.85rem;}
-  .m-popup-section-title{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.5rem;margin-top:.85rem;}
-  .m-popup-info-row{display:flex;justify-content:space-between;align-items:center;padding:.3rem 0;border-bottom:1px solid var(--border);font-size:.82rem;}
+  .m-popup-section-title{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.5rem;margin-top:.85rem;}
+  .m-popup-info-row{display:flex;justify-content:space-between;align-items:flex-start;padding:.3rem 0;border-bottom:1px solid var(--border);font-size:.82rem;gap:.5rem;}
   .m-popup-info-row:last-child{border-bottom:none;}
-
   .m-emb-row{display:flex;align-items:center;gap:.6rem;padding:.45rem 0;border-bottom:1px solid var(--border);}
   .m-emb-row:last-child{border-bottom:none;}
   .m-emb-who{flex:1;}
   .m-emb-country{font-weight:700;font-size:.82rem;display:block;color:var(--text);}
   .m-emb-role{font-size:.68rem;color:var(--muted);display:block;margin-top:.05rem;}
-  .m-call-btn{
-    background:var(--coral);color:#fff;border:none;border-radius:7px;
-    padding:.32rem .75rem;font-size:.72rem;font-weight:600;cursor:pointer;
-    white-space:nowrap;text-decoration:none;font-family:'Inter',sans-serif;
-    display:inline-flex;align-items:center;gap:.3rem;
-  }
+  .m-call-btn{background:var(--brand);color:#fff;border:none;border-radius:7px;padding:.32rem .75rem;font-size:.72rem;font-weight:600;cursor:pointer;white-space:nowrap;text-decoration:none;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:.3rem;}
 
   /* ── Pinned tab bar ── */
   #m-tabbar{
-    display:flex !important;background:#fff;
+    display:flex !important;background:var(--surface);
     border-top:1px solid var(--border);
-    flex-shrink:0;height:64px;
+    flex-shrink:0;height:62px;
     padding-bottom:env(safe-area-inset-bottom);
     position:relative;z-index:1000;
   }
@@ -389,42 +387,30 @@ nav button:hover:not(.active){color:var(--text);}
     padding:.4rem 0;font-family:'Inter',sans-serif;font-size:.5rem;
     font-weight:600;letter-spacing:.05em;text-transform:uppercase;
   }
-  .m-tab.active{color:var(--coral);border-top-color:var(--coral);}
+  .m-tab.active{color:var(--brand);border-top-color:var(--brand);}
   .m-tab:hover:not(.active){color:var(--text);}
   .m-tab svg{width:20px;height:20px;}
-
-  /* Resources tab — coral filled */
   .m-tab-offer{
     flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.22rem;
-    background:var(--coral);border:none;color:#fff !important;cursor:pointer;
+    background:var(--brand);border:none;color:#fff !important;cursor:pointer;
     padding:.4rem 0;font-family:'Inter',sans-serif;font-size:.5rem;
-    font-weight:700;letter-spacing:.05em;text-transform:uppercase;
-    border-top:2px solid transparent;
+    font-weight:700;letter-spacing:.05em;text-transform:uppercase;border-top:2px solid transparent;
   }
-  .m-tab-offer:hover{background:var(--coral-dark);}
+  .m-tab-offer:hover{background:var(--brand-dark);}
   .m-tab-offer svg{width:20px;height:20px;}
 
   /* ── Bottom sheet ── */
   #m-sheet{
-    position:absolute;
-    bottom:64px;left:0;right:0;
-    z-index:900;background:#fff;
-    border-top:1px solid var(--border);
-    border-radius:16px 16px 0 0;
-    max-height:calc(100dvh - 56px - 30px - 64px - 32px);
+    position:absolute;bottom:62px;left:0;right:0;z-index:900;
+    background:var(--surface);border-top:1px solid var(--border);border-radius:16px 16px 0 0;
+    max-height:calc(100dvh - 54px - 28px - 62px - 20px);
     display:flex;flex-direction:column;
-    transform:translateY(100%);
-    transition:transform .3s cubic-bezier(.4,0,.2,1);
+    transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
   }
   #m-sheet.open{transform:translateY(0);}
-
-  #m-sheet-handle{
-    padding:.6rem .75rem .3rem;display:flex;flex-direction:column;
-    align-items:center;gap:.35rem;cursor:pointer;flex-shrink:0;
-  }
+  #m-sheet-handle{padding:.6rem .75rem .3rem;display:flex;flex-direction:column;align-items:center;gap:.35rem;cursor:pointer;flex-shrink:0;}
   .m-handle-bar{width:32px;height:4px;background:var(--border);border-radius:2px;}
   .m-sheet-title{font-size:.88rem;font-weight:700;color:var(--text);}
-
   #m-sheet-body{overflow-y:auto;flex:1;padding:0 1rem 1rem;-webkit-overflow-scrolling:touch;}
 
   /* Sheet form */
@@ -433,24 +419,24 @@ nav button:hover:not(.active){color:var(--text);}
   .m-form-row input,.m-form-row select,.m-form-row textarea{
     width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm);
     padding:.65rem .85rem;font-family:'Inter',sans-serif;font-size:.95rem;
-    color:var(--text);background:#fff;outline:none;-webkit-appearance:none;transition:border-color .15s;
+    color:var(--text);background:var(--surface);outline:none;-webkit-appearance:none;transition:border-color .15s;
   }
-  .m-form-row input:focus,.m-form-row select:focus,.m-form-row textarea:focus{border-color:var(--coral);box-shadow:0 0 0 3px var(--coral-soft);}
+  .m-form-row input:focus,.m-form-row select:focus,.m-form-row textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(14,116,144,.12);}
   .m-form-row textarea{min-height:72px;resize:none;}
   .m-form-note{font-size:.74rem;color:var(--muted);line-height:1.5;background:var(--bg);border-radius:6px;padding:.5rem .7rem;border-left:3px solid var(--green);margin-bottom:.9rem;}
-  .m-submit{width:100%;background:var(--coral);color:#fff;border:none;border-radius:var(--radius-sm);padding:.88rem;font-family:'Inter',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;margin-top:.25rem;}
-  .m-submit:hover{background:var(--coral-dark);}
+  .m-submit{width:100%;background:var(--brand);color:#fff;border:none;border-radius:var(--radius-sm);padding:.88rem;font-family:'Inter',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;margin-top:.25rem;}
+  .m-submit:hover{background:var(--brand-dark);}
 
   /* Resources in sheet */
   .m-res-row{display:flex;align-items:center;gap:.65rem;padding:.72rem 0;border-bottom:1px solid var(--border);}
   .m-res-row:last-child{border-bottom:none;}
   .m-res-name{font-size:.82rem;font-weight:600;flex:1;}
   .m-res-type{font-size:.6rem;color:var(--muted);display:block;margin-top:.1rem;}
-  .m-res-go{background:none;border:1.5px solid var(--border);color:var(--coral);border-radius:6px;padding:.28rem .6rem;font-size:.7rem;font-weight:600;text-decoration:none;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;}
+  .m-res-go{background:none;border:1.5px solid var(--border);color:var(--brand);border-radius:6px;padding:.28rem .6rem;font-size:.7rem;font-weight:600;text-decoration:none;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;}
 
   /* Embassy in resources sheet */
-  .m-emb-section{margin-bottom:1rem;}
-  .m-emb-country-title{font-size:.72rem;font-weight:700;color:var(--text);background:var(--bg);border-radius:6px;padding:.4rem .6rem;margin-bottom:.4rem;}
+  .m-emb-section{margin-bottom:.85rem;}
+  .m-emb-country-title{font-size:.72rem;font-weight:700;color:var(--text);background:var(--bg);border-radius:6px;padding:.38rem .6rem;margin-bottom:.38rem;}
 }
 </style>
 </head>
@@ -458,7 +444,7 @@ nav button:hover:not(.active){color:var(--text);}
 
 <!-- ── DESKTOP HEADER ────────────────────────────────────── -->
 <header>
-  <div class="logo"><div class="pulse-dot"></div>I'm Stranded — <span>You're not.</span></div>
+  <div class="logo"><div class="pulse-dot"></div>I'm Stranded —&nbsp;<span class="logo-accent">You're not.</span></div>
   <nav>
     <button class="active" onclick="showView('map')">Map</button>
     <button onclick="showView('resources')">Resources</button>
@@ -470,14 +456,40 @@ nav button:hover:not(.active){color:var(--text);}
 </header>
 
 <!-- ── SITREP BAR ─────────────────────────────────────────── -->
-<div class="sitrep-bar">
-  <div class="sitrep-stat" id="ss-stranded"  onclick="filterMap('stranded')"><span  class="sitrep-num danger" id="stat-stranded">—</span><div class="sitrep-label">Est. Stranded</div><div class="sitrep-sub">tap · filter map</div></div>
-  <div class="sitrep-stat" id="ss-cancelled" onclick="filterMap('cancelled')"><span class="sitrep-num warn"   id="stat-cancelled">—</span><div class="sitrep-label">Flights Cancelled</div><div class="sitrep-sub">tap · filter map</div></div>
-  <div class="sitrep-stat" id="ss-airports"  onclick="filterMap('airports')"><span  class="sitrep-num danger" id="stat-airports-closed">—</span><div class="sitrep-label">Airports Closed</div><div class="sitrep-sub">tap · filter map</div></div>
-  <div class="sitrep-stat" id="ss-airspace"  onclick="filterMap('airspace')"><span  class="sitrep-num warn"   id="stat-airspace">—</span><div class="sitrep-label">Airspace Closed</div><div class="sitrep-sub">tap · filter map</div></div>
-  <div class="sitrep-stat" id="ss-routes"    onclick="filterMap('routes')"><span    class="sitrep-num safe"   id="stat-border-crossings">—</span><div class="sitrep-label">Land Routes Open</div><div class="sitrep-sub">tap · filter map</div></div>
-  <div class="sitrep-stat" id="ss-help"      onclick="filterMap('help')"><span      class="sitrep-num green"  id="stat-help-posts">—</span><div class="sitrep-label">Help Posts Live</div><div class="sitrep-sub">tap · filter map</div></div>
-  <button class="sitrep-refresh" onclick="refreshSitrep()"><span id="refresh-icon">↻</span> <span id="refresh-label">just now</span></button>
+<div class="sitrep-bar" id="sitrep-bar">
+  <div class="sitrep-stat" id="ss-stranded"  onclick="filterMap('stranded')">
+    <span class="sitrep-num danger" id="stat-stranded" style="color:#dc2626">847,773</span>
+    <div class="sitrep-label">Est. Stranded</div>
+    <div class="sitrep-sub">tap · filter map</div>
+  </div>
+  <div class="sitrep-stat" id="ss-cancelled" onclick="filterMap('cancelled')">
+    <span class="sitrep-num warn" id="stat-cancelled" style="color:#d97706">1,847</span>
+    <div class="sitrep-label">Flights Cancelled</div>
+    <div class="sitrep-sub">tap · filter map</div>
+  </div>
+  <div class="sitrep-stat" id="ss-airports"  onclick="filterMap('airports')">
+    <span class="sitrep-num danger" id="stat-airports-closed" style="color:#dc2626">5</span>
+    <div class="sitrep-label">Airports Closed</div>
+    <div class="sitrep-sub">tap · filter map</div>
+  </div>
+  <div class="sitrep-stat" id="ss-airspace"  onclick="filterMap('airspace')">
+    <span class="sitrep-num warn" id="stat-airspace" style="color:#d97706">4</span>
+    <div class="sitrep-label">Airspace Closed</div>
+    <div class="sitrep-sub">tap · filter map</div>
+  </div>
+  <div class="sitrep-stat" id="ss-routes"    onclick="filterMap('routes')">
+    <span class="sitrep-num safe" id="stat-border-crossings" style="color:#059669">3</span>
+    <div class="sitrep-label">Land Routes Open</div>
+    <div class="sitrep-sub">tap · filter map</div>
+  </div>
+  <div class="sitrep-stat" id="ss-help"      onclick="filterMap('help')">
+    <span class="sitrep-num green" id="stat-help-posts" style="color:#059669">0</span>
+    <div class="sitrep-label">Help Posts Live</div>
+    <div class="sitrep-sub">tap · filter map</div>
+  </div>
+  <button class="sitrep-refresh" onclick="refreshSitrep()">
+    <span id="refresh-icon">↻</span> <span id="refresh-label">just now</span>
+  </button>
 </div>
 
 <!-- ── MAP VIEW ──────────────────────────────────────────── -->
@@ -485,17 +497,17 @@ nav button:hover:not(.active){color:var(--text);}
   <div id="crisis-map"></div>
   <div class="map-legend">
     <div class="legend-title">Filter Map</div>
-    <div class="legend-item" id="leg-danger"    onclick="filterMap('danger')">   <div class="legend-dot" style="background:#d72c0d"></div>Active conflict / closed</div>
-    <div class="legend-item" id="leg-warn"      onclick="filterMap('warn')">     <div class="legend-dot" style="background:#c47c14"></div>High alert / restricted</div>
-    <div class="legend-item" id="leg-safe"      onclick="filterMap('safe')">     <div class="legend-dot" style="background:#007a5c"></div>Relatively stable</div>
-    <div class="legend-item" id="leg-worldwide" onclick="filterMap('worldwide')"><div class="legend-dot" style="background:#1a56db"></div>Worldwide disruption</div>
-    <div class="legend-item" id="leg-help"      onclick="filterMap('help')">     <div class="legend-dot" style="background:#007a5c;outline:2px solid #fff;outline-offset:1px"></div>Help offered</div>
-    <div class="legend-item" id="leg-routes"    onclick="filterMap('routes')">   <div class="legend-dot" style="background:#c47c14;outline:2px solid #fff;outline-offset:1px"></div>Land routes</div>
+    <div class="legend-item" id="leg-danger"    onclick="filterMap('danger')">   <div class="legend-dot" style="background:#dc2626"></div>Active conflict / closed</div>
+    <div class="legend-item" id="leg-warn"      onclick="filterMap('warn')">     <div class="legend-dot" style="background:#d97706"></div>High alert / restricted</div>
+    <div class="legend-item" id="leg-safe"      onclick="filterMap('safe')">     <div class="legend-dot" style="background:#059669"></div>Relatively stable</div>
+    <div class="legend-item" id="leg-worldwide" onclick="filterMap('worldwide')"><div class="legend-dot" style="background:#2563eb"></div>Worldwide disruption</div>
+    <div class="legend-item" id="leg-help"      onclick="filterMap('help')">     <div class="legend-dot" style="background:#059669;outline:2px solid #fff;outline-offset:1px"></div>Help offered</div>
+    <div class="legend-item" id="leg-routes"    onclick="filterMap('routes')">   <div class="legend-dot" style="background:#d97706;outline:2px solid #fff;outline-offset:1px"></div>Land routes</div>
     <div class="legend-clear" onclick="filterMap('all')">✕ Clear filter</div>
   </div>
 </div>
 
-<!-- ── RESOURCES VIEW (embassies + orgs) ─────────────────── -->
+<!-- ── RESOURCES VIEW ───────────────────────────────────── -->
 <div id="resources-view" class="view">
   <div class="container">
     <div class="section-header">
@@ -508,7 +520,7 @@ nav button:hover:not(.active){color:var(--text);}
       <button class="filter-btn" onclick="filterResources('ngo',this)">🤝 NGOs</button>
       <button class="filter-btn" onclick="filterResources('info',this)">📋 Info &amp; Tools</button>
     </div>
-    <div id="resources-grid" class="resources-grid"></div>
+    <div id="resources-grid" class="countries-grid"></div>
   </div>
 </div>
 
@@ -521,7 +533,7 @@ nav button:hover:not(.active){color:var(--text);}
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem">
       <div>
-        <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--green);background:var(--green-soft);padding:.6rem 1rem;border-left:3px solid var(--green);border-radius:var(--radius-sm) var(--radius-sm) 0 0;margin-bottom:0">↑ Post an Offer</div>
+        <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--green);background:var(--green-soft);padding:.6rem 1rem;border-left:3px solid var(--green);border-radius:var(--radius-sm) var(--radius-sm) 0 0">↑ Post an Offer</div>
         <div class="post-form" style="border-radius:0 var(--radius-sm) var(--radius-sm);border-top:none">
           <p class="form-note">Your contact will be visible so people who need help can reach you directly.</p>
           <div class="form-row"><label>What can you offer?</label><select id="offer-type"><option value="">Select…</option><option>Housing / spare room</option><option>Transportation</option><option>Food / water / supplies</option><option>Medical assistance</option><option>Financial help</option><option>Translation / local knowledge</option><option>Other</option></select></div>
@@ -529,7 +541,7 @@ nav button:hover:not(.active){color:var(--text);}
           <div class="form-row"><label>Details</label><textarea id="offer-body" placeholder="Describe what you can offer…"></textarea></div>
           <div class="form-row"><label>Your name</label><input type="text" id="offer-name" placeholder="First name or handle"></div>
           <div class="form-row"><label>Contact (will be public)</label><input type="text" id="offer-contact" placeholder="@telegram or email"></div>
-          <div class="form-row"><label>X/Twitter handle <span style="color:var(--muted);font-weight:400">(optional — $HELP tips)</span></label><input type="text" id="offer-xhandle" placeholder="@yourhandle"></div>
+          <div class="form-row"><label>X/Twitter <span style="color:var(--muted);font-weight:400">(optional)</span></label><input type="text" id="offer-xhandle" placeholder="@yourhandle"></div>
           <button class="submit-btn" onclick="submitPost('offer')">Post Offer</button>
         </div>
       </div>
@@ -544,31 +556,25 @@ nav button:hover:not(.active){color:var(--text);}
 <!-- ── MOBILE SHELL ──────────────────────────────────────── -->
 <div id="m-shell" style="display:none;flex-direction:column;height:100dvh;overflow:hidden;">
 
-  <!-- Scrollable stat filter bar -->
+  <!-- 4-stat filter bar -->
   <div id="m-statbar">
-    <div class="m-stat" id="mss-stranded"  onclick="mFilterMap('stranded')"> <span class="m-stat-num danger" id="m-stat-stranded">—</span>  <span class="m-stat-label">EST.<br>Stranded</span></div>
-    <div class="m-stat" id="mss-cancelled" onclick="mFilterMap('cancelled')"><span class="m-stat-num warn"   id="m-stat-cancelled">—</span><span class="m-stat-label">Flights<br>Cancelled</span></div>
-    <div class="m-stat" id="mss-airports"  onclick="mFilterMap('airports')"> <span class="m-stat-num danger" id="m-stat-airports">—</span>   <span class="m-stat-label">Airports<br>Closed</span></div>
-    <div class="m-stat" id="mss-help"      onclick="mFilterMap('help')">     <span class="m-stat-num green"  id="m-stat-help">—</span>       <span class="m-stat-label">Help<br>Offered</span></div>
-  </div>
-  <!-- Sub-bar: map key filters -->
-  <div id="m-subbar">
-    <button class="m-subchip" onclick="mFilterMap('routes')">
-      <span class="m-subchip-dot" style="background:#c47c14"></span>Land Routes
-    </button>
-    <button class="m-subchip" onclick="mFilterMap('worldwide')">
-      <span class="m-subchip-dot" style="background:#1a56db"></span>Worldwide
-    </button>
-    <button class="m-subchip" onclick="mFilterMap('all')" id="m-clear-chip">
-      ✕ Clear Filter
-    </button>
+    <div class="m-stat" id="mss-stranded"  onclick="mFilterMap('stranded')"><span class="m-stat-num danger" id="m-stat-stranded">847,773</span><span class="m-stat-label">EST.<br>Stranded</span></div>
+    <div class="m-stat" id="mss-cancelled" onclick="mFilterMap('cancelled')"><span class="m-stat-num warn"   id="m-stat-cancelled">1,847</span>  <span class="m-stat-label">Flights<br>Cancelled</span></div>
+    <div class="m-stat" id="mss-airports"  onclick="mFilterMap('airports')"> <span class="m-stat-num danger" id="m-stat-airports">5</span>         <span class="m-stat-label">Airports<br>Closed</span></div>
+    <div class="m-stat" id="mss-help"      onclick="mFilterMap('help')">     <span class="m-stat-num green"  id="m-stat-help">0</span>             <span class="m-stat-label">Help<br>Offered</span></div>
   </div>
 
-  <!-- Map -->
+  <!-- Sub-bar: map key + clear -->
+  <div id="m-subbar">
+    <button class="m-subchip" id="msc-routes"    onclick="mFilterMap('routes')">   <span class="m-subchip-dot" style="background:#d97706"></span>Land Routes</button>
+    <button class="m-subchip" id="msc-worldwide" onclick="mFilterMap('worldwide')"><span class="m-subchip-dot" style="background:#2563eb"></span>Worldwide</button>
+    <button class="m-subchip" id="msc-clear"     onclick="mFilterMap('all')">✕ Clear</button>
+  </div>
+
+  <!-- Map area -->
   <div id="m-map-wrap">
     <div id="m-crisis-map"></div>
-
-    <!-- Full-screen country popup -->
+    <!-- Country full-screen popup -->
     <div id="m-country-popup">
       <div class="m-popup-header">
         <div class="m-popup-title" id="m-popup-title">Country Info</div>
@@ -578,7 +584,7 @@ nav button:hover:not(.active){color:var(--text);}
     </div>
   </div>
 
-  <!-- Sheet (for resources + offer help) -->
+  <!-- Sheet -->
   <div id="m-sheet">
     <div id="m-sheet-handle" onclick="mSheetToggle()">
       <div class="m-handle-bar"></div>
@@ -592,14 +598,14 @@ nav button:hover:not(.active){color:var(--text);}
         <div class="m-form-row"><label class="m-form-label">Your location</label><input type="text" id="m-offer-location" placeholder="e.g. Dubai, UAE"></div>
         <div class="m-form-row"><label class="m-form-label">Details</label><textarea id="m-offer-body" placeholder="Describe what you can offer…"></textarea></div>
         <div class="m-form-row"><label class="m-form-label">Your name</label><input type="text" id="m-offer-name" placeholder="First name or handle"></div>
-        <div class="m-form-row"><label class="m-form-label">Contact (will be public)</label><input type="text" id="m-offer-contact" placeholder="@telegram or email"></div>
+        <div class="m-form-row"><label class="m-form-label">Contact (public)</label><input type="text" id="m-offer-contact" placeholder="@telegram or email"></div>
         <div class="m-form-row"><label class="m-form-label">X handle <span style="color:var(--muted);font-weight:400">(optional)</span></label><input type="text" id="m-offer-xhandle" placeholder="@yourhandle"></div>
         <button class="m-submit" onclick="mSubmitOffer()">Post Offer</button>
       </div>
     </div>
   </div>
 
-  <!-- Pinned tab bar — 3 tabs: Map | Resources | Offer Help (coral) -->
+  <!-- Tab bar -->
   <div id="m-tabbar">
     <button class="m-tab active" id="mtab-map" onclick="mTab('map',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
@@ -615,6 +621,7 @@ nav button:hover:not(.active){color:var(--text);}
     </button>
   </div>
 </div>
+
 
 <script>
 // ============================================================
@@ -728,7 +735,7 @@ function showView(name) {
 // ============================================================
 // MAP + FILTER SYSTEM (shared between desktop & mobile refs)
 // ============================================================
-const SC = {danger:'#d72c0d',warn:'#c47c14',safe:'#007a5c'};
+const SC = {danger:'#dc2626',warn:'#d97706',safe:'#059669'};
 const _mk = {country:[],routes:[],worldwide:[],help:[]};
 let _activeFilter = 'all';
 let _postMarkers = [];
@@ -767,7 +774,7 @@ function filterMap(type) {
   _mk.help.forEach(m=>{ showH?m.addTo(map):map.removeLayer(m); });
 
   if (type==='airports'||type==='cancelled'||type==='stranded') {
-    renderAirportPins(map);
+    renderAirportPins(map, type);
     map.flyTo([28,47],5,{duration:1});
     if(type==='airports') _mk.country.forEach(({marker,country})=>{ if(country?.airspace==='CLOSED'){try{marker.openPopup();}catch(e){}} });
   } else {
@@ -783,7 +790,7 @@ function initMap() {
   window._mapInit = true;
   const map = L.map('crisis-map',{zoomControl:false}).setView([28,45],5);
   L.control.zoom({position:'bottomright'}).addTo(map);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
     attribution:'©OpenStreetMap ©CARTO',maxZoom:19
   }).addTo(map);
 
@@ -796,7 +803,7 @@ function initMap() {
         <div style="font-size:.77rem;color:#555;line-height:1.5;margin-bottom:.5rem">${c.advisory}</div>
         <div style="font-size:.7rem;margin-bottom:.6rem">Airspace: <strong style="color:${c.airspace==='CLOSED'?'#d72c0d':c.airspace.includes('OPEN')?'#007a5c':'#c47c14'}">${c.airspace}</strong></div>
         ${c.telegram?`<a href="${c.telegram}" style="color:#1a56db;font-size:.75rem;font-weight:500;display:block;margin-bottom:.5rem" target="_blank">→ Telegram group</a>`:''}
-        <button onclick="window.showCountryDetail('${c.id}')" style="background:#f03a5f;border:none;color:#fff;font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;padding:.4rem .9rem;cursor:pointer;border-radius:8px;width:100%">Full info &amp; embassies →</button>
+        <button onclick="window.showCountryDetail('${c.id}')" style="background:#0e7490;border:none;color:#fff;font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;padding:.4rem .9rem;cursor:pointer;border-radius:8px;width:100%">Full info &amp; embassies →</button>
       </div>`);
     _mk.country.push({marker:glow,status:c.status,country:c});
     _mk.country.push({marker:dot, status:c.status,country:c});
@@ -811,7 +818,7 @@ function initMap() {
   });
 
   WORLDWIDE.forEach(r=>{
-    const m = L.circleMarker(r.coords,{radius:7,fillColor:'#1a56db',color:'#fff',weight:2,opacity:.9,fillOpacity:.5}).addTo(map)
+    const m = L.circleMarker(r.coords,{radius:7,fillColor:'#2563eb',color:'#fff',weight:2,opacity:.9,fillOpacity:.5}).addTo(map)
       .bindPopup(`<div style="font-family:'Inter',sans-serif;min-width:190px"><div style="font-size:.85rem;font-weight:700;color:#1a56db;margin-bottom:.25rem">🌍 ${r.name}</div><div style="font-size:.75rem;color:#555;line-height:1.5;margin-bottom:.4rem">${r.note}</div><div style="font-size:.7rem;color:#888">${r.contacts[0]?.label}: <strong style="color:#222">${r.contacts[0]?.value}</strong></div></div>`);
     _mk.worldwide.push(m);
   });
@@ -836,27 +843,38 @@ const AIRPORT_DATA = [
 
 const _dataPins = {airports:[], flights:[]};
 
-function renderAirportPins(map) {
+function renderAirportPins(map, mode) {
   _dataPins.airports.forEach(m=>{try{map.removeLayer(m);}catch(e){}});
   _dataPins.airports=[];
+  // mode: 'cancelled' shows flight count, 'stranded' shows stranded estimate
+  const showStranded = mode === 'stranded';
   AIRPORT_DATA.forEach(a=>{
-    const col = a.status==='CLOSED'?'#d72c0d':a.status==='OPEN'?'#007a5c':'#c47c14';
-    const bgCol = a.status==='CLOSED'?'#fef0ee':a.status==='OPEN'?'#eaf7f3':'#fff8ec';
+    const col = a.status==='CLOSED'?'#dc2626':a.status==='OPEN'?'#059669':'#d97706';
+    const bgCol = a.status==='CLOSED'?'#fef2f2':a.status==='OPEN'?'#ecfdf5':'#fffbeb';
+    const pinNum = showStranded ? a.stranded.toLocaleString() : a.cancelled.toLocaleString();
+    const pinLabel = showStranded ? 'est. stranded' : 'cancelled';
     const icon = L.divIcon({
-      className:'',
-      html:`<div style="background:#fff;border:2px solid ${col};border-radius:8px;padding:4px 7px;font-family:'Inter',sans-serif;font-size:10px;font-weight:700;color:${col};box-shadow:0 2px 8px rgba(0,0,0,.12);white-space:nowrap;line-height:1.2">
-        ✈ ${a.code}<br><span style="font-size:9px;font-weight:600">${a.cancelled} cancelled</span>
+      className:'airport-pin-label',
+      html:`<div style="border:2px solid ${col};border-radius:8px;padding:4px 8px;font-family:'Inter',sans-serif;font-size:10px;font-weight:700;color:${col};white-space:nowrap;line-height:1.25;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.13);width:fit-content">
+        ✈ ${a.code} &nbsp;<span style="font-size:9px;opacity:.75">${pinNum} ${pinLabel}</span>
       </div>`,
-      iconAnchor:[0,0]
+      iconAnchor:[0,0],
+      iconSize:null
     });
     const m = L.marker(a.coords,{icon}).addTo(map).bindPopup(`
-      <div style="font-family:'Inter',sans-serif;min-width:220px">
-        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${col};margin-bottom:.3rem">✈ ${a.city} — ${a.code}</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem .8rem;margin-bottom:.55rem">
-          <div><div style="font-size:1.4rem;font-weight:800;color:${col};letter-spacing:-.03em;line-height:1">${a.cancelled.toLocaleString()}</div><div style="font-size:.6rem;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.04em">Flights cancelled</div></div>
-          <div><div style="font-size:1.4rem;font-weight:800;color:#d72c0d;letter-spacing:-.03em;line-height:1">${a.stranded.toLocaleString()}</div><div style="font-size:.6rem;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.04em">Est. stranded</div></div>
+      <div style="font-family:'Inter',sans-serif;min-width:230px">
+        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${col};margin-bottom:.4rem">✈ ${a.city} — ${a.code}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem .85rem;margin-bottom:.55rem">
+          <div>
+            <div style="font-size:1.5rem;font-weight:800;color:#dc2626;letter-spacing:-.03em;line-height:1">${a.stranded.toLocaleString()}</div>
+            <div style="font-size:.58rem;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-top:.15rem">Est. Stranded</div>
+          </div>
+          <div>
+            <div style="font-size:1.5rem;font-weight:800;color:${col};letter-spacing:-.03em;line-height:1">${a.cancelled.toLocaleString()}</div>
+            <div style="font-size:.58rem;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-top:.15rem">Flights Cancelled</div>
+          </div>
         </div>
-        <div style="display:flex;justify-content:space-between;padding:.35rem .5rem;background:${bgCol};border-radius:6px;align-items:center">
+        <div style="display:flex;justify-content:space-between;padding:.35rem .55rem;background:${bgCol};border-radius:6px;align-items:center;border:1px solid ${col}22">
           <span style="font-size:.7rem;font-weight:700;color:${col}">Status: ${a.status}</span>
           <span style="font-size:.62rem;color:#888">Updated ${a.updated}</span>
         </div>
@@ -881,7 +899,6 @@ function clearDataPins(map) {
       .bindPopup(`<div style="font-family:'Inter',sans-serif;min-width:200px"><div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#007a5c;margin-bottom:.2rem">Help offered</div><div style="font-weight:600;font-size:.84rem;margin-bottom:.2rem">${p.name}</div><div style="font-size:.77rem;color:#555;line-height:1.5;margin-bottom:.4rem">${p.body.slice(0,100)}${p.body.length>100?'…':''}</div><div style="font-size:.7rem;color:#888">📍 ${p.location}</div>${p.xhandle?`<a href="https://x.com/${p.xhandle}" target="_blank" style="display:inline-block;margin-top:.4rem;background:#007a5c;color:#fff;font-size:.68rem;font-weight:600;padding:.2rem .55rem;border-radius:5px;text-decoration:none">Tip $HELP →</a>`:''}</div>`);
     _mk.help.push(m); _postMarkers.push(m);
   });
-
 
 async function geocodeCity(city){
   try{const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`,{headers:{'Accept-Language':'en','User-Agent':'ImStranded/1.0'}});const d=await r.json();if(d&&d[0])return{lat:parseFloat(d[0].lat),lng:parseFloat(d[0].lon)};}catch(e){}return null;
@@ -1015,16 +1032,19 @@ async function refreshSitrep(){
   if(icon)icon.classList.add('spinning');
   // Demo values — replace with live aviation API
   const vals = {stranded:847773, cancelled:1847, airports:5, airspace:4, routes:3, helpPosts:0};
-  // Desktop
-  animCount('stat-stranded',         vals.stranded,  1200);
-  animCount('stat-cancelled',        vals.cancelled, 800);
-  animCount('stat-airports-closed',  vals.airports,  500);
-  animCount('stat-airspace',         vals.airspace,  500);
-  animCount('stat-border-crossings', vals.routes,    500);
-  // Mobile (4-item bar: stranded, cancelled, airports, help)
-  animCount('m-stat-stranded',  vals.stranded,  1200);
-  animCount('m-stat-cancelled', vals.cancelled, 800);
-  animCount('m-stat-airports',  vals.airports,  500);
+  // Set immediately first (guarantees visibility), then animate
+  const setNow = (id, val) => { const el=document.getElementById(id); if(el) el.textContent = typeof val==='number' ? val.toLocaleString() : val; };
+  setNow('stat-stranded', vals.stranded); setNow('stat-cancelled', vals.cancelled);
+  setNow('stat-airports-closed', vals.airports); setNow('stat-airspace', vals.airspace);
+  setNow('stat-border-crossings', vals.routes);
+  setNow('m-stat-stranded', vals.stranded); setNow('m-stat-cancelled', vals.cancelled);
+  setNow('m-stat-airports', vals.airports);
+  // Then animate up from 0 for a nice effect
+  ['stat-stranded','m-stat-stranded'].forEach(id=>animCount(id, vals.stranded, 1200));
+  ['stat-cancelled','m-stat-cancelled'].forEach(id=>animCount(id, vals.cancelled, 800));
+  ['stat-airports-closed','m-stat-airports'].forEach(id=>animCount(id, vals.airports, 500));
+  animCount('stat-airspace', vals.airspace, 500);
+  animCount('stat-border-crossings', vals.routes, 500);
 
   if(SB_ON){
     const{count}=await _sb.from('help_posts').select('*',{count:'exact',head:true}).eq('flagged',false);
@@ -1067,7 +1087,7 @@ function initMobile(){
   shell.style.display='flex';
 
   const mmap=L.map('m-crisis-map',{zoomControl:false,attributionControl:false}).setView([28,45],4);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mmap);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mmap);
 
   COUNTRIES.forEach(c=>{
     const col=SC[c.status];
@@ -1079,7 +1099,7 @@ function initMobile(){
     L.polyline([r.from,r.to],{color:col,weight:2.5,opacity:.8,dashArray:r.status==='danger'?'6,8':r.status==='warn'?'8,4':null}).addTo(mmap);
   });
   WORLDWIDE.forEach(r=>{
-    L.circleMarker(r.coords,{radius:7,fillColor:'#1a56db',color:'#fff',weight:1.5,opacity:.9,fillOpacity:.45}).addTo(mmap)
+    L.circleMarker(r.coords,{radius:7,fillColor:'#2563eb',color:'#fff',weight:1.5,opacity:.9,fillOpacity:.45}).addTo(mmap)
       .on('click',()=>openMWorldwidePopup(r.id));
   });
 
@@ -1100,7 +1120,7 @@ function mFilterMap(type){
 
   const mm=window._mobileMap; if(!mm)return;
   if(type==='airports'||type==='cancelled'||type==='stranded'){
-    renderAirportPins(mm);
+    renderAirportPins(mm, type);
     mm.flyTo([28,47],5,{duration:1});
   } else {
     clearDataPins(mm);
