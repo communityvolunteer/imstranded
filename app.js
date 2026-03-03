@@ -547,10 +547,7 @@ function initMobile(){
     L.circleMarker(c.coords,{radius:10,fillColor:SC[c.status],color:'#fff',weight:2,opacity:1,fillOpacity:.92}).addTo(mmap)
       .on('click',()=>openMCountryPopup(c.id));
   });
-  LAND_ROUTES.forEach(r=>{
-    const col=r.status==='safe'?'#22c55e':r.status==='warn'?'#f59e0b':'#ef4444';
-    L.polyline([r.from,r.to],{color:col,weight:2.5,opacity:.8,dashArray:r.status==='danger'?'6,8':r.status==='warn'?'8,4':null}).addTo(mmap);
-  });
+  
   WORLDWIDE.forEach(r=>{
     L.circleMarker(r.coords,{radius:7,fillColor:'#a855f7',color:'#fff',weight:1.5,opacity:.9,fillOpacity:.5}).addTo(mmap)
       .on('click',()=>openMWorldwidePopup(r.id));
