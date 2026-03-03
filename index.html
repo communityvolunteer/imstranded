@@ -178,15 +178,12 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 .leaflet-popup-tip{background:var(--brand-mid) !important;}
 .leaflet-popup-content{margin:.85rem 1rem !important;}
 
-/* Airport data pins */
+/* Airport data pins — dark navy pill, white text */
 .airport-pin-label{
-  background:#fff;
-  border-radius:7px;
-  padding:4px 8px;
+  border-radius:999px;
   font-family:'Inter',sans-serif;
   font-size:11px;font-weight:700;
   line-height:1.25;
-  box-shadow:0 2px 8px rgba(0,0,0,.14);
   white-space:nowrap;
   width:fit-content !important;
   max-width:none !important;
@@ -326,18 +323,18 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
   #m-subbar{
     background:var(--brand-mid);border-bottom:1px solid rgba(255,255,255,.1);
     display:flex;align-items:center;justify-content:space-around;
-    padding:.28rem .4rem;flex-shrink:0;gap:.25rem;
+    padding:.32rem .5rem;flex-shrink:0;gap:.35rem;
   }
   .m-subchip{
-    display:flex;align-items:center;gap:.28rem;
-    background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);border-radius:999px;
-    padding:.22rem .58rem;font-family:'Inter',sans-serif;font-size:.56rem;font-weight:600;
-    color:rgba(255,255,255,.65);cursor:pointer;flex:1;justify-content:center;
+    display:flex;align-items:center;gap:.32rem;
+    background:rgba(255,255,255,.12);border:none;border-radius:999px;
+    padding:.28rem .7rem;font-family:'Inter',sans-serif;font-size:.58rem;font-weight:600;
+    color:#fff;cursor:pointer;flex:1;justify-content:center;
     transition:all .15s;white-space:nowrap;
   }
-  .m-subchip:hover{border-color:#35e7ff;color:#35e7ff;}
-  .m-subchip.active{background:rgba(53,231,255,.15);border-color:#35e7ff;color:#35e7ff;}
-  .m-subchip-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .m-subchip:hover{background:rgba(255,255,255,.2);}
+  .m-subchip.active{background:rgba(53,231,255,.25);color:#35e7ff;}
+  .m-subchip-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 
   /* ── Map ── */
   #m-map-wrap{flex:1;position:relative;overflow:hidden;min-height:0;}
@@ -412,41 +409,57 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
   /* ── Bottom sheet ── */
   #m-sheet{
     position:absolute;bottom:62px;left:0;right:0;z-index:900;
-    background:var(--surface);border-top:1px solid var(--border);border-radius:16px 16px 0 0;
+    background:#0a1e39;border-top:1px solid rgba(255,255,255,.1);border-radius:20px 20px 0 0;
     max-height:calc(100dvh - 54px - 28px - 62px - 20px);
     display:flex;flex-direction:column;
     transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
   }
   #m-sheet.open{transform:translateY(0);}
-  #m-sheet-handle{padding:.6rem .75rem .3rem;display:flex;flex-direction:column;align-items:center;gap:.35rem;cursor:pointer;flex-shrink:0;}
-  .m-handle-bar{width:32px;height:4px;background:var(--border);border-radius:2px;}
-  .m-sheet-title{font-size:.88rem;font-weight:700;color:var(--text);}
-  #m-sheet-body{overflow-y:auto;flex:1;padding:0 1rem 1rem;-webkit-overflow-scrolling:touch;}
+  #m-sheet-handle{padding:.7rem .75rem .2rem;display:flex;flex-direction:column;align-items:center;gap:.4rem;cursor:pointer;flex-shrink:0;}
+  .m-handle-bar{width:36px;height:4px;background:rgba(255,255,255,.25);border-radius:2px;}
+  .m-sheet-title{font-size:1.4rem;font-weight:800;color:#35e7ff;text-align:center;padding:.4rem 0 .2rem;}
+  #m-sheet-body{overflow-y:auto;flex:1;padding:0 1.2rem 1.2rem;-webkit-overflow-scrolling:touch;}
 
   /* Sheet form */
-  .m-form-label{display:block;font-size:.63rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:.28rem;}
-  .m-form-row{margin-bottom:.82rem;}
+  .m-form-label{display:block;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#35e7ff;margin-bottom:.32rem;}
+  .m-form-label span{color:rgba(255,255,255,.45);font-weight:500;text-transform:none;letter-spacing:0;}
+  .m-form-row{margin-bottom:.9rem;}
   .m-form-row input,.m-form-row select,.m-form-row textarea{
-    width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm);
-    padding:.65rem .85rem;font-family:'Inter',sans-serif;font-size:.95rem;
-    color:var(--text);background:var(--surface);outline:none;-webkit-appearance:none;transition:border-color .15s;
+    width:100%;border:1.5px solid rgba(255,255,255,.12);border-radius:10px;
+    padding:.7rem .95rem;font-family:'Inter',sans-serif;font-size:.95rem;
+    color:#fff;background:rgba(255,255,255,.08);outline:none;-webkit-appearance:none;
+    transition:border-color .15s;
   }
-  .m-form-row input:focus,.m-form-row select:focus,.m-form-row textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(14,116,144,.12);}
-  .m-form-row textarea{min-height:72px;resize:none;}
-  .m-form-note{font-size:.74rem;color:var(--muted);line-height:1.5;background:var(--bg);border-radius:6px;padding:.5rem .7rem;border-left:3px solid var(--green);margin-bottom:.9rem;}
-  .m-submit{width:100%;background:var(--brand);color:#fff;border:none;border-radius:var(--radius-sm);padding:.88rem;font-family:'Inter',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;margin-top:.25rem;}
-  .m-submit:hover{background:var(--brand-dark);}
+  .m-form-row input::placeholder,.m-form-row textarea::placeholder{color:rgba(255,255,255,.35);}
+  .m-form-row input:focus,.m-form-row select:focus,.m-form-row textarea:focus{
+    border-color:#35e7ff;background:rgba(53,231,255,.06);
+  }
+  .m-form-row textarea{min-height:88px;resize:none;}
+  .m-form-note{font-size:.74rem;color:rgba(255,255,255,.55);line-height:1.55;margin-bottom:1rem;}
+  .m-submit{
+    width:100%;background:linear-gradient(135deg,#0e9db5,#35e7ff);color:#0a1e39;
+    border:none;border-radius:12px;padding:.95rem;font-family:'Inter',sans-serif;
+    font-size:1rem;font-weight:800;cursor:pointer;margin-top:.25rem;
+    letter-spacing:.01em;transition:opacity .15s;
+  }
+  .m-submit:hover{opacity:.9;}
 
   /* Resources in sheet */
-  .m-res-row{display:flex;align-items:center;gap:.65rem;padding:.72rem 0;border-bottom:1px solid var(--border);}
+  .m-res-row{display:flex;align-items:center;gap:.65rem;padding:.72rem 0;border-bottom:1px solid rgba(255,255,255,.08);}
   .m-res-row:last-child{border-bottom:none;}
-  .m-res-name{font-size:.82rem;font-weight:600;flex:1;}
-  .m-res-type{font-size:.6rem;color:var(--muted);display:block;margin-top:.1rem;}
-  .m-res-go{background:none;border:1.5px solid var(--border);color:var(--brand);border-radius:6px;padding:.28rem .6rem;font-size:.7rem;font-weight:600;text-decoration:none;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;}
+  .m-res-name{font-size:.82rem;font-weight:600;flex:1;color:#fff;}
+  .m-res-type{font-size:.6rem;color:rgba(255,255,255,.45);display:block;margin-top:.1rem;}
+  .m-res-go{background:rgba(53,231,255,.15);border:1.5px solid rgba(53,231,255,.35);color:#35e7ff;border-radius:6px;padding:.28rem .6rem;font-size:.7rem;font-weight:600;text-decoration:none;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;}
 
   /* Embassy in resources sheet */
   .m-emb-section{margin-bottom:.85rem;}
-  .m-emb-country-title{font-size:.72rem;font-weight:700;color:var(--text);background:var(--bg);border-radius:6px;padding:.38rem .6rem;margin-bottom:.38rem;}
+  .m-emb-country-title{font-size:.72rem;font-weight:700;color:#fff;background:rgba(255,255,255,.08);border-radius:6px;padding:.38rem .6rem;margin-bottom:.38rem;}
+  .m-emb-row{display:flex;align-items:center;gap:.6rem;padding:.45rem 0;border-bottom:1px solid rgba(255,255,255,.08);}
+  .m-emb-row:last-child{border-bottom:none;}
+  .m-emb-who{flex:1;}
+  .m-emb-country{font-weight:700;font-size:.82rem;display:block;color:#fff;}
+  .m-emb-role{font-size:.68rem;color:rgba(255,255,255,.45);display:block;margin-top:.05rem;}
+  .m-call-btn{background:rgba(53,231,255,.15);color:#35e7ff;border:none;border-radius:7px;padding:.32rem .75rem;font-size:.72rem;font-weight:600;cursor:pointer;white-space:nowrap;text-decoration:none;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:.3rem;}
 }
 </style>
 </head>
@@ -602,18 +615,17 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
   <div id="m-sheet">
     <div id="m-sheet-handle" onclick="mSheetToggle()">
       <div class="m-handle-bar"></div>
-      <div class="m-sheet-title" id="m-sheet-title">Resources</div>
     </div>
+    <div class="m-sheet-title" id="m-sheet-title" style="text-align:center;padding:.2rem 1.2rem .6rem">Offer Help</div>
     <div id="m-sheet-body">
       <div id="m-resources-content" style="display:none"></div>
       <div id="m-offer-content" style="display:none">
         <div class="m-form-note">Your contact will be public so people who need help can reach you.</div>
-        <div class="m-form-row"><label class="m-form-label">What can you offer?</label><select id="m-offer-type"><option value="">Select…</option><option>Housing / spare room</option><option>Transportation</option><option>Food / water / supplies</option><option>Medical assistance</option><option>Financial help</option><option>Translation / local knowledge</option><option>Other</option></select></div>
-        <div class="m-form-row"><label class="m-form-label">Your location</label><input type="text" id="m-offer-location" placeholder="e.g. Dubai, UAE"></div>
+        <div class="m-form-row"><label class="m-form-label">Your Location</label><input type="text" id="m-offer-location" placeholder="e.g. Dubai, UAE"></div>
         <div class="m-form-row"><label class="m-form-label">Details</label><textarea id="m-offer-body" placeholder="Describe what you can offer…"></textarea></div>
-        <div class="m-form-row"><label class="m-form-label">Your name</label><input type="text" id="m-offer-name" placeholder="First name or handle"></div>
-        <div class="m-form-row"><label class="m-form-label">Contact (public)</label><input type="text" id="m-offer-contact" placeholder="@telegram or email"></div>
-        <div class="m-form-row"><label class="m-form-label">X handle <span style="color:var(--muted);font-weight:400">(optional)</span></label><input type="text" id="m-offer-xhandle" placeholder="@yourhandle"></div>
+        <div class="m-form-row"><label class="m-form-label">Your Name</label><input type="text" id="m-offer-name" placeholder="First name or handle"></div>
+        <div class="m-form-row"><label class="m-form-label">Contact <span>(public)</span></label><input type="text" id="m-offer-contact" placeholder="@telegram or email"></div>
+        <div class="m-form-row"><label class="m-form-label">X Handle <span>(optional)</span></label><input type="text" id="m-offer-xhandle" placeholder="@yourhandle"></div>
         <button class="m-submit" onclick="mSubmitOffer()">Post Offer</button>
       </div>
     </div>
@@ -870,8 +882,8 @@ function renderAirportPins(map, mode) {
     const pinLabel = showStranded ? 'est. stranded' : 'cancelled';
     const icon = L.divIcon({
       className:'airport-pin-label',
-      html:`<div style="border:2px solid ${col};border-radius:8px;padding:4px 8px;font-family:'Inter',sans-serif;font-size:10px;font-weight:700;color:${col};white-space:nowrap;line-height:1.25;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.13);width:fit-content">
-        ✈ ${a.code} &nbsp;<span style="font-size:9px;opacity:.75">${pinNum} ${pinLabel}</span>
+      html:`<div style="background:#0a1e39;border-radius:999px;padding:5px 10px;font-family:'Inter',sans-serif;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;line-height:1.25;box-shadow:0 2px 8px rgba(0,0,0,.25);display:flex;align-items:center;gap:5px;width:fit-content">
+        <span style="color:${col}">✈</span> ${a.code} <span style="opacity:.75;font-size:9.5px;font-weight:600">${pinNum} ${pinLabel}</span>
       </div>`,
       iconAnchor:[0,0],
       iconSize:null
@@ -1262,15 +1274,15 @@ function mRenderResources(){
 }
 
 async function mSubmitOffer(){
-  const t=document.getElementById('m-offer-type')?.value, l=document.getElementById('m-offer-location')?.value,
+  const l=document.getElementById('m-offer-location')?.value,
     b=document.getElementById('m-offer-body')?.value, n=document.getElementById('m-offer-name')?.value,
     c=document.getElementById('m-offer-contact')?.value, x=(document.getElementById('m-offer-xhandle')?.value||'').trim().replace(/^@+/,'');
-  if(!t||!l||!b||!n||!c){alert('Please fill in all fields.');return;}
+  if(!l||!b||!n||!c){alert('Please fill in all fields.');return;}
   const btn=document.querySelector('#m-offer-content .m-submit'); btn.textContent='Posting…'; btn.disabled=true;
   try{
-    const{error}=await _sb.from('help_posts').insert({type:'offer',post_type:t,location:l,body:b,name:n,contact:c,xhandle:x||null,flagged:false});
+    const{error}=await _sb.from('help_posts').insert({type:'offer',post_type:'General',location:l,body:b,name:n,contact:c,xhandle:x||null,flagged:false});
     if(error)throw error;
-    ['type','location','body','name','contact','xhandle'].forEach(f=>{const el=document.getElementById('m-offer-'+f);if(el)el.tagName==='SELECT'?el.selectedIndex=0:el.value='';});
+    ['location','body','name','contact','xhandle'].forEach(f=>{const el=document.getElementById('m-offer-'+f);if(el)el.tagName==='SELECT'?el.selectedIndex=0:el.value='';});
     btn.textContent='✓ Posted!'; setTimeout(()=>{btn.textContent='Post Offer';btn.disabled=false;},3000);
   }catch(e){alert('Failed: '+e.message);btn.textContent='Post Offer';btn.disabled=false;}
 }
