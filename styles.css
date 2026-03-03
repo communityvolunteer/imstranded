@@ -190,7 +190,7 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
     padding: 20px;
     border-radius: 20px;
     margin-right: 60px;
-  display:flex;gap:.65rem;
+  display:flex;
 }
 .map-cta{
   display:flex;align-items:center;gap:.5rem;
