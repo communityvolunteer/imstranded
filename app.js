@@ -118,7 +118,7 @@ async function fetchAviationData() {
 // ============================================================
 // MAP STATE
 // ============================================================
-const SC = {danger:'#000',warn:'#000',safe:'#000'};
+const SC = {danger:'#a855f7',warn:'#a855f7',safe:'#a855f7'};
 const _mk = {country:[],routes:[],worldwide:[],help:[],need:[]};
 let _activeFilter = 'all';
 let _postMarkers = [];
