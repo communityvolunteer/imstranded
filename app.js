@@ -271,7 +271,7 @@ function renderAirportPins(map, mode) {
   clearDataPins(map);
   const showStranded = mode === 'stranded';
   AIRPORT_DATA.forEach(a => {
-    const col = a.status==='CLOSED'?'#ef4444':a.status==='OPEN'?'#22c55e':'#f59e0b';
+    const col = a.status==='CLOSED'?'#ef4444':a.status==='OPEN'?'#22c55e':'#FFF';
     const pinNum = showStranded ? a.stranded.toLocaleString() : a.cancelled.toLocaleString();
     const pinSuffix = showStranded ? 'est. stranded' : 'cancelled';
     const icon = L.divIcon({
