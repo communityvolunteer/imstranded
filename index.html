@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Stranded in the Middle East? — You're not alone.</title>
+<title>I'm Stranded — You're not.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -15,48 +15,51 @@
 
 <!-- DESKTOP HEADER -->
 <header>
-  <div class="logo"><div class="pulse-dot"></div>Stranded in the Middle East? &mdash;&nbsp;<span class="logo-accent">You're not alone.</span></div>
+  <div class="logo">
+    <div class="pulse-dot"></div>
+    I'm Stranded &mdash;&nbsp;<span class="logo-accent">You're not.</span>
+  </div>
   <nav>
     <button class="active" onclick="showView('map')">Map</button>
-    <button onclick="showView('resources')">Resources</button>
+    <button onclick="showView('resources')">Additional Resources</button>
   </nav>
   <div class="header-right">
     <div class="last-updated" id="last-updated-label">Loading&hellip;</div>
-    <button class="cta-pill" onclick="showView('help')">+ Offer a Spare Room</button>
+    <button class="back-btn" onclick="window.location.href='/'">Back to home page &rsaquo;</button>
   </div>
 </header>
 
 <!-- SITREP BAR -->
 <div class="sitrep-bar" id="sitrep-bar">
   <div class="sitrep-stat" id="ss-stranded" onclick="filterMap('stranded')">
-    <span class="sitrep-num" id="stat-stranded" style="color:#35e7ff">847,773</span>
-    <div class="sitrep-label">See Est. Stranded</div>
-    <div class="sitrep-sub">tap to filter map</div>
+    <span class="sitrep-num" id="stat-stranded">847,773</span>
+    <div class="sitrep-label">Est. Stranded</div>
+    <div class="sitrep-sub">tap · filter map</div>
   </div>
   <div class="sitrep-stat" id="ss-cancelled" onclick="filterMap('cancelled')">
-    <span class="sitrep-num" id="stat-cancelled" style="color:#35e7ff">1,847</span>
-    <div class="sitrep-label">See Flights Cancelled</div>
-    <div class="sitrep-sub">tap to filter map</div>
+    <span class="sitrep-num" id="stat-cancelled">1,847</span>
+    <div class="sitrep-label">Flights Cancelled</div>
+    <div class="sitrep-sub">tap · filter map</div>
   </div>
   <div class="sitrep-stat" id="ss-airports" onclick="filterMap('airports')">
-    <span class="sitrep-num" id="stat-airports-closed" style="color:#fca5a5">5</span>
+    <span class="sitrep-num" id="stat-airports-closed">5</span>
     <div class="sitrep-label">Airports Closed</div>
-    <div class="sitrep-sub">tap to filter map</div>
+    <div class="sitrep-sub">tap · filter map</div>
   </div>
   <div class="sitrep-stat" id="ss-airspace" onclick="filterMap('airspace')">
-    <span class="sitrep-num" id="stat-airspace" style="color:#fcd34d">4</span>
+    <span class="sitrep-num" id="stat-airspace">4</span>
     <div class="sitrep-label">Airspace Closed</div>
-    <div class="sitrep-sub">tap to filter map</div>
+    <div class="sitrep-sub">tap · filter map</div>
   </div>
-  <div class="sitrep-stat" id="ss-routes" onclick="filterMap('routes')">
-    <span class="sitrep-num" id="stat-border-crossings" style="color:#6ee7b7">3</span>
-    <div class="sitrep-label">Land Routes Open</div>
-    <div class="sitrep-sub">tap to filter map</div>
+  <div class="sitrep-stat sitrep-stat--offer" id="ss-help-offer" onclick="filterMap('help')">
+    <span class="sitrep-num" id="stat-help-posts">0</span>
+    <div class="sitrep-label">People Are Offering Help</div>
+    <div class="sitrep-sub">tap · filter map</div>
   </div>
-  <div class="sitrep-stat" id="ss-help" onclick="filterMap('help')">
-    <span class="sitrep-num" id="stat-help-posts" style="color:#6ee7b7">0</span>
-    <div class="sitrep-label">Help Posts Live</div>
-    <div class="sitrep-sub">tap to filter map</div>
+  <div class="sitrep-stat sitrep-stat--need" id="ss-help-need" onclick="filterMap('need')">
+    <span class="sitrep-num" id="stat-need-posts">0</span>
+    <div class="sitrep-label">People Are Asking For Help</div>
+    <div class="sitrep-sub">tap · filter map</div>
   </div>
   <button class="sitrep-refresh" onclick="refreshSitrep()" title="Refresh data">
     <span id="refresh-icon" style="display:flex;align-items:center">
@@ -70,15 +73,44 @@
 <!-- MAP VIEW -->
 <div id="map-view" class="view active">
   <div id="crisis-map"></div>
-  <div class="map-legend">
-    <div class="legend-title">Filter Map</div>
-    <div class="legend-item" id="leg-danger"    onclick="filterMap('danger')">   <div class="legend-dot" style="background:#dc2626"></div>Active conflict / closed</div>
-    <div class="legend-item" id="leg-warn"      onclick="filterMap('warn')">     <div class="legend-dot" style="background:#d97706"></div>High alert / restricted</div>
-    <div class="legend-item" id="leg-safe"      onclick="filterMap('safe')">     <div class="legend-dot" style="background:#059669"></div>Relatively stable</div>
-    <div class="legend-item" id="leg-worldwide" onclick="filterMap('worldwide')"><div class="legend-dot" style="background:#2563eb"></div>Worldwide disruption</div>
-    <div class="legend-item" id="leg-help"      onclick="filterMap('help')">     <div class="legend-dot" style="background:#059669;outline:2px solid #fff;outline-offset:1px"></div>Help offered</div>
-    <div class="legend-item" id="leg-routes"    onclick="filterMap('routes')">   <div class="legend-dot" style="background:#d97706;outline:2px solid #fff;outline-offset:1px"></div>Land routes</div>
+
+  <!-- Filter Legend (closeable) -->
+  <div class="map-legend" id="map-legend">
+    <div class="legend-header">
+      <div class="legend-title">Filter Map</div>
+      <button class="legend-close" onclick="toggleLegend()" title="Close">&#x2715;</button>
+    </div>
+    <div class="legend-item" id="leg-stranded"  onclick="filterMap('stranded')"> <div class="legend-dot" style="background:#ef4444"></div>Stranded / Needs help</div>
+    <div class="legend-item" id="leg-help"      onclick="filterMap('help')">     <div class="legend-dot" style="background:#3b82f6"></div>Offering help</div>
+    <div class="legend-item" id="leg-worldwide" onclick="filterMap('worldwide')"><div class="legend-dot" style="background:#a855f7"></div>Worldwide disruption</div>
+    <div class="legend-divider"></div>
+    <div class="legend-item legend-community" onclick="window.open('https://x.com/search?q=imstranded','_blank')">
+      <svg class="legend-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      Twitter/X Community
+    </div>
+    <div class="legend-item legend-community" onclick="window.open('https://t.me/gulfcrisis','_blank')">
+      <svg class="legend-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+      Telegram Community
+    </div>
     <div class="legend-clear" onclick="filterMap('all')">&#x2715; Clear filter</div>
+  </div>
+
+  <!-- Legend toggle when closed -->
+  <button class="legend-toggle-btn" id="legend-toggle-btn" onclick="toggleLegend()" style="display:none">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+    Filters
+  </button>
+
+  <!-- Bottom-right dual CTA buttons -->
+  <div class="map-cta-group">
+    <button class="map-cta map-cta--offer" onclick="showView('help');switchHelpTab('offer')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Offer Help
+    </button>
+    <button class="map-cta map-cta--need" onclick="showView('help');switchHelpTab('need')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      I Need Help
+    </button>
   </div>
 </div>
 
@@ -101,66 +133,106 @@
 
 <!-- HELP VIEW -->
 <div id="help-view" class="view">
-  <div class="container" style="max-width:820px">
+  <div class="container" style="max-width:960px">
     <div class="section-header">
       <div class="section-title">Help Board</div>
-      <div class="section-subtitle">People offering shelter, transport, food and other assistance</div>
+      <div class="section-subtitle">People offering and requesting shelter, transport, food and other assistance</div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem">
+
+    <!-- Tab switcher -->
+    <div class="help-tabs">
+      <button class="help-tab active" id="htab-offer" onclick="switchHelpTab('offer')">
+        <span class="help-tab-dot help-tab-dot--offer"></span>Offering Help
+      </button>
+      <button class="help-tab" id="htab-need" onclick="switchHelpTab('need')">
+        <span class="help-tab-dot help-tab-dot--need"></span>Asking For Help
+      </button>
+    </div>
+
+    <!-- Offer panel -->
+    <div id="help-panel-offer" class="help-panel" style="display:grid;grid-template-columns:1fr 1fr;gap:2rem">
       <div>
-        <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--green);background:var(--green-soft);padding:.6rem 1rem;border-left:3px solid var(--green);border-radius:var(--radius-sm) var(--radius-sm) 0 0">Post an Offer</div>
-        <div class="post-form" style="border-radius:0 var(--radius-sm) var(--radius-sm);border-top:none">
+        <div class="post-form-header post-form-header--offer">Post an Offer</div>
+        <div class="post-form">
           <p class="form-note">Your contact will be visible so people who need help can reach you directly.</p>
-          <div class="form-row"><label>What can you offer?</label><select id="offer-type"><option value="">Select&hellip;</option><option>Housing / spare room</option><option>Transportation</option><option>Food / water / supplies</option><option>Medical assistance</option><option>Financial help</option><option>Translation / local knowledge</option><option>Other</option></select></div>
+          <div class="form-row"><label>What can you offer?</label>
+            <select id="offer-type">
+              <option value="">Select&hellip;</option>
+              <option>Housing / spare room</option><option>Transportation</option>
+              <option>Food / water / supplies</option><option>Medical assistance</option>
+              <option>Financial help</option><option>Translation / local knowledge</option><option>Other</option>
+            </select>
+          </div>
           <div class="form-row"><label>Your location</label><input type="text" id="offer-location" placeholder="e.g. Dubai, UAE"></div>
           <div class="form-row"><label>Details</label><textarea id="offer-body" placeholder="Describe what you can offer&hellip;"></textarea></div>
           <div class="form-row"><label>Your name</label><input type="text" id="offer-name" placeholder="First name or handle"></div>
           <div class="form-row"><label>Contact (will be public)</label><input type="text" id="offer-contact" placeholder="@telegram or email"></div>
           <div class="form-row"><label>X/Twitter <span style="color:var(--muted);font-weight:400">(optional)</span></label><input type="text" id="offer-xhandle" placeholder="@yourhandle"></div>
-          <button class="submit-btn" onclick="submitPost('offer')">Post Offer</button>
+          <button class="submit-btn submit-btn--offer" onclick="submitPost('offer')">Post Offer</button>
         </div>
       </div>
       <div>
-        <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--info);background:var(--info-soft);padding:.6rem 1rem;border-left:3px solid var(--info);border-radius:var(--radius-sm) var(--radius-sm) 0 0">Live Offers</div>
+        <div class="post-form-header post-form-header--live">Live Offers</div>
         <div class="posts-list" id="offer-posts" style="margin-top:.75rem"></div>
+      </div>
+    </div>
+
+    <!-- Need panel -->
+    <div id="help-panel-need" class="help-panel" style="display:none;grid-template-columns:1fr 1fr;gap:2rem">
+      <div>
+        <div class="post-form-header post-form-header--need">Request Help</div>
+        <div class="post-form">
+          <p class="form-note" style="border-left-color:var(--danger)">Your contact will be visible so people who can help can reach you directly.</p>
+          <div class="form-row"><label>What do you need?</label>
+            <select id="need-type">
+              <option value="">Select&hellip;</option>
+              <option>Housing / somewhere to sleep</option><option>Transport out of area</option>
+              <option>Food / water / supplies</option><option>Medical help</option>
+              <option>Financial assistance</option><option>Translation / guidance</option><option>Other</option>
+            </select>
+          </div>
+          <div class="form-row"><label>Your location</label><input type="text" id="need-location" placeholder="e.g. Dubai, UAE"></div>
+          <div class="form-row"><label>Details</label><textarea id="need-body" placeholder="Describe your situation and what you need&hellip;"></textarea></div>
+          <div class="form-row"><label>Your name</label><input type="text" id="need-name" placeholder="First name or handle"></div>
+          <div class="form-row"><label>Contact (will be public)</label><input type="text" id="need-contact" placeholder="@telegram or email"></div>
+          <div class="form-row"><label>X/Twitter <span style="color:var(--muted);font-weight:400">(optional)</span></label><input type="text" id="need-xhandle" placeholder="@yourhandle"></div>
+          <button class="submit-btn submit-btn--need" onclick="submitPost('need')">Post Request</button>
+        </div>
+      </div>
+      <div>
+        <div class="post-form-header post-form-header--live-need">Live Requests</div>
+        <div class="posts-list" id="need-posts" style="margin-top:.75rem"></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- MOBILE SHELL -->
+<!-- ═══════════════════════════════════════════════════════
+     MOBILE SHELL
+═══════════════════════════════════════════════════════ -->
 <div id="m-shell" style="display:none;flex-direction:column;height:100dvh;overflow:hidden;">
 
-  <!-- 4-stat bar -->
+  <!-- 3-stat bar -->
   <div id="m-statbar">
-    <div class="m-stat" id="mss-stranded"  onclick="mFilterMap('stranded')">
-      <span class="m-stat-num blue" id="m-stat-stranded">847,773</span>
-      <span class="m-stat-label">See Est.<br>Stranded</span>
+    <div class="m-stat" id="mss-stranded" onclick="mFilterMap('stranded')">
+      <span class="m-stat-num" id="m-stat-stranded">847,773</span>
+      <span class="m-stat-label">EST.<br>STRANDED</span>
     </div>
     <div class="m-stat" id="mss-cancelled" onclick="mFilterMap('cancelled')">
-      <span class="m-stat-num blue" id="m-stat-cancelled">1,847</span>
-      <span class="m-stat-label">See Flights<br>Cancelled</span>
+      <span class="m-stat-num" id="m-stat-cancelled">1,847</span>
+      <span class="m-stat-label">FLIGHTS<br>CANCELLED</span>
     </div>
-    <div class="m-stat" id="mss-airports"  onclick="mFilterMap('airports')">
-      <span class="m-stat-num blue" id="m-stat-airports">5</span>
-      <span class="m-stat-label">Airports<br>Closed</span>
-    </div>
-    <div class="m-stat" id="mss-help"      onclick="mFilterMap('help')">
+    <div class="m-stat m-stat--help" id="mss-help" onclick="mFilterMap('help')">
       <span class="m-stat-num" id="m-stat-help">0</span>
-      <span class="m-stat-label">Help<br>Offered</span>
+      <span class="m-stat-label">HELP<br>OFFERED</span>
     </div>
-  </div>
-
-  <!-- Sub-bar: map key filters -->
-  <div id="m-subbar">
-    <button class="m-subchip" id="msc-routes"    onclick="mFilterMap('routes')">   <span class="m-subchip-dot" style="background:#d97706"></span>Land Routes</button>
-    <button class="m-subchip" id="msc-worldwide" onclick="mFilterMap('worldwide')"><span class="m-subchip-dot" style="background:#2563eb"></span>Worldwide</button>
-    <button class="m-subchip" id="msc-clear"     onclick="mFilterMap('all')">&#x2715; Clear</button>
   </div>
 
   <!-- Map area -->
   <div id="m-map-wrap">
     <div id="m-crisis-map"></div>
+
+    <!-- Country full-screen popup -->
     <div id="m-country-popup">
       <div class="m-popup-header">
         <div class="m-popup-title" id="m-popup-title">Country Info</div>
@@ -168,6 +240,38 @@
       </div>
       <div class="m-popup-body" id="m-popup-body"></div>
     </div>
+
+    <!-- Mobile filter legend popup (closeable, overlays map) -->
+    <div id="m-filter-legend" class="m-filter-legend">
+      <div class="m-filter-legend-header">
+        <span class="m-filter-legend-title">Filter Map</span>
+        <button class="m-filter-legend-close" onclick="closeMFilterLegend()">&#x2715;</button>
+      </div>
+      <div class="m-filter-legend-item" onclick="mFilterMap('stranded');closeMFilterLegend()">
+        <span class="m-filter-dot" style="background:#ef4444"></span>Stranded / Needs help
+      </div>
+      <div class="m-filter-legend-item" onclick="mFilterMap('help');closeMFilterLegend()">
+        <span class="m-filter-dot" style="background:#3b82f6"></span>Offering help
+      </div>
+      <div class="m-filter-legend-item" onclick="mFilterMap('worldwide');closeMFilterLegend()">
+        <span class="m-filter-dot" style="background:#a855f7"></span>Additional resources
+      </div>
+      <div class="m-filter-legend-item" onclick="window.open('https://x.com/search?q=imstranded','_blank')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="white" style="flex-shrink:0"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        Twitter/X Community
+      </div>
+      <div class="m-filter-legend-item" onclick="window.open('https://t.me/gulfcrisis','_blank')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="white" style="flex-shrink:0"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+        Telegram Community
+      </div>
+      <div class="m-filter-clear" onclick="mFilterMap('all');closeMFilterLegend()">&#x2715; Clear filter</div>
+    </div>
+
+    <!-- Filter button on map (bottom-left) -->
+    <button class="m-map-filter-btn" id="m-map-filter-btn" onclick="openMFilterLegend()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      Filters
+    </button>
   </div>
 
   <!-- Sheet -->
@@ -190,7 +294,7 @@
     </div>
   </div>
 
-  <!-- Tab bar — 65px matching stat bar -->
+  <!-- Tab bar -->
   <div id="m-tabbar">
     <button class="m-tab active" id="mtab-map" onclick="mTab('map',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
