@@ -81,17 +81,6 @@ const NGOS = [
   {type:'Community',name:'r/dubai Megathread',desc:'Real-time reports from expats.',url:'https://reddit.com/r/dubai'},
 ];
 
-const LAND_ROUTES = [
-  {from:[24.47,54.37],to:[23.61,58.59],status:'warn',label:'UAE to Oman (E611)'},
-  {from:[24.47,54.37],to:[23.88,45.07],status:'warn',label:'UAE to Saudi Arabia'},
-  {from:[26.07,50.55],to:[23.88,45.07],status:'warn',label:'Bahrain to Saudi (King Fahd Causeway)'},
-  {from:[29.37,47.97],to:[23.88,45.07],status:'warn',label:'Kuwait to Saudi Arabia'},
-  {from:[33.22,43.68],to:[30.58,36.24],status:'warn',label:'Iraq to Jordan (Trebil)'},
-  {from:[30.58,36.24],to:[31.85,35.22],status:'warn',label:'Jordan to Israel (Allenby Bridge)'},
-  {from:[31.85,35.22],to:[30.00,32.25],status:'danger',label:'Israel to Egypt (Taba)'},
-  {from:[31.30,34.30],to:[30.00,32.25],status:'danger',label:'Gaza to Egypt (Rafah - closed)'},
-  {from:[23.61,58.59],to:[25.28,51.53],status:'warn',label:'Oman to Qatar (sea)'},
-];
 
 let AIRPORT_DATA = [
   {city:'Dubai',code:'DXB',iata:'DXB',coords:[25.252,55.364],cancelled:312,status:'CLOSED',stranded:56160,updated:'--:--'},
@@ -627,7 +616,7 @@ function mTab(tab,btn){
   btn.classList.add('active');_mCurrentTab=tab;
   if(tab==='map'){_mSheetOpen=false;sheet.classList.remove('open');}
   else if(tab==='resources') mShowSheetContent('resources','Resources');
-  else if(tab==='offer')     mShowSheetContent('offer','Offer Help');
+  else if(tab==='offer')     mShowSheetContent('offer','OFFER HELP');
 }
 
 function mShowSheetContent(which,title){
