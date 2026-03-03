@@ -529,5 +529,5 @@ transform: translateX(-50%);
   .m-emb-who{flex:1;}
   .m-emb-country{font-weight:700;font-size:.82rem;display:block;color:#fff;}
   .m-emb-role{font-size:.68rem;color:rgba(255,255,255,.45);display:block;margin-top:.05rem;}
-  .m-call-btn{background:rgba(103,232,249,.15);color:#3498ec;border:none;border-radius:7px;padding:.32rem .75rem;font-size:.72rem;font-weight:600;cursor:pointer;white-space:nowrap;text-decoration:none;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:.3rem;}
+  .m-call-btn{background:#3498ec;color:#fff;border:none;border-radius:7px;padding:.32rem .75rem;font-size:.72rem;font-weight:600;cursor:pointer;white-space:nowrap;text-decoration:none;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:.3rem;}
 }
