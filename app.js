@@ -255,7 +255,7 @@ function initMap() {
         <div style="font-size:.82rem;color:rgba(255,255,255,.85);line-height:1.55;margin-bottom:.6rem">${c.advisory}</div>
         <div style="font-size:.72rem;margin-bottom:.75rem;color:rgba(255,255,255,.6)">Airspace: <strong style="color:${c.airspace==='CLOSED'?'#ec3452':c.airspace.includes('OPEN')?'#6ee7b7':'#fcd34d'}">${c.airspace}</strong></div>
         ${c.telegram?`<a href="${c.telegram}" style="color:#3498ec;font-size:.76rem;font-weight:500;display:block;margin-bottom:.6rem" target="_blank">→ Telegram group</a>`:''}
-        <button onclick="window.showCountryDetail('${c.id}')" style="background:#3498ec;border:none;color:#0a1e39;font-family:Inter,sans-serif;font-size:.82rem;font-weight:700;padding:.55rem 1rem;cursor:pointer;border-radius:8px;width:100%">Full info &amp; embassies →</button>
+        <button onclick="window.showCountryDetail('${c.id}')" style="background:#3498ec;border:none;color:#fff;font-family:Inter,sans-serif;font-size:.82rem;font-weight:700;padding:.55rem 1rem;cursor:pointer;border-radius:8px;width:100%">Full info &amp; embassies →</button>
       </div>`);
     _mk.country.push({marker:glow,status:c.status});
     _mk.country.push({marker:dot,status:c.status});
@@ -296,7 +296,7 @@ function renderAirportPins(map, mode) {
     const pinSuffix = showStranded ? 'est. stranded' : 'cancelled';
     const icon = L.divIcon({
       className:'airport-pin-label',
-      html:`<div style="background:#0a1e39;border-radius:999px;padding:5px 10px;font-family:Inter,sans-serif;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;gap:5px">✈ ${a.code} <span style="opacity:.75;font-size:9.5px">${pinNum} ${pinSuffix}</span></div>`,
+      html:`<div style="background:#000;border-radius:999px;padding:5px 10px;font-family:Inter,sans-serif;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;gap:5px">✈ ${a.code} <span style="opacity:.75;font-size:9.5px">${pinNum} ${pinSuffix}</span></div>`,
       iconAnchor:[0,0],iconSize:null
     });
     const m = L.marker(a.coords,{icon}).addTo(map).bindPopup(`
