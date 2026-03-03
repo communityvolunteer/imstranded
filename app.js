@@ -271,7 +271,7 @@ function renderAirportPins(map, mode) {
   clearDataPins(map);
   const showStranded = mode === 'stranded';
   AIRPORT_DATA.forEach(a => {
-    const col = a.status==='CLOSED'?'#ef4444':a.status==='OPEN'?'#22c55e':'#FFF';
+    const col = a.status==='CLOSED'?'#ef4444':a.status==='OPEN'?'#22c55e':'#fcd34d';
     const pinNum = showStranded ? a.stranded.toLocaleString() : a.cancelled.toLocaleString();
     const pinSuffix = showStranded ? 'est. stranded' : 'cancelled';
     const icon = L.divIcon({
@@ -281,7 +281,7 @@ function renderAirportPins(map, mode) {
     });
     const m = L.marker(a.coords,{icon}).addTo(map).bindPopup(`
       <div style="font-family:Inter,sans-serif;min-width:230px">
-        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fcd34d;margin-bottom:.45rem">✈ ${a.city} — ${a.code}</div>
+        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fff;margin-bottom:.45rem">✈ ${a.city} — ${a.code}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem .85rem;margin-bottom:.55rem">
           <div><div style="font-size:1.5rem;font-weight:800;color:#ec3452;letter-spacing:-.03em;line-height:1">${a.stranded.toLocaleString()}</div><div style="font-size:.58rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.04em;margin-top:.15rem">Est. Stranded</div></div>
           <div><div style="font-size:1.5rem;font-weight:800;color:#FFF;letter-spacing:-.03em;line-height:1">${a.cancelled.toLocaleString()}</div><div style="font-size:.58rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.04em;margin-top:.15rem">Flights Cancelled</div></div>
