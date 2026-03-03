@@ -187,10 +187,10 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 .map-cta-group{
   position:absolute;bottom:1.5rem;right:1.5rem;z-index:999;
       background: #000;
-    padding: 20px;
-    border-radius: 20px;
+    padding: 10px;
+    border-radius: 7px;
     margin-right: 60px;
-  display:flex;
+  display:flex;gap:.6rem;
 }
 .map-cta{
   display:flex;align-items:center;gap:.5rem;
