@@ -9,41 +9,54 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-html,body{background:transparent;min-height:100%;font-family:'Inter',sans-serif;}
+html,body{background:transparent;width:100%;height:100%;font-family:'Inter',sans-serif;}
 
 .form-wrap{
-  max-width:420px;
-  margin:0 auto;
-  padding:1.2rem 1.4rem 1.6rem;
-  background:rgba(0,0,0,.88);
+  width:100%;
+  height:100%;
+  padding:1.8vw 2.2vw 2.4vw;
+  background:rgba(0,0,0,.92);
   backdrop-filter:blur(12px);
   -webkit-backdrop-filter:blur(12px);
   border-radius:20px;
   border:1px solid rgba(255,255,255,.08);
+  display:flex;
+  flex-direction:column;
 }
 
 .form-handle{
   width:36px;height:4px;background:rgba(255,255,255,.25);
-  border-radius:2px;margin:0 auto .6rem;
+  border-radius:2px;margin:0 auto .8vw;flex-shrink:0;
 }
 
 .form-title{
-  font-size:1.3rem;font-weight:800;color:#fff;
-  text-align:center;padding:.2rem 0 .8rem;
-  letter-spacing:.01em;
+  font-size:clamp(1.1rem, 2.4vw, 1.65rem);
+  font-weight:800;color:#fff;
+  text-align:center;
+  padding:.2vw 0 1vw;
+  letter-spacing:.01em;flex-shrink:0;
+}
+
+#form-fields{
+  display:flex;flex-direction:column;flex:1;
 }
 
 .form-note{
-  font-size:.74rem;color:rgba(255,255,255,.55);
-  line-height:1.55;margin-bottom:1rem;
+  font-size:clamp(.72rem, 1.3vw, .92rem);
+  color:rgba(255,255,255,.55);
+  line-height:1.55;margin-bottom:1.4vw;flex-shrink:0;
 }
 
-.form-row{margin-bottom:.9rem;}
+.form-row{margin-bottom:clamp(.6rem, 1.2vw, 1rem);flex-shrink:0;}
+.form-row--grow{flex:1;display:flex;flex-direction:column;}
+.form-row--grow textarea{flex:1;}
 
 .form-label{
-  display:block;font-size:.62rem;font-weight:700;
+  display:block;
+  font-size:clamp(.6rem, 1.1vw, .82rem);
+  font-weight:700;
   text-transform:uppercase;letter-spacing:.07em;
-  color:#fff;margin-bottom:.32rem;
+  color:#fff;margin-bottom:clamp(.2rem, .5vw, .4rem);
 }
 .form-label span{
   color:rgba(255,255,255,.45);font-weight:500;
@@ -53,61 +66,67 @@ html,body{background:transparent;min-height:100%;font-family:'Inter',sans-serif;
 .form-row input,
 .form-row textarea{
   width:100%;
-  border:1.5px solid rgba(255,255,255,.12);
+  border:1.5px solid rgba(255,255,255,.15);
   border-radius:10px;
-  padding:.7rem .95rem;
+  padding:clamp(.55rem, 1.1vw, .85rem) clamp(.7rem, 1.2vw, 1rem);
   font-family:'Inter',sans-serif;
-  font-size:.95rem;
+  font-size:clamp(.85rem, 1.5vw, 1.1rem);
   color:#fff;
-  background:rgba(255,255,255,.08);
+  background:#1a1c1e;
   outline:none;
   -webkit-appearance:none;
   transition:border-color .15s,background .15s;
 }
 .form-row input::placeholder,
 .form-row textarea::placeholder{
-  color:rgba(255,255,255,.35);
+  color:rgba(255,255,255,.3);
 }
 .form-row input:focus,
 .form-row textarea:focus{
   border-color:#3498ec;
-  background:rgba(103,232,249,.06);
+  background:#1e2224;
 }
-.form-row textarea{min-height:88px;resize:none;}
+.form-row textarea{min-height:80px;resize:none;}
 
 .form-submit{
   width:100%;
-  background:#3498ec;
+  background:#2f3133;
   color:#fff;
   border:none;
   border-radius:12px;
-  padding:.95rem;
+  padding:clamp(.75rem, 1.4vw, 1.1rem);
   font-family:'Inter',sans-serif;
-  font-size:1rem;
+  font-size:clamp(.88rem, 1.5vw, 1.1rem);
   font-weight:800;
   cursor:pointer;
-  margin-top:.25rem;
-  letter-spacing:.01em;
+  margin-top:clamp(.3rem, .6vw, .5rem);
+  letter-spacing:.03em;
+  text-transform:uppercase;
   transition:background .15s;
+  flex-shrink:0;
 }
-.form-submit:hover{background:#2980c8;}
+.form-submit:hover{background:#3d4043;}
 .form-submit:disabled{opacity:.6;cursor:not-allowed;}
 
 .form-success{
   display:none;
   text-align:center;
   padding:2rem 1rem;
+  flex:1;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
 }
 .form-success svg{margin-bottom:.8rem;}
 .form-success-title{
-  font-size:1.1rem;font-weight:800;color:#fff;margin-bottom:.3rem;
+  font-size:clamp(1rem, 2vw, 1.3rem);font-weight:800;color:#fff;margin-bottom:.3rem;
 }
 .form-success-sub{
-  font-size:.82rem;color:rgba(255,255,255,.55);line-height:1.5;
+  font-size:clamp(.78rem, 1.3vw, .92rem);color:rgba(255,255,255,.55);line-height:1.5;
 }
 .form-success-link{
   display:inline-block;margin-top:1rem;
-  color:#3498ec;font-size:.84rem;font-weight:700;
+  color:#3498ec;font-size:clamp(.8rem, 1.3vw, .92rem);font-weight:700;
   text-decoration:none;
 }
 .form-success-link:hover{text-decoration:underline;}
@@ -126,7 +145,7 @@ html,body{background:transparent;min-height:100%;font-family:'Inter',sans-serif;
       <label class="form-label">Your Location</label>
       <input type="text" id="f-location" placeholder="e.g. Dubai, UAE">
     </div>
-    <div class="form-row">
+    <div class="form-row form-row--grow">
       <label class="form-label">Details</label>
       <textarea id="f-body" placeholder="Describe what you can offer…"></textarea>
     </div>
@@ -142,7 +161,7 @@ html,body{background:transparent;min-height:100%;font-family:'Inter',sans-serif;
       <label class="form-label">X Handle <span>(optional)</span></label>
       <input type="text" id="f-xhandle" placeholder="@yourhandle">
     </div>
-    <button class="form-submit" id="f-submit" onclick="submitOffer()">Post Offer</button>
+    <button class="form-submit" id="f-submit" onclick="submitOffer()">OFFER A ROOM</button>
   </div>
 
   <!-- Success state -->
@@ -180,10 +199,11 @@ async function submitOffer(){
     if(error) throw error;
 
     document.getElementById('form-fields').style.display='none';
-    document.getElementById('form-success').style.display='block';
+    const success = document.getElementById('form-success');
+    success.style.display='flex';
   }catch(e){
     alert('Failed to post: '+e.message);
-    btn.textContent='Post Offer'; btn.disabled=false;
+    btn.textContent='OFFER A ROOM'; btn.disabled=false;
   }
 }
 
@@ -192,8 +212,8 @@ function resetForm(){
     document.getElementById(id).value='';
   });
   const btn=document.getElementById('f-submit');
-  btn.textContent='Post Offer'; btn.disabled=false;
-  document.getElementById('form-fields').style.display='block';
+  btn.textContent='OFFER A ROOM'; btn.disabled=false;
+  document.getElementById('form-fields').style.display='flex';
   document.getElementById('form-success').style.display='none';
 }
 </script>
