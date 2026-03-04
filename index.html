@@ -80,8 +80,8 @@
       <button class="legend-close" onclick="toggleLegend()" title="Close">&#x2715;</button>
     </div>
     <div class="legend-item" id="leg-stranded"  onclick="filterMap('stranded')"> <div class="legend-dot" style="background:#ef4444"></div>Stranded / Needs help</div>
-    <div class="legend-item" id="leg-help"      onclick="filterMap('help')">     <div class="legend-dot" style="background:#3b82f6"></div>Offering help</div>
-    <div class="legend-item" id="leg-worldwide" onclick="filterMap('worldwide')"><div class="legend-dot" style="background:#a855f7"></div>Worldwide disruption</div>
+    <div class="legend-item" id="leg-help"      onclick="filterMap('help')">     <div class="legend-dot" style="background:#3b82f6"></div>Offering a spare room</div>
+    <div class="legend-item" id="leg-worldwide" onclick="filterMap('worldwide')"><div class="legend-dot" style="background:#a855f7"></div>Disrupted places</div>
     <div class="legend-divider"></div>
     <div class="legend-item legend-community" onclick="window.open('https://x.com/search?q=imstranded','_blank')">
       <svg class="legend-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
@@ -141,7 +141,7 @@
     <!-- Tab switcher -->
     <div class="help-tabs">
       <button class="help-tab active" id="htab-offer" onclick="switchHelpTab('offer')">
-        <span class="help-tab-dot help-tab-dot--offer"></span>Offering Help
+        <span class="help-tab-dot help-tab-dot--offer"></span>Offering a spare room
       </button>
       <button class="help-tab" id="htab-need" onclick="switchHelpTab('need')">
         <span class="help-tab-dot help-tab-dot--need"></span>Asking For Help
@@ -250,10 +250,10 @@
         <span class="m-filter-dot" style="background:#ef4444"></span>Stranded / Needs help
       </div>
       <div class="m-filter-legend-item" onclick="mFilterMap('help');closeMFilterLegend()">
-        <span class="m-filter-dot" style="background:#3b82f6"></span>Offering help
+        <span class="m-filter-dot" style="background:#3b82f6"></span>Offering a spare room
       </div>
       <div class="m-filter-legend-item" onclick="mFilterMap('worldwide');closeMFilterLegend()">
-        <span class="m-filter-dot" style="background:#a855f7"></span>Additional resources
+        <span class="m-filter-dot" style="background:#a855f7"></span>Disrupted places
       </div>
       <div class="m-filter-legend-item" onclick="window.open('https://x.com/search?q=imstranded','_blank')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="white" style="flex-shrink:0"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
