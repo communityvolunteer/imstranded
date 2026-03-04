@@ -366,7 +366,7 @@ transform: translateX(-50%);
     color:#fff;font-variant-numeric:tabular-nums;
   }
   .m-stat-label{
-    font-size:.46rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+    font-size:.56rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
     color:rgb(255, 255, 255);margin-top:.1rem;text-align:center;line-height:1.25;
   }
 
