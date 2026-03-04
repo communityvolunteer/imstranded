@@ -602,7 +602,7 @@ function openMCountryPopup(id){
   document.getElementById('m-popup-body').innerHTML=`
     <div class="m-popup-badge" style="background:${col}18;color:${col};border:1px solid ${col}44">${c.status.toUpperCase()}</div>
     <div class="m-popup-advisory">${c.advisory}</div>
-    <div class="m-popup-info-row"><span style="font-size:.72rem;color:var(--muted)">Airspace</span><span style="color:${acCol};font-weight:700">${c.airspace}</span></div>
+    <div class="m-popup-info-row"><span style="font-size:.72rem;color#fff">Airspace</span><span style="color:${acCol};font-weight:700">${c.airspace}</span></div>
     ${borderRows}
     <div class="m-popup-section-title">Embassy Emergency Contacts</div>
     ${embRows||'<div style="font-size:.78rem;color:var(--muted)">Check embassy website</div>'}
@@ -618,7 +618,7 @@ function openMWorldwidePopup(id){
   document.getElementById('m-popup-body').innerHTML=`
     <div class="m-popup-advisory">${r.note}</div>
     <div class="m-popup-section-title">Emergency Contacts</div>
-    ${r.contacts.map(c=>`<div class="m-popup-info-row"><span style="font-size:.72rem;color:var(--muted)">${c.label}</span><span style="font-weight:600">${c.value}</span></div>`).join('')}
+    ${r.contacts.map(c=>`<div class="m-popup-info-row"><span style="font-size:.72rem;color#fff">${c.label}</span><span style="font-weight:600">${c.value}</span></div>`).join('')}
   `;
   document.getElementById('m-country-popup').classList.add('open');
 }
