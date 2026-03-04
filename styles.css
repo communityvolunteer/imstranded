@@ -296,7 +296,7 @@ transform: translateX(-50%);
 }
 .post-form-header--offer{color:#fff;background:#3498ec;border-left:3px solid #3498ec;}
 .post-form-header--need{color:var(--danger);background:var(--danger-soft);border-left:3px solid var(--danger);}
-.post-form-header--live{color:var(--info);background:var(--info-soft);border-left:3px solid var(--info);}
+.post-form-header--live{color:#fff;background:#3498ec;border-left:3px solid #3498ec;}
 .post-form-header--live-need{color:var(--danger);background:var(--danger-soft);border-left:3px solid var(--danger);}
 
 .post-form{background:#000;border:1px solid #2e2e2f;border-radius:0 var(--radius-sm) var(--radius-sm);border-top:none;padding:1.25rem;margin-bottom:1.25rem;}
