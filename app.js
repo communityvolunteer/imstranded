@@ -81,6 +81,17 @@ const NGOS = [
   {type:'Community',name:'r/dubai Megathread',desc:'Real-time reports from expats.',url:'https://reddit.com/r/dubai'},
 ];
 
+const LAND_ROUTES = [
+  {from:[24.47,54.37],to:[23.61,58.59],status:'warn',label:'UAE to Oman (E611)'},
+  {from:[24.47,54.37],to:[23.88,45.07],status:'warn',label:'UAE to Saudi Arabia'},
+  {from:[26.07,50.55],to:[23.88,45.07],status:'warn',label:'Bahrain to Saudi (King Fahd Causeway)'},
+  {from:[29.37,47.97],to:[23.88,45.07],status:'warn',label:'Kuwait to Saudi Arabia'},
+  {from:[33.22,43.68],to:[30.58,36.24],status:'warn',label:'Iraq to Jordan (Trebil)'},
+  {from:[30.58,36.24],to:[31.85,35.22],status:'warn',label:'Jordan to Israel (Allenby Bridge)'},
+  {from:[31.85,35.22],to:[30.00,32.25],status:'danger',label:'Israel to Egypt (Taba)'},
+  {from:[31.30,34.30],to:[30.00,32.25],status:'danger',label:'Gaza to Egypt (Rafah - closed)'},
+  {from:[23.61,58.59],to:[25.28,51.53],status:'warn',label:'Oman to Qatar (sea)'},
+];
 
 let AIRPORT_DATA = [
   {city:'Dubai',code:'DXB',iata:'DXB',coords:[25.252,55.364],cancelled:312,status:'CLOSED',stranded:56160,updated:'--:--'},
@@ -118,7 +129,7 @@ async function fetchAviationData() {
 // ============================================================
 // MAP STATE
 // ============================================================
-const SC = {danger:'#a855f7',warn:'#a855f7',safe:'#a855f7'};
+const SC = {danger:'#dc2626',warn:'#d97706',safe:'#059669'};
 const _mk = {country:[],routes:[],worldwide:[],help:[],need:[]};
 let _activeFilter = 'all';
 let _postMarkers = [];
@@ -237,17 +248,26 @@ function initMap() {
 
   COUNTRIES.forEach(c => {
     const col = SC[c.status];
-    const glow = L.circleMarker(c.coords,{radius:15,fillColor:'#ec3452',color:'#ec3452',weight:1,opacity:.4,fillOpacity:.2}).addTo(map);
+    const glow = L.circleMarker(c.coords,{radius:15,fillColor:col,color:col,weight:1,opacity:.2,fillOpacity:.1}).addTo(map);
     const dot  = L.circleMarker(c.coords,{radius:8,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.95}).addTo(map)
       .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:240px">
         <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#fcd34d;margin-bottom:.4rem">${c.name}</div>
         <div style="font-size:.82rem;color:rgba(255,255,255,.85);line-height:1.55;margin-bottom:.6rem">${c.advisory}</div>
-        <div style="font-size:.72rem;margin-bottom:.75rem;color:rgba(255,255,255,.6)">Airspace: <strong style="color:${c.airspace==='CLOSED'?'#ec3452':c.airspace.includes('OPEN')?'#17bc7b':'#fcd34d'}">${c.airspace}</strong></div>
-        ${c.telegram?`<a href="${c.telegram}" style="color:#3498ec;font-size:.76rem;font-weight:500;display:block;margin-bottom:.6rem" target="_blank">→ Telegram group</a>`:''}
-        <button onclick="window.showCountryDetail('${c.id}')" style="background:#3498ec;border:none;color:#fff;font-family:Inter,sans-serif;font-size:.82rem;font-weight:700;padding:.55rem 1rem;cursor:pointer;border-radius:8px;width:100%">Full info &amp; embassies →</button>
+        <div style="font-size:.72rem;margin-bottom:.75rem;color:rgba(255,255,255,.6)">Airspace: <strong style="color:${c.airspace==='CLOSED'?'#fca5a5':c.airspace.includes('OPEN')?'#6ee7b7':'#fcd34d'}">${c.airspace}</strong></div>
+        ${c.telegram?`<a href="${c.telegram}" style="color:#67e8f9;font-size:.76rem;font-weight:500;display:block;margin-bottom:.6rem" target="_blank">→ Telegram group</a>`:''}
+        <button onclick="window.showCountryDetail('${c.id}')" style="background:#67e8f9;border:none;color:#0a1e39;font-family:Inter,sans-serif;font-size:.82rem;font-weight:700;padding:.55rem 1rem;cursor:pointer;border-radius:8px;width:100%">Full info &amp; embassies →</button>
       </div>`);
     _mk.country.push({marker:glow,status:c.status});
     _mk.country.push({marker:dot,status:c.status});
+  });
+
+  LAND_ROUTES.forEach(r => {
+    const col = r.status==='safe'?'#059669':r.status==='warn'?'#d97706':'#dc2626';
+    const lc  = r.status==='safe'?'#6ee7b7':r.status==='warn'?'#fcd34d':'#fca5a5';
+    const line = L.polyline([r.from,r.to],{color:col,weight:3,opacity:.85,
+      dashArray:r.status==='danger'?'6,8':r.status==='warn'?'8,4':null}).addTo(map)
+      .bindPopup(`<div style="font-family:Inter,sans-serif"><div style="font-weight:700;font-size:.85rem;color:${lc};margin-bottom:.2rem">${r.label}</div><div style="font-size:.72rem;color:rgba(255,255,255,.55)">${r.status.toUpperCase()}</div></div>`);
+    _mk.routes.push({marker:line,status:r.status});
   });
 
   WORLDWIDE.forEach(r => {
@@ -271,23 +291,23 @@ function renderAirportPins(map, mode) {
   clearDataPins(map);
   const showStranded = mode === 'stranded';
   AIRPORT_DATA.forEach(a => {
-    const col = a.status==='CLOSED'?'#ef4444':a.status==='OPEN'?'#22c55e':'#fcd34d';
+    const col = a.status==='CLOSED'?'#ef4444':a.status==='OPEN'?'#22c55e':'#f59e0b';
     const pinNum = showStranded ? a.stranded.toLocaleString() : a.cancelled.toLocaleString();
     const pinSuffix = showStranded ? 'est. stranded' : 'cancelled';
     const icon = L.divIcon({
       className:'airport-pin-label',
-      html:`<div style="background:#000;border-radius:999px;padding:5px 10px;font-family:Inter,sans-serif;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;gap:5px">✈ ${a.code} <span style="opacity:.75;font-size:9.5px">${pinNum} ${pinSuffix}</span></div>`,
+      html:`<div style="background:#0a1e39;border-radius:999px;padding:5px 10px;font-family:Inter,sans-serif;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;gap:5px">✈ ${a.code} <span style="opacity:.75;font-size:9.5px">${pinNum} ${pinSuffix}</span></div>`,
       iconAnchor:[0,0],iconSize:null
     });
     const m = L.marker(a.coords,{icon}).addTo(map).bindPopup(`
       <div style="font-family:Inter,sans-serif;min-width:230px">
-        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fff;margin-bottom:.45rem">✈ ${a.city} — ${a.code}</div>
+        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fcd34d;margin-bottom:.45rem">✈ ${a.city} — ${a.code}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem .85rem;margin-bottom:.55rem">
-          <div><div style="font-size:1.5rem;font-weight:800;color:#ec3452;letter-spacing:-.03em;line-height:1">${a.stranded.toLocaleString()}</div><div style="font-size:.58rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.04em;margin-top:.15rem">Est. Stranded</div></div>
-          <div><div style="font-size:1.5rem;font-weight:800;color:#FFF;letter-spacing:-.03em;line-height:1">${a.cancelled.toLocaleString()}</div><div style="font-size:.58rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.04em;margin-top:.15rem">Flights Cancelled</div></div>
+          <div><div style="font-size:1.5rem;font-weight:800;color:#fca5a5;letter-spacing:-.03em;line-height:1">${a.stranded.toLocaleString()}</div><div style="font-size:.58rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.04em;margin-top:.15rem">Est. Stranded</div></div>
+          <div><div style="font-size:1.5rem;font-weight:800;color:#fcd34d;letter-spacing:-.03em;line-height:1">${a.cancelled.toLocaleString()}</div><div style="font-size:.58rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.04em;margin-top:.15rem">Flights Cancelled</div></div>
         </div>
         <div style="display:flex;justify-content:space-between;padding:.35rem .55rem;background:rgba(255,255,255,.08);border-radius:6px;align-items:center;border:1px solid rgba(255,255,255,.1)">
-          <span style="font-size:.7rem;font-weight:700;color:${col==='#ef4444'?'#ec3452':col==='#22c55e'?'#22c55e':'#fcd34d'}">Status: ${a.status}</span>
+          <span style="font-size:.7rem;font-weight:700;color:${col==='#ef4444'?'#fca5a5':col==='#22c55e'?'#86efac':'#fcd34d'}">Status: ${a.status}</span>
           <span style="font-size:.62rem;color:rgba(255,255,255,.45)">${a.updated !== '--:--' ? 'Updated '+a.updated : 'Seeded data'}</span>
         </div>
       </div>
@@ -314,7 +334,7 @@ async function renderPostsOnMap(map) {
     const fillCol = isOffer ? '#3b82f6' : '#ef4444';
     const m = L.circleMarker([geo.lat,geo.lng],{radius:7,fillColor:fillCol,color:'#fff',weight:2,opacity:1,fillOpacity:.9}).addTo(map)
       .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:200px">
-        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${isOffer?'#93c5fd':'#ec3452'};margin-bottom:.25rem">${isOffer?'SPARE ROOMS':'Needs help'}</div>
+        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${isOffer?'#93c5fd':'#fca5a5'};margin-bottom:.25rem">${isOffer?'Help offered':'Needs help'}</div>
         <div style="font-weight:600;font-size:.84rem;margin-bottom:.2rem;color:#fff">${p.name}</div>
         <div style="font-size:.77rem;color:rgba(255,255,255,.75);line-height:1.5;margin-bottom:.4rem">${(p.body||'').slice(0,100)}${(p.body||'').length>100?'...':''}</div>
         <div style="font-size:.7rem;color:rgba(255,255,255,.5)">${p.location}</div>
@@ -477,28 +497,22 @@ async function refreshSitrep() {
   setStatNow('stat-airports-closed',vals.airports);
   setStatNow('stat-airspace',vals.airspace);
   setStatNow('m-stat-stranded',vals.stranded);
-  setStatNow('m-stat-cancelled',vals.cancelled);
 
   animCount('stat-stranded',vals.stranded,1200);
   animCount('stat-cancelled',vals.cancelled,800);
   animCount('stat-airports-closed',vals.airports,500);
   animCount('stat-airspace',vals.airspace,500);
   animCount('m-stat-stranded',vals.stranded,1200);
-  animCount('m-stat-cancelled',vals.cancelled,800);
 
   if(SB_ON){
-    const[offerRes,needRes]=await Promise.all([
-      _sb.from('help_posts').select('*',{count:'exact',head:true}).eq('flagged',false).eq('type','offer'),
-      _sb.from('help_posts').select('*',{count:'exact',head:true}).eq('flagged',false).eq('type','need'),
-    ]);
-    const hc=offerRes.count||0, nc=needRes.count||0;
-    setStatNow('stat-help-posts',hc); setStatNow('stat-need-posts',nc);
+    const offerRes = await _sb.from('help_posts').select('*',{count:'exact',head:true}).eq('flagged',false).eq('type','offer');
+    const hc=offerRes.count||0;
+    setStatNow('stat-help-posts',hc);
     setStatNow('m-stat-help',hc);
     animCount('stat-help-posts',hc,600);
-    animCount('stat-need-posts',nc,600);
     animCount('m-stat-help',hc,600);
   } else {
-    setStatNow('stat-help-posts',0); setStatNow('stat-need-posts',0); setStatNow('m-stat-help',0);
+    setStatNow('stat-help-posts',0); setStatNow('m-stat-help',0);
   }
 
   const now=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
@@ -532,31 +546,14 @@ function initMobile(){
   document.getElementById('m-shell').style.display='flex';
   const mmap=L.map('m-crisis-map',{zoomControl:false,attributionControl:false}).setView([28,45],4);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mmap);
-  COUNTRIES.forEach(c => {
-  const col = SC[c.status];
-
-  // 🔴 RED GLOW (same as desktop)
-  L.circleMarker(c.coords, {
-    radius: 15,
-    fillColor: '#ec3452',
-    color: '#ec3452',
-    weight: 1,
-    opacity: .4,
-    fillOpacity: .2
-  }).addTo(mmap);
-
-  // 🔵 ACTUAL DOT
-  L.circleMarker(c.coords, {
-    radius: 10,
-    fillColor: col,
-    color: '#fff',
-    weight: 2,
-    opacity: 1,
-    fillOpacity: .92
-  }).addTo(mmap)
-    .on('click', () => openMCountryPopup(c.id));
-});
-  
+  COUNTRIES.forEach(c=>{
+    L.circleMarker(c.coords,{radius:10,fillColor:SC[c.status],color:'#fff',weight:2,opacity:1,fillOpacity:.92}).addTo(mmap)
+      .on('click',()=>openMCountryPopup(c.id));
+  });
+  LAND_ROUTES.forEach(r=>{
+    const col=r.status==='safe'?'#22c55e':r.status==='warn'?'#f59e0b':'#ef4444';
+    L.polyline([r.from,r.to],{color:col,weight:2.5,opacity:.8,dashArray:r.status==='danger'?'6,8':r.status==='warn'?'8,4':null}).addTo(mmap);
+  });
   WORLDWIDE.forEach(r=>{
     L.circleMarker(r.coords,{radius:7,fillColor:'#a855f7',color:'#fff',weight:1.5,opacity:.9,fillOpacity:.5}).addTo(mmap)
       .on('click',()=>openMWorldwidePopup(r.id));
@@ -596,17 +593,17 @@ function openMCountryPopup(id){
   }).join('');
   const borderRows=c.borders.map(b=>{
     const bc=b.status==='safe'?'#059669':b.status==='warn'?'#d97706':'#dc2626';
-    return `<div class="m-popup-info-row"><span style="color:#fff;font-size:.72rem">${b.route}</span><span style="color:${bc};font-weight:600;font-size:.78rem">${b.status.toUpperCase()} — ${b.note}</span></div>`;
+    return `<div class="m-popup-info-row"><span style="color:var(--muted);font-size:.72rem">${b.route}</span><span style="color:${bc};font-weight:600;font-size:.78rem">${b.status.toUpperCase()} — ${b.note}</span></div>`;
   }).join('');
   document.getElementById('m-popup-title').textContent=c.name;
   document.getElementById('m-popup-body').innerHTML=`
     <div class="m-popup-badge" style="background:${col}18;color:${col};border:1px solid ${col}44">${c.status.toUpperCase()}</div>
     <div class="m-popup-advisory">${c.advisory}</div>
-    <div class="m-popup-info-row"><span style="font-size:.72rem;color:#fff">Airspace</span><span style="color:${acCol};font-weight:700">${c.airspace}</span></div>
+    <div class="m-popup-info-row"><span style="font-size:.72rem;color:var(--muted)">Airspace</span><span style="color:${acCol};font-weight:700">${c.airspace}</span></div>
     ${borderRows}
     <div class="m-popup-section-title">Embassy Emergency Contacts</div>
     ${embRows||'<div style="font-size:.78rem;color:var(--muted)">Check embassy website</div>'}
-    ${c.ngos?.length?`<div class="m-popup-section-title">Active NGOs</div><div class="ngo-tags" style="display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.3rem">${c.ngos.map(n=>`<span style="background:#eff6ff30;color:#3498ec;font-size:.63rem;font-weight:600;border-radius:4px;padding:.14rem .48rem">${n}</span>`).join('')}</div>`:''}
+    ${c.ngos?.length?`<div class="m-popup-section-title">Active NGOs</div><div class="ngo-tags" style="display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.3rem">${c.ngos.map(n=>`<span style="background:#eff6ff;color:#2563eb;font-size:.63rem;font-weight:600;border-radius:4px;padding:.14rem .48rem">${n}</span>`).join('')}</div>`:''}
     ${c.telegram?`<a href="${c.telegram}" target="_blank" style="display:inline-block;margin-top:.65rem;color:#2563eb;font-size:.8rem;font-weight:500">→ Telegram group</a>`:''}
   `;
   document.getElementById('m-country-popup').classList.add('open');
@@ -618,7 +615,7 @@ function openMWorldwidePopup(id){
   document.getElementById('m-popup-body').innerHTML=`
     <div class="m-popup-advisory">${r.note}</div>
     <div class="m-popup-section-title">Emergency Contacts</div>
-    ${r.contacts.map(c=>`<div class="m-popup-info-row"><span style="font-size:.72rem;color:#fff">${c.label}</span><span style="font-weight:600">${c.value}</span></div>`).join('')}
+    ${r.contacts.map(c=>`<div class="m-popup-info-row"><span style="font-size:.72rem;color:var(--muted)">${c.label}</span><span style="font-weight:600">${c.value}</span></div>`).join('')}
   `;
   document.getElementById('m-country-popup').classList.add('open');
 }
@@ -634,9 +631,8 @@ function mTab(tab,btn){
   }
   document.querySelectorAll('.m-tab,.m-tab-offer').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');_mCurrentTab=tab;
-  if(tab==='map'){_mSheetOpen=false;sheet.classList.remove('open');}
-  else if(tab==='resources') mShowSheetContent('resources','ADDITIONAL RESOURCES');
-  else if(tab==='offer')     mShowSheetContent('offer','OFFER A SPARE ROOM');
+  if(tab==='map'){_mSheetOpen=false;sheet.classList.remove('open');openMFilterLegend();}
+  else if(tab==='offer') mShowSheetContent('offer','OFFER A SPARE ROOM');
 }
 
 function mShowSheetContent(which,title){

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Stranded —But Not Alone.</title>
+<title>Stranded — But Not Alone.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -24,6 +24,7 @@
     <button onclick="showView('resources')">Additional Resources</button>
   </nav>
   <div class="header-right">
+    <div class="last-updated" id="last-updated-label">Loading&hellip;</div>
     <button class="back-btn" onclick="window.location.href='/'">Back to home page &rsaquo;</button>
   </div>
 </header>
@@ -52,12 +53,7 @@
   </div>
   <div class="sitrep-stat sitrep-stat--offer" id="ss-help-offer" onclick="filterMap('help')">
     <span class="sitrep-num" id="stat-help-posts">0</span>
-    <div class="sitrep-label">PEOPLE OFFERING A SPARE ROOM</div>
-    <div class="sitrep-sub">tap · filter map</div>
-  </div>
-  <div class="sitrep-stat sitrep-stat--need" id="ss-help-need" onclick="filterMap('need')">
-    <span class="sitrep-num" id="stat-need-posts">0</span>
-    <div class="sitrep-label">PEOPLE IN NEED OF A SPARE ROOM</div>
+    <div class="sitrep-label">SPARE ROOMS OFFERED</div>
     <div class="sitrep-sub">tap · filter map</div>
   </div>
   <button class="sitrep-refresh" onclick="refreshSitrep()" title="Refresh data">
@@ -79,9 +75,8 @@
       <div class="legend-title">Filter Map</div>
       <button class="legend-close" onclick="toggleLegend()" title="Close">&#x2715;</button>
     </div>
-    <div class="legend-item" id="leg-stranded"  onclick="filterMap('stranded')"> <div class="legend-dot" style="background:#ef4444"></div>In need of spare room</div>
     <div class="legend-item" id="leg-help"      onclick="filterMap('help')">     <div class="legend-dot" style="background:#3b82f6"></div>Offering a spare room</div>
-    <div class="legend-item" id="leg-worldwide" onclick="filterMap('worldwide')"><div class="legend-dot" style="background:#a855f7"></div>Disrupted places</div>
+    <div class="legend-item" id="leg-worldwide" onclick="filterMap('worldwide')"><div class="legend-dot" style="background:#a855f7"></div>Worldwide disruption</div>
     <div class="legend-divider"></div>
     <div class="legend-item legend-community" onclick="window.open('https://x.com/search?q=imstranded','_blank')">
       <svg class="legend-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
@@ -100,15 +95,11 @@
     Filters
   </button>
 
-  <!-- Bottom-right dual CTA buttons -->
+  <!-- Bottom-right CTA button -->
   <div class="map-cta-group">
-    <button class="map-cta map-cta--offer" onclick="showView('help');switchHelpTab('offer')">
+    <button class="map-cta map-cta--offer" onclick="showView('help')">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       OFFER A SPARE ROOM
-    </button>
-    <button class="map-cta map-cta--need" onclick="showView('help');switchHelpTab('need')">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      I NEED A SPARE ROOM
     </button>
   </div>
 </div>
@@ -139,19 +130,10 @@
     </div>
 
     <!-- Tab switcher -->
-    <div class="help-tabs">
-      <button class="help-tab active" id="htab-offer" onclick="switchHelpTab('offer')">
-        <span class="help-tab-dot help-tab-dot--offer"></span>Offering a spare room
-      </button>
-      <button class="help-tab" id="htab-need" onclick="switchHelpTab('need')">
-        <span class="help-tab-dot help-tab-dot--need"></span>Asking For Help
-      </button>
-    </div>
-
     <!-- Offer panel -->
     <div id="help-panel-offer" class="help-panel" style="display:grid;grid-template-columns:1fr 1fr;gap:2rem">
       <div>
-        <div class="post-form-header post-form-header--offer">Post an Offer</div>
+        <div class="post-form-header post-form-header--offer">Offer a Spare Room</div>
         <div class="post-form">
           <p class="form-note">Your contact will be visible so people who need help can reach you directly.</p>
           <div class="form-row"><label>What can you offer?</label>
@@ -171,36 +153,8 @@
         </div>
       </div>
       <div>
-        <div class="post-form-header post-form-header--live">Live Offers</div>
+        <div class="post-form-header post-form-header--live">Live Spare Room Offers</div>
         <div class="posts-list" id="offer-posts" style="margin-top:.75rem"></div>
-      </div>
-    </div>
-
-    <!-- Need panel -->
-    <div id="help-panel-need" class="help-panel" style="display:none;grid-template-columns:1fr 1fr;gap:2rem">
-      <div>
-        <div class="post-form-header post-form-header--need">Request Help</div>
-        <div class="post-form">
-          <p class="form-note" style="border-left-color:var(--danger)">Your contact will be visible so people who can help can reach you directly.</p>
-          <div class="form-row"><label>What do you need?</label>
-            <select id="need-type">
-              <option value="">Select&hellip;</option>
-              <option>Housing / somewhere to sleep</option><option>Transport out of area</option>
-              <option>Food / water / supplies</option><option>Medical help</option>
-              <option>Financial assistance</option><option>Translation / guidance</option><option>Other</option>
-            </select>
-          </div>
-          <div class="form-row"><label>Your location</label><input type="text" id="need-location" placeholder="e.g. Dubai, UAE"></div>
-          <div class="form-row"><label>Details</label><textarea id="need-body" placeholder="Describe your situation and what you need&hellip;"></textarea></div>
-          <div class="form-row"><label>Your name</label><input type="text" id="need-name" placeholder="First name or handle"></div>
-          <div class="form-row"><label>Contact (will be public)</label><input type="text" id="need-contact" placeholder="@telegram or email"></div>
-          <div class="form-row"><label>X/Twitter <span style="color:var(--muted);font-weight:400">(optional)</span></label><input type="text" id="need-xhandle" placeholder="@yourhandle"></div>
-          <button class="submit-btn submit-btn--need" onclick="submitPost('need')">Post Request</button>
-        </div>
-      </div>
-      <div>
-        <div class="post-form-header post-form-header--live-need">Live Requests</div>
-        <div class="posts-list" id="need-posts" style="margin-top:.75rem"></div>
       </div>
     </div>
   </div>
@@ -211,19 +165,15 @@
 ═══════════════════════════════════════════════════════ -->
 <div id="m-shell" style="display:none;flex-direction:column;height:100dvh;overflow:hidden;">
 
-  <!-- 3-stat bar -->
+  <!-- 2-stat bar -->
   <div id="m-statbar">
     <div class="m-stat" id="mss-stranded" onclick="mFilterMap('stranded')">
       <span class="m-stat-num" id="m-stat-stranded">847,773</span>
       <span class="m-stat-label">EST.<br>STRANDED</span>
     </div>
-    <div class="m-stat" id="mss-cancelled" onclick="mFilterMap('cancelled')">
-      <span class="m-stat-num" id="m-stat-cancelled">1,847</span>
-      <span class="m-stat-label">FLIGHTS<br>CANCELLED</span>
-    </div>
     <div class="m-stat m-stat--help" id="mss-help" onclick="mFilterMap('help')">
       <span class="m-stat-num" id="m-stat-help">0</span>
-      <span class="m-stat-label">spare<br>rooms</span>
+      <span class="m-stat-label">SPARE<br>ROOMS</span>
     </div>
   </div>
 
@@ -246,9 +196,6 @@
         <span class="m-filter-legend-title">Filter Map</span>
         <button class="m-filter-legend-close" onclick="closeMFilterLegend()">&#x2715;</button>
       </div>
-      <div class="m-filter-legend-item" onclick="mFilterMap('stranded');closeMFilterLegend()">
-        <span class="m-filter-dot" style="background:#ef4444"></span>In need of spare room
-      </div>
       <div class="m-filter-legend-item" onclick="mFilterMap('help');closeMFilterLegend()">
         <span class="m-filter-dot" style="background:#3b82f6"></span>Offering a spare room
       </div>
@@ -266,11 +213,6 @@
       <div class="m-filter-clear" onclick="mFilterMap('all');closeMFilterLegend()">&#x2715; Clear filter</div>
     </div>
 
-    <!-- Filter button on map (bottom-left) -->
-    <button class="m-map-filter-btn" id="m-map-filter-btn" onclick="openMFilterLegend()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
-      Filters
-    </button>
   </div>
 
   <!-- Sheet -->
@@ -278,7 +220,7 @@
     <div id="m-sheet-handle" onclick="mSheetToggle()">
       <div class="m-handle-bar"></div>
     </div>
-    <div class="m-sheet-title" id="m-sheet-title">OFFER SPARE ROOM</div>
+    <div class="m-sheet-title" id="m-sheet-title">Offer Help</div>
     <div id="m-sheet-body">
       <div id="m-resources-content" style="display:none"></div>
       <div id="m-offer-content" style="display:none">
@@ -295,16 +237,12 @@
 
   <!-- Tab bar -->
   <div id="m-tabbar">
-    <button class="m-tab active" id="mtab-map" onclick="mTab('map',this)">
+    <button class="m-tab active" id="mtab-map" onclick="mTab('map',this);openMFilterLegend()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
-      Map
-    </button>
-    <button class="m-tab" id="mtab-resources" onclick="mTab('resources',this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-      Resources
+      MAP FILTERS
     </button>
     <button class="m-tab-offer" id="mtab-offer" onclick="mTab('offer',this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       OFFER SPARE ROOM
     </button>
   </div>
