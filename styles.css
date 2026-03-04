@@ -254,7 +254,7 @@ transform: translateX(-50%);
 .card-advisory{font-size:.82rem;color:var(--text2);line-height:1.55;margin-bottom:.85rem;}
 .info-row{display:flex;justify-content:space-between;align-items:center;padding:.28rem 0;border-bottom:1px solid var(--border);font-size:.8rem;}
 .info-row:last-child{border-bottom:none;}
-.info-label{color:var(--muted);font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+.info-label{color:#fff;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
 .embassy-section{margin-top:.85rem;}
 .embassy-title{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.45rem;}
 .embassy-row{display:flex;align-items:center;gap:.6rem;padding:.38rem 0;border-bottom:1px solid var(--border);font-size:.8rem;}
