@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Offer a Spare Room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{background:transparent;min-height:100%;font-family:'Inter',sans-serif;}
+
+.form-wrap{
+  max-width:420px;
+  margin:0 auto;
+  padding:1.2rem 1.4rem 1.6rem;
+  background:rgba(0,0,0,.88);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  border-radius:20px;
+  border:1px solid rgba(255,255,255,.08);
+}
+
+.form-handle{
+  width:36px;height:4px;background:rgba(255,255,255,.25);
+  border-radius:2px;margin:0 auto .6rem;
+}
+
+.form-title{
+  font-size:1.3rem;font-weight:800;color:#fff;
+  text-align:center;padding:.2rem 0 .8rem;
+  letter-spacing:.01em;
+}
+
+.form-note{
+  font-size:.74rem;color:rgba(255,255,255,.55);
+  line-height:1.55;margin-bottom:1rem;
+}
+
+.form-row{margin-bottom:.9rem;}
+
+.form-label{
+  display:block;font-size:.62rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.07em;
+  color:#fff;margin-bottom:.32rem;
+}
+.form-label span{
+  color:rgba(255,255,255,.45);font-weight:500;
+  text-transform:none;letter-spacing:0;
+}
+
+.form-row input,
+.form-row textarea{
+  width:100%;
+  border:1.5px solid rgba(255,255,255,.12);
+  border-radius:10px;
+  padding:.7rem .95rem;
+  font-family:'Inter',sans-serif;
+  font-size:.95rem;
+  color:#fff;
+  background:rgba(255,255,255,.08);
+  outline:none;
+  -webkit-appearance:none;
+  transition:border-color .15s,background .15s;
+}
+.form-row input::placeholder,
+.form-row textarea::placeholder{
+  color:rgba(255,255,255,.35);
+}
+.form-row input:focus,
+.form-row textarea:focus{
+  border-color:#3498ec;
+  background:rgba(103,232,249,.06);
+}
+.form-row textarea{min-height:88px;resize:none;}
+
+.form-submit{
+  width:100%;
+  background:#3498ec;
+  color:#fff;
+  border:none;
+  border-radius:12px;
+  padding:.95rem;
+  font-family:'Inter',sans-serif;
+  font-size:1rem;
+  font-weight:800;
+  cursor:pointer;
+  margin-top:.25rem;
+  letter-spacing:.01em;
+  transition:background .15s;
+}
+.form-submit:hover{background:#2980c8;}
+.form-submit:disabled{opacity:.6;cursor:not-allowed;}
+
+.form-success{
+  display:none;
+  text-align:center;
+  padding:2rem 1rem;
+}
+.form-success svg{margin-bottom:.8rem;}
+.form-success-title{
+  font-size:1.1rem;font-weight:800;color:#fff;margin-bottom:.3rem;
+}
+.form-success-sub{
+  font-size:.82rem;color:rgba(255,255,255,.55);line-height:1.5;
+}
+.form-success-link{
+  display:inline-block;margin-top:1rem;
+  color:#3498ec;font-size:.84rem;font-weight:700;
+  text-decoration:none;
+}
+.form-success-link:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+
+<div class="form-wrap" id="form-wrap">
+  <div class="form-handle"></div>
+  <div class="form-title">OFFER A SPARE ROOM</div>
+
+  <!-- Form fields -->
+  <div id="form-fields">
+    <div class="form-note">Your contact will be public so people who need help can reach you.</div>
+    <div class="form-row">
+      <label class="form-label">Your Location</label>
+      <input type="text" id="f-location" placeholder="e.g. Dubai, UAE">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Details</label>
+      <textarea id="f-body" placeholder="Describe what you can offer…"></textarea>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Your Name</label>
+      <input type="text" id="f-name" placeholder="First name or handle">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Contact <span>(public)</span></label>
+      <input type="text" id="f-contact" placeholder="@telegram or email">
+    </div>
+    <div class="form-row">
+      <label class="form-label">X Handle <span>(optional)</span></label>
+      <input type="text" id="f-xhandle" placeholder="@yourhandle">
+    </div>
+    <button class="form-submit" id="f-submit" onclick="submitOffer()">Post Offer</button>
+  </div>
+
+  <!-- Success state -->
+  <div class="form-success" id="form-success">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    <div class="form-success-title">Your offer is live!</div>
+    <div class="form-success-sub">Someone stranded nearby can now see your offer and reach out. Thank you.</div>
+    <a class="form-success-link" href="#" onclick="resetForm();return false;">Post another offer →</a>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL  = 'https://nzvlvqyitsjuxnafcuhl.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_jEEyPd33KHXKXM53QvrIKQ_JpzQNSGr';
+const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+async function submitOffer(){
+  const l = document.getElementById('f-location').value.trim();
+  const b = document.getElementById('f-body').value.trim();
+  const n = document.getElementById('f-name').value.trim();
+  const c = document.getElementById('f-contact').value.trim();
+  const x = (document.getElementById('f-xhandle').value||'').trim().replace(/^@+/,'');
+
+  if(!l||!b||!n||!c){alert('Please fill in all required fields.');return;}
+
+  const btn = document.getElementById('f-submit');
+  btn.textContent='Posting...'; btn.disabled=true;
+
+  try{
+    const{error}=await _sb.from('help_posts').insert({
+      type:'offer',post_type:'Housing / spare room',
+      location:l,body:b,name:n,contact:c,
+      xhandle:x||null,flagged:false
+    });
+    if(error) throw error;
+
+    document.getElementById('form-fields').style.display='none';
+    document.getElementById('form-success').style.display='block';
+  }catch(e){
+    alert('Failed to post: '+e.message);
+    btn.textContent='Post Offer'; btn.disabled=false;
+  }
+}
+
+function resetForm(){
+  ['f-location','f-body','f-name','f-contact','f-xhandle'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  const btn=document.getElementById('f-submit');
+  btn.textContent='Post Offer'; btn.disabled=false;
+  document.getElementById('form-fields').style.display='block';
+  document.getElementById('form-success').style.display='none';
+}
+</script>
+</body>
+</html>
