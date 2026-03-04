@@ -489,7 +489,7 @@ transform: translateX(-50%);
 
   /* Bottom sheet */
   #m-sheet{
-    position:absolute;bottom:65px;left:0;right:0;z-index:900;
+    position:absolute;bottom:65px;left:0;right:0;z-index:1000;
     background:#000000;border-radius:20px 20px 0 0;
     max-height:calc(100dvh - 65px - 65px - 20px);
     display:flex;flex-direction:column;
