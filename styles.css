@@ -355,7 +355,7 @@ transform: translateX(-50%);
     content:'';position:absolute;bottom:0;left:0;right:0;
     height:3px;background:#ec3452;border-radius:3px 3px 0 0;
   }
-  /* Help Offered stat — coral/red bg */
+  /* SPARE ROOMS stat — coral/red bg */
   .m-stat--help{background:#3498ec !important;}
   .m-stat--help:hover{background:#3498ec !important;}
   .m-stat--help .m-stat-num{color:#fff !important;}
@@ -469,7 +469,7 @@ transform: translateX(-50%);
   .m-tab.active svg{stroke:#fff;}
   .m-tab:hover:not(.active){color:rgba(255,255,255,.7);}
 
-  /* Offer Help tab — blue */
+  /* OFFER SPARE ROOM tab — blue */
   .m-tab-offer{
     flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.22rem;
     background:#3498ec;border:none;border-top:2px solid transparent;

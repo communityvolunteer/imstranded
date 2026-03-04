@@ -314,7 +314,7 @@ async function renderPostsOnMap(map) {
     const fillCol = isOffer ? '#3b82f6' : '#ef4444';
     const m = L.circleMarker([geo.lat,geo.lng],{radius:7,fillColor:fillCol,color:'#fff',weight:2,opacity:1,fillOpacity:.9}).addTo(map)
       .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:200px">
-        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${isOffer?'#93c5fd':'#ec3452'};margin-bottom:.25rem">${isOffer?'Help offered':'Needs help'}</div>
+        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${isOffer?'#93c5fd':'#ec3452'};margin-bottom:.25rem">${isOffer?'SPARE ROOMS':'Needs help'}</div>
         <div style="font-weight:600;font-size:.84rem;margin-bottom:.2rem;color:#fff">${p.name}</div>
         <div style="font-size:.77rem;color:rgba(255,255,255,.75);line-height:1.5;margin-bottom:.4rem">${(p.body||'').slice(0,100)}${(p.body||'').length>100?'...':''}</div>
         <div style="font-size:.7rem;color:rgba(255,255,255,.5)">${p.location}</div>
@@ -636,7 +636,7 @@ function mTab(tab,btn){
   btn.classList.add('active');_mCurrentTab=tab;
   if(tab==='map'){_mSheetOpen=false;sheet.classList.remove('open');}
   else if(tab==='resources') mShowSheetContent('resources','ADDITIONAL RESOURCES');
-  else if(tab==='offer')     mShowSheetContent('offer','OFFER HELP');
+  else if(tab==='offer')     mShowSheetContent('offer','OFFER A SPARE ROOM');
 }
 
 function mShowSheetContent(which,title){
