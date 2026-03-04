@@ -1,5 +1,5 @@
 // ============================================================
-// app.js CONFIG
+// CONFIG
 // ============================================================
 const SUPABASE_URL  = 'https://nzvlvqyitsjuxnafcuhl.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_jEEyPd33KHXKXM53QvrIKQ_JpzQNSGr';
@@ -81,6 +81,7 @@ const NGOS = [
   {type:'Community',name:'r/dubai Megathread',desc:'Real-time reports from expats.',url:'https://reddit.com/r/dubai'},
 ];
 
+
 let AIRPORT_DATA = [
   {city:'Dubai',code:'DXB',iata:'DXB',coords:[25.252,55.364],cancelled:312,status:'CLOSED',stranded:56160,updated:'--:--'},
   {city:'Abu Dhabi',code:'AUH',iata:'AUH',coords:[24.432,54.651],cancelled:198,status:'CLOSED',stranded:35640,updated:'--:--'},
@@ -118,7 +119,7 @@ async function fetchAviationData() {
 // MAP STATE
 // ============================================================
 const SC = {danger:'#a855f7',warn:'#a855f7',safe:'#a855f7'};
-const _mk = {country:[],routes:[],worldwide:[],help:[],need:[]};
+const _mk = {country:[],routes:[],worldwide:[],help:[]};
 let _activeFilter = 'all';
 let _postMarkers = [];
 let posts = [];
@@ -152,7 +153,16 @@ function showView(name) {
   if (name === 'resources' && navBtns[1]) navBtns[1].classList.add('active');
   if (name === 'map' && !window._mapInit) initMap();
   if (name === 'resources') renderResources();
-  if (name === 'help') renderPosts();
+  if (name === 'help') { renderPosts(); }
+}
+
+// ============================================================
+// HELP TABS (offer only now)
+// ============================================================
+function switchHelpTab(tab) {
+  // Only offer tab remains
+  const offerPanel = document.getElementById('help-panel-offer');
+  if (offerPanel) offerPanel.style.display = 'grid';
 }
 
 // ============================================================
@@ -195,7 +205,7 @@ function filterMap(type) {
   } else { clearDataPins(map); }
   if (type==='routes')    map.flyTo([28,46],5,{duration:1});
   if (type==='worldwide') map.flyTo([20,60],3,{duration:1.2});
-  if (type==='help')      map.flyTo([28,45],5,{duration:1});
+  if (type==='help') map.flyTo([28,45],5,{duration:1});
   if (type==='all') { clearDataPins(map); map.flyTo([28,45],5,{duration:1}); }
 
   showView('map');
@@ -284,16 +294,17 @@ async function renderPostsOnMap(map) {
   _mk.help.length = 0; _postMarkers = [];
 
   for (const p of posts) {
-    if (!p.location || p.type !== 'offer') continue;
+    if (!p.location) continue;
+    if (p.type !== 'offer') continue; // only show offers on map
     const geo = await geocodeCity(p.location);
     if (!geo) continue;
     const m = L.circleMarker([geo.lat,geo.lng],{radius:7,fillColor:'#3b82f6',color:'#fff',weight:2,opacity:1,fillOpacity:.9}).addTo(map)
       .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:200px">
-        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#93c5fd;margin-bottom:.25rem">SPARE ROOM</div>
+        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#93c5fd;margin-bottom:.25rem">SPARE ROOMS</div>
         <div style="font-weight:600;font-size:.84rem;margin-bottom:.2rem;color:#fff">${p.name}</div>
         <div style="font-size:.77rem;color:rgba(255,255,255,.75);line-height:1.5;margin-bottom:.4rem">${(p.body||'').slice(0,100)}${(p.body||'').length>100?'...':''}</div>
         <div style="font-size:.7rem;color:rgba(255,255,255,.5)">${p.location}</div>
-        ${p.xhandle?`<a href="https://x.com/${p.xhandle}" target="_blank" style="display:inline-block;margin-top:.4rem;background:#3b82f6;color:#fff;font-size:.68rem;font-weight:700;padding:.2rem .55rem;border-radius:5px;text-decoration:none">Tip $ALONE</a>`:''}
+        ${p.xhandle?`<a href="https://x.com/${p.xhandle}" target="_blank" style="display:inline-block;margin-top:.4rem;background:#3b82f6;color:#fff;font-size:.68rem;font-weight:700;padding:.2rem .55rem;border-radius:5px;text-decoration:none">Tip $HELP</a>`:''}
       </div>`);
     _mk.help.push(m);
     _postMarkers.push(m);
@@ -360,7 +371,7 @@ function renderResources() {
 }
 
 // ============================================================
-// HELP BOARD
+// HELP BOARD (offer only)
 // ============================================================
 function renderPosts() {
   const el = document.getElementById('offer-posts');
@@ -376,7 +387,7 @@ function renderPosts() {
       <div class="post-footer">
         <span style="font-size:.77rem;color:var(--muted)">${p.name}</span>
         ${p.contact?`<span style="font-size:.75rem;color:var(--brand)">${p.contact}</span>`:''}
-        ${p.xhandle?`<a class="tip-btn" href="https://x.com/${p.xhandle}" target="_blank">Tip $ALONE</a>`:''}
+        ${p.xhandle?`<a class="tip-btn" href="https://x.com/${p.xhandle}" target="_blank">Tip $HELP</a>`:''}
       </div></div>`;
   }).join('');
 }
@@ -427,30 +438,34 @@ async function refreshSitrep() {
   const totalCancelled = AIRPORT_DATA.reduce((s,a)=>s+a.cancelled,0);
   const totalStranded  = AIRPORT_DATA.reduce((s,a)=>s+a.stranded,0);
   const airportsClosed = AIRPORT_DATA.filter(a=>a.status==='CLOSED').length;
-  const vals = liveStats || {stranded:totalStranded,cancelled:totalCancelled,airports:airportsClosed,airspace:4};
+  const vals = liveStats || {stranded:totalStranded,cancelled:totalCancelled,airports:airportsClosed,airspace:4,routes:3};
 
   setStatNow('stat-stranded',vals.stranded);
   setStatNow('stat-cancelled',vals.cancelled);
   setStatNow('stat-airports-closed',vals.airports);
   setStatNow('stat-airspace',vals.airspace);
   setStatNow('m-stat-stranded',vals.stranded);
+  setStatNow('m-stat-cancelled',vals.cancelled);
 
   animCount('stat-stranded',vals.stranded,1200);
   animCount('stat-cancelled',vals.cancelled,800);
   animCount('stat-airports-closed',vals.airports,500);
   animCount('stat-airspace',vals.airspace,500);
   animCount('m-stat-stranded',vals.stranded,1200);
+  animCount('m-stat-cancelled',vals.cancelled,800);
 
   if(SB_ON){
-    const offerRes = await _sb.from('help_posts').select('*',{count:'exact',head:true}).eq('flagged',false).eq('type','offer');
-    const hc = offerRes.count||0;
+    const[offerRes]=await Promise.all([
+      _sb.from('help_posts').select('*',{count:'exact',head:true}).eq('flagged',false).eq('type','offer'),
+    ]);
+    const hc=offerRes.count||0;
     setStatNow('stat-help-posts',hc);
-    setStatNow('m-stat-help',hc);
+    setStatNow('m-tab-spare-num',hc);
     animCount('stat-help-posts',hc,600);
-    animCount('m-stat-help',hc,600);
+    animCount('m-tab-spare-num',hc,600);
   } else {
     setStatNow('stat-help-posts',0);
-    setStatNow('m-stat-help',0);
+    setStatNow('m-tab-spare-num',0);
   }
 
   const now=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
@@ -463,13 +478,13 @@ async function refreshSitrep() {
 // ============================================================
 async function loadPosts() {
   if(!SB_ON)return;
-  const{data}=await _sb.from('help_posts').select('*').eq('flagged',false).order('created_at',{ascending:false}).limit(100);
+  const{data}=await _sb.from('help_posts').select('*').eq('flagged',false).eq('type','offer').order('created_at',{ascending:false}).limit(100);
   if(data){posts=data;renderPosts();renderPostsOnMap(window._crisisMap);}
 }
 function subscribeStream(){
   if(!SB_ON)return;
   _sb.channel('help_posts').on('postgres_changes',{event:'INSERT',schema:'public',table:'help_posts'},p=>{
-    posts.unshift(p.new);renderPosts();renderPostsOnMap(window._crisisMap);
+    if(p.new.type==='offer'){posts.unshift(p.new);renderPosts();renderPostsOnMap(window._crisisMap);}
   }).subscribe();
 }
 
@@ -484,14 +499,12 @@ function initMobile(){
   document.getElementById('m-shell').style.display='flex';
   const mmap=L.map('m-crisis-map',{zoomControl:false,attributionControl:false}).setView([28,45],4);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mmap);
-
   COUNTRIES.forEach(c => {
     const col = SC[c.status];
-    L.circleMarker(c.coords,{radius:15,fillColor:'#ec3452',color:'#ec3452',weight:1,opacity:.4,fillOpacity:.2}).addTo(mmap);
-    L.circleMarker(c.coords,{radius:10,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.92}).addTo(mmap)
-      .on('click',()=>openMCountryPopup(c.id));
+    L.circleMarker(c.coords, {radius:15,fillColor:'#ec3452',color:'#ec3452',weight:1,opacity:.4,fillOpacity:.2}).addTo(mmap);
+    L.circleMarker(c.coords, {radius:10,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.92}).addTo(mmap)
+      .on('click', () => openMCountryPopup(c.id));
   });
-
   WORLDWIDE.forEach(r=>{
     L.circleMarker(r.coords,{radius:7,fillColor:'#a855f7',color:'#fff',weight:1.5,opacity:.9,fillOpacity:.5}).addTo(mmap)
       .on('click',()=>openMWorldwidePopup(r.id));
@@ -502,7 +515,7 @@ function initMobile(){
 
 function mFilterMap(type){
   document.querySelectorAll('.m-stat').forEach(s=>s.classList.remove('active-filter'));
-  const msMap={stranded:'mss-stranded',help:'mss-help'};
+  const msMap={stranded:'mss-stranded',cancelled:'mss-cancelled',help:'mss-offer'};
   if(msMap[type]) document.getElementById(msMap[type])?.classList.add('active-filter');
   const mm=window._mobileMap; if(!mm)return;
   if(type==='airports'||type==='cancelled'||type==='stranded'){renderAirportPins(mm,type);mm.flyTo([28,47],5,{duration:1});}
@@ -560,44 +573,47 @@ function openMWorldwidePopup(id){
 
 function closeMPopup(){document.getElementById('m-country-popup').classList.remove('open');}
 
-function mTab(tab, btn){
+function mTab(tab,btn){
   const sheet=document.getElementById('m-sheet');
-  // Tapping active non-map tab closes sheet
-  if(_mCurrentTab===tab&&tab!=='map'&&_mSheetOpen){
-    _mSheetOpen=false;sheet.classList.remove('open');_mCurrentTab='map';
-    document.querySelectorAll('.m-tab,.m-tab-offer').forEach(b=>b.classList.remove('active'));
-    document.getElementById('mtab-map').classList.add('active');
+
+  // MAP FILTERS tab opens the filter legend overlay (no sheet)
+  if(tab==='filters'){
+    // Close sheet if open
+    _mSheetOpen=false; sheet.classList.remove('open');
+    // Toggle filter legend
+    openMFilterLegend();
+    // Highlight
+    document.querySelectorAll('.m-tab,.m-tab-spare').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    _mCurrentTab='filters';
     return;
   }
-  document.querySelectorAll('.m-tab,.m-tab-offer').forEach(b=>b.classList.remove('active'));
+
+  if(_mCurrentTab===tab&&tab!=='map'&&_mSheetOpen){
+    _mSheetOpen=false;sheet.classList.remove('open');_mCurrentTab='map';
+    document.querySelectorAll('.m-tab,.m-tab-spare').forEach(b=>b.classList.remove('active'));
+    document.getElementById('mtab-filters').classList.add('active');return;
+  }
+  document.querySelectorAll('.m-tab,.m-tab-spare').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
   _mCurrentTab=tab;
-  if(tab==='map'){
-    _mSheetOpen=false;sheet.classList.remove('open');
-  } else if(tab==='offer'){
-    mShowSheetContent('offer','OFFER A SPARE ROOM');
-  } else if(tab==='edit'){
-    mShowSheetContent('edit','EDIT MY POSTS');
-  }
+  if(tab==='map'){_mSheetOpen=false;sheet.classList.remove('open');}
+  else if(tab==='resources') mShowSheetContent('resources','ADDITIONAL RESOURCES');
+  else if(tab==='offer')     mShowSheetContent('offer','OFFER A SPARE ROOM');
+  else if(tab==='edit')      mShowSheetContent('edit','EDIT MY POSTS');
 }
 
-function mShowSheetContent(which, title){
-  document.getElementById('m-resources-content').style.display='none';
+function mShowSheetContent(which,title){
+  document.getElementById('m-resources-content').style.display=which==='resources'?'block':'none';
   document.getElementById('m-offer-content').style.display=which==='offer'?'block':'none';
   document.getElementById('m-edit-content').style.display=which==='edit'?'block':'none';
   document.getElementById('m-sheet-title').textContent=title;
-  _mSheetOpen=true;
-  document.getElementById('m-sheet').classList.add('open');
+  _mSheetOpen=true;document.getElementById('m-sheet').classList.add('open');
 }
 
 function mSheetToggle(){
-  _mSheetOpen=!_mSheetOpen;
-  document.getElementById('m-sheet').classList.toggle('open',_mSheetOpen);
-  if(!_mSheetOpen){
-    _mCurrentTab='map';
-    document.querySelectorAll('.m-tab,.m-tab-offer').forEach(b=>b.classList.remove('active'));
-    document.getElementById('mtab-map').classList.add('active');
-  }
+  _mSheetOpen=!_mSheetOpen;document.getElementById('m-sheet').classList.toggle('open',_mSheetOpen);
+  if(!_mSheetOpen){_mCurrentTab='map';document.querySelectorAll('.m-tab,.m-tab-spare').forEach(b=>b.classList.remove('active'));document.getElementById('mtab-filters').classList.add('active');}
 }
 
 function mRenderResources(){
@@ -618,61 +634,64 @@ function mRenderResources(){
 }
 
 async function mSubmitOffer(){
-  const l=document.getElementById('m-offer-location')?.value,
-    b=document.getElementById('m-offer-body')?.value,
-    n=document.getElementById('m-offer-name')?.value,
-    c=document.getElementById('m-offer-contact')?.value,
+  const l=document.getElementById('m-offer-location')?.value,b=document.getElementById('m-offer-body')?.value,
+    n=document.getElementById('m-offer-name')?.value,c=document.getElementById('m-offer-contact')?.value,
     x=(document.getElementById('m-offer-xhandle')?.value||'').trim().replace(/^@+/,'');
   if(!l||!b||!n||!c){alert('Please fill in all fields.');return;}
-  const btn=document.querySelector('#m-offer-content .m-submit');
-  btn.textContent='Posting...';btn.disabled=true;
+  const btn=document.querySelector('#m-offer-content .m-submit');btn.textContent='Posting...';btn.disabled=true;
   try{
     const{error}=await _sb.from('help_posts').insert({type:'offer',post_type:'General',location:l,body:b,name:n,contact:c,xhandle:x||null,flagged:false});
     if(error)throw error;
     ['location','body','name','contact','xhandle'].forEach(f=>{const el=document.getElementById('m-offer-'+f);if(el)el.value='';});
-    btn.textContent='Posted!';
-    setTimeout(()=>{btn.textContent='Post Offer';btn.disabled=false;},3000);
+    btn.textContent='Posted!';setTimeout(()=>{btn.textContent='Post Offer';btn.disabled=false;},3000);
     loadPosts();
   }catch(e){alert('Failed: '+e.message);btn.textContent='Post Offer';btn.disabled=false;}
 }
 
-// Edit My Posts — find by contact info
-async function mFindMyPosts(){
-  const contact=document.getElementById('m-edit-contact')?.value?.trim();
-  if(!contact){alert('Please enter the contact you posted with.');return;}
-  const btn=document.querySelector('#m-edit-content .m-submit');
-  btn.textContent='Searching...';btn.disabled=true;
-  const listEl=document.getElementById('m-my-posts-list');
-  listEl.innerHTML='';
+// ============================================================
+// EDIT MY POSTS
+// ============================================================
+function openEditPostsSheet(){
+  mTab('edit', document.getElementById('mtab-filters'));
+}
+
+async function mSearchMyPosts(){
+  const contact = (document.getElementById('m-edit-contact')?.value||'').trim();
+  if(!contact){alert('Please enter your contact info.');return;}
+  const list = document.getElementById('m-my-posts-list');
+  if(!list)return;
+  list.innerHTML='<div style="color:rgba(255,255,255,.5);font-size:.82rem;padding:.5rem 0">Searching...</div>';
   try{
-    const{data,error}=await _sb.from('help_posts').select('*').eq('contact',contact).eq('flagged',false).order('created_at',{ascending:false});
+    const{data,error}=await _sb.from('help_posts').select('*').eq('contact',contact).eq('type','offer').eq('flagged',false).order('created_at',{ascending:false});
     if(error)throw error;
     if(!data||!data.length){
-      listEl.innerHTML='<div style="font-size:.8rem;color:rgba(255,255,255,.5);text-align:center;padding:1rem 0">No posts found for that contact.</div>';
-    } else {
-      listEl.innerHTML=data.map(p=>`
-        <div class="m-edit-post-card" id="mep-${p.id}">
-          <div class="m-edit-post-loc">📍 ${p.location}</div>
-          <div class="m-edit-post-body">${(p.body||'').slice(0,120)}${(p.body||'').length>120?'...':''}</div>
-          <div class="m-edit-post-actions">
-            <button class="m-edit-btn m-edit-btn--delete" onclick="mDeletePost('${p.id}')">🗑 Delete Post</button>
-          </div>
-        </div>`).join('');
+      list.innerHTML='<div style="color:rgba(255,255,255,.5);font-size:.82rem;padding:.5rem 0">No posts found for that contact.</div>';
+      return;
     }
-  }catch(e){listEl.innerHTML=`<div style="font-size:.8rem;color:#fca5a5">Error: ${e.message}</div>`;}
-  btn.textContent='Find My Posts';btn.disabled=false;
+    list.innerHTML=data.map(p=>{
+      const t=p.created_at?new Date(p.created_at).toLocaleString():'';
+      return `<div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.75rem;margin-bottom:.6rem">
+        <div style="font-size:.7rem;color:rgba(255,255,255,.45);margin-bottom:.2rem">${t}</div>
+        <div style="font-size:.85rem;font-weight:600;color:#fff;margin-bottom:.15rem">📍 ${p.location}</div>
+        <div style="font-size:.8rem;color:rgba(255,255,255,.7);line-height:1.5;margin-bottom:.6rem">${(p.body||'').slice(0,120)}${(p.body||'').length>120?'...':''}</div>
+        <div style="display:flex;gap:.5rem">
+          <button onclick="mDeletePost('${p.id}')" style="background:#ec3452;color:#fff;border:none;border-radius:7px;padding:.35rem .8rem;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Delete</button>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    list.innerHTML=`<div style="color:#ec3452;font-size:.82rem;padding:.5rem 0">Error: ${e.message}</div>`;
+  }
 }
 
 async function mDeletePost(id){
-  if(!confirm('Delete this post?'))return;
-  const card=document.getElementById('mep-'+id);
-  if(card)card.style.opacity='.4';
+  if(!confirm('Delete this post? This cannot be undone.'))return;
   try{
     const{error}=await _sb.from('help_posts').update({flagged:true}).eq('id',id);
     if(error)throw error;
-    if(card){card.innerHTML='<div style="font-size:.78rem;color:rgba(255,255,255,.4);text-align:center;padding:.5rem">Post removed.</div>';}
+    mSearchMyPosts();
     loadPosts();
-  }catch(e){alert('Failed to delete: '+e.message);if(card)card.style.opacity='1';}
+  }catch(e){alert('Failed to delete: '+e.message);}
 }
 
 // ============================================================
