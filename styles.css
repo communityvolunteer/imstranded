@@ -234,7 +234,7 @@ transform: translateX(-50%);
   font-size:.8rem;font-weight:500;cursor:pointer;transition:all .15s;
 }
 .filter-btn.active,.filter-btn:hover{border-color:#3498ec;color:#fff;background:#3498ec;}
-.countries-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1.2rem;}
+.countries-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:3.9rem;}
 .country-card{
   background:#000;border:5px solid #2e2e2f;
   border-top:8px solid var(--border2);border-radius:var(--radius);
