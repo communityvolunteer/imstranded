@@ -431,7 +431,7 @@ transform: translateX(-50%);
   }
   #m-country-popup.open{transform:translateY(0);}
   .m-popup-header{
-    position:sticky;top:0;background:#000;border-bottom:1px solid var(--border);
+    position:sticky;top:0;background:#000;border-bottom:1px solid #6b7280;
     padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;z-index:1;
   }
   .m-popup-title{font-size:1rem;font-weight:700;color:#fff;}
