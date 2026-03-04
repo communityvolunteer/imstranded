@@ -600,7 +600,7 @@ function mTab(tab,btn){
   if(tab==='map'){_mSheetOpen=false;sheet.classList.remove('open');}
   else if(tab==='resources') mShowSheetContent('resources','ADDITIONAL RESOURCES');
   else if(tab==='offer')     mShowSheetContent('offer','OFFER A SPARE ROOM');
-  else if(tab==='edit')      mShowSheetContent('edit','EDIT MY POSTS');
+  else if(tab==='edit')      mShowSheetContent('edit','Edit My PostS');
 }
 
 function mShowSheetContent(which,title){
@@ -649,7 +649,7 @@ async function mSubmitOffer(){
 }
 
 // ============================================================
-// EDIT MY POSTS
+// Edit My PostS
 // ============================================================
 function openEditPostsSheet(){
   mTab('edit', document.getElementById('mtab-filters'));
