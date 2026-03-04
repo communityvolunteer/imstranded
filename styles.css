@@ -339,7 +339,7 @@ transform: translateX(-50%);
   /* 3-stat bar */
   #m-statbar{
     background:#000;
-    display:grid;grid-template-columns:1fr 1fr 1fr;
+    display:grid;grid-template-columns:1fr 1fr;
     flex-shrink:0;height:65px;
     border-bottom:1px solid rgba(255,255,255,.08);
   }
@@ -362,7 +362,7 @@ transform: translateX(-50%);
   .m-stat--offer .m-stat-label{color:rgba(255,255,255,.85) !important;}
 
   .m-stat-num{
-    font-size:1.25rem;font-weight:900;letter-spacing:-.03em;line-height:1;display:block;
+    font-size:1.5rem;font-weight:900;letter-spacing:-.03em;line-height:1;display:block;
     color:#fff;font-variant-numeric:tabular-nums;
   }
   .m-stat-label{
