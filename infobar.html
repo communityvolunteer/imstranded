@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sitrep Bar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{background:transparent;font-family:'Inter',sans-serif;}
+
+.sitrep{
+  display:flex;
+  background:#000;
+  border-radius:10px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.08);
+}
+
+.sitrep-stat{
+  flex:1;min-width:130px;
+  padding:.9rem 1rem 1rem;
+  border-right:1px solid rgba(255,255,255,.1);
+  text-align:center;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+}
+.sitrep-stat:last-child{border-right:none;}
+
+.sitrep-num{
+  font-size:2.1rem;font-weight:900;letter-spacing:-.04em;
+  line-height:1;margin-bottom:.2rem;display:block;
+  color:#fff;font-variant-numeric:tabular-nums;
+}
+
+.sitrep-label{
+  font-size:.58rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.08em;color:#fff;line-height:1.3;
+}
+
+.sitrep-sub{
+  font-size:.5rem;color:rgba(255,255,255,.55);margin-top:.1rem;
+}
+
+/* Blue LAUNCH APP section */
+.sitrep-cta{
+  flex:1;min-width:160px;
+  background:#3498ec;
+  border-right:none;
+  display:flex;align-items:center;justify-content:center;
+  padding:.9rem 1.2rem;
+}
+
+.launch-btn{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:transparent;
+  border:2px solid #fff;
+  border-radius:8px;
+  color:#fff;
+  font-family:'Inter',sans-serif;
+  font-size:.92rem;
+  font-weight:800;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  padding:.6rem 1.6rem;
+  cursor:pointer;
+  text-decoration:none;
+  transition:background .15s,transform .1s;
+  white-space:nowrap;
+}
+.launch-btn:hover{
+  background:rgba(255,255,255,.15);
+  transform:translateY(-1px);
+}
+.launch-btn svg{flex-shrink:0;}
+
+/* Refresh spinner */
+.sitrep-refresh{
+  display:flex;align-items:center;justify-content:center;
+  padding:0 1rem;flex-shrink:0;
+  cursor:pointer;border:none;background:transparent;
+  color:rgba(255,255,255,.4);transition:color .2s;
+}
+.sitrep-refresh:hover{color:#3498ec;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.spinning{animation:spin 1s linear infinite;display:inline-block;}
+</style>
+</head>
+<body>
+
+<div class="sitrep">
+  <div class="sitrep-stat">
+    <span class="sitrep-num" id="stat-stranded">--</span>
+    <div class="sitrep-label">Est. Stranded</div>
+  </div>
+  <div class="sitrep-stat">
+    <span class="sitrep-num" id="stat-cancelled">--</span>
+    <div class="sitrep-label">Flights Cancelled</div>
+  </div>
+  <div class="sitrep-stat">
+    <span class="sitrep-num" id="stat-airports">--</span>
+    <div class="sitrep-label">Airports Closed</div>
+  </div>
+  <div class="sitrep-stat">
+    <span class="sitrep-num" id="stat-airspace">--</span>
+    <div class="sitrep-label">Airspace Closed</div>
+  </div>
+  <div class="sitrep-cta">
+    <a class="launch-btn" href="https://help.imstranded.org" target="_top">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      LAUNCH APP
+    </a>
+  </div>
+  <button class="sitrep-refresh" onclick="refresh()" title="Refresh data">
+    <span id="refresh-icon" style="display:flex;align-items:center">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+      </svg>
+    </span>
+  </button>
+</div>
+
+<script>
+const SUPABASE_URL  = 'https://nzvlvqyitsjuxnafcuhl.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_jEEyPd33KHXKXM53QvrIKQ_JpzQNSGr';
+const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+const AIRPORT_DATA = [
+  {iata:'DXB',cancelled:312,status:'CLOSED',stranded:56160},
+  {iata:'AUH',cancelled:198,status:'CLOSED',stranded:35640},
+  {iata:'KWI',cancelled:143,status:'CLOSED',stranded:25740},
+  {iata:'DOH',cancelled:117,status:'RESTRICTED',stranded:18720},
+  {iata:'BAH',cancelled:89,status:'CLOSED',stranded:16020},
+  {iata:'MCT',cancelled:34,status:'OPEN',stranded:2720},
+  {iata:'RUH',cancelled:41,status:'PARTIALLY OPEN',stranded:3280},
+  {iata:'IKA',cancelled:201,status:'CLOSED',stranded:36180},
+  {iata:'BGW',cancelled:88,status:'CLOSED',stranded:15840},
+];
+
+function animCount(id, target, dur){
+  const el=document.getElementById(id);if(!el||target==null)return;
+  const raw=el.textContent.replace(/[^0-9]/g,'');
+  const startVal=raw.length?parseInt(raw):0;
+  const start=Date.now();
+  const step=()=>{
+    const p=Math.min((Date.now()-start)/dur,1);
+    const v=Math.round(startVal+(target-startVal)*(1-Math.pow(1-p,3)));
+    el.textContent=v.toLocaleString();
+    if(p<1)requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+async function refresh(){
+  const icon=document.getElementById('refresh-icon');
+  if(icon) icon.classList.add('spinning');
+
+  let liveStats=null;
+  try{
+    const res=await fetch('/api/aviation',{signal:AbortSignal.timeout(8000)});
+    if(res.ok){
+      const data=await res.json();
+      if(data&&data.airports){
+        data.airports.forEach(live=>{
+          const idx=AIRPORT_DATA.findIndex(a=>a.iata===live.iata);
+          if(idx>=0) Object.assign(AIRPORT_DATA[idx],live);
+        });
+      }
+      if(data&&data.stats) liveStats=data.stats;
+    }
+  }catch(e){}
+
+  const totalCancelled=AIRPORT_DATA.reduce((s,a)=>s+a.cancelled,0);
+  const totalStranded=AIRPORT_DATA.reduce((s,a)=>s+a.stranded,0);
+  const airportsClosed=AIRPORT_DATA.filter(a=>a.status==='CLOSED').length;
+  const vals=liveStats||{stranded:totalStranded,cancelled:totalCancelled,airports:airportsClosed,airspace:4};
+
+  animCount('stat-stranded',vals.stranded,1200);
+  animCount('stat-cancelled',vals.cancelled,800);
+  animCount('stat-airports',vals.airports,500);
+  animCount('stat-airspace',vals.airspace,500);
+
+  if(icon) icon.classList.remove('spinning');
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  refresh();
+  setInterval(refresh,5*60*1000);
+});
+</script>
+</body>
+</html>
