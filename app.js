@@ -1,5 +1,5 @@
 // ============================================================
-// CONFIG
+// app.js CONFIG
 // ============================================================
 const SUPABASE_URL  = 'https://nzvlvqyitsjuxnafcuhl.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_jEEyPd33KHXKXM53QvrIKQ_JpzQNSGr';
@@ -81,18 +81,6 @@ const NGOS = [
   {type:'Community',name:'r/dubai Megathread',desc:'Real-time reports from expats.',url:'https://reddit.com/r/dubai'},
 ];
 
-const LAND_ROUTES = [
-  {from:[24.47,54.37],to:[23.61,58.59],status:'warn',label:'UAE to Oman (E611)'},
-  {from:[24.47,54.37],to:[23.88,45.07],status:'warn',label:'UAE to Saudi Arabia'},
-  {from:[26.07,50.55],to:[23.88,45.07],status:'warn',label:'Bahrain to Saudi (King Fahd Causeway)'},
-  {from:[29.37,47.97],to:[23.88,45.07],status:'warn',label:'Kuwait to Saudi Arabia'},
-  {from:[33.22,43.68],to:[30.58,36.24],status:'warn',label:'Iraq to Jordan (Trebil)'},
-  {from:[30.58,36.24],to:[31.85,35.22],status:'warn',label:'Jordan to Israel (Allenby Bridge)'},
-  {from:[31.85,35.22],to:[30.00,32.25],status:'danger',label:'Israel to Egypt (Taba)'},
-  {from:[31.30,34.30],to:[30.00,32.25],status:'danger',label:'Gaza to Egypt (Rafah - closed)'},
-  {from:[23.61,58.59],to:[25.28,51.53],status:'warn',label:'Oman to Qatar (sea)'},
-];
-
 let AIRPORT_DATA = [
   {city:'Dubai',code:'DXB',iata:'DXB',coords:[25.252,55.364],cancelled:312,status:'CLOSED',stranded:56160,updated:'--:--'},
   {city:'Abu Dhabi',code:'AUH',iata:'AUH',coords:[24.432,54.651],cancelled:198,status:'CLOSED',stranded:35640,updated:'--:--'},
@@ -129,7 +117,7 @@ async function fetchAviationData() {
 // ============================================================
 // MAP STATE
 // ============================================================
-const SC = {danger:'#dc2626',warn:'#d97706',safe:'#059669'};
+const SC = {danger:'#a855f7',warn:'#a855f7',safe:'#a855f7'};
 const _mk = {country:[],routes:[],worldwide:[],help:[],need:[]};
 let _activeFilter = 'all';
 let _postMarkers = [];
@@ -164,26 +152,7 @@ function showView(name) {
   if (name === 'resources' && navBtns[1]) navBtns[1].classList.add('active');
   if (name === 'map' && !window._mapInit) initMap();
   if (name === 'resources') renderResources();
-  if (name === 'help') { renderPosts(); }
-}
-
-// ============================================================
-// HELP TABS
-// ============================================================
-function switchHelpTab(tab) {
-  document.querySelectorAll('.help-tab').forEach(b => b.classList.remove('active'));
-  const offerPanel = document.getElementById('help-panel-offer');
-  const needPanel  = document.getElementById('help-panel-need');
-  if (tab === 'offer') {
-    document.getElementById('htab-offer')?.classList.add('active');
-    if (offerPanel) offerPanel.style.display = 'grid';
-    if (needPanel)  needPanel.style.display  = 'none';
-  } else {
-    document.getElementById('htab-need')?.classList.add('active');
-    if (offerPanel) offerPanel.style.display = 'none';
-    if (needPanel)  needPanel.style.display  = 'grid';
-    renderNeedPosts();
-  }
+  if (name === 'help') renderPosts();
 }
 
 // ============================================================
@@ -197,11 +166,11 @@ function filterMap(type) {
 
   document.querySelectorAll('.sitrep-stat').forEach(s => s.classList.remove('active-filter'));
   const ssMap = {stranded:'ss-stranded',cancelled:'ss-cancelled',airports:'ss-airports',
-                 airspace:'ss-airspace',help:'ss-help-offer',need:'ss-help-need'};
+                 airspace:'ss-airspace',help:'ss-help-offer'};
   if (ssMap[type]) document.getElementById(ssMap[type])?.classList.add('active-filter');
 
   document.querySelectorAll('.legend-item').forEach(l => l.classList.remove('active-legend'));
-  const lm = {stranded:'leg-stranded',help:'leg-help',worldwide:'leg-worldwide'};
+  const lm = {help:'leg-help',worldwide:'leg-worldwide'};
   if (lm[type]) document.getElementById(lm[type])?.classList.add('active-legend');
 
   _mk.country.forEach(({marker,status}) => {
@@ -220,16 +189,13 @@ function filterMap(type) {
   _mk.help.forEach(m => {
     (type==='all'||type==='help') ? m.addTo(map) : map.removeLayer(m);
   });
-  _mk.need.forEach(m => {
-    (type==='all'||type==='need') ? m.addTo(map) : map.removeLayer(m);
-  });
 
   if (type==='airports'||type==='cancelled'||type==='stranded') {
     renderAirportPins(map, type); map.flyTo([28,47],5,{duration:1});
   } else { clearDataPins(map); }
   if (type==='routes')    map.flyTo([28,46],5,{duration:1});
   if (type==='worldwide') map.flyTo([20,60],3,{duration:1.2});
-  if (type==='help'||type==='need') map.flyTo([28,45],5,{duration:1});
+  if (type==='help')      map.flyTo([28,45],5,{duration:1});
   if (type==='all') { clearDataPins(map); map.flyTo([28,45],5,{duration:1}); }
 
   showView('map');
@@ -248,26 +214,17 @@ function initMap() {
 
   COUNTRIES.forEach(c => {
     const col = SC[c.status];
-    const glow = L.circleMarker(c.coords,{radius:15,fillColor:col,color:col,weight:1,opacity:.2,fillOpacity:.1}).addTo(map);
+    const glow = L.circleMarker(c.coords,{radius:15,fillColor:'#ec3452',color:'#ec3452',weight:1,opacity:.4,fillOpacity:.2}).addTo(map);
     const dot  = L.circleMarker(c.coords,{radius:8,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.95}).addTo(map)
       .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:240px">
         <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#fcd34d;margin-bottom:.4rem">${c.name}</div>
         <div style="font-size:.82rem;color:rgba(255,255,255,.85);line-height:1.55;margin-bottom:.6rem">${c.advisory}</div>
-        <div style="font-size:.72rem;margin-bottom:.75rem;color:rgba(255,255,255,.6)">Airspace: <strong style="color:${c.airspace==='CLOSED'?'#fca5a5':c.airspace.includes('OPEN')?'#6ee7b7':'#fcd34d'}">${c.airspace}</strong></div>
-        ${c.telegram?`<a href="${c.telegram}" style="color:#67e8f9;font-size:.76rem;font-weight:500;display:block;margin-bottom:.6rem" target="_blank">→ Telegram group</a>`:''}
-        <button onclick="window.showCountryDetail('${c.id}')" style="background:#67e8f9;border:none;color:#0a1e39;font-family:Inter,sans-serif;font-size:.82rem;font-weight:700;padding:.55rem 1rem;cursor:pointer;border-radius:8px;width:100%">Full info &amp; embassies →</button>
+        <div style="font-size:.72rem;margin-bottom:.75rem;color:rgba(255,255,255,.6)">Airspace: <strong style="color:${c.airspace==='CLOSED'?'#ec3452':c.airspace.includes('OPEN')?'#17bc7b':'#fcd34d'}">${c.airspace}</strong></div>
+        ${c.telegram?`<a href="${c.telegram}" style="color:#3498ec;font-size:.76rem;font-weight:500;display:block;margin-bottom:.6rem" target="_blank">→ Telegram group</a>`:''}
+        <button onclick="window.showCountryDetail('${c.id}')" style="background:#3498ec;border:none;color:#fff;font-family:Inter,sans-serif;font-size:.82rem;font-weight:700;padding:.55rem 1rem;cursor:pointer;border-radius:8px;width:100%">Full info &amp; embassies →</button>
       </div>`);
     _mk.country.push({marker:glow,status:c.status});
     _mk.country.push({marker:dot,status:c.status});
-  });
-
-  LAND_ROUTES.forEach(r => {
-    const col = r.status==='safe'?'#059669':r.status==='warn'?'#d97706':'#dc2626';
-    const lc  = r.status==='safe'?'#6ee7b7':r.status==='warn'?'#fcd34d':'#fca5a5';
-    const line = L.polyline([r.from,r.to],{color:col,weight:3,opacity:.85,
-      dashArray:r.status==='danger'?'6,8':r.status==='warn'?'8,4':null}).addTo(map)
-      .bindPopup(`<div style="font-family:Inter,sans-serif"><div style="font-weight:700;font-size:.85rem;color:${lc};margin-bottom:.2rem">${r.label}</div><div style="font-size:.72rem;color:rgba(255,255,255,.55)">${r.status.toUpperCase()}</div></div>`);
-    _mk.routes.push({marker:line,status:r.status});
   });
 
   WORLDWIDE.forEach(r => {
@@ -291,23 +248,23 @@ function renderAirportPins(map, mode) {
   clearDataPins(map);
   const showStranded = mode === 'stranded';
   AIRPORT_DATA.forEach(a => {
-    const col = a.status==='CLOSED'?'#ef4444':a.status==='OPEN'?'#22c55e':'#f59e0b';
+    const col = a.status==='CLOSED'?'#ef4444':a.status==='OPEN'?'#22c55e':'#fcd34d';
     const pinNum = showStranded ? a.stranded.toLocaleString() : a.cancelled.toLocaleString();
     const pinSuffix = showStranded ? 'est. stranded' : 'cancelled';
     const icon = L.divIcon({
       className:'airport-pin-label',
-      html:`<div style="background:#0a1e39;border-radius:999px;padding:5px 10px;font-family:Inter,sans-serif;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;gap:5px">✈ ${a.code} <span style="opacity:.75;font-size:9.5px">${pinNum} ${pinSuffix}</span></div>`,
+      html:`<div style="background:#000;border-radius:999px;padding:5px 10px;font-family:Inter,sans-serif;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;gap:5px">✈ ${a.code} <span style="opacity:.75;font-size:9.5px">${pinNum} ${pinSuffix}</span></div>`,
       iconAnchor:[0,0],iconSize:null
     });
     const m = L.marker(a.coords,{icon}).addTo(map).bindPopup(`
       <div style="font-family:Inter,sans-serif;min-width:230px">
-        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fcd34d;margin-bottom:.45rem">✈ ${a.city} — ${a.code}</div>
+        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fff;margin-bottom:.45rem">✈ ${a.city} — ${a.code}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem .85rem;margin-bottom:.55rem">
-          <div><div style="font-size:1.5rem;font-weight:800;color:#fca5a5;letter-spacing:-.03em;line-height:1">${a.stranded.toLocaleString()}</div><div style="font-size:.58rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.04em;margin-top:.15rem">Est. Stranded</div></div>
-          <div><div style="font-size:1.5rem;font-weight:800;color:#fcd34d;letter-spacing:-.03em;line-height:1">${a.cancelled.toLocaleString()}</div><div style="font-size:.58rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.04em;margin-top:.15rem">Flights Cancelled</div></div>
+          <div><div style="font-size:1.5rem;font-weight:800;color:#ec3452;letter-spacing:-.03em;line-height:1">${a.stranded.toLocaleString()}</div><div style="font-size:.58rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.04em;margin-top:.15rem">Est. Stranded</div></div>
+          <div><div style="font-size:1.5rem;font-weight:800;color:#FFF;letter-spacing:-.03em;line-height:1">${a.cancelled.toLocaleString()}</div><div style="font-size:.58rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.04em;margin-top:.15rem">Flights Cancelled</div></div>
         </div>
         <div style="display:flex;justify-content:space-between;padding:.35rem .55rem;background:rgba(255,255,255,.08);border-radius:6px;align-items:center;border:1px solid rgba(255,255,255,.1)">
-          <span style="font-size:.7rem;font-weight:700;color:${col==='#ef4444'?'#fca5a5':col==='#22c55e'?'#86efac':'#fcd34d'}">Status: ${a.status}</span>
+          <span style="font-size:.7rem;font-weight:700;color:${col==='#ef4444'?'#ec3452':col==='#22c55e'?'#22c55e':'#fcd34d'}">Status: ${a.status}</span>
           <span style="font-size:.62rem;color:rgba(255,255,255,.45)">${a.updated !== '--:--' ? 'Updated '+a.updated : 'Seeded data'}</span>
         </div>
       </div>
@@ -323,24 +280,22 @@ function clearDataPins(map) {
 
 async function renderPostsOnMap(map) {
   if (!map) return;
-  [..._mk.help, ..._mk.need, ..._postMarkers].forEach(m => { try { map.removeLayer(m); } catch(e) {} });
-  _mk.help.length = 0; _mk.need.length = 0; _postMarkers = [];
+  [..._mk.help, ..._postMarkers].forEach(m => { try { map.removeLayer(m); } catch(e) {} });
+  _mk.help.length = 0; _postMarkers = [];
 
   for (const p of posts) {
-    if (!p.location) continue;
+    if (!p.location || p.type !== 'offer') continue;
     const geo = await geocodeCity(p.location);
     if (!geo) continue;
-    const isOffer = p.type === 'offer';
-    const fillCol = isOffer ? '#3b82f6' : '#ef4444';
-    const m = L.circleMarker([geo.lat,geo.lng],{radius:7,fillColor:fillCol,color:'#fff',weight:2,opacity:1,fillOpacity:.9}).addTo(map)
+    const m = L.circleMarker([geo.lat,geo.lng],{radius:7,fillColor:'#3b82f6',color:'#fff',weight:2,opacity:1,fillOpacity:.9}).addTo(map)
       .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:200px">
-        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${isOffer?'#93c5fd':'#fca5a5'};margin-bottom:.25rem">${isOffer?'Help offered':'Needs help'}</div>
+        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#93c5fd;margin-bottom:.25rem">SPARE ROOM</div>
         <div style="font-weight:600;font-size:.84rem;margin-bottom:.2rem;color:#fff">${p.name}</div>
         <div style="font-size:.77rem;color:rgba(255,255,255,.75);line-height:1.5;margin-bottom:.4rem">${(p.body||'').slice(0,100)}${(p.body||'').length>100?'...':''}</div>
         <div style="font-size:.7rem;color:rgba(255,255,255,.5)">${p.location}</div>
-        ${p.xhandle?`<a href="https://x.com/${p.xhandle}" target="_blank" style="display:inline-block;margin-top:.4rem;background:#3b82f6;color:#fff;font-size:.68rem;font-weight:700;padding:.2rem .55rem;border-radius:5px;text-decoration:none">Tip $HELP</a>`:''}
+        ${p.xhandle?`<a href="https://x.com/${p.xhandle}" target="_blank" style="display:inline-block;margin-top:.4rem;background:#3b82f6;color:#fff;font-size:.68rem;font-weight:700;padding:.2rem .55rem;border-radius:5px;text-decoration:none">Tip $ALONE</a>`:''}
       </div>`);
-    if (isOffer) _mk.help.push(m); else _mk.need.push(m);
+    _mk.help.push(m);
     _postMarkers.push(m);
   }
 }
@@ -421,25 +376,7 @@ function renderPosts() {
       <div class="post-footer">
         <span style="font-size:.77rem;color:var(--muted)">${p.name}</span>
         ${p.contact?`<span style="font-size:.75rem;color:var(--brand)">${p.contact}</span>`:''}
-        ${p.xhandle?`<a class="tip-btn" href="https://x.com/${p.xhandle}" target="_blank">Tip $HELP</a>`:''}
-      </div></div>`;
-  }).join('');
-}
-
-function renderNeedPosts() {
-  const el = document.getElementById('need-posts');
-  if (!el) return;
-  const needPosts = posts.filter(p=>p.type==='need');
-  if (!needPosts.length) { el.innerHTML='<div class="empty-state">No requests yet.</div>'; return; }
-  el.innerHTML = needPosts.map(p => {
-    const t = p.created_at ? new Date(p.created_at).toLocaleString() : '';
-    return `<div class="post-card post-card--need">
-      <div class="post-header"><span class="post-type post-type--need">Needs Help</span><span class="post-time">${t}</span></div>
-      <div class="post-loc">📍 ${p.location}</div>
-      <div class="post-body">${p.body}</div>
-      <div class="post-footer">
-        <span style="font-size:.77rem;color:var(--muted)">${p.name}</span>
-        ${p.contact?`<span style="font-size:.75rem;color:var(--danger)">${p.contact}</span>`:''}
+        ${p.xhandle?`<a class="tip-btn" href="https://x.com/${p.xhandle}" target="_blank">Tip $ALONE</a>`:''}
       </div></div>`;
   }).join('');
 }
@@ -459,9 +396,9 @@ async function submitPost(type) {
     if(error)throw error;
     ['type','location','body','name','contact','xhandle'].forEach(f=>{const el=document.getElementById(type+'-'+f);if(el)el.tagName==='SELECT'?el.selectedIndex=0:el.value='';});
     btn.textContent='Posted!';
-    setTimeout(()=>{btn.textContent=type==='offer'?'Post Offer':'Post Request';btn.disabled=false;},3000);
+    setTimeout(()=>{btn.textContent='Post Offer';btn.disabled=false;},3000);
     loadPosts();
-  } catch(e){alert('Failed: '+e.message);btn.textContent=type==='offer'?'Post Offer':'Post Request';btn.disabled=false;}
+  } catch(e){alert('Failed: '+e.message);btn.textContent='Post Offer';btn.disabled=false;}
 }
 
 // ============================================================
@@ -490,7 +427,7 @@ async function refreshSitrep() {
   const totalCancelled = AIRPORT_DATA.reduce((s,a)=>s+a.cancelled,0);
   const totalStranded  = AIRPORT_DATA.reduce((s,a)=>s+a.stranded,0);
   const airportsClosed = AIRPORT_DATA.filter(a=>a.status==='CLOSED').length;
-  const vals = liveStats || {stranded:totalStranded,cancelled:totalCancelled,airports:airportsClosed,airspace:4,routes:3};
+  const vals = liveStats || {stranded:totalStranded,cancelled:totalCancelled,airports:airportsClosed,airspace:4};
 
   setStatNow('stat-stranded',vals.stranded);
   setStatNow('stat-cancelled',vals.cancelled);
@@ -506,13 +443,14 @@ async function refreshSitrep() {
 
   if(SB_ON){
     const offerRes = await _sb.from('help_posts').select('*',{count:'exact',head:true}).eq('flagged',false).eq('type','offer');
-    const hc=offerRes.count||0;
+    const hc = offerRes.count||0;
     setStatNow('stat-help-posts',hc);
     setStatNow('m-stat-help',hc);
     animCount('stat-help-posts',hc,600);
     animCount('m-stat-help',hc,600);
   } else {
-    setStatNow('stat-help-posts',0); setStatNow('m-stat-help',0);
+    setStatNow('stat-help-posts',0);
+    setStatNow('m-stat-help',0);
   }
 
   const now=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
@@ -526,12 +464,12 @@ async function refreshSitrep() {
 async function loadPosts() {
   if(!SB_ON)return;
   const{data}=await _sb.from('help_posts').select('*').eq('flagged',false).order('created_at',{ascending:false}).limit(100);
-  if(data){posts=data;renderPosts();renderNeedPosts();renderPostsOnMap(window._crisisMap);}
+  if(data){posts=data;renderPosts();renderPostsOnMap(window._crisisMap);}
 }
 function subscribeStream(){
   if(!SB_ON)return;
   _sb.channel('help_posts').on('postgres_changes',{event:'INSERT',schema:'public',table:'help_posts'},p=>{
-    posts.unshift(p.new);renderPosts();renderNeedPosts();renderPostsOnMap(window._crisisMap);
+    posts.unshift(p.new);renderPosts();renderPostsOnMap(window._crisisMap);
   }).subscribe();
 }
 
@@ -546,14 +484,14 @@ function initMobile(){
   document.getElementById('m-shell').style.display='flex';
   const mmap=L.map('m-crisis-map',{zoomControl:false,attributionControl:false}).setView([28,45],4);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mmap);
-  COUNTRIES.forEach(c=>{
-    L.circleMarker(c.coords,{radius:10,fillColor:SC[c.status],color:'#fff',weight:2,opacity:1,fillOpacity:.92}).addTo(mmap)
+
+  COUNTRIES.forEach(c => {
+    const col = SC[c.status];
+    L.circleMarker(c.coords,{radius:15,fillColor:'#ec3452',color:'#ec3452',weight:1,opacity:.4,fillOpacity:.2}).addTo(mmap);
+    L.circleMarker(c.coords,{radius:10,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.92}).addTo(mmap)
       .on('click',()=>openMCountryPopup(c.id));
   });
-  LAND_ROUTES.forEach(r=>{
-    const col=r.status==='safe'?'#22c55e':r.status==='warn'?'#f59e0b':'#ef4444';
-    L.polyline([r.from,r.to],{color:col,weight:2.5,opacity:.8,dashArray:r.status==='danger'?'6,8':r.status==='warn'?'8,4':null}).addTo(mmap);
-  });
+
   WORLDWIDE.forEach(r=>{
     L.circleMarker(r.coords,{radius:7,fillColor:'#a855f7',color:'#fff',weight:1.5,opacity:.9,fillOpacity:.5}).addTo(mmap)
       .on('click',()=>openMWorldwidePopup(r.id));
@@ -564,7 +502,7 @@ function initMobile(){
 
 function mFilterMap(type){
   document.querySelectorAll('.m-stat').forEach(s=>s.classList.remove('active-filter'));
-  const msMap={stranded:'mss-stranded',cancelled:'mss-cancelled',help:'mss-help'};
+  const msMap={stranded:'mss-stranded',help:'mss-help'};
   if(msMap[type]) document.getElementById(msMap[type])?.classList.add('active-filter');
   const mm=window._mobileMap; if(!mm)return;
   if(type==='airports'||type==='cancelled'||type==='stranded'){renderAirportPins(mm,type);mm.flyTo([28,47],5,{duration:1});}
@@ -593,17 +531,17 @@ function openMCountryPopup(id){
   }).join('');
   const borderRows=c.borders.map(b=>{
     const bc=b.status==='safe'?'#059669':b.status==='warn'?'#d97706':'#dc2626';
-    return `<div class="m-popup-info-row"><span style="color:var(--muted);font-size:.72rem">${b.route}</span><span style="color:${bc};font-weight:600;font-size:.78rem">${b.status.toUpperCase()} — ${b.note}</span></div>`;
+    return `<div class="m-popup-info-row"><span style="color:#fff;font-size:.72rem">${b.route}</span><span style="color:${bc};font-weight:600;font-size:.78rem">${b.status.toUpperCase()} — ${b.note}</span></div>`;
   }).join('');
   document.getElementById('m-popup-title').textContent=c.name;
   document.getElementById('m-popup-body').innerHTML=`
     <div class="m-popup-badge" style="background:${col}18;color:${col};border:1px solid ${col}44">${c.status.toUpperCase()}</div>
     <div class="m-popup-advisory">${c.advisory}</div>
-    <div class="m-popup-info-row"><span style="font-size:.72rem;color:var(--muted)">Airspace</span><span style="color:${acCol};font-weight:700">${c.airspace}</span></div>
+    <div class="m-popup-info-row"><span style="font-size:.72rem;color:#fff">Airspace</span><span style="color:${acCol};font-weight:700">${c.airspace}</span></div>
     ${borderRows}
     <div class="m-popup-section-title">Embassy Emergency Contacts</div>
     ${embRows||'<div style="font-size:.78rem;color:var(--muted)">Check embassy website</div>'}
-    ${c.ngos?.length?`<div class="m-popup-section-title">Active NGOs</div><div class="ngo-tags" style="display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.3rem">${c.ngos.map(n=>`<span style="background:#eff6ff;color:#2563eb;font-size:.63rem;font-weight:600;border-radius:4px;padding:.14rem .48rem">${n}</span>`).join('')}</div>`:''}
+    ${c.ngos?.length?`<div class="m-popup-section-title">Active NGOs</div><div class="ngo-tags" style="display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.3rem">${c.ngos.map(n=>`<span style="background:#eff6ff30;color:#3498ec;font-size:.63rem;font-weight:600;border-radius:4px;padding:.14rem .48rem">${n}</span>`).join('')}</div>`:''}
     ${c.telegram?`<a href="${c.telegram}" target="_blank" style="display:inline-block;margin-top:.65rem;color:#2563eb;font-size:.8rem;font-weight:500">→ Telegram group</a>`:''}
   `;
   document.getElementById('m-country-popup').classList.add('open');
@@ -615,36 +553,51 @@ function openMWorldwidePopup(id){
   document.getElementById('m-popup-body').innerHTML=`
     <div class="m-popup-advisory">${r.note}</div>
     <div class="m-popup-section-title">Emergency Contacts</div>
-    ${r.contacts.map(c=>`<div class="m-popup-info-row"><span style="font-size:.72rem;color:var(--muted)">${c.label}</span><span style="font-weight:600">${c.value}</span></div>`).join('')}
+    ${r.contacts.map(c=>`<div class="m-popup-info-row"><span style="font-size:.72rem;color:#fff">${c.label}</span><span style="font-weight:600">${c.value}</span></div>`).join('')}
   `;
   document.getElementById('m-country-popup').classList.add('open');
 }
 
 function closeMPopup(){document.getElementById('m-country-popup').classList.remove('open');}
 
-function mTab(tab,btn){
+function mTab(tab, btn){
   const sheet=document.getElementById('m-sheet');
+  // Tapping active non-map tab closes sheet
   if(_mCurrentTab===tab&&tab!=='map'&&_mSheetOpen){
     _mSheetOpen=false;sheet.classList.remove('open');_mCurrentTab='map';
     document.querySelectorAll('.m-tab,.m-tab-offer').forEach(b=>b.classList.remove('active'));
-    document.getElementById('mtab-map').classList.add('active');return;
+    document.getElementById('mtab-map').classList.add('active');
+    return;
   }
   document.querySelectorAll('.m-tab,.m-tab-offer').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');_mCurrentTab=tab;
-  if(tab==='map'){_mSheetOpen=false;sheet.classList.remove('open');openMFilterLegend();}
-  else if(tab==='offer') mShowSheetContent('offer','OFFER A SPARE ROOM');
+  if(btn) btn.classList.add('active');
+  _mCurrentTab=tab;
+  if(tab==='map'){
+    _mSheetOpen=false;sheet.classList.remove('open');
+  } else if(tab==='offer'){
+    mShowSheetContent('offer','OFFER A SPARE ROOM');
+  } else if(tab==='edit'){
+    mShowSheetContent('edit','EDIT MY POSTS');
+  }
 }
 
-function mShowSheetContent(which,title){
-  document.getElementById('m-resources-content').style.display=which==='resources'?'block':'none';
+function mShowSheetContent(which, title){
+  document.getElementById('m-resources-content').style.display='none';
   document.getElementById('m-offer-content').style.display=which==='offer'?'block':'none';
+  document.getElementById('m-edit-content').style.display=which==='edit'?'block':'none';
   document.getElementById('m-sheet-title').textContent=title;
-  _mSheetOpen=true;document.getElementById('m-sheet').classList.add('open');
+  _mSheetOpen=true;
+  document.getElementById('m-sheet').classList.add('open');
 }
 
 function mSheetToggle(){
-  _mSheetOpen=!_mSheetOpen;document.getElementById('m-sheet').classList.toggle('open',_mSheetOpen);
-  if(!_mSheetOpen){_mCurrentTab='map';document.querySelectorAll('.m-tab,.m-tab-offer').forEach(b=>b.classList.remove('active'));document.getElementById('mtab-map').classList.add('active');}
+  _mSheetOpen=!_mSheetOpen;
+  document.getElementById('m-sheet').classList.toggle('open',_mSheetOpen);
+  if(!_mSheetOpen){
+    _mCurrentTab='map';
+    document.querySelectorAll('.m-tab,.m-tab-offer').forEach(b=>b.classList.remove('active'));
+    document.getElementById('mtab-map').classList.add('active');
+  }
 }
 
 function mRenderResources(){
@@ -665,17 +618,61 @@ function mRenderResources(){
 }
 
 async function mSubmitOffer(){
-  const l=document.getElementById('m-offer-location')?.value,b=document.getElementById('m-offer-body')?.value,
-    n=document.getElementById('m-offer-name')?.value,c=document.getElementById('m-offer-contact')?.value,
+  const l=document.getElementById('m-offer-location')?.value,
+    b=document.getElementById('m-offer-body')?.value,
+    n=document.getElementById('m-offer-name')?.value,
+    c=document.getElementById('m-offer-contact')?.value,
     x=(document.getElementById('m-offer-xhandle')?.value||'').trim().replace(/^@+/,'');
   if(!l||!b||!n||!c){alert('Please fill in all fields.');return;}
-  const btn=document.querySelector('#m-offer-content .m-submit');btn.textContent='Posting...';btn.disabled=true;
+  const btn=document.querySelector('#m-offer-content .m-submit');
+  btn.textContent='Posting...';btn.disabled=true;
   try{
     const{error}=await _sb.from('help_posts').insert({type:'offer',post_type:'General',location:l,body:b,name:n,contact:c,xhandle:x||null,flagged:false});
     if(error)throw error;
     ['location','body','name','contact','xhandle'].forEach(f=>{const el=document.getElementById('m-offer-'+f);if(el)el.value='';});
-    btn.textContent='Posted!';setTimeout(()=>{btn.textContent='Post Offer';btn.disabled=false;},3000);
+    btn.textContent='Posted!';
+    setTimeout(()=>{btn.textContent='Post Offer';btn.disabled=false;},3000);
+    loadPosts();
   }catch(e){alert('Failed: '+e.message);btn.textContent='Post Offer';btn.disabled=false;}
+}
+
+// Edit My Posts — find by contact info
+async function mFindMyPosts(){
+  const contact=document.getElementById('m-edit-contact')?.value?.trim();
+  if(!contact){alert('Please enter the contact you posted with.');return;}
+  const btn=document.querySelector('#m-edit-content .m-submit');
+  btn.textContent='Searching...';btn.disabled=true;
+  const listEl=document.getElementById('m-my-posts-list');
+  listEl.innerHTML='';
+  try{
+    const{data,error}=await _sb.from('help_posts').select('*').eq('contact',contact).eq('flagged',false).order('created_at',{ascending:false});
+    if(error)throw error;
+    if(!data||!data.length){
+      listEl.innerHTML='<div style="font-size:.8rem;color:rgba(255,255,255,.5);text-align:center;padding:1rem 0">No posts found for that contact.</div>';
+    } else {
+      listEl.innerHTML=data.map(p=>`
+        <div class="m-edit-post-card" id="mep-${p.id}">
+          <div class="m-edit-post-loc">📍 ${p.location}</div>
+          <div class="m-edit-post-body">${(p.body||'').slice(0,120)}${(p.body||'').length>120?'...':''}</div>
+          <div class="m-edit-post-actions">
+            <button class="m-edit-btn m-edit-btn--delete" onclick="mDeletePost('${p.id}')">🗑 Delete Post</button>
+          </div>
+        </div>`).join('');
+    }
+  }catch(e){listEl.innerHTML=`<div style="font-size:.8rem;color:#fca5a5">Error: ${e.message}</div>`;}
+  btn.textContent='Find My Posts';btn.disabled=false;
+}
+
+async function mDeletePost(id){
+  if(!confirm('Delete this post?'))return;
+  const card=document.getElementById('mep-'+id);
+  if(card)card.style.opacity='.4';
+  try{
+    const{error}=await _sb.from('help_posts').update({flagged:true}).eq('id',id);
+    if(error)throw error;
+    if(card){card.innerHTML='<div style="font-size:.78rem;color:rgba(255,255,255,.4);text-align:center;padding:.5rem">Post removed.</div>';}
+    loadPosts();
+  }catch(e){alert('Failed to delete: '+e.message);if(card)card.style.opacity='1';}
 }
 
 // ============================================================

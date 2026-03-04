@@ -75,7 +75,7 @@
       <div class="legend-title">Filter Map</div>
       <button class="legend-close" onclick="toggleLegend()" title="Close">&#x2715;</button>
     </div>
-    <div class="legend-item" id="leg-help"      onclick="filterMap('help')">     <div class="legend-dot" style="background:#3b82f6"></div>Offering a spare room</div>
+    <div class="legend-item" id="leg-help" onclick="filterMap('help')"><div class="legend-dot" style="background:#3b82f6"></div>Offering a spare room</div>
     <div class="legend-item" id="leg-worldwide" onclick="filterMap('worldwide')"><div class="legend-dot" style="background:#a855f7"></div>Worldwide disruption</div>
     <div class="legend-divider"></div>
     <div class="legend-item legend-community" onclick="window.open('https://x.com/search?q=imstranded','_blank')">
@@ -126,11 +126,9 @@
   <div class="container" style="max-width:960px">
     <div class="section-header">
       <div class="section-title">Help Board</div>
-      <div class="section-subtitle">People offering and requesting shelter, transport, food and other assistance</div>
+      <div class="section-subtitle">People offering shelter, transport, food and other assistance</div>
     </div>
-
-    <!-- Tab switcher -->
-    <!-- Offer panel -->
+    <!-- Offer panel only -->
     <div id="help-panel-offer" class="help-panel" style="display:grid;grid-template-columns:1fr 1fr;gap:2rem">
       <div>
         <div class="post-form-header post-form-header--offer">Offer a Spare Room</div>
@@ -165,15 +163,15 @@
 ═══════════════════════════════════════════════════════ -->
 <div id="m-shell" style="display:none;flex-direction:column;height:100dvh;overflow:hidden;">
 
-  <!-- 2-stat bar -->
+  <!-- TOP BAR: OFFER (blue, right) + EST STRANDED (black, left) -->
   <div id="m-statbar">
+    <div class="m-stat m-stat--help" id="mss-help" onclick="mTab('offer',document.getElementById('mtab-offer'))">
+      <span class="m-stat-num" id="m-stat-help">0</span>
+      <span class="m-stat-label">SPARE<br>ROOMS</span>
+    </div>
     <div class="m-stat" id="mss-stranded" onclick="mFilterMap('stranded')">
       <span class="m-stat-num" id="m-stat-stranded">847,773</span>
       <span class="m-stat-label">EST.<br>STRANDED</span>
-    </div>
-    <div class="m-stat m-stat--help" id="mss-help" onclick="mFilterMap('help')">
-      <span class="m-stat-num" id="m-stat-help">0</span>
-      <span class="m-stat-label">SPARE<br>ROOMS</span>
     </div>
   </div>
 
@@ -213,6 +211,12 @@
       <div class="m-filter-clear" onclick="mFilterMap('all');closeMFilterLegend()">&#x2715; Clear filter</div>
     </div>
 
+    <!-- Map pills: Back Home (left) + Edit My Posts (right) -->
+    <div class="m-map-pills">
+      <a class="m-map-pill m-map-pill--back" href="https://imstranded.org">&#8592; Back Home</a>
+      <button class="m-map-pill m-map-pill--edit" onclick="mTab('edit',document.getElementById('mtab-map'))">Edit My Posts</button>
+    </div>
+
   </div>
 
   <!-- Sheet -->
@@ -220,7 +224,7 @@
     <div id="m-sheet-handle" onclick="mSheetToggle()">
       <div class="m-handle-bar"></div>
     </div>
-    <div class="m-sheet-title" id="m-sheet-title">Offer Help</div>
+    <div class="m-sheet-title" id="m-sheet-title">Offer a Spare Room</div>
     <div id="m-sheet-body">
       <div id="m-resources-content" style="display:none"></div>
       <div id="m-offer-content" style="display:none">
@@ -232,10 +236,16 @@
         <div class="m-form-row"><label class="m-form-label">X Handle <span>(optional)</span></label><input type="text" id="m-offer-xhandle" placeholder="@yourhandle"></div>
         <button class="m-submit" onclick="mSubmitOffer()">Post Offer</button>
       </div>
+      <div id="m-edit-content" style="display:none">
+        <div class="m-form-note">Enter the contact info you used when posting to find and manage your listings.</div>
+        <div class="m-form-row"><label class="m-form-label">Your Contact / Email</label><input type="text" id="m-edit-contact" placeholder="@telegram or email you posted with"></div>
+        <button class="m-submit" style="background:#374151" onclick="mFindMyPosts()">Find My Posts</button>
+        <div id="m-my-posts-list" style="margin-top:1rem"></div>
+      </div>
     </div>
   </div>
 
-  <!-- Tab bar -->
+  <!-- Tab bar: MAP FILTERS (black, left) + OFFER SPARE ROOM (blue, right) -->
   <div id="m-tabbar">
     <button class="m-tab active" id="mtab-map" onclick="mTab('map',this);openMFilterLegend()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
