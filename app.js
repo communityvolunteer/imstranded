@@ -596,7 +596,7 @@ function openMCountryPopup(id){
   }).join('');
   const borderRows=c.borders.map(b=>{
     const bc=b.status==='safe'?'#059669':b.status==='warn'?'#d97706':'#dc2626';
-    return `<div class="m-popup-info-row"><span style="color:var(--muted);font-size:.72rem">${b.route}</span><span style="color:${bc};font-weight:600;font-size:.78rem">${b.status.toUpperCase()} — ${b.note}</span></div>`;
+    return `<div class="m-popup-info-row"><span style="color:#fff;font-size:.72rem">${b.route}</span><span style="color:${bc};font-weight:600;font-size:.78rem">${b.status.toUpperCase()} — ${b.note}</span></div>`;
   }).join('');
   document.getElementById('m-popup-title').textContent=c.name;
   document.getElementById('m-popup-body').innerHTML=`
