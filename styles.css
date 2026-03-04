@@ -98,7 +98,7 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 /* Colored stat cells */
 .sitrep-stat--offer{background:var(--offer-bg) !important;}
 .sitrep-stat--offer:hover{background:#2980c8 !important;}
-.sitrep-stat--offer.active-filter{background:#1e3a8a !important;}
+.sitrep-stat--offer.active-filter{background:#1a3d5b !important;}
 .sitrep-stat--need{background:var(--need-bg) !important;}
 .sitrep-stat--need:hover{background:#ce2c47 !important;}
 .sitrep-stat--need.active-filter{background:#991b1b !important;}
