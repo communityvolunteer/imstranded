@@ -388,8 +388,8 @@ transform: translateX(-50%);
     display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;
   }
   .m-filter-legend-title{
-    font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
-    color:rgba(255,255,255,.5);
+    font-size:.96rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+    color:rgb(255, 255, 255);
   }
   .m-filter-legend-close{
     background:none;border:none;color:rgba(255,255,255,.5);
