@@ -804,6 +804,12 @@ async function initAuth() {
   if (session?.user) {
     _currentUser = session.user;
     await loadProfile();
+    // Check if we just came back from OAuth
+    if (window.location.hash === '#profile') {
+      window.location.hash = '';
+      if (!isMob()) showView('profile');
+      else mTab('profile', document.getElementById('mtab-filters'));
+    }
   }
   // Listen for auth changes (login, logout, token refresh)
   _sb.auth.onAuthStateChange(async (event, session) => {
@@ -832,7 +838,7 @@ async function loadProfile() {
 async function signInWithGoogle() {
   const { error } = await _sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.origin + window.location.pathname }
+    options: { redirectTo: window.location.origin + window.location.pathname + '#profile' }
   });
   if (error) alert('Sign in failed: ' + error.message);
 }
