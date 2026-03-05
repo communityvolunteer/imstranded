@@ -259,11 +259,11 @@ function initMap() {
   });
 
   _helpCluster = L.markerClusterGroup({
-    maxClusterRadius: 80,
+    maxClusterRadius: 120,
     spiderfyOnMaxZoom: true,
     showCoverageOnHover: false,
     zoomToBoundsOnClick: true,
-    disableClusteringAtZoom: 13,
+    disableClusteringAtZoom: 16,
   });
   map.addLayer(_helpCluster);
 
@@ -566,11 +566,11 @@ function initMobile(){
   });
   window._mobileMap=mmap;
   _mHelpCluster = L.markerClusterGroup({
-    maxClusterRadius: 80,
+    maxClusterRadius: 120,
     spiderfyOnMaxZoom: true,
     showCoverageOnHover: false,
     zoomToBoundsOnClick: true,
-    disableClusteringAtZoom: 13,
+    disableClusteringAtZoom: 16,
   });
   mmap.addLayer(_mHelpCluster);
   mRenderResources();
