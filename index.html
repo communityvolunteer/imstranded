@@ -145,7 +145,7 @@
               <option>Financial help</option><option>Translation / local knowledge</option><option>Other</option>
             </select>
           </div>
-          <div class="form-row"><label>Your location</label><input type="text" id="offer-location" placeholder="e.g. Dubai, UAE"></div>
+          <div class="form-row"><label>Your location</label><div class="loc-ac-wrap"><input type="text" id="offer-location" placeholder="Start typing an address…" autocomplete="off"><input type="hidden" id="offer-lat"><input type="hidden" id="offer-lng"><div class="loc-ac-list" id="offer-location-ac"></div></div></div>
           <div class="form-row"><label>Details</label><textarea id="offer-body" placeholder="Describe what you can offer&hellip;"></textarea></div>
           <div class="form-row"><label>Your name</label><input type="text" id="offer-name" placeholder="First name or handle"></div>
           <div class="form-row"><label>Contact (will be public)</label><input type="text" id="offer-contact" placeholder="@telegram or email"></div>
@@ -237,7 +237,7 @@
       <div id="m-resources-content" style="display:none"></div>
       <div id="m-offer-content" style="display:none">
         <div class="m-form-note">Your contact will be public so people who need help can reach you.</div>
-        <div class="m-form-row"><label class="m-form-label">Your Location</label><input type="text" id="m-offer-location" placeholder="e.g. Dubai, UAE"></div>
+        <div class="m-form-row"><label class="m-form-label">Your Location</label><div class="loc-ac-wrap"><input type="text" id="m-offer-location" placeholder="Start typing an address…" autocomplete="off"><input type="hidden" id="m-offer-lat"><input type="hidden" id="m-offer-lng"><div class="loc-ac-list" id="m-offer-location-ac"></div></div></div>
         <div class="m-form-row"><label class="m-form-label">Details</label><textarea id="m-offer-body" placeholder="Describe what you can offer&hellip;"></textarea></div>
         <div class="m-form-row"><label class="m-form-label">Your Name</label><input type="text" id="m-offer-name" placeholder="First name or handle"></div>
         <div class="m-form-row"><label class="m-form-label">Contact <span>(public)</span></label><input type="text" id="m-offer-contact" placeholder="@telegram or email"></div>

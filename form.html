@@ -107,6 +107,24 @@ html,body{background:transparent;min-height:100%;font-family:'Inter',sans-serif;
   text-decoration:none;
 }
 .form-success-link:hover{text-decoration:underline;}
+
+.loc-ac-wrap{position:relative;}
+.loc-ac-list{
+  position:absolute;left:0;right:0;top:100%;z-index:100;
+  background:#141414;border:1.5px solid rgba(255,255,255,.15);
+  border-top:none;border-radius:0 0 10px 10px;
+  max-height:200px;overflow-y:auto;display:none;
+  box-shadow:0 8px 24px rgba(0,0,0,.4);
+}
+.loc-ac-list.open{display:block;}
+.loc-ac-item{
+  padding:.55rem .85rem;font-size:.95rem;color:rgba(255,255,255,.8);
+  cursor:pointer;border-bottom:1px solid rgba(255,255,255,.06);
+  font-family:'Inter',sans-serif;
+}
+.loc-ac-item:last-child{border-bottom:none;}
+.loc-ac-item:hover,.loc-ac-item.active{background:rgba(52,152,236,.15);color:#fff;}
+.loc-ac-item small{display:block;font-size:.78rem;color:rgba(255,255,255,.4);margin-top:.1rem;}
 </style>
 </head>
 <body>
@@ -118,7 +136,12 @@ html,body{background:transparent;min-height:100%;font-family:'Inter',sans-serif;
   <div id="form-fields">
     <div class="form-row">
       <label class="form-label">Your Location</label>
-      <input type="text" id="f-location" placeholder="e.g. Dubai, UAE">
+      <div class="loc-ac-wrap">
+        <input type="text" id="f-location" placeholder="Start typing an address…" autocomplete="off">
+        <input type="hidden" id="f-lat">
+        <input type="hidden" id="f-lng">
+        <div class="loc-ac-list" id="f-location-ac"></div>
+      </div>
     </div>
     <div class="form-row">
       <label class="form-label">Details</label>
@@ -152,14 +175,62 @@ const SUPABASE_URL  = 'https://nzvlvqyitsjuxnafcuhl.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_jEEyPd33KHXKXM53QvrIKQ_JpzQNSGr';
 const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
+// Autocomplete
+(function(){
+  const input=document.getElementById('f-location'),
+    latEl=document.getElementById('f-lat'),
+    lngEl=document.getElementById('f-lng'),
+    list=document.getElementById('f-location-ac');
+  let timer=null,idx=-1,results=[];
+
+  input.addEventListener('input',()=>{
+    clearTimeout(timer);
+    const q=input.value.trim();
+    if(q.length<3){list.classList.remove('open');return;}
+    latEl.value='';lngEl.value='';
+    timer=setTimeout(async()=>{
+      try{
+        const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&addressdetails=1`,{headers:{'Accept-Language':'en','User-Agent':'ImStranded/1.0'}});
+        results=await r.json();
+        if(!results.length){list.classList.remove('open');return;}
+        idx=-1;
+        list.innerHTML=results.map((r,i)=>{
+          const main=r.display_name.split(',').slice(0,3).join(',');
+          const rest=r.display_name.split(',').slice(3).join(',');
+          return `<div class="loc-ac-item" data-idx="${i}">${main}${rest?`<small>${rest}</small>`:''}</div>`;
+        }).join('');
+        list.classList.add('open');
+        list.querySelectorAll('.loc-ac-item').forEach(item=>{
+          item.addEventListener('mousedown',e=>{e.preventDefault();pick(parseInt(item.dataset.idx));});
+        });
+      }catch(e){list.classList.remove('open');}
+    },350);
+  });
+
+  function pick(i){const r=results[i];if(!r)return;input.value=r.display_name.split(',').slice(0,3).join(',').trim();latEl.value=r.lat;lngEl.value=r.lon;list.classList.remove('open');}
+
+  input.addEventListener('keydown',e=>{
+    const items=list.querySelectorAll('.loc-ac-item');
+    if(!items.length||!list.classList.contains('open'))return;
+    if(e.key==='ArrowDown'){e.preventDefault();idx=Math.min(idx+1,items.length-1);items.forEach((it,i)=>it.classList.toggle('active',i===idx));}
+    else if(e.key==='ArrowUp'){e.preventDefault();idx=Math.max(idx-1,0);items.forEach((it,i)=>it.classList.toggle('active',i===idx));}
+    else if(e.key==='Enter'&&idx>=0){e.preventDefault();pick(idx);}
+    else if(e.key==='Escape'){list.classList.remove('open');}
+  });
+  input.addEventListener('blur',()=>{setTimeout(()=>list.classList.remove('open'),200);});
+})();
+
 async function submitOffer(){
   const l = document.getElementById('f-location').value.trim();
   const b = document.getElementById('f-body').value.trim();
   const n = document.getElementById('f-name').value.trim();
   const c = document.getElementById('f-contact').value.trim();
   const x = (document.getElementById('f-xhandle').value||'').trim().replace(/^@+/,'');
+  const lat = parseFloat(document.getElementById('f-lat').value)||null;
+  const lng = parseFloat(document.getElementById('f-lng').value)||null;
 
   if(!l||!b||!n||!c){alert('Please fill in all required fields.');return;}
+  if(!lat||!lng){alert('Please select a location from the dropdown suggestions.');return;}
 
   const btn = document.getElementById('f-submit');
   btn.textContent='Posting...'; btn.disabled=true;
@@ -168,7 +239,7 @@ async function submitOffer(){
     const{error}=await _sb.from('help_posts').insert({
       type:'offer',post_type:'Housing / spare room',
       location:l,body:b,name:n,contact:c,
-      xhandle:x||null,flagged:false
+      xhandle:x||null,lat,lng,flagged:false
     });
     if(error) throw error;
 
@@ -184,6 +255,8 @@ function resetForm(){
   ['f-location','f-body','f-name','f-contact','f-xhandle'].forEach(id=>{
     document.getElementById(id).value='';
   });
+  document.getElementById('f-lat').value='';
+  document.getElementById('f-lng').value='';
   const btn=document.getElementById('f-submit');
   btn.textContent='OFFER A ROOM'; btn.disabled=false;
   document.getElementById('form-fields').style.display='block';

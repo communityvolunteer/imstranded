@@ -309,7 +309,13 @@ async function renderPostsOnMap(map) {
   for (const p of posts) {
     if (!p.location) continue;
     if (p.type !== 'offer') continue;
-    const geo = await geocodeCity(p.location);
+    // Use stored coordinates if available, otherwise geocode (for old posts)
+    let geo = null;
+    if (p.lat && p.lng) {
+      geo = { lat: p.lat, lng: p.lng };
+    } else {
+      geo = await geocodeCity(p.location);
+    }
     if (!geo) continue;
     const m = L.circleMarker([geo.lat,geo.lng],{radius:7,fillColor:'#3b82f6',color:'#fff',weight:2,opacity:1,fillOpacity:.9})
       .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:200px">
@@ -418,14 +424,18 @@ async function submitPost(type) {
     b=document.getElementById(type+'-body')?.value,
     n=document.getElementById(type+'-name')?.value,
     c=document.getElementById(type+'-contact')?.value,
-    x=(document.getElementById(type+'-xhandle')?.value||'').trim().replace(/^@+/,'');
+    x=(document.getElementById(type+'-xhandle')?.value||'').trim().replace(/^@+/,''),
+    lat=parseFloat(document.getElementById(type+'-lat')?.value)||null,
+    lng=parseFloat(document.getElementById(type+'-lng')?.value)||null;
   if(!t||!l||!b||!n||!c){alert('Please fill in all required fields.');return;}
+  if(!lat||!lng){alert('Please select a location from the dropdown suggestions.');return;}
   const btn=document.querySelector(`.submit-btn--${type}`); if(!btn)return;
   btn.textContent='Posting...'; btn.disabled=true;
   try {
-    const{error}=await _sb.from('help_posts').insert({type,post_type:t,location:l,body:b,name:n,contact:c,xhandle:x||null,flagged:false});
+    const{error}=await _sb.from('help_posts').insert({type,post_type:t,location:l,body:b,name:n,contact:c,xhandle:x||null,lat,lng,flagged:false});
     if(error)throw error;
     ['type','location','body','name','contact','xhandle'].forEach(f=>{const el=document.getElementById(type+'-'+f);if(el)el.tagName==='SELECT'?el.selectedIndex=0:el.value='';});
+    document.getElementById(type+'-lat').value='';document.getElementById(type+'-lng').value='';
     btn.textContent='Posted!';
     setTimeout(()=>{btn.textContent='Post Offer';btn.disabled=false;},3000);
     loadPosts();
@@ -668,13 +678,17 @@ function mRenderResources(){
 async function mSubmitOffer(){
   const l=document.getElementById('m-offer-location')?.value,b=document.getElementById('m-offer-body')?.value,
     n=document.getElementById('m-offer-name')?.value,c=document.getElementById('m-offer-contact')?.value,
-    x=(document.getElementById('m-offer-xhandle')?.value||'').trim().replace(/^@+/,'');
+    x=(document.getElementById('m-offer-xhandle')?.value||'').trim().replace(/^@+/,''),
+    lat=parseFloat(document.getElementById('m-offer-lat')?.value)||null,
+    lng=parseFloat(document.getElementById('m-offer-lng')?.value)||null;
   if(!l||!b||!n||!c){alert('Please fill in all fields.');return;}
+  if(!lat||!lng){alert('Please select a location from the dropdown suggestions.');return;}
   const btn=document.querySelector('#m-offer-content .m-submit');btn.textContent='Posting...';btn.disabled=true;
   try{
-    const{error}=await _sb.from('help_posts').insert({type:'offer',post_type:'General',location:l,body:b,name:n,contact:c,xhandle:x||null,flagged:false});
+    const{error}=await _sb.from('help_posts').insert({type:'offer',post_type:'General',location:l,body:b,name:n,contact:c,xhandle:x||null,lat,lng,flagged:false});
     if(error)throw error;
     ['location','body','name','contact','xhandle'].forEach(f=>{const el=document.getElementById('m-offer-'+f);if(el)el.value='';});
+    document.getElementById('m-offer-lat').value='';document.getElementById('m-offer-lng').value='';
     btn.textContent='Posted!';setTimeout(()=>{btn.textContent='Post Offer';btn.disabled=false;},3000);
     loadPosts();
   }catch(e){alert('Failed: '+e.message);btn.textContent='Post Offer';btn.disabled=false;}
@@ -727,11 +741,83 @@ async function mDeletePost(id){
 }
 
 // ============================================================
+// LOCATION AUTOCOMPLETE (Nominatim)
+// ============================================================
+function initLocationAutocomplete(inputId, latId, lngId, listId) {
+  const input = document.getElementById(inputId);
+  const latEl = document.getElementById(latId);
+  const lngEl = document.getElementById(lngId);
+  const list = document.getElementById(listId);
+  if (!input || !list) return;
+
+  let _acTimer = null;
+  let _acIdx = -1;
+  let _acResults = [];
+
+  input.addEventListener('input', () => {
+    clearTimeout(_acTimer);
+    const q = input.value.trim();
+    if (q.length < 3) { list.classList.remove('open'); return; }
+    if (latEl) latEl.value = '';
+    if (lngEl) lngEl.value = '';
+    _acTimer = setTimeout(async () => {
+      try {
+        const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&addressdetails=1`, {
+          headers: { 'Accept-Language': 'en', 'User-Agent': 'ImStranded/1.0' }
+        });
+        _acResults = await r.json();
+        if (!_acResults.length) { list.classList.remove('open'); return; }
+        _acIdx = -1;
+        list.innerHTML = _acResults.map((r, i) => {
+          const main = r.display_name.split(',').slice(0, 3).join(',');
+          const rest = r.display_name.split(',').slice(3).join(',');
+          return `<div class="loc-ac-item" data-idx="${i}">${main}${rest ? `<small>${rest}</small>` : ''}</div>`;
+        }).join('');
+        list.classList.add('open');
+        list.querySelectorAll('.loc-ac-item').forEach(item => {
+          item.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            selectAc(parseInt(item.dataset.idx));
+          });
+        });
+      } catch (e) { list.classList.remove('open'); }
+    }, 350);
+  });
+
+  function selectAc(idx) {
+    const r = _acResults[idx];
+    if (!r) return;
+    input.value = r.display_name.split(',').slice(0, 3).join(',').trim();
+    if (latEl) latEl.value = r.lat;
+    if (lngEl) lngEl.value = r.lon;
+    list.classList.remove('open');
+  }
+
+  input.addEventListener('keydown', (e) => {
+    const items = list.querySelectorAll('.loc-ac-item');
+    if (!items.length || !list.classList.contains('open')) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); _acIdx = Math.min(_acIdx + 1, items.length - 1); updateHighlight(items); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); _acIdx = Math.max(_acIdx - 1, 0); updateHighlight(items); }
+    else if (e.key === 'Enter' && _acIdx >= 0) { e.preventDefault(); selectAc(_acIdx); }
+    else if (e.key === 'Escape') { list.classList.remove('open'); }
+  });
+
+  function updateHighlight(items) {
+    items.forEach((it, i) => it.classList.toggle('active', i === _acIdx));
+  }
+
+  input.addEventListener('blur', () => { setTimeout(() => list.classList.remove('open'), 200); });
+}
+
+// ============================================================
 // INIT
 // ============================================================
 window.addEventListener('DOMContentLoaded',()=>{
   if(isMob()){ initMobile(); }
   else { showView('map'); }
+  // Init autocomplete on both desktop and mobile location fields
+  initLocationAutocomplete('offer-location','offer-lat','offer-lng','offer-location-ac');
+  initLocationAutocomplete('m-offer-location','m-offer-lat','m-offer-lng','m-offer-location-ac');
   refreshSitrep();
   setInterval(refreshSitrep,5*60*1000);
   if(SB_ON){loadPosts();subscribeStream();}
