@@ -232,6 +232,7 @@ transform: translateX(-50%);
   border-radius:50%;text-align:center;line-height:36px;
 }
 .marker-cluster span{line-height:36px;}
+.help-pin{background:none !important;border:none !important;}
 
 /* ── LOCATION AUTOCOMPLETE ───────────────────────────────── */
 .loc-ac-wrap{position:relative;}
@@ -559,4 +560,4 @@ transform: translateX(-50%);
   .m-emb-country{font-weight:700;font-size:.82rem;display:block;color:#fff;}
   .m-emb-role{font-size:.68rem;color:rgba(255,255,255,.45);display:block;margin-top:.05rem;}
   .m-call-btn{background:#3498ec;color:#fff;border:none;border-radius:7px;padding:.32rem .75rem;font-size:.72rem;font-weight:600;cursor:pointer;white-space:nowrap;text-decoration:none;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:.3rem;}
-} 
+}

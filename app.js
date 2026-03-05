@@ -225,10 +225,16 @@ function initMap() {
     attribution:'(c)OpenStreetMap (c)CARTO',maxZoom:19
   }).addTo(map);
 
+  // Custom panes — higher z = renders on top
+  map.createPane('countryPane');
+  map.getPane('countryPane').style.zIndex = 650;
+  map.createPane('worldwidePane');
+  map.getPane('worldwidePane').style.zIndex = 640;
+
   COUNTRIES.forEach(c => {
     const col = SC[c.status];
-    const glow = L.circleMarker(c.coords,{radius:15,fillColor:'#ec3452',color:'#ec3452',weight:1,opacity:.4,fillOpacity:.2}).addTo(map);
-    const dot  = L.circleMarker(c.coords,{radius:8,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.95}).addTo(map)
+    const glow = L.circleMarker(c.coords,{pane:'countryPane',radius:15,fillColor:'#ec3452',color:'#ec3452',weight:1,opacity:.4,fillOpacity:.2}).addTo(map);
+    const dot  = L.circleMarker(c.coords,{pane:'countryPane',radius:8,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.95}).addTo(map)
       .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:240px">
         <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#fcd34d;margin-bottom:.4rem">${c.name}</div>
         <div style="font-size:.82rem;color:rgba(255,255,255,.85);line-height:1.55;margin-bottom:.6rem">${c.advisory}</div>
@@ -241,7 +247,7 @@ function initMap() {
   });
 
   WORLDWIDE.forEach(r => {
-    const m = L.circleMarker(r.coords,{radius:7,fillColor:'#a855f7',color:'#fff',weight:2,opacity:.9,fillOpacity:.55}).addTo(map)
+    const m = L.circleMarker(r.coords,{pane:'worldwidePane',radius:7,fillColor:'#a855f7',color:'#fff',weight:2,opacity:.9,fillOpacity:.55}).addTo(map)
       .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:200px">
         <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#d8b4fe;margin-bottom:.3rem">Worldwide: ${r.name}</div>
         <div style="font-size:.78rem;color:rgba(255,255,255,.8);line-height:1.5;margin-bottom:.4rem">${r.note}</div>
@@ -317,7 +323,12 @@ async function renderPostsOnMap(map) {
       geo = await geocodeCity(p.location);
     }
     if (!geo) continue;
-    const m = L.circleMarker([geo.lat,geo.lng],{radius:7,fillColor:'#3b82f6',color:'#fff',weight:2,opacity:1,fillOpacity:.9})
+    const helpIcon = L.divIcon({
+      className:'help-pin',
+      html:'<div style="width:14px;height:14px;background:#3b82f6;border:2px solid #fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.3)"></div>',
+      iconSize:[14,14],iconAnchor:[7,7]
+    });
+    const m = L.marker([geo.lat,geo.lng],{icon:helpIcon})
       .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:200px">
         <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#93c5fd;margin-bottom:.25rem">SPARE ROOMS</div>
         <div style="font-weight:600;font-size:.84rem;margin-bottom:.2rem;color:#fff">${p.name}</div>
@@ -533,14 +544,20 @@ function initMobile(){
   document.getElementById('m-shell').style.display='flex';
   const mmap=L.map('m-crisis-map',{zoomControl:false,attributionControl:false}).setView([28,45],4);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mmap);
+
+  mmap.createPane('countryPane');
+  mmap.getPane('countryPane').style.zIndex = 650;
+  mmap.createPane('worldwidePane');
+  mmap.getPane('worldwidePane').style.zIndex = 640;
+
   COUNTRIES.forEach(c => {
     const col = SC[c.status];
-    L.circleMarker(c.coords, {radius:15,fillColor:'#ec3452',color:'#ec3452',weight:1,opacity:.4,fillOpacity:.2}).addTo(mmap);
-    L.circleMarker(c.coords, {radius:10,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.92}).addTo(mmap)
+    L.circleMarker(c.coords, {pane:'countryPane',radius:15,fillColor:'#ec3452',color:'#ec3452',weight:1,opacity:.4,fillOpacity:.2}).addTo(mmap);
+    L.circleMarker(c.coords, {pane:'countryPane',radius:10,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.92}).addTo(mmap)
       .on('click', () => openMCountryPopup(c.id));
   });
   WORLDWIDE.forEach(r=>{
-    L.circleMarker(r.coords,{radius:7,fillColor:'#a855f7',color:'#fff',weight:1.5,opacity:.9,fillOpacity:.5}).addTo(mmap)
+    L.circleMarker(r.coords,{pane:'worldwidePane',radius:7,fillColor:'#a855f7',color:'#fff',weight:1.5,opacity:.9,fillOpacity:.5}).addTo(mmap)
       .on('click',()=>openMWorldwidePopup(r.id));
   });
   window._mobileMap=mmap;
