@@ -225,13 +225,12 @@ function initMap() {
     attribution:'(c)OpenStreetMap (c)CARTO',maxZoom:19
   }).addTo(map);
 
-  // Custom panes — country on TOP so purple glow is clickable around cluster badges
+  // Custom panes — BELOW markerPane (600) so unclustered blue pins sit on top
+  // Country glow radius is wide enough to click from outside blue pin area
   map.createPane('countryPane');
-  map.getPane('countryPane').style.zIndex = 650;
-  map.getPane('countryPane').style.pointerEvents = 'none';
+  map.getPane('countryPane').style.zIndex = 590;
   map.createPane('worldwidePane');
-  map.getPane('worldwidePane').style.zIndex = 640;
-  map.getPane('worldwidePane').style.pointerEvents = 'none';
+  map.getPane('worldwidePane').style.zIndex = 580;
 
   COUNTRIES.forEach(c => {
     const col = SC[c.status];
@@ -548,11 +547,9 @@ function initMobile(){
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mmap);
 
   mmap.createPane('countryPane');
-  mmap.getPane('countryPane').style.zIndex = 650;
-  mmap.getPane('countryPane').style.pointerEvents = 'none';
+  mmap.getPane('countryPane').style.zIndex = 590;
   mmap.createPane('worldwidePane');
-  mmap.getPane('worldwidePane').style.zIndex = 640;
-  mmap.getPane('worldwidePane').style.pointerEvents = 'none';
+  mmap.getPane('worldwidePane').style.zIndex = 580;
 
   COUNTRIES.forEach(c => {
     const col = SC[c.status];
