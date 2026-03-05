@@ -352,6 +352,22 @@ transform: translateX(-50%);
 }
 .profile-post-actions{display:flex;gap:.4rem;margin-top:.6rem;}
 
+/* Auth tabs */
+.auth-tab{
+  flex:1;padding:.55rem;border:none;border-radius:8px;
+  font-family:'Inter',sans-serif;font-size:.88rem;font-weight:600;
+  cursor:pointer;background:transparent;color:rgba(255,255,255,.35);
+  transition:all .15s;
+}
+.auth-tab--active{background:rgba(255,255,255,.12);color:#fff;}
+.auth-provider-btn{
+  width:100%;border:none;border-radius:10px;padding:.75rem;
+  font-family:'Inter',sans-serif;font-size:.92rem;font-weight:600;
+  cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;justify-content:center;gap:.65rem;
+}
+.auth-provider-btn--m{padding:.65rem;font-size:.85rem;border-radius:9px;}
+
 .help-tabs{display:none;}
 .help-tab{
   display:flex;align-items:center;gap:.5rem;
@@ -385,11 +401,11 @@ transform: translateX(-50%);
 .submit-btn--offer{background:#3498ec;}
 .submit-btn--offer:hover{background:#2980c8;}
 .posts-list{display:flex;flex-direction:column;gap:.75rem;}
-.post-card{background:#181819;border-left:3px solid #3498ec;border-radius:var(--radius-sm);padding:1rem;}
+.post-card{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:var(--radius-sm);padding:1rem;}
 .post-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem;}
-.post-type{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#3498ec;}
-.post-time{font-size:.63rem;color:#86b6dd;}
-.post-loc{font-size:.78rem;font-weight:600;color:#eaeaea;margin-bottom:.3rem;}
+.post-type{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--green);}
+.post-time{font-size:.63rem;color:var(--muted);}
+.post-loc{font-size:.78rem;font-weight:600;color:var(--text2);margin-bottom:.3rem;}
 .post-body{font-size:.84rem;color:var(--text2);line-height:1.5;margin-bottom:.6rem;}
 .post-footer{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}
 .tip-btn{background:var(--green);color:#fff;border:none;border-radius:6px;padding:.2rem .6rem;font-size:.68rem;font-weight:600;cursor:pointer;text-decoration:none;font-family:'Inter',sans-serif;}

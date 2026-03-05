@@ -815,8 +815,23 @@ async function initAuth() {
   _sb.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session?.user) {
       _currentUser = session.user;
+      // Check if profile already exists before loading (for mode enforcement)
+      const { data: existingProfile } = await _sb.from('profiles').select('id').eq('id', _currentUser.id).single();
+      const profileExisted = !!existingProfile;
       await loadProfile();
-      // Check if this is a fresh OAuth return
+
+      const authMode = sessionStorage.getItem('authMode');
+      sessionStorage.removeItem('authMode');
+
+      // Google mode enforcement
+      if (authMode === 'login' && !profileExisted) {
+        // New user tried to log in — let them stay since Google auto-creates
+        // but they'll see their empty profile, which is fine
+      }
+      if (authMode === 'signup' && profileExisted) {
+        // Existing user tried to sign up — just log them in, no harm
+      }
+
       if (sessionStorage.getItem('postLogin') === 'profile') {
         sessionStorage.removeItem('postLogin');
         if (!isMob()) showView('profile');
@@ -854,17 +869,48 @@ async function loadProfile() {
   renderMobileProfileView();
 }
 
-async function signInWithGoogle() {
-  sessionStorage.setItem('postLogin', 'profile');
-  const { error } = await _sb.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: window.location.origin + window.location.pathname }
+// ── Auth Tab Switching ────────────────────────────────────
+function switchAuthTab(tab) {
+  ['auth-panel-login','m-auth-panel-login'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = tab === 'login' ? 'block' : 'none';
   });
-  if (error) alert('Sign in failed: ' + error.message);
+  ['auth-panel-signup','m-auth-panel-signup'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = tab === 'signup' ? 'block' : 'none';
+  });
+  ['auth-tab-login','m-auth-tab-login'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.className = 'auth-tab' + (tab === 'login' ? ' auth-tab--active' : '');
+  });
+  ['auth-tab-signup','m-auth-tab-signup'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.className = 'auth-tab' + (tab === 'signup' ? ' auth-tab--active' : '');
+  });
+}
+
+// ── Unified Auth Action ──────────────────────────────────
+function authAction(provider, mode) {
+  sessionStorage.setItem('postLogin', 'profile');
+  sessionStorage.setItem('authMode', mode);
+
+  if (provider === 'google') {
+    _sb.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin + window.location.pathname }
+    }).then(({ error }) => { if (error) alert('Google auth failed: ' + error.message); });
+  } else if (provider === 'telegram') {
+    window.Telegram.Login.auth(
+      { bot_id: '8600585901', request_access: 'write' },
+      handleTelegramAuthData
+    );
+  } else if (provider === 'x') {
+    window.location.href = '/api/auth/x-login?mode=' + mode;
+  }
 }
 
 function linkTelegram() {
-  if (!isLoggedIn()) { alert('Please sign in with Google first.'); return; }
+  if (!isLoggedIn()) { alert('Please sign in first.'); return; }
   window.Telegram.Login.auth(
     { bot_id: '8600585901', request_access: 'write' },
     async function(tgData) {
@@ -880,20 +926,6 @@ function linkTelegram() {
   );
 }
 
-function signInWithTelegram() {
-  sessionStorage.setItem('postLogin', 'profile');
-  sessionStorage.setItem('tgLoginPending', 'true');
-  window.Telegram.Login.auth(
-    { bot_id: '8600585901', request_access: 'write' },
-    handleTelegramAuthData
-  );
-}
-
-function signInWithX() {
-  sessionStorage.setItem('postLogin', 'profile');
-  window.location.href = '/api/auth/x-login?mode=login';
-}
-
 function linkX() {
   if (!isLoggedIn()) { alert('Please sign in first.'); return; }
   window.location.href = '/api/auth/x-login?mode=link&user_id=' + _currentUser.id;
@@ -901,11 +933,12 @@ function linkX() {
 
 async function handleTelegramAuthData(tgData) {
   if (!tgData) { alert('Telegram login cancelled.'); return; }
+  const mode = sessionStorage.getItem('authMode') || 'login';
   try {
     const res = await fetch('/api/auth/telegram', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(tgData)
+      body: JSON.stringify({ ...tgData, mode })
     });
     const result = await res.json();
     if (!res.ok) { alert('Login failed: ' + (result.detail || result.error || 'Unknown error')); return; }

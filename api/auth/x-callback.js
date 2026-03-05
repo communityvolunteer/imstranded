@@ -152,9 +152,10 @@ module.exports = async function handler(req, res) {
       return res.redirect('/#x-linked');
     }
 
-    // ── 4. MODE: LOGIN ──
+    // ── 4. MODE: LOGIN or SIGNUP ──
     const xEmail = `x_${xId}@x.imstranded.org`;
     const xPassword = derivePassword(xId, clientSecret);
+    const authMode = cookieData.mode || 'login';
 
     let userId = null;
     let signInEmail = null;
@@ -186,7 +187,15 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // Create new user
+    // Mode enforcement
+    if (authMode === 'login' && !userId) {
+      return errorRedirect(res, 'login', 'No account found for this X account. Try signing up first.');
+    }
+    if (authMode === 'signup' && userId) {
+      return errorRedirect(res, 'signup', 'An account with this X already exists. Try logging in instead.');
+    }
+
+    // Create new user (signup only)
     if (!userId) {
       const createRes = await httpRequest('POST', host, '/auth/v1/admin/users', H, {
         email: xEmail,

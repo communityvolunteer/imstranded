@@ -66,25 +66,23 @@ module.exports = async function handler(req, res) {
   const displayName = [tgData.first_name, tgData.last_name].filter(Boolean).join(' ') || tgData.username || 'Telegram User';
   const avatarUrl = tgData.photo_url || '';
   const tgUsername = tgData.username || '';
+  const mode = tgData.mode || 'login'; // 'login' or 'signup'
   const H = { 'apikey': serviceKey, 'Authorization': `Bearer ${serviceKey}` };
 
   try {
     let userId = null;
     let signInEmail = null;
 
-    // ── STEP 1: Check if TG handle is linked to an existing account (e.g. Google user) ──
+    // ── STEP 1: Check if TG handle is linked to an existing account ──
     if (tgUsername) {
       const profileRes = await httpRequest('GET', host,
         `/rest/v1/profiles?select=id,email&tg_handle=eq.${encodeURIComponent(tgUsername)}&tg_verified=eq.true&limit=1`, H, null);
       if (profileRes.status === 200 && Array.isArray(profileRes.body) && profileRes.body.length > 0) {
         userId = profileRes.body[0].id;
-        // Get the actual auth email for this user
         const userRes = await httpRequest('GET', host, `/auth/v1/admin/users/${userId}`, H, null);
         if (userRes.status === 200 && userRes.body?.email) {
           signInEmail = userRes.body.email;
-          // Set our derived password on this account so we can sign in
           await httpRequest('PUT', host, `/auth/v1/admin/users/${userId}`, H, { password: tgPassword });
-          console.log('Found linked account:', signInEmail);
         }
       }
     }
@@ -98,12 +96,19 @@ module.exports = async function handler(req, res) {
           userId = match.id;
           signInEmail = tgEmail;
           await httpRequest('PUT', host, `/auth/v1/admin/users/${userId}`, H, { password: tgPassword });
-          console.log('Found existing TG user:', userId);
         }
       }
     }
 
-    // ── STEP 3: Create new user ──
+    // ── MODE ENFORCEMENT ──
+    if (mode === 'login' && !userId) {
+      return res.status(404).json({ error: 'No account found for this Telegram. Try signing up first.' });
+    }
+    if (mode === 'signup' && userId) {
+      return res.status(409).json({ error: 'An account with this Telegram already exists. Try logging in instead.' });
+    }
+
+    // ── STEP 3: Create new user (signup only) ──
     if (!userId) {
       console.log('Creating new TG user:', tgEmail);
       const createRes = await httpRequest('POST', host, '/auth/v1/admin/users', H, {
