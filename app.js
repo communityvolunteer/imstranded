@@ -345,12 +345,10 @@ function buildContactButtons(contact, xhandle, name) {
   return btns.length ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:.5rem">${btns.join('')}</div>` : '';
 }
 
-function buildTipButton(xhandle) {
+function buildTipButton(xhandle, hasUserId) {
   if (!xhandle) return '';
-  // TODO: check verified status once OAuth is wired up. For now all are unverified.
-  const verified = false;
-  if (!verified) {
-    return `<span style="display:inline-flex;align-items:center;gap:4px;margin-top:.45rem;padding:.28rem .65rem;background:rgba(255,255,255,.08);color:rgba(255,255,255,.3);font-size:.68rem;font-weight:700;border-radius:5px;font-family:Inter,sans-serif;cursor:default" title="Verify X account to enable tips">💰 Tip $HELP <span style="font-size:.58rem;opacity:.6">(verify X)</span></span>`;
+  if (!hasUserId) {
+    return `<span style="display:inline-flex;align-items:center;gap:4px;margin-top:.45rem;padding:.28rem .65rem;background:rgba(255,255,255,.08);color:rgba(255,255,255,.3);font-size:.68rem;font-weight:700;border-radius:5px;font-family:Inter,sans-serif;cursor:default" title="Unverified user">💰 Tip $HELP <span style="font-size:.58rem;opacity:.6">(unverified)</span></span>`;
   }
   const tweetText = encodeURIComponent(`@bankrbot Tip 1 $HELP to @${xhandle}`);
   return `<a href="https://x.com/intent/tweet?text=${tweetText}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;margin-top:.45rem;padding:.28rem .65rem;background:#3498ec;color:#fff;font-size:.68rem;font-weight:700;border-radius:5px;text-decoration:none;font-family:Inter,sans-serif">💰 Tip $HELP</a>`;
@@ -387,11 +385,11 @@ async function renderPostsOnMap(map) {
     const m = L.marker([geo.lat,geo.lng],{icon:helpIcon})
       .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:220px;max-width:280px">
         <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#93c5fd;margin-bottom:.25rem">SPARE ROOM</div>
-        <div style="font-weight:600;font-size:.84rem;margin-bottom:.2rem;color:#fff">${p.name} ${buildBadge(false)}</div>
+        <div style="font-weight:600;font-size:.84rem;margin-bottom:.2rem;color:#fff">${p.name} ${buildBadge(!!p.user_id)}</div>
         <div style="font-size:.77rem;color:rgba(255,255,255,.75);line-height:1.5;margin-bottom:.3rem">${(p.body||'').slice(0,120)}${(p.body||'').length>120?'...':''}</div>
         <div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-bottom:.15rem">📍 ${p.location}</div>
         ${buildContactButtons(p.contact, p.xhandle, p.name)}
-        ${buildTipButton(p.xhandle)}
+        ${buildTipButton(p.xhandle, !!p.user_id)}
       </div>`);
     if (cluster) cluster.addLayer(m);
     _mk.help.push(m);
@@ -479,15 +477,16 @@ function renderPosts() {
       <div class="post-loc">📍 ${p.location}</div>
       <div class="post-body">${p.body}</div>
       <div class="post-footer">
-        <span style="font-size:.77rem;color:var(--muted)">${p.name} ${buildBadge(false)}</span>
+        <span style="font-size:.77rem;color:var(--muted)">${p.name} ${buildBadge(!!p.user_id)}</span>
       </div>
       ${buildContactButtons(p.contact, p.xhandle, p.name)}
-      ${buildTipButton(p.xhandle)}
+      ${buildTipButton(p.xhandle, !!p.user_id)}
     </div>`;
   }).join('');
 }
 
 async function submitPost(type) {
+  if (!isLoggedIn()) { alert('Please sign in first to post.'); showView('profile'); return; }
   const t=document.getElementById(type+'-type')?.value,
     l=document.getElementById(type+'-location')?.value,
     b=document.getElementById(type+'-body')?.value,
@@ -498,14 +497,12 @@ async function submitPost(type) {
     lng=parseFloat(document.getElementById(type+'-lng')?.value)||null;
   if(!t||!l||!b||!n||!c){alert('Please fill in all required fields.');return;}
   if(!lat||!lng){alert('Please select a location from the dropdown suggestions.');return;}
-  const editCode = document.getElementById(type+'-password')?.value?.trim();
-  if(!editCode||editCode.length<4){alert('Please enter a password (at least 4 characters) to manage your post later.');return;}
   const btn=document.querySelector(`.submit-btn--${type}`); if(!btn)return;
   btn.textContent='Posting...'; btn.disabled=true;
   try {
-    const{error}=await _sb.from('help_posts').insert({type,post_type:t,location:l,body:b,name:n,contact:c,xhandle:x||null,lat,lng,edit_code:editCode,flagged:false});
+    const{error}=await _sb.from('help_posts').insert({type,post_type:t,location:l,body:b,name:n,contact:c,xhandle:x||null,lat,lng,user_id:_currentUser.id,flagged:false});
     if(error)throw error;
-    ['type','location','body','name','contact','xhandle','password'].forEach(f=>{const el=document.getElementById(type+'-'+f);if(el)el.tagName==='SELECT'?el.selectedIndex=0:el.value='';});
+    ['type','location','body','name','contact','xhandle'].forEach(f=>{const el=document.getElementById(type+'-'+f);if(el)el.tagName==='SELECT'?el.selectedIndex=0:el.value='';});
     document.getElementById(type+'-lat').value='';document.getElementById(type+'-lng').value='';
     btn.textContent='Posted!';
     setTimeout(()=>{btn.textContent='Post Offer';btn.disabled=false;},3000);
@@ -579,7 +576,7 @@ async function refreshSitrep() {
 // ============================================================
 async function loadPosts() {
   if(!SB_ON)return;
-  const{data}=await _sb.from('help_posts').select('id,type,post_type,location,body,name,contact,xhandle,lat,lng,created_at').eq('flagged',false).eq('type','offer').order('created_at',{ascending:false}).limit(100);
+  const{data}=await _sb.from('help_posts').select('id,type,post_type,location,body,name,contact,xhandle,lat,lng,user_id,created_at').eq('flagged',false).eq('type','offer').order('created_at',{ascending:false}).limit(100);
   if(data){posts=data;renderPosts();renderPostsOnMap(window._crisisMap||window._mobileMap);}
 }
 function subscribeStream(){
@@ -753,6 +750,7 @@ function mRenderResources(){
 }
 
 async function mSubmitOffer(){
+  if (!isLoggedIn()) { alert('Please sign in first to post.'); mTab('profile',document.getElementById('mtab-filters')); return; }
   const l=document.getElementById('m-offer-location')?.value,b=document.getElementById('m-offer-body')?.value,
     n=document.getElementById('m-offer-name')?.value,c=document.getElementById('m-offer-contact')?.value,
     x=(document.getElementById('m-offer-xhandle')?.value||'').trim().replace(/^@+/,''),
@@ -760,13 +758,11 @@ async function mSubmitOffer(){
     lng=parseFloat(document.getElementById('m-offer-lng')?.value)||null;
   if(!l||!b||!n||!c){alert('Please fill in all fields.');return;}
   if(!lat||!lng){alert('Please select a location from the dropdown suggestions.');return;}
-  const editCode = document.getElementById('m-offer-password')?.value?.trim();
-  if(!editCode||editCode.length<4){alert('Please enter a password (at least 4 characters) to manage your post later.');return;}
   const btn=document.querySelector('#m-offer-content .m-submit');btn.textContent='Posting...';btn.disabled=true;
   try{
-    const{error}=await _sb.from('help_posts').insert({type:'offer',post_type:'General',location:l,body:b,name:n,contact:c,xhandle:x||null,lat,lng,edit_code:editCode,flagged:false});
+    const{error}=await _sb.from('help_posts').insert({type:'offer',post_type:'General',location:l,body:b,name:n,contact:c,xhandle:x||null,lat,lng,user_id:_currentUser.id,flagged:false});
     if(error)throw error;
-    ['location','body','name','contact','xhandle','password'].forEach(f=>{const el=document.getElementById('m-offer-'+f);if(el)el.value='';});
+    ['location','body','name','contact','xhandle'].forEach(f=>{const el=document.getElementById('m-offer-'+f);if(el)el.value='';});
     document.getElementById('m-offer-lat').value='';document.getElementById('m-offer-lng').value='';
     btn.textContent='Posted!';
     setTimeout(()=>{btn.textContent='Post Offer';btn.disabled=false;},3000);
@@ -774,12 +770,13 @@ async function mSubmitOffer(){
   }catch(e){alert('Failed: '+e.message);btn.textContent='Post Offer';btn.disabled=false;}
 }
 
-// ============================================================
-// PROFILE SYSTEM
-// ============================================================
-let _profilePassword = null;
 
-// Swap profile icon to X/Twitter avatar (called when X is linked via OAuth)
+// ============================================================
+// AUTH + PROFILE SYSTEM (Google OAuth via Supabase)
+// ============================================================
+let _currentUser = null;
+let _currentProfile = null;
+
 function setProfileAvatar(imageUrl) {
   ['profile-avatar-default','m-profile-avatar-default'].forEach(id => {
     const el = document.getElementById(id);
@@ -802,49 +799,104 @@ function clearProfileAvatar() {
   });
 }
 
+async function initAuth() {
+  const { data: { session } } = await _sb.auth.getSession();
+  if (session?.user) {
+    _currentUser = session.user;
+    await loadProfile();
+  }
+  // Listen for auth changes (login, logout, token refresh)
+  _sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session?.user) {
+      _currentUser = session.user;
+      await loadProfile();
+    } else if (event === 'SIGNED_OUT') {
+      _currentUser = null;
+      _currentProfile = null;
+      clearProfileAvatar();
+      renderProfileView();
+      renderMobileProfileView();
+    }
+  });
+}
+
+async function loadProfile() {
+  if (!_currentUser) return;
+  const { data } = await _sb.from('profiles').select('*').eq('id', _currentUser.id).single();
+  _currentProfile = data;
+  if (_currentProfile?.avatar_url) setProfileAvatar(_currentProfile.avatar_url);
+  renderProfileView();
+  renderMobileProfileView();
+}
+
+async function signInWithGoogle() {
+  const { error } = await _sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + window.location.pathname }
+  });
+  if (error) alert('Sign in failed: ' + error.message);
+}
+
+async function signOut() {
+  await _sb.auth.signOut();
+  _currentUser = null;
+  _currentProfile = null;
+  clearProfileAvatar();
+  renderProfileView();
+  renderMobileProfileView();
+}
+
+function isLoggedIn() { return !!_currentUser; }
+
+// ── Desktop Profile ──────────────────────────────────────
 function renderProfileView() {
   const loginEl = document.getElementById('profile-login');
   const mainEl = document.getElementById('profile-main');
-  if (_profilePassword) {
-    if (loginEl) loginEl.style.display = 'none';
-    if (mainEl) mainEl.style.display = 'block';
+  if (!loginEl || !mainEl) return;
+  if (isLoggedIn()) {
+    loginEl.style.display = 'none';
+    mainEl.style.display = 'block';
+    // Update name + email display
+    const nameEl = document.getElementById('profile-display-name');
+    const emailEl = document.getElementById('profile-email');
+    if (nameEl) nameEl.textContent = _currentProfile?.display_name || _currentUser.email;
+    if (emailEl) emailEl.textContent = _currentUser.email;
+    // Update verify statuses
+    updateVerifyStatus('google', _currentProfile?.google_verified);
+    updateVerifyStatus('x', _currentProfile?.x_verified);
+    updateVerifyStatus('tg', _currentProfile?.tg_verified);
     renderProfilePosts();
   } else {
-    if (loginEl) loginEl.style.display = 'block';
-    if (mainEl) mainEl.style.display = 'none';
+    loginEl.style.display = 'block';
+    mainEl.style.display = 'none';
   }
 }
 
-async function profileLogin() {
-  const pw = document.getElementById('profile-password')?.value?.trim();
-  if (!pw) { alert('Please enter your password.'); return; }
-  const { data, error } = await _sb.from('help_posts').select('id').eq('edit_code', pw).eq('flagged', false).limit(1);
-  if (error || !data || !data.length) { alert('No posts found for that password.'); return; }
-  _profilePassword = pw;
-  renderProfileView();
-}
-
-function profileLogout() {
-  _profilePassword = null;
-  clearProfileAvatar();
-  document.getElementById('profile-password').value = '';
-  renderProfileView();
+function updateVerifyStatus(provider, verified) {
+  const btn = document.getElementById('verify-btn-' + provider);
+  if (!btn) return;
+  if (verified) {
+    btn.textContent = 'Linked ✓';
+    btn.className = 'p-verify-btn p-verify-btn--linked';
+    btn.disabled = true;
+  }
 }
 
 async function renderProfilePosts() {
   const el = document.getElementById('profile-posts-list');
-  if (!el || !_profilePassword) return;
+  if (!el || !_currentUser) return;
   el.innerHTML = '<div style="font-size:.82rem;color:rgba(255,255,255,.4);padding:.5rem 0">Loading...</div>';
-  const { data, error } = await _sb.from('help_posts').select('id,location,body,name,contact,xhandle,created_at').eq('edit_code', _profilePassword).eq('type', 'offer').eq('flagged', false).order('created_at', { ascending: false });
+  const { data, error } = await _sb.from('help_posts').select('id,location,body,name,contact,xhandle,created_at').eq('user_id', _currentUser.id).eq('type', 'offer').eq('flagged', false).order('created_at', { ascending: false });
   if (error || !data || !data.length) {
-    el.innerHTML = '<div style="font-size:.82rem;color:rgba(255,255,255,.4);padding:.5rem 0">No listings found.</div>';
+    el.innerHTML = '<div style="font-size:.82rem;color:rgba(255,255,255,.4);padding:.5rem 0">No listings yet. Offer a spare room to get started.</div>';
     return;
   }
+  const verified = _currentProfile?.google_verified || _currentProfile?.x_verified || _currentProfile?.tg_verified;
   el.innerHTML = data.map(p => {
     const t = p.created_at ? new Date(p.created_at).toLocaleString() : '';
     return `<div class="profile-post-card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">
-        <span style="font-size:.82rem;font-weight:600;color:#fff">${p.name} <span class="badge-unverified" title="Verify accounts to get a blue badge">✓</span></span>
+        <span style="font-size:.82rem;font-weight:600;color:#fff">${p.name} ${buildBadge(verified)}</span>
         <span style="font-size:.63rem;color:rgba(255,255,255,.35)">${t}</span>
       </div>
       <div style="font-size:.78rem;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:.2rem">📍 ${p.location}</div>
@@ -860,40 +912,39 @@ async function renderProfilePosts() {
 async function profileDeletePost(id) {
   if (!confirm('Delete this post? This cannot be undone.')) return;
   try {
-    const { error } = await _sb.from('help_posts').update({ flagged: true }).eq('id', id).eq('edit_code', _profilePassword);
+    const { error } = await _sb.from('help_posts').update({ flagged: true }).eq('id', id).eq('user_id', _currentUser.id);
     if (error) throw error;
     renderProfilePosts();
     loadPosts();
   } catch (e) { alert('Failed to delete: ' + e.message); }
 }
 
-// Mobile profile
-function mProfileLogin() {
-  const pw = (document.getElementById('m-edit-contact')?.value || '').trim();
-  if (!pw) { alert('Please enter your password.'); return; }
-  _profilePassword = pw;
-  document.getElementById('m-profile-login').style.display = 'none';
-  document.getElementById('m-profile-main').style.display = 'block';
-  mRenderProfilePosts();
-}
-
-function mProfileLogout() {
-  _profilePassword = null;
-  clearProfileAvatar();
-  document.getElementById('m-edit-contact').value = '';
-  document.getElementById('m-profile-login').style.display = 'block';
-  document.getElementById('m-profile-main').style.display = 'none';
+// ── Mobile Profile ───────────────────────────────────────
+function renderMobileProfileView() {
+  const loginEl = document.getElementById('m-profile-login');
+  const mainEl = document.getElementById('m-profile-main');
+  if (!loginEl || !mainEl) return;
+  if (isLoggedIn()) {
+    loginEl.style.display = 'none';
+    mainEl.style.display = 'block';
+    const nameEl = document.getElementById('m-profile-display-name');
+    if (nameEl) nameEl.textContent = _currentProfile?.display_name || _currentUser.email;
+    mRenderProfilePosts();
+  } else {
+    loginEl.style.display = 'block';
+    mainEl.style.display = 'none';
+  }
 }
 
 async function mRenderProfilePosts() {
   const list = document.getElementById('m-my-posts-list');
-  if (!list || !_profilePassword) return;
+  if (!list || !_currentUser) return;
   list.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:.82rem;padding:.5rem 0">Loading...</div>';
   try {
-    const { data, error } = await _sb.from('help_posts').select('id,location,body,created_at').eq('edit_code', _profilePassword).eq('type', 'offer').eq('flagged', false).order('created_at', { ascending: false });
+    const { data, error } = await _sb.from('help_posts').select('id,location,body,created_at').eq('user_id', _currentUser.id).eq('type', 'offer').eq('flagged', false).order('created_at', { ascending: false });
     if (error) throw error;
     if (!data || !data.length) {
-      list.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:.82rem;padding:.5rem 0">No listings found.</div>';
+      list.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:.82rem;padding:.5rem 0">No listings yet.</div>';
       return;
     }
     list.innerHTML = data.map(p => {
@@ -915,7 +966,7 @@ async function mRenderProfilePosts() {
 async function mProfileDeletePost(id) {
   if (!confirm('Delete this post? This cannot be undone.')) return;
   try {
-    const { error } = await _sb.from('help_posts').update({ flagged: true }).eq('id', id).eq('edit_code', _profilePassword);
+    const { error } = await _sb.from('help_posts').update({ flagged: true }).eq('id', id).eq('user_id', _currentUser.id);
     if (error) throw error;
     mRenderProfilePosts();
     loadPosts();
@@ -1000,6 +1051,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   // Init autocomplete on both desktop and mobile location fields
   initLocationAutocomplete('offer-location','offer-lat','offer-lng','offer-location-ac');
   initLocationAutocomplete('m-offer-location','m-offer-lat','m-offer-lng','m-offer-location-ac');
+  initAuth();
   refreshSitrep();
   setInterval(refreshSitrep,5*60*1000);
   if(SB_ON){loadPosts();subscribeStream();}
