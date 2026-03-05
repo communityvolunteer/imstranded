@@ -310,38 +310,35 @@ transform: translateX(-50%);
 #help-view{padding:2.5rem 0;background:#000;}
 
 /* ── PROFILE ───────────────────────────────────────────── */
-#profile-view{padding:2.5rem 0;}
+#profile-view{padding:2.5rem 0;background:#000;}
 .profile-btn{
   background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);
-  color:rgba(255,255,255,.85);border-radius:8px;width:36px;height:36px;
+  color:rgba(255,255,255,.85);border-radius:50%;width:36px;height:36px;
   display:flex;align-items:center;justify-content:center;
-  cursor:pointer;transition:all .15s;
+  cursor:pointer;transition:all .15s;overflow:hidden;padding:0;
 }
 .profile-btn:hover{background:rgba(255,255,255,.15);color:#fff;}
-.verify-row{
+.p-verify-row{
   display:flex;align-items:center;gap:.75rem;
-  padding:.65rem 0;border-bottom:1px solid var(--border);
+  padding:.7rem 0;border-bottom:1px solid rgba(255,255,255,.07);
 }
-.verify-row:last-of-type{border-bottom:none;}
-.verify-icon{
-  width:32px;height:32px;border-radius:8px;
+.p-verify-row:last-of-type{border-bottom:none;}
+.p-verify-icon{
+  width:36px;height:36px;border-radius:9px;
   display:flex;align-items:center;justify-content:center;
-  color:#fff;font-size:.82rem;font-weight:800;flex-shrink:0;
+  color:#fff;font-size:.88rem;font-weight:800;flex-shrink:0;
 }
-.verify-info{flex:1;}
-.verify-name{font-size:.84rem;font-weight:600;color:var(--text);}
-.verify-desc{font-size:.7rem;color:var(--muted);}
-.verify-btn{
-  padding:.3rem .8rem;border-radius:6px;font-family:'Inter',sans-serif;
-  font-size:.7rem;font-weight:600;cursor:pointer;white-space:nowrap;
+.p-verify-btn{
+  padding:.32rem .85rem;border-radius:7px;font-family:'Inter',sans-serif;
+  font-size:.68rem;font-weight:600;white-space:nowrap;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  color:rgba(255,255,255,.3);cursor:default;
 }
-.verify-btn--pending{background:var(--surface2);border:1px solid var(--border);color:var(--muted);cursor:default;}
-.verify-btn--linked{background:#059669;border:none;color:#fff;}
 .badge-verified{color:#3498ec;font-size:.72rem;font-weight:700;}
 .badge-unverified{color:rgba(150,150,150,.35);font-size:.72rem;font-weight:700;}
 .profile-post-card{
-  background:var(--surface);border:1px solid var(--border);
-  border-left:3px solid var(--brand);border-radius:var(--radius-sm);
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  border-left:3px solid #3498ec;border-radius:10px;
   padding:1rem;margin-bottom:.6rem;
 }
 .profile-post-actions{display:flex;gap:.4rem;margin-top:.6rem;}

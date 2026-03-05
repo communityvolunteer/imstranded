@@ -779,6 +779,29 @@ async function mSubmitOffer(){
 // ============================================================
 let _profilePassword = null;
 
+// Swap profile icon to X/Twitter avatar (called when X is linked via OAuth)
+function setProfileAvatar(imageUrl) {
+  ['profile-avatar-default','m-profile-avatar-default'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  ['profile-avatar-img','m-profile-avatar-img'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.src = imageUrl; el.style.display = 'block'; }
+  });
+}
+
+function clearProfileAvatar() {
+  ['profile-avatar-default','m-profile-avatar-default'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = '';
+  });
+  ['profile-avatar-img','m-profile-avatar-img'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.src = ''; el.style.display = 'none'; }
+  });
+}
+
 function renderProfileView() {
   const loginEl = document.getElementById('profile-login');
   const mainEl = document.getElementById('profile-main');
@@ -803,6 +826,7 @@ async function profileLogin() {
 
 function profileLogout() {
   _profilePassword = null;
+  clearProfileAvatar();
   document.getElementById('profile-password').value = '';
   renderProfileView();
 }
@@ -810,21 +834,22 @@ function profileLogout() {
 async function renderProfilePosts() {
   const el = document.getElementById('profile-posts-list');
   if (!el || !_profilePassword) return;
-  el.innerHTML = '<div style="font-size:.82rem;color:var(--muted);padding:.5rem 0">Loading...</div>';
+  el.innerHTML = '<div style="font-size:.82rem;color:rgba(255,255,255,.4);padding:.5rem 0">Loading...</div>';
   const { data, error } = await _sb.from('help_posts').select('id,location,body,name,contact,xhandle,created_at').eq('edit_code', _profilePassword).eq('type', 'offer').eq('flagged', false).order('created_at', { ascending: false });
   if (error || !data || !data.length) {
-    el.innerHTML = '<div style="font-size:.82rem;color:var(--muted);padding:.5rem 0">No listings found.</div>';
+    el.innerHTML = '<div style="font-size:.82rem;color:rgba(255,255,255,.4);padding:.5rem 0">No listings found.</div>';
     return;
   }
   el.innerHTML = data.map(p => {
     const t = p.created_at ? new Date(p.created_at).toLocaleString() : '';
     return `<div class="profile-post-card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">
-        <span style="font-size:.78rem;font-weight:600;color:var(--text)">${p.name} <span class="badge-unverified" title="Verify accounts to get a blue badge">✓</span></span>
-        <span style="font-size:.63rem;color:var(--muted)">${t}</span>
+        <span style="font-size:.82rem;font-weight:600;color:#fff">${p.name} <span class="badge-unverified" title="Verify accounts to get a blue badge">✓</span></span>
+        <span style="font-size:.63rem;color:rgba(255,255,255,.35)">${t}</span>
       </div>
-      <div style="font-size:.78rem;font-weight:600;color:var(--text2);margin-bottom:.2rem">📍 ${p.location}</div>
-      <div style="font-size:.82rem;color:var(--text2);line-height:1.5">${(p.body || '').slice(0, 150)}${(p.body || '').length > 150 ? '...' : ''}</div>
+      <div style="font-size:.78rem;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:.2rem">📍 ${p.location}</div>
+      <div style="font-size:.82rem;color:rgba(255,255,255,.55);line-height:1.5">${(p.body || '').slice(0, 150)}${(p.body || '').length > 150 ? '...' : ''}</div>
+      ${buildContactButtons(p.contact, p.xhandle, p.name)}
       <div class="profile-post-actions">
         <button onclick="profileDeletePost('${p.id}')" style="background:#ec3452;color:#fff;border:none;border-radius:6px;padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Delete</button>
       </div>
@@ -854,6 +879,7 @@ function mProfileLogin() {
 
 function mProfileLogout() {
   _profilePassword = null;
+  clearProfileAvatar();
   document.getElementById('m-edit-contact').value = '';
   document.getElementById('m-profile-login').style.display = 'block';
   document.getElementById('m-profile-main').style.display = 'none';
