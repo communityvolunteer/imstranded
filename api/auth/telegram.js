@@ -140,19 +140,34 @@ module.exports = async function handler(req, res) {
       email: email,
     });
 
-    console.log('Generate link response:', linkRes.status);
+    console.log('Generate link response:', linkRes.status, JSON.stringify(linkRes.body).slice(0, 500));
 
     if (linkRes.status !== 200) {
-      return res.status(500).json({ error: 'Failed to generate session', detail: linkRes.body?.msg || '' });
+      return res.status(500).json({ error: 'Failed to generate session', detail: linkRes.body?.msg || linkRes.body?.message || '' });
     }
 
-    const actionLink = linkRes.body?.properties?.action_link || '';
-    const tokenMatch = actionLink.match(/token_hash=([^&]+)/);
-    const tokenHash = tokenMatch ? tokenMatch[1] : null;
+    // Try multiple locations for the token
+    const props = linkRes.body?.properties || {};
+    const actionLink = props.action_link || '';
+    
+    // Try hashed_token directly (newer Supabase versions)
+    let tokenHash = props.hashed_token || null;
+    
+    // Try token_hash from URL
+    if (!tokenHash) {
+      const m1 = actionLink.match(/token_hash=([^&]+)/);
+      if (m1) tokenHash = m1[1];
+    }
+    
+    // Try token from URL
+    if (!tokenHash) {
+      const m2 = actionLink.match(/token=([^&]+)/);
+      if (m2) tokenHash = m2[1];
+    }
 
     if (!tokenHash) {
-      console.error('No token hash in:', actionLink);
-      return res.status(500).json({ error: 'Failed to extract token' });
+      console.error('No token in response. Props:', JSON.stringify(props).slice(0, 500));
+      return res.status(500).json({ error: 'Failed to extract token', detail: 'action_link: ' + actionLink.slice(0, 100) });
     }
 
     // 5. Ensure profile exists with TG verification
