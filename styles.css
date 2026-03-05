@@ -338,6 +338,11 @@ transform: translateX(-50%);
   background:rgba(52,152,236,.15);border-color:rgba(52,152,236,.3);
   color:#3498ec;
 }
+.p-verify-btn--link{
+  background:rgba(52,152,236,.1);border-color:rgba(52,152,236,.25);
+  color:#3498ec;cursor:pointer;
+}
+.p-verify-btn--link:hover{background:rgba(52,152,236,.2);}
 .badge-verified{color:#3498ec;font-size:.72rem;font-weight:700;}
 .badge-unverified{color:rgba(150,150,150,.35);font-size:.72rem;font-weight:700;}
 .profile-post-card{

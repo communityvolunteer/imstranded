@@ -334,7 +334,7 @@ function buildContactButtons(contact, xhandle, name) {
   // Telegram @handle
   const tgMatch = c.match(/@([A-Za-z0-9_]{3,})/);
   if (tgMatch) {
-    btns.push(`<a href="https://t.me/${tgMatch[1]}" target="_blank" style="${btnStyle}background:#229ED9;color:#fff" title="Telegram">✈ Telegram</a>`);
+    btns.push(`<a href="https://t.me/${tgMatch[1]}" target="_blank" style="${btnStyle}background:#229ED9;color:#fff" title="Telegram">TG @${tgMatch[1]}</a>`);
   }
 
   // X/Twitter handle
@@ -882,39 +882,59 @@ function linkTelegram() {
 
 function signInWithTelegram() {
   sessionStorage.setItem('postLogin', 'profile');
+  sessionStorage.setItem('tgLoginPending', 'true');
   window.Telegram.Login.auth(
     { bot_id: '8600585901', request_access: 'write' },
-    async function(tgData) {
-      if (!tgData) { alert('Telegram login cancelled.'); return; }
-      try {
-        const res = await fetch('/api/auth/telegram', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(tgData)
-        });
-        const result = await res.json();
-        if (!res.ok) { alert('Login failed: ' + (result.error || 'Unknown error')); return; }
-        // Use the token to establish a Supabase session
-        const { error } = await _sb.auth.verifyOtp({
-          token_hash: result.token_hash,
-          type: 'magiclink'
-        });
-        if (error) { alert('Session failed: ' + error.message); return; }
-        // Session established — onAuthStateChange will handle the rest
-      } catch (e) {
-        alert('Login failed: ' + e.message);
-      }
-    }
+    handleTelegramAuthData
   );
 }
 
+async function handleTelegramAuthData(tgData) {
+  if (!tgData) { alert('Telegram login cancelled.'); return; }
+  try {
+    const res = await fetch('/api/auth/telegram', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(tgData)
+    });
+    const result = await res.json();
+    if (!res.ok) { alert('Login failed: ' + (result.error || 'Unknown error')); return; }
+    const { error } = await _sb.auth.verifyOtp({
+      token_hash: result.token_hash,
+      type: 'magiclink'
+    });
+    if (error) { alert('Session failed: ' + error.message); return; }
+    sessionStorage.removeItem('tgLoginPending');
+  } catch (e) {
+    alert('Login failed: ' + e.message);
+  }
+}
+
+// Check for TG auth data in URL hash on page load (mobile redirect flow)
+function checkTelegramRedirect() {
+  const hash = window.location.hash;
+  if (!hash || !hash.includes('tgAuthResult=')) return;
+  try {
+    const params = new URLSearchParams(hash.replace('#', ''));
+    const tgData = {};
+    for (const [k, v] of params) tgData[k] = v;
+    if (tgData.id && tgData.hash) {
+      window.location.hash = '';
+      handleTelegramAuthData(tgData);
+    }
+  } catch(e) {}
+}
+
 async function doSignOut() {
-  await _sb.auth.signOut();
+  try {
+    await _sb.auth.signOut();
+  } catch(e) { console.error('Sign out error:', e); }
   _currentUser = null;
   _currentProfile = null;
   clearProfileAvatar();
   renderProfileView();
   renderMobileProfileView();
+  showView('map');
 }
 
 function isLoggedIn() { return !!_currentUser; }
@@ -1154,6 +1174,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   initLocationAutocomplete('offer-location','offer-lat','offer-lng','offer-location-ac');
   initLocationAutocomplete('m-offer-location','m-offer-lat','m-offer-lng','m-offer-location-ac');
   initAuth();
+  checkTelegramRedirect();
   refreshSitrep();
   setInterval(refreshSitrep,5*60*1000);
   if(SB_ON){loadPosts();subscribeStream();}
