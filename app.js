@@ -225,16 +225,17 @@ function initMap() {
     attribution:'(c)OpenStreetMap (c)CARTO',maxZoom:19
   }).addTo(map);
 
-  // Custom panes — BELOW markerPane (600) so clusters sit on top
+  // Custom panes — country on TOP so purple glow is clickable around cluster badges
   map.createPane('countryPane');
-  map.getPane('countryPane').style.zIndex = 550;
+  map.getPane('countryPane').style.zIndex = 650;
+  map.getPane('countryPane').style.pointerEvents = 'none';
   map.createPane('worldwidePane');
-  map.getPane('worldwidePane').style.zIndex = 540;
+  map.getPane('worldwidePane').style.zIndex = 640;
+  map.getPane('worldwidePane').style.pointerEvents = 'none';
 
   COUNTRIES.forEach(c => {
     const col = SC[c.status];
-    const glow = L.circleMarker(c.coords,{pane:'countryPane',radius:15,fillColor:'#ec3452',color:'#ec3452',weight:1,opacity:.4,fillOpacity:.2}).addTo(map);
-    const dot  = L.circleMarker(c.coords,{pane:'countryPane',radius:8,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.95}).addTo(map)
+    const glow = L.circleMarker(c.coords,{pane:'countryPane',interactive:true,radius:28,fillColor:'#ec3452',color:'#ec3452',weight:0,opacity:0,fillOpacity:.12}).addTo(map)
       .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:240px">
         <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#fcd34d;margin-bottom:.4rem">${c.name}</div>
         <div style="font-size:.82rem;color:rgba(255,255,255,.85);line-height:1.55;margin-bottom:.6rem">${c.advisory}</div>
@@ -242,12 +243,13 @@ function initMap() {
         ${c.telegram?`<a href="${c.telegram}" style="color:#3498ec;font-size:.76rem;font-weight:500;display:block;margin-bottom:.6rem" target="_blank">→ Telegram group</a>`:''}
         <button onclick="window.showCountryDetail('${c.id}')" style="background:#3498ec;border:none;color:#fff;font-family:Inter,sans-serif;font-size:.82rem;font-weight:700;padding:.55rem 1rem;cursor:pointer;border-radius:8px;width:100%">Full info &amp; embassies →</button>
       </div>`);
+    const dot  = L.circleMarker(c.coords,{pane:'countryPane',interactive:false,radius:8,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.95}).addTo(map);
     _mk.country.push({marker:glow,status:c.status});
     _mk.country.push({marker:dot,status:c.status});
   });
 
   WORLDWIDE.forEach(r => {
-    const m = L.circleMarker(r.coords,{pane:'worldwidePane',radius:7,fillColor:'#a855f7',color:'#fff',weight:2,opacity:.9,fillOpacity:.55}).addTo(map)
+    const m = L.circleMarker(r.coords,{pane:'worldwidePane',interactive:true,radius:7,fillColor:'#a855f7',color:'#fff',weight:2,opacity:.9,fillOpacity:.55}).addTo(map)
       .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:200px">
         <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#d8b4fe;margin-bottom:.3rem">Worldwide: ${r.name}</div>
         <div style="font-size:.78rem;color:rgba(255,255,255,.8);line-height:1.5;margin-bottom:.4rem">${r.note}</div>
@@ -257,7 +259,7 @@ function initMap() {
   });
 
   _helpCluster = L.markerClusterGroup({
-    maxClusterRadius: 50,
+    maxClusterRadius: 80,
     spiderfyOnMaxZoom: true,
     showCoverageOnHover: false,
     zoomToBoundsOnClick: true,
@@ -546,23 +548,25 @@ function initMobile(){
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mmap);
 
   mmap.createPane('countryPane');
-  mmap.getPane('countryPane').style.zIndex = 550;
+  mmap.getPane('countryPane').style.zIndex = 650;
+  mmap.getPane('countryPane').style.pointerEvents = 'none';
   mmap.createPane('worldwidePane');
-  mmap.getPane('worldwidePane').style.zIndex = 540;
+  mmap.getPane('worldwidePane').style.zIndex = 640;
+  mmap.getPane('worldwidePane').style.pointerEvents = 'none';
 
   COUNTRIES.forEach(c => {
     const col = SC[c.status];
-    L.circleMarker(c.coords, {pane:'countryPane',radius:15,fillColor:'#ec3452',color:'#ec3452',weight:1,opacity:.4,fillOpacity:.2}).addTo(mmap);
-    L.circleMarker(c.coords, {pane:'countryPane',radius:10,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.92}).addTo(mmap)
+    L.circleMarker(c.coords, {pane:'countryPane',interactive:true,radius:28,fillColor:'#ec3452',color:'#ec3452',weight:0,opacity:0,fillOpacity:.12}).addTo(mmap)
       .on('click', () => openMCountryPopup(c.id));
+    L.circleMarker(c.coords, {pane:'countryPane',interactive:false,radius:10,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.92}).addTo(mmap);
   });
   WORLDWIDE.forEach(r=>{
-    L.circleMarker(r.coords,{pane:'worldwidePane',radius:7,fillColor:'#a855f7',color:'#fff',weight:1.5,opacity:.9,fillOpacity:.5}).addTo(mmap)
+    L.circleMarker(r.coords,{pane:'worldwidePane',interactive:true,radius:7,fillColor:'#a855f7',color:'#fff',weight:1.5,opacity:.9,fillOpacity:.5}).addTo(mmap)
       .on('click',()=>openMWorldwidePopup(r.id));
   });
   window._mobileMap=mmap;
   _mHelpCluster = L.markerClusterGroup({
-    maxClusterRadius: 50,
+    maxClusterRadius: 80,
     spiderfyOnMaxZoom: true,
     showCoverageOnHover: false,
     zoomToBoundsOnClick: true,

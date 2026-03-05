@@ -233,6 +233,9 @@ transform: translateX(-50%);
 }
 .marker-cluster span{line-height:36px;}
 .help-pin{background:none !important;border:none !important;}
+/* Allow clicks to pass through pane to clusters, but country/worldwide dots still clickable */
+.leaflet-countryPane-pane .leaflet-interactive,
+.leaflet-worldwidePane-pane .leaflet-interactive{pointer-events:auto !important;}
 
 /* ── LOCATION AUTOCOMPLETE ───────────────────────────────── */
 .loc-ac-wrap{position:relative;}
