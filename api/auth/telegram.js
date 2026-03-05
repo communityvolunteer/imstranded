@@ -3,7 +3,7 @@
  * Vercel Serverless Function
  * 
  * Verifies Telegram Login Widget data, creates or finds a Supabase user,
- * and returns a session token.
+ * returns credentials for client-side signInWithPassword.
  * 
  * Env vars: SUPABASE_URL, SUPABASE_SERVICE_KEY, TELEGRAM_BOT_TOKEN
  */
@@ -40,6 +40,11 @@ function verifyTelegramData(data, botToken) {
   return hmac === checkHash;
 }
 
+// Deterministic password from TG id — secure because bot token is server-only
+function derivePassword(tgId, botToken) {
+  return crypto.createHmac('sha256', botToken).update('tg_user_' + tgId).digest('hex');
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -71,6 +76,7 @@ module.exports = async function handler(req, res) {
 
   const host = supabaseUrl.replace('https://', '');
   const tgEmail = `tg_${tgData.id}@telegram.imstranded.org`;
+  const tgPassword = derivePassword(tgData.id, botToken);
   const displayName = [tgData.first_name, tgData.last_name].filter(Boolean).join(' ') || tgData.username || 'Telegram User';
   const avatarUrl = tgData.photo_url || '';
   const tgUsername = tgData.username || '';
@@ -79,42 +85,39 @@ module.exports = async function handler(req, res) {
 
   try {
     let userId = null;
-    let existingEmail = null;
+    let userExists = false;
 
-    // 1. Check if this TG user already linked to a Google account (via profiles table)
-    const profileRes = await httpRequest('GET', host,
-      `/rest/v1/profiles?select=id,email&tg_handle=eq.${encodeURIComponent(tgUsername)}&tg_verified=eq.true&limit=1`,
-      H, null);
-    
-    if (profileRes.status === 200 && Array.isArray(profileRes.body) && profileRes.body.length > 0) {
-      userId = profileRes.body[0].id;
-      existingEmail = profileRes.body[0].email;
-      console.log('Found existing user by TG handle:', userId);
-    }
-
-    // 2. If not found by handle, check if a TG-email user already exists
-    if (!userId) {
-      const listRes = await httpRequest('GET', host,
-        `/auth/v1/admin/users?page=1&per_page=50`,
-        H, null);
-      
-      if (listRes.status === 200 && listRes.body?.users) {
-        const match = listRes.body.users.find(u => u.email === tgEmail);
-        if (match) {
-          userId = match.id;
-          existingEmail = tgEmail;
-          console.log('Found existing TG user by email:', userId);
-        }
+    // 1. Check if TG user already exists
+    const listRes = await httpRequest('GET', host, `/auth/v1/admin/users?page=1&per_page=50`, H, null);
+    if (listRes.status === 200 && listRes.body?.users) {
+      const match = listRes.body.users.find(u => u.email === tgEmail);
+      if (match) {
+        userId = match.id;
+        userExists = true;
+        // Update password in case it changed
+        await httpRequest('PUT', host, `/auth/v1/admin/users/${userId}`, H, {
+          password: tgPassword
+        });
       }
     }
 
-    // 3. If still no user, create one
+    // 2. If not found, check by TG handle in profiles
     if (!userId) {
-      console.log('Creating new user for TG:', tgEmail);
+      const profileRes = await httpRequest('GET', host,
+        `/rest/v1/profiles?select=id,email&tg_handle=eq.${encodeURIComponent(tgUsername)}&tg_verified=eq.true&limit=1`,
+        H, null);
+      if (profileRes.status === 200 && Array.isArray(profileRes.body) && profileRes.body.length > 0) {
+        // User linked TG to Google account — can't sign in with password for that account
+        // Create a separate TG account instead
+      }
+    }
+
+    // 3. Create new user if needed
+    if (!userId) {
       const createRes = await httpRequest('POST', host, '/auth/v1/admin/users', H, {
         email: tgEmail,
+        password: tgPassword,
         email_confirm: true,
-        password: crypto.randomBytes(32).toString('hex'),
         user_metadata: {
           full_name: displayName,
           avatar_url: avatarUrl,
@@ -124,56 +127,16 @@ module.exports = async function handler(req, res) {
         }
       });
 
-      console.log('Create user response:', createRes.status, JSON.stringify(createRes.body).slice(0, 300));
-
       if (createRes.status !== 200 && createRes.status !== 201) {
+        console.error('Create user failed:', JSON.stringify(createRes.body).slice(0, 300));
         return res.status(500).json({ error: 'Failed to create user', detail: createRes.body?.msg || createRes.body?.message || '' });
       }
       userId = createRes.body.id;
-      existingEmail = tgEmail;
     }
 
-    // 4. Generate a magic link for this user
-    const email = existingEmail || tgEmail;
-    const linkRes = await httpRequest('POST', host, '/auth/v1/admin/generate_link', H, {
-      type: 'magiclink',
-      email: email,
-    });
-
-    console.log('Generate link response:', linkRes.status, JSON.stringify(linkRes.body).slice(0, 500));
-
-    if (linkRes.status !== 200) {
-      return res.status(500).json({ error: 'Failed to generate session', detail: linkRes.body?.msg || linkRes.body?.message || '' });
-    }
-
-    // Try multiple locations for the token
-    const props = linkRes.body?.properties || {};
-    const actionLink = props.action_link || '';
-    
-    // Try hashed_token directly (newer Supabase versions)
-    let tokenHash = props.hashed_token || null;
-    
-    // Try token_hash from URL
-    if (!tokenHash) {
-      const m1 = actionLink.match(/token_hash=([^&]+)/);
-      if (m1) tokenHash = m1[1];
-    }
-    
-    // Try token from URL
-    if (!tokenHash) {
-      const m2 = actionLink.match(/token=([^&]+)/);
-      if (m2) tokenHash = m2[1];
-    }
-
-    if (!tokenHash) {
-      console.error('No token in response. Props:', JSON.stringify(props).slice(0, 500));
-      return res.status(500).json({ error: 'Failed to extract token', detail: 'action_link: ' + actionLink.slice(0, 100) });
-    }
-
-    // 5. Ensure profile exists with TG verification
+    // 4. Ensure profile exists
     const checkProfile = await httpRequest('GET', host,
-      `/rest/v1/profiles?select=id&id=eq.${userId}`,
-      H, null);
+      `/rest/v1/profiles?select=id&id=eq.${userId}`, H, null);
 
     if (checkProfile.status === 200 && Array.isArray(checkProfile.body) && checkProfile.body.length > 0) {
       await httpRequest('PATCH', host, `/rest/v1/profiles?id=eq.${userId}`, {
@@ -187,7 +150,7 @@ module.exports = async function handler(req, res) {
         ...H, 'Prefer': 'return=minimal'
       }, {
         id: userId,
-        email: email,
+        email: tgEmail,
         display_name: displayName,
         avatar_url: avatarUrl,
         tg_handle: tgUsername,
@@ -195,9 +158,10 @@ module.exports = async function handler(req, res) {
       });
     }
 
+    // 5. Return credentials — client will use signInWithPassword
     return res.status(200).json({
-      token_hash: tokenHash,
-      email: email,
+      email: tgEmail,
+      password: tgPassword,
     });
 
   } catch (e) {

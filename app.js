@@ -899,12 +899,14 @@ async function handleTelegramAuthData(tgData) {
     });
     const result = await res.json();
     if (!res.ok) { alert('Login failed: ' + (result.detail || result.error || 'Unknown error')); return; }
-    const { error } = await _sb.auth.verifyOtp({
-      token_hash: result.token_hash,
-      type: 'magiclink'
+    // Sign in with the credentials returned by server
+    const { error } = await _sb.auth.signInWithPassword({
+      email: result.email,
+      password: result.password,
     });
     if (error) { alert('Session failed: ' + error.message); return; }
     sessionStorage.removeItem('tgLoginPending');
+    // onAuthStateChange will handle the rest
   } catch (e) {
     alert('Login failed: ' + e.message);
   }
