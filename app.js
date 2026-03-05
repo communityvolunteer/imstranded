@@ -2,7 +2,7 @@
 // CONFIG
 // ============================================================
 const SUPABASE_URL  = 'https://nzvlvqyitsjuxnafcuhl.supabase.co';
-const SUPABASE_ANON = 'sb_publishable_jEEyPd33KHXKXM53QvrIKQ_JpzQNSGr';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im56dmx2cXlpdHNqdXhuYWZjdWhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0MTQxOTEsImV4cCI6MjA4Nzk5MDE5MX0.K4JCnTJTBR7zQBaLmxbeZS2QBRCIxdVzbZKrmapOEkw';
 const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 const SB_ON = !SUPABASE_URL.includes('YOUR_PROJECT_ID');
 
