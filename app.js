@@ -716,7 +716,7 @@ function mTab(tab,btn){
   if(tab==='map'){_mSheetOpen=false;sheet.classList.remove('open');}
   else if(tab==='resources') mShowSheetContent('resources','ADDITIONAL RESOURCES');
   else if(tab==='offer')     mShowSheetContent('offer','OFFER A SPARE ROOM');
-  else if(tab==='profile')   mShowSheetContent('profile','MY PROFILE');
+  else if(tab==='profile')   { mShowSheetContent('profile','MY PROFILE'); renderMobileProfileView(); }
 }
 
 function mShowSheetContent(which,title){
@@ -805,8 +805,8 @@ async function initAuth() {
     _currentUser = session.user;
     await loadProfile();
     // Check if we just came back from OAuth
-    if (window.location.hash === '#profile') {
-      window.location.hash = '';
+    if (sessionStorage.getItem('postLogin') === 'profile') {
+      sessionStorage.removeItem('postLogin');
       if (!isMob()) showView('profile');
       else mTab('profile', document.getElementById('mtab-filters'));
     }
@@ -816,6 +816,12 @@ async function initAuth() {
     if (event === 'SIGNED_IN' && session?.user) {
       _currentUser = session.user;
       await loadProfile();
+      // Check if this is a fresh OAuth return
+      if (sessionStorage.getItem('postLogin') === 'profile') {
+        sessionStorage.removeItem('postLogin');
+        if (!isMob()) showView('profile');
+        else mTab('profile', document.getElementById('mtab-filters'));
+      }
     } else if (event === 'SIGNED_OUT') {
       _currentUser = null;
       _currentProfile = null;
@@ -836,9 +842,10 @@ async function loadProfile() {
 }
 
 async function signInWithGoogle() {
+  sessionStorage.setItem('postLogin', 'profile');
   const { error } = await _sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.origin + window.location.pathname + '#profile' }
+    options: { redirectTo: window.location.origin + window.location.pathname }
   });
   if (error) alert('Sign in failed: ' + error.message);
 }
