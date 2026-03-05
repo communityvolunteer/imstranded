@@ -834,7 +834,20 @@ async function initAuth() {
 
 async function loadProfile() {
   if (!_currentUser) return;
-  const { data } = await _sb.from('profiles').select('*').eq('id', _currentUser.id).single();
+  let { data } = await _sb.from('profiles').select('*').eq('id', _currentUser.id).single();
+  // If no profile exists (user signed up before trigger was created), create one
+  if (!data) {
+    const meta = _currentUser.user_metadata || {};
+    await _sb.from('profiles').insert({
+      id: _currentUser.id,
+      email: _currentUser.email,
+      display_name: meta.full_name || meta.name || '',
+      avatar_url: meta.avatar_url || meta.picture || '',
+      google_verified: true
+    });
+    const res = await _sb.from('profiles').select('*').eq('id', _currentUser.id).single();
+    data = res.data;
+  }
   _currentProfile = data;
   if (_currentProfile?.avatar_url) setProfileAvatar(_currentProfile.avatar_url);
   renderProfileView();
@@ -850,7 +863,7 @@ async function signInWithGoogle() {
   if (error) alert('Sign in failed: ' + error.message);
 }
 
-async function signOut() {
+async function doSignOut() {
   await _sb.auth.signOut();
   _currentUser = null;
   _currentProfile = null;
