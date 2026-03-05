@@ -91,15 +91,15 @@ module.exports = async function handler(req, res) {
 
     const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
 
-    // Try api.x.com first, fall back to api.twitter.com
-    let tokenRes = await httpRequest('POST', 'api.x.com', '/2/oauth2/token', {
+    // Try api.twitter.com first (more reliable), fall back to api.x.com
+    let tokenRes = await httpRequest('POST', 'api.twitter.com', '/2/oauth2/token', {
       'Content-Type': 'application/x-www-form-urlencoded',
       'Authorization': `Basic ${basicAuth}`,
     }, tokenBody);
 
     if (tokenRes.status !== 200) {
-      console.log('api.x.com failed, trying api.twitter.com');
-      tokenRes = await httpRequest('POST', 'api.twitter.com', '/2/oauth2/token', {
+      console.log('api.twitter.com failed, trying api.x.com');
+      tokenRes = await httpRequest('POST', 'api.x.com', '/2/oauth2/token', {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Authorization': `Basic ${basicAuth}`,
       }, tokenBody);
@@ -113,12 +113,12 @@ module.exports = async function handler(req, res) {
     const accessToken = tokenRes.body.access_token;
 
     // ── 2. Fetch X user profile ──
-    let meRes = await httpRequest('GET', 'api.x.com', '/2/users/me?user.fields=profile_image_url,username,name', {
+    let meRes = await httpRequest('GET', 'api.twitter.com', '/2/users/me?user.fields=profile_image_url,username,name', {
       'Authorization': `Bearer ${accessToken}`,
     }, null);
 
     if (meRes.status !== 200) {
-      meRes = await httpRequest('GET', 'api.twitter.com', '/2/users/me?user.fields=profile_image_url,username,name', {
+      meRes = await httpRequest('GET', 'api.x.com', '/2/users/me?user.fields=profile_image_url,username,name', {
         'Authorization': `Bearer ${accessToken}`,
       }, null);
     }
