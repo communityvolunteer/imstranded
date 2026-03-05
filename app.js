@@ -307,6 +307,49 @@ function clearDataPins(map) {
   _dataPins.airports = [];
 }
 
+// ============================================================
+// CONTACT BUTTONS + TIP TWEET HELPERS
+// ============================================================
+function buildContactButtons(contact, xhandle, name) {
+  if (!contact) return '';
+  const c = contact.trim();
+  const btns = [];
+  const btnStyle = 'display:inline-flex;align-items:center;gap:3px;padding:.22rem .55rem;border-radius:5px;font-size:.66rem;font-weight:700;text-decoration:none;font-family:Inter,sans-serif;white-space:nowrap;';
+
+  // Email
+  const emailMatch = c.match(/[\w.-]+@[\w.-]+\.\w+/);
+  if (emailMatch) {
+    btns.push(`<a href="mailto:${emailMatch[0]}" target="_blank" style="${btnStyle}background:#059669;color:#fff" title="Email">✉ Email</a>`);
+  }
+
+  // Phone / WhatsApp
+  const phoneMatch = c.match(/\+?[\d\s\-().]{7,}/);
+  if (phoneMatch) {
+    const digits = phoneMatch[0].replace(/[\s\-().]/g, '');
+    btns.push(`<a href="tel:${digits}" style="${btnStyle}background:#374151;color:#fff" title="Call">📞 Call</a>`);
+    btns.push(`<a href="https://wa.me/${digits.replace(/^\+/,'')}" target="_blank" style="${btnStyle}background:#25d366;color:#fff" title="WhatsApp">💬 WhatsApp</a>`);
+  }
+
+  // Telegram @handle
+  const tgMatch = c.match(/@([A-Za-z0-9_]{3,})/);
+  if (tgMatch) {
+    btns.push(`<a href="https://t.me/${tgMatch[1]}" target="_blank" style="${btnStyle}background:#229ED9;color:#fff" title="Telegram">✈ Telegram</a>`);
+  }
+
+  // X/Twitter handle
+  if (xhandle) {
+    btns.push(`<a href="https://x.com/${xhandle}" target="_blank" style="${btnStyle}background:#000;color:#fff;border:1px solid rgba(255,255,255,.2)" title="X / Twitter">𝕏 @${xhandle}</a>`);
+  }
+
+  return btns.length ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:.5rem">${btns.join('')}</div>` : '';
+}
+
+function buildTipButton(xhandle) {
+  if (!xhandle) return '';
+  const tweetText = encodeURIComponent(`@bankrbot Tip 1 $HELP to @${xhandle}`);
+  return `<a href="https://x.com/intent/tweet?text=${tweetText}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;margin-top:.45rem;padding:.28rem .65rem;background:#3498ec;color:#fff;font-size:.68rem;font-weight:700;border-radius:5px;text-decoration:none;font-family:Inter,sans-serif">💰 Tip $HELP</a>`;
+}
+
 async function renderPostsOnMap(map) {
   if (!map) return;
   const cluster = (map === window._mobileMap) ? _mHelpCluster : _helpCluster;
@@ -330,12 +373,13 @@ async function renderPostsOnMap(map) {
       iconSize:[14,14],iconAnchor:[7,7]
     });
     const m = L.marker([geo.lat,geo.lng],{icon:helpIcon})
-      .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:200px">
-        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#93c5fd;margin-bottom:.25rem">SPARE ROOMS</div>
+      .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:220px;max-width:280px">
+        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#93c5fd;margin-bottom:.25rem">SPARE ROOM</div>
         <div style="font-weight:600;font-size:.84rem;margin-bottom:.2rem;color:#fff">${p.name}</div>
-        <div style="font-size:.77rem;color:rgba(255,255,255,.75);line-height:1.5;margin-bottom:.4rem">${(p.body||'').slice(0,100)}${(p.body||'').length>100?'...':''}</div>
-        <div style="font-size:.7rem;color:rgba(255,255,255,.5)">${p.location}</div>
-        ${p.xhandle?`<a href="https://x.com/${p.xhandle}" target="_blank" style="display:inline-block;margin-top:.4rem;background:#3b82f6;color:#fff;font-size:.68rem;font-weight:700;padding:.2rem .55rem;border-radius:5px;text-decoration:none">Tip $HELP</a>`:''}
+        <div style="font-size:.77rem;color:rgba(255,255,255,.75);line-height:1.5;margin-bottom:.3rem">${(p.body||'').slice(0,120)}${(p.body||'').length>120?'...':''}</div>
+        <div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-bottom:.15rem">📍 ${p.location}</div>
+        ${buildContactButtons(p.contact, p.xhandle, p.name)}
+        ${buildTipButton(p.xhandle)}
       </div>`);
     if (cluster) cluster.addLayer(m);
     _mk.help.push(m);
@@ -424,9 +468,10 @@ function renderPosts() {
       <div class="post-body">${p.body}</div>
       <div class="post-footer">
         <span style="font-size:.77rem;color:var(--muted)">${p.name}</span>
-        ${p.contact?`<span style="font-size:.75rem;color:var(--brand)">${p.contact}</span>`:''}
-        ${p.xhandle?`<a class="tip-btn" href="https://x.com/${p.xhandle}" target="_blank">Tip $HELP</a>`:''}
-      </div></div>`;
+      </div>
+      ${buildContactButtons(p.contact, p.xhandle, p.name)}
+      ${buildTipButton(p.xhandle)}
+    </div>`;
   }).join('');
 }
 

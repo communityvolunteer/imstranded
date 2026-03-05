@@ -149,7 +149,7 @@
           <div class="form-row"><label>Details</label><textarea id="offer-body" placeholder="Describe what you can offer&hellip;"></textarea></div>
           <div class="form-row"><label>Your name</label><input type="text" id="offer-name" placeholder="First name or handle"></div>
           <div class="form-row"><label>Contact (will be public)</label><input type="text" id="offer-contact" placeholder="@telegram or email"></div>
-          <div class="form-row"><label>X/Twitter <span style="color:var(--muted);font-weight:400">(optional)</span></label><input type="text" id="offer-xhandle" placeholder="@yourhandle"></div>
+          <div class="form-row"><label>X/Twitter <span style="color:var(--muted);font-weight:400">(optional)</span></label><div style="position:relative"><span style="position:absolute;left:.85rem;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.7);font-weight:600;font-size:.88rem;pointer-events:none">@</span><input type="text" id="offer-xhandle" placeholder="yourhandle" style="padding-left:1.7rem"></div></div>
           <div class="form-row"><label>Password <span style="color:var(--muted);font-weight:400">(to edit/delete later)</span></label><input type="text" id="offer-password" placeholder="Something you'll remember"></div>
           <button class="submit-btn submit-btn--offer" onclick="submitPost('offer')">List Spare Room</button>
         </div>
@@ -242,7 +242,7 @@
         <div class="m-form-row"><label class="m-form-label">Details</label><textarea id="m-offer-body" placeholder="Describe what you can offer&hellip;"></textarea></div>
         <div class="m-form-row"><label class="m-form-label">Your Name</label><input type="text" id="m-offer-name" placeholder="First name or handle"></div>
         <div class="m-form-row"><label class="m-form-label">Contact <span>(public)</span></label><input type="text" id="m-offer-contact" placeholder="@telegram or email"></div>
-        <div class="m-form-row"><label class="m-form-label">X Handle <span>(optional)</span></label><input type="text" id="m-offer-xhandle" placeholder="@yourhandle"></div>
+        <div class="m-form-row"><label class="m-form-label">X Handle <span>(optional)</span></label><div style="position:relative"><span style="position:absolute;left:.95rem;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.7);font-weight:600;font-size:.95rem;pointer-events:none">@</span><input type="text" id="m-offer-xhandle" placeholder="yourhandle" style="padding-left:1.8rem"></div></div>
         <div class="m-form-row"><label class="m-form-label">Password <span>(to edit/delete later)</span></label><input type="text" id="m-offer-password" placeholder="Something you'll remember"></div>
         <button class="m-submit" onclick="mSubmitOffer()">List Spare Room</button>
       </div>
