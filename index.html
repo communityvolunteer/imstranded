@@ -27,6 +27,9 @@
     <button onclick="showView('resources')">Additional Resources</button>
   </nav>
   <div class="header-right">
+    <button class="profile-btn" onclick="showView('profile')" title="My Profile">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </button>
     <button class="back-btn" onclick="window.location.href='/'">Back to home page &rsaquo;</button>
   </div>
 </header>
@@ -162,6 +165,72 @@
   </div>
 </div>
 
+<!-- PROFILE VIEW -->
+<div id="profile-view" class="view">
+  <div class="container" style="max-width:720px">
+
+    <!-- Login state -->
+    <div id="profile-login" style="padding:3rem 0;text-align:center">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:1rem"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <div class="section-title" style="margin-bottom:.3rem">My Profile</div>
+      <div class="section-subtitle" style="margin-bottom:1.5rem">Enter your post password to access your profile and manage your listings.</div>
+      <div style="max-width:320px;margin:0 auto">
+        <div class="form-row"><input type="text" id="profile-password" placeholder="Your post password" style="text-align:center"></div>
+        <button class="submit-btn submit-btn--offer" onclick="profileLogin()" style="width:100%">Sign In</button>
+      </div>
+      <div style="margin-top:2rem;padding:1.2rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);text-align:left">
+        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.4rem">Coming Soon</div>
+        <div style="font-size:.84rem;color:var(--text2);line-height:1.6">Sign in with Google, X, or Telegram for a verified profile. Verified users get a <span style="color:#3498ec">✓</span> badge on their posts and can receive $HELP tips.</div>
+      </div>
+    </div>
+
+    <!-- Logged-in state -->
+    <div id="profile-main" style="display:none;padding:2rem 0">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+        <div class="section-title" style="margin-bottom:0">My Profile</div>
+        <button onclick="profileLogout()" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:.3rem .8rem;font-size:.72rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Sign Out</button>
+      </div>
+
+      <!-- Verification Section -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.5rem">
+        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.75rem">Verify Your Accounts</div>
+        <div style="font-size:.82rem;color:var(--text2);line-height:1.6;margin-bottom:1rem">Link your accounts to get a verified badge on your posts. Verified X accounts can receive <strong>$HELP</strong> tips from the community.</div>
+
+        <div class="verify-row">
+          <div class="verify-icon" style="background:#000">𝕏</div>
+          <div class="verify-info">
+            <div class="verify-name">X / Twitter</div>
+            <div class="verify-desc">Required for $HELP tips</div>
+          </div>
+          <button class="verify-btn verify-btn--pending" disabled>Coming Soon</button>
+        </div>
+        <div class="verify-row">
+          <div class="verify-icon" style="background:#ea4335">G</div>
+          <div class="verify-info">
+            <div class="verify-name">Google</div>
+            <div class="verify-desc">Verify your identity</div>
+          </div>
+          <button class="verify-btn verify-btn--pending" disabled>Coming Soon</button>
+        </div>
+        <div class="verify-row">
+          <div class="verify-icon" style="background:#229ED9">✈</div>
+          <div class="verify-info">
+            <div class="verify-name">Telegram</div>
+            <div class="verify-desc">Verify your identity</div>
+          </div>
+          <button class="verify-btn verify-btn--pending" disabled>Coming Soon</button>
+        </div>
+      </div>
+
+      <!-- My Posts -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem">
+        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.75rem">My Listings</div>
+        <div id="profile-posts-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════════════════════════════════════════════
      MOBILE SHELL
 ═══════════════════════════════════════════════════════ -->
@@ -221,10 +290,11 @@
       Back Home
     </a>
 
-    <!-- Edit My Post pill (right) -->
-    <a class="m-map-pill m-map-pill--right" href="#" onclick="openEditPostsSheet();return false;">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-      Edit My Post
+    <!-- My Profile pill (right) -->
+    <a class="m-map-pill m-map-pill--right" href="#" onclick="mTab('profile',document.getElementById('mtab-filters'));return false;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      MY PROFILE
+    </a>
     </a>
   </div>
 
@@ -247,10 +317,43 @@
         <button class="m-submit" onclick="mSubmitOffer()">List Spare Room</button>
       </div>
       <div id="m-edit-content" style="display:none">
-        <div class="m-form-note">Enter the password you chose when you posted.</div>
-        <div class="m-form-row"><label class="m-form-label">Your Password</label><input type="text" id="m-edit-contact" placeholder="The password you used"></div>
-        <button class="m-submit" onclick="mSearchMyPosts()">Find My Posts</button>
-        <div id="m-my-posts-list" style="margin-top:1rem"></div>
+        <!-- Mobile profile login -->
+        <div id="m-profile-login">
+          <div class="m-form-note">Enter your post password to manage your listings and profile.</div>
+          <div class="m-form-row"><label class="m-form-label">Your Password</label><input type="text" id="m-edit-contact" placeholder="The password you used"></div>
+          <button class="m-submit" onclick="mProfileLogin()">Sign In</button>
+          <div style="margin-top:1rem;padding:.8rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px">
+            <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.35);margin-bottom:.3rem">Coming Soon</div>
+            <div style="font-size:.78rem;color:rgba(255,255,255,.45);line-height:1.5">Sign in with Google, X, or Telegram for a verified <span style="color:#3498ec">✓</span> badge and $HELP tips.</div>
+          </div>
+        </div>
+        <!-- Mobile profile main -->
+        <div id="m-profile-main" style="display:none">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+            <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.4)">My Profile</div>
+            <button onclick="mProfileLogout()" style="background:none;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.5);border-radius:6px;padding:.25rem .6rem;font-size:.65rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Sign Out</button>
+          </div>
+          <!-- Verify accounts -->
+          <div style="margin-bottom:1rem">
+            <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.35);margin-bottom:.5rem">Verify Your Accounts</div>
+            <div class="m-verify-row">
+              <span style="font-size:.82rem;font-weight:700;color:#fff;flex:1">𝕏 X / Twitter</span>
+              <span style="font-size:.65rem;color:rgba(255,255,255,.35);font-weight:600">Coming Soon</span>
+            </div>
+            <div class="m-verify-row">
+              <span style="font-size:.82rem;font-weight:700;color:#fff;flex:1">G Google</span>
+              <span style="font-size:.65rem;color:rgba(255,255,255,.35);font-weight:600">Coming Soon</span>
+            </div>
+            <div class="m-verify-row">
+              <span style="font-size:.82rem;font-weight:700;color:#fff;flex:1">✈ Telegram</span>
+              <span style="font-size:.65rem;color:rgba(255,255,255,.35);font-weight:600">Coming Soon</span>
+            </div>
+            <div style="font-size:.72rem;color:rgba(255,255,255,.4);line-height:1.5;margin-top:.5rem">Verified users get a <span style="color:#3498ec">✓</span> badge. Link your X to enable $HELP tips.</div>
+          </div>
+          <!-- My posts -->
+          <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.35);margin-bottom:.5rem">My Listings</div>
+          <div id="m-my-posts-list" style="margin-top:.25rem"></div>
+        </div>
       </div>
     </div>
   </div>

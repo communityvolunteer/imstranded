@@ -156,6 +156,7 @@ function showView(name) {
   if (name === 'map' && !window._mapInit) initMap();
   if (name === 'resources') renderResources();
   if (name === 'help') { renderPosts(); }
+  if (name === 'profile') { renderProfileView(); }
 }
 
 // ============================================================
@@ -346,8 +347,19 @@ function buildContactButtons(contact, xhandle, name) {
 
 function buildTipButton(xhandle) {
   if (!xhandle) return '';
+  // TODO: check verified status once OAuth is wired up. For now all are unverified.
+  const verified = false;
+  if (!verified) {
+    return `<span style="display:inline-flex;align-items:center;gap:4px;margin-top:.45rem;padding:.28rem .65rem;background:rgba(255,255,255,.08);color:rgba(255,255,255,.3);font-size:.68rem;font-weight:700;border-radius:5px;font-family:Inter,sans-serif;cursor:default" title="Verify X account to enable tips">💰 Tip $HELP <span style="font-size:.58rem;opacity:.6">(verify X)</span></span>`;
+  }
   const tweetText = encodeURIComponent(`@bankrbot Tip 1 $HELP to @${xhandle}`);
   return `<a href="https://x.com/intent/tweet?text=${tweetText}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;margin-top:.45rem;padding:.28rem .65rem;background:#3498ec;color:#fff;font-size:.68rem;font-weight:700;border-radius:5px;text-decoration:none;font-family:Inter,sans-serif">💰 Tip $HELP</a>`;
+}
+
+function buildBadge(verified) {
+  return verified
+    ? '<span style="color:#3498ec;font-size:.7rem;font-weight:700" title="Verified">✓</span>'
+    : '<span style="color:rgba(150,150,150,.35);font-size:.7rem;font-weight:700" title="Not yet verified">✓</span>';
 }
 
 async function renderPostsOnMap(map) {
@@ -375,7 +387,7 @@ async function renderPostsOnMap(map) {
     const m = L.marker([geo.lat,geo.lng],{icon:helpIcon})
       .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:220px;max-width:280px">
         <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#93c5fd;margin-bottom:.25rem">SPARE ROOM</div>
-        <div style="font-weight:600;font-size:.84rem;margin-bottom:.2rem;color:#fff">${p.name}</div>
+        <div style="font-weight:600;font-size:.84rem;margin-bottom:.2rem;color:#fff">${p.name} ${buildBadge(false)}</div>
         <div style="font-size:.77rem;color:rgba(255,255,255,.75);line-height:1.5;margin-bottom:.3rem">${(p.body||'').slice(0,120)}${(p.body||'').length>120?'...':''}</div>
         <div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-bottom:.15rem">📍 ${p.location}</div>
         ${buildContactButtons(p.contact, p.xhandle, p.name)}
@@ -467,7 +479,7 @@ function renderPosts() {
       <div class="post-loc">📍 ${p.location}</div>
       <div class="post-body">${p.body}</div>
       <div class="post-footer">
-        <span style="font-size:.77rem;color:var(--muted)">${p.name}</span>
+        <span style="font-size:.77rem;color:var(--muted)">${p.name} ${buildBadge(false)}</span>
       </div>
       ${buildContactButtons(p.contact, p.xhandle, p.name)}
       ${buildTipButton(p.xhandle)}
@@ -707,13 +719,13 @@ function mTab(tab,btn){
   if(tab==='map'){_mSheetOpen=false;sheet.classList.remove('open');}
   else if(tab==='resources') mShowSheetContent('resources','ADDITIONAL RESOURCES');
   else if(tab==='offer')     mShowSheetContent('offer','OFFER A SPARE ROOM');
-  else if(tab==='edit')      mShowSheetContent('edit','Edit My Post');
+  else if(tab==='profile')   mShowSheetContent('profile','MY PROFILE');
 }
 
 function mShowSheetContent(which,title){
   document.getElementById('m-resources-content').style.display=which==='resources'?'block':'none';
   document.getElementById('m-offer-content').style.display=which==='offer'?'block':'none';
-  document.getElementById('m-edit-content').style.display=which==='edit'?'block':'none';
+  document.getElementById('m-edit-content').style.display=which==='profile'?'block':'none';
   document.getElementById('m-sheet-title').textContent=title;
   _mSheetOpen=true;document.getElementById('m-sheet').classList.add('open');
 }
@@ -763,49 +775,125 @@ async function mSubmitOffer(){
 }
 
 // ============================================================
-// Edit My Post
+// PROFILE SYSTEM
 // ============================================================
-function openEditPostsSheet(){
-  mTab('edit', document.getElementById('mtab-filters'));
-}
+let _profilePassword = null;
 
-async function mSearchMyPosts(){
-  const code = (document.getElementById('m-edit-contact')?.value||'').trim();
-  if(!code){alert('Please enter your password.');return;}
-  const list = document.getElementById('m-my-posts-list');
-  if(!list)return;
-  list.innerHTML='<div style="color:rgba(255,255,255,.5);font-size:.82rem;padding:.5rem 0">Searching...</div>';
-  try{
-    const{data,error}=await _sb.from('help_posts').select('id,location,body,created_at').eq('edit_code',code).eq('type','offer').eq('flagged',false).order('created_at',{ascending:false});
-    if(error)throw error;
-    if(!data||!data.length){
-      list.innerHTML='<div style="color:rgba(255,255,255,.5);font-size:.82rem;padding:.5rem 0">No posts found for that password.</div>';
-      return;
-    }
-    list.innerHTML=data.map(p=>{
-      const t=p.created_at?new Date(p.created_at).toLocaleString():'';
-      return `<div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.75rem;margin-bottom:.6rem">
-        <div style="font-size:.7rem;color:rgba(255,255,255,.45);margin-bottom:.2rem">${t}</div>
-        <div style="font-size:.85rem;font-weight:600;color:#fff;margin-bottom:.15rem">📍 ${p.location}</div>
-        <div style="font-size:.8rem;color:rgba(255,255,255,.7);line-height:1.5;margin-bottom:.6rem">${(p.body||'').slice(0,120)}${(p.body||'').length>120?'...':''}</div>
-        <div style="display:flex;gap:.5rem">
-          <button onclick="mDeletePost('${p.id}','${code}')" style="background:#ec3452;color:#fff;border:none;border-radius:7px;padding:.35rem .8rem;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Delete</button>
-        </div>
-      </div>`;
-    }).join('');
-  }catch(e){
-    list.innerHTML=`<div style="color:#ec3452;font-size:.82rem;padding:.5rem 0">Error: ${e.message}</div>`;
+function renderProfileView() {
+  const loginEl = document.getElementById('profile-login');
+  const mainEl = document.getElementById('profile-main');
+  if (_profilePassword) {
+    if (loginEl) loginEl.style.display = 'none';
+    if (mainEl) mainEl.style.display = 'block';
+    renderProfilePosts();
+  } else {
+    if (loginEl) loginEl.style.display = 'block';
+    if (mainEl) mainEl.style.display = 'none';
   }
 }
 
-async function mDeletePost(id, code){
-  if(!confirm('Delete this post? This cannot be undone.'))return;
-  try{
-    const{error}=await _sb.from('help_posts').update({flagged:true}).eq('id',id).eq('edit_code',code);
-    if(error)throw error;
-    mSearchMyPosts();
+async function profileLogin() {
+  const pw = document.getElementById('profile-password')?.value?.trim();
+  if (!pw) { alert('Please enter your password.'); return; }
+  const { data, error } = await _sb.from('help_posts').select('id').eq('edit_code', pw).eq('flagged', false).limit(1);
+  if (error || !data || !data.length) { alert('No posts found for that password.'); return; }
+  _profilePassword = pw;
+  renderProfileView();
+}
+
+function profileLogout() {
+  _profilePassword = null;
+  document.getElementById('profile-password').value = '';
+  renderProfileView();
+}
+
+async function renderProfilePosts() {
+  const el = document.getElementById('profile-posts-list');
+  if (!el || !_profilePassword) return;
+  el.innerHTML = '<div style="font-size:.82rem;color:var(--muted);padding:.5rem 0">Loading...</div>';
+  const { data, error } = await _sb.from('help_posts').select('id,location,body,name,contact,xhandle,created_at').eq('edit_code', _profilePassword).eq('type', 'offer').eq('flagged', false).order('created_at', { ascending: false });
+  if (error || !data || !data.length) {
+    el.innerHTML = '<div style="font-size:.82rem;color:var(--muted);padding:.5rem 0">No listings found.</div>';
+    return;
+  }
+  el.innerHTML = data.map(p => {
+    const t = p.created_at ? new Date(p.created_at).toLocaleString() : '';
+    return `<div class="profile-post-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">
+        <span style="font-size:.78rem;font-weight:600;color:var(--text)">${p.name} <span class="badge-unverified" title="Verify accounts to get a blue badge">✓</span></span>
+        <span style="font-size:.63rem;color:var(--muted)">${t}</span>
+      </div>
+      <div style="font-size:.78rem;font-weight:600;color:var(--text2);margin-bottom:.2rem">📍 ${p.location}</div>
+      <div style="font-size:.82rem;color:var(--text2);line-height:1.5">${(p.body || '').slice(0, 150)}${(p.body || '').length > 150 ? '...' : ''}</div>
+      <div class="profile-post-actions">
+        <button onclick="profileDeletePost('${p.id}')" style="background:#ec3452;color:#fff;border:none;border-radius:6px;padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function profileDeletePost(id) {
+  if (!confirm('Delete this post? This cannot be undone.')) return;
+  try {
+    const { error } = await _sb.from('help_posts').update({ flagged: true }).eq('id', id).eq('edit_code', _profilePassword);
+    if (error) throw error;
+    renderProfilePosts();
     loadPosts();
-  }catch(e){alert('Failed to delete: '+e.message);}
+  } catch (e) { alert('Failed to delete: ' + e.message); }
+}
+
+// Mobile profile
+function mProfileLogin() {
+  const pw = (document.getElementById('m-edit-contact')?.value || '').trim();
+  if (!pw) { alert('Please enter your password.'); return; }
+  _profilePassword = pw;
+  document.getElementById('m-profile-login').style.display = 'none';
+  document.getElementById('m-profile-main').style.display = 'block';
+  mRenderProfilePosts();
+}
+
+function mProfileLogout() {
+  _profilePassword = null;
+  document.getElementById('m-edit-contact').value = '';
+  document.getElementById('m-profile-login').style.display = 'block';
+  document.getElementById('m-profile-main').style.display = 'none';
+}
+
+async function mRenderProfilePosts() {
+  const list = document.getElementById('m-my-posts-list');
+  if (!list || !_profilePassword) return;
+  list.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:.82rem;padding:.5rem 0">Loading...</div>';
+  try {
+    const { data, error } = await _sb.from('help_posts').select('id,location,body,created_at').eq('edit_code', _profilePassword).eq('type', 'offer').eq('flagged', false).order('created_at', { ascending: false });
+    if (error) throw error;
+    if (!data || !data.length) {
+      list.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:.82rem;padding:.5rem 0">No listings found.</div>';
+      return;
+    }
+    list.innerHTML = data.map(p => {
+      const t = p.created_at ? new Date(p.created_at).toLocaleString() : '';
+      return `<div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.75rem;margin-bottom:.6rem">
+        <div style="font-size:.7rem;color:rgba(255,255,255,.45);margin-bottom:.2rem">${t}</div>
+        <div style="font-size:.85rem;font-weight:600;color:#fff;margin-bottom:.15rem">📍 ${p.location}</div>
+        <div style="font-size:.8rem;color:rgba(255,255,255,.7);line-height:1.5;margin-bottom:.6rem">${(p.body || '').slice(0, 120)}${(p.body || '').length > 120 ? '...' : ''}</div>
+        <div style="display:flex;gap:.5rem">
+          <button onclick="mProfileDeletePost('${p.id}')" style="background:#ec3452;color:#fff;border:none;border-radius:7px;padding:.35rem .8rem;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Delete</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    list.innerHTML = `<div style="color:#ec3452;font-size:.82rem;padding:.5rem 0">Error: ${e.message}</div>`;
+  }
+}
+
+async function mProfileDeletePost(id) {
+  if (!confirm('Delete this post? This cannot be undone.')) return;
+  try {
+    const { error } = await _sb.from('help_posts').update({ flagged: true }).eq('id', id).eq('edit_code', _profilePassword);
+    if (error) throw error;
+    mRenderProfilePosts();
+    loadPosts();
+  } catch (e) { alert('Failed to delete: ' + e.message); }
 }
 
 // ============================================================
