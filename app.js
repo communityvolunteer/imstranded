@@ -898,7 +898,7 @@ async function handleTelegramAuthData(tgData) {
       body: JSON.stringify(tgData)
     });
     const result = await res.json();
-    if (!res.ok) { alert('Login failed: ' + (result.error || 'Unknown error')); return; }
+    if (!res.ok) { alert('Login failed: ' + (result.detail || result.error || 'Unknown error')); return; }
     const { error } = await _sb.auth.verifyOtp({
       token_hash: result.token_hash,
       type: 'magiclink'
