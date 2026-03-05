@@ -388,7 +388,7 @@ transform: translateX(-50%);
 .post-card{background:#181819;border-left:3px solid #3498ec;border-radius:var(--radius-sm);padding:1rem;}
 .post-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem;}
 .post-type{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#3498ec;}
-.post-time{font-size:.63rem;color:var(--muted);}
+.post-time{font-size:.63rem;color:#86b6dd;}
 .post-loc{font-size:.78rem;font-weight:600;color:#eaeaea;margin-bottom:.3rem;}
 .post-body{font-size:.84rem;color:var(--text2);line-height:1.5;margin-bottom:.6rem;}
 .post-footer{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}

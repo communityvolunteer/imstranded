@@ -889,6 +889,16 @@ function signInWithTelegram() {
   );
 }
 
+function signInWithX() {
+  sessionStorage.setItem('postLogin', 'profile');
+  window.location.href = '/api/auth/x-login?mode=login';
+}
+
+function linkX() {
+  if (!isLoggedIn()) { alert('Please sign in first.'); return; }
+  window.location.href = '/api/auth/x-login?mode=link&user_id=' + _currentUser.id;
+}
+
 async function handleTelegramAuthData(tgData) {
   if (!tgData) { alert('Telegram login cancelled.'); return; }
   try {
@@ -925,6 +935,36 @@ function checkTelegramRedirect() {
       handleTelegramAuthData(tgData);
     }
   } catch(e) {}
+}
+
+// Check for X OAuth credentials in URL hash
+async function checkXRedirect() {
+  const hash = window.location.hash;
+  if (!hash) return;
+
+  // X login: #x-login:email:password
+  if (hash.startsWith('#x-login:')) {
+    const parts = hash.replace('#x-login:', '').split(':');
+    if (parts.length >= 2) {
+      const email = parts[0];
+      const password = parts.slice(1).join(':');
+      window.location.hash = '';
+      sessionStorage.setItem('postLogin', 'profile');
+      const { error } = await _sb.auth.signInWithPassword({ email, password });
+      if (error) { console.error('X sign-in failed:', error.message); }
+    }
+    return;
+  }
+
+  // X link: #profile (just show profile after linking)
+  if (hash === '#profile') {
+    window.location.hash = '';
+    if (isLoggedIn()) {
+      await loadProfile();
+      if (!isMob()) showView('profile');
+      else mTab('profile', document.getElementById('mtab-filters'));
+    }
+  }
 }
 
 async function doSignOut() {
@@ -974,7 +1014,7 @@ function updateVerifyStatus(provider, verified) {
       btn.className = 'p-verify-btn p-verify-btn--linked';
       btn.disabled = true;
       btn.onclick = null;
-    } else if (provider === 'tg') {
+    } else if (provider === 'tg' || provider === 'x') {
       btn.textContent = 'Link';
       btn.className = 'p-verify-btn p-verify-btn--link';
       btn.disabled = false;
@@ -992,7 +1032,7 @@ function updateVerifyStatus(provider, verified) {
       mLabel.style.color = '#3498ec';
       mLabel.style.cursor = 'default';
       mLabel.onclick = null;
-    } else if (provider === 'tg') {
+    } else if (provider === 'tg' || provider === 'x') {
       mLabel.textContent = 'Link';
       mLabel.style.color = '#3498ec';
       mLabel.style.cursor = 'pointer';
@@ -1177,6 +1217,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   initLocationAutocomplete('m-offer-location','m-offer-lat','m-offer-lng','m-offer-location-ac');
   initAuth();
   checkTelegramRedirect();
+  checkXRedirect();
   refreshSitrep();
   setInterval(refreshSitrep,5*60*1000);
   if(SB_ON){loadPosts();subscribeStream();}
