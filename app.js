@@ -120,6 +120,8 @@ async function fetchSitrepFromSupabase() {
 // ============================================================
 const SC = {danger:'#a855f7',warn:'#a855f7',safe:'#a855f7'};
 const _mk = {country:[],routes:[],worldwide:[],help:[]};
+let _helpCluster = null;
+let _mHelpCluster = null;
 let _activeFilter = 'all';
 let _postMarkers = [];
 let posts = [];
@@ -196,9 +198,10 @@ function filterMap(type) {
   _mk.worldwide.forEach(m => {
     (type==='all'||type==='worldwide') ? m.addTo(map) : map.removeLayer(m);
   });
-  _mk.help.forEach(m => {
-    (type==='all'||type==='help') ? m.addTo(map) : map.removeLayer(m);
-  });
+  // Help cluster layer
+  if (_helpCluster) {
+    (type==='all'||type==='help') ? map.addLayer(_helpCluster) : map.removeLayer(_helpCluster);
+  }
 
   if (type==='airports'||type==='cancelled'||type==='stranded') {
     renderAirportPins(map, type); map.flyTo([28,47],5,{duration:1});
@@ -247,6 +250,15 @@ function initMap() {
     _mk.worldwide.push(m);
   });
 
+  _helpCluster = L.markerClusterGroup({
+    maxClusterRadius: 50,
+    spiderfyOnMaxZoom: true,
+    showCoverageOnHover: false,
+    zoomToBoundsOnClick: true,
+    disableClusteringAtZoom: 13,
+  });
+  map.addLayer(_helpCluster);
+
   renderPostsOnMap(map);
   window._crisisMap = map;
 }
@@ -290,15 +302,16 @@ function clearDataPins(map) {
 
 async function renderPostsOnMap(map) {
   if (!map) return;
-  [..._mk.help, ..._postMarkers].forEach(m => { try { map.removeLayer(m); } catch(e) {} });
+  const cluster = (map === window._mobileMap) ? _mHelpCluster : _helpCluster;
+  if (cluster) cluster.clearLayers();
   _mk.help.length = 0; _postMarkers = [];
 
   for (const p of posts) {
     if (!p.location) continue;
-    if (p.type !== 'offer') continue; // only show offers on map
+    if (p.type !== 'offer') continue;
     const geo = await geocodeCity(p.location);
     if (!geo) continue;
-    const m = L.circleMarker([geo.lat,geo.lng],{radius:7,fillColor:'#3b82f6',color:'#fff',weight:2,opacity:1,fillOpacity:.9}).addTo(map)
+    const m = L.circleMarker([geo.lat,geo.lng],{radius:7,fillColor:'#3b82f6',color:'#fff',weight:2,opacity:1,fillOpacity:.9})
       .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:200px">
         <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#93c5fd;margin-bottom:.25rem">SPARE ROOMS</div>
         <div style="font-weight:600;font-size:.84rem;margin-bottom:.2rem;color:#fff">${p.name}</div>
@@ -306,16 +319,23 @@ async function renderPostsOnMap(map) {
         <div style="font-size:.7rem;color:rgba(255,255,255,.5)">${p.location}</div>
         ${p.xhandle?`<a href="https://x.com/${p.xhandle}" target="_blank" style="display:inline-block;margin-top:.4rem;background:#3b82f6;color:#fff;font-size:.68rem;font-weight:700;padding:.2rem .55rem;border-radius:5px;text-decoration:none">Tip $HELP</a>`:''}
       </div>`);
+    if (cluster) cluster.addLayer(m);
     _mk.help.push(m);
     _postMarkers.push(m);
   }
 }
 
+const _geoCache = {};
 async function geocodeCity(city) {
+  if (_geoCache[city]) return _geoCache[city];
   try {
     const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`,{headers:{'Accept-Language':'en','User-Agent':'ImStranded/1.0'}});
     const d = await r.json();
-    if (d && d[0]) return {lat:parseFloat(d[0].lat),lng:parseFloat(d[0].lon)};
+    if (d && d[0]) {
+      const result = {lat:parseFloat(d[0].lat),lng:parseFloat(d[0].lon)};
+      _geoCache[city] = result;
+      return result;
+    }
   } catch(e) {}
   return null;
 }
@@ -479,12 +499,12 @@ async function refreshSitrep() {
 async function loadPosts() {
   if(!SB_ON)return;
   const{data}=await _sb.from('help_posts').select('*').eq('flagged',false).eq('type','offer').order('created_at',{ascending:false}).limit(100);
-  if(data){posts=data;renderPosts();renderPostsOnMap(window._crisisMap);}
+  if(data){posts=data;renderPosts();renderPostsOnMap(window._crisisMap||window._mobileMap);}
 }
 function subscribeStream(){
   if(!SB_ON)return;
   _sb.channel('help_posts').on('postgres_changes',{event:'INSERT',schema:'public',table:'help_posts'},p=>{
-    if(p.new.type==='offer'){posts.unshift(p.new);renderPosts();renderPostsOnMap(window._crisisMap);}
+    if(p.new.type==='offer'){posts.unshift(p.new);renderPosts();renderPostsOnMap(window._crisisMap||window._mobileMap);}
   }).subscribe();
   // Live sitrep updates — when scraper writes new data, refresh instantly
   _sb.channel('sitrep').on('postgres_changes',{event:'UPDATE',schema:'public',table:'sitrep'},()=>{
@@ -514,6 +534,14 @@ function initMobile(){
       .on('click',()=>openMWorldwidePopup(r.id));
   });
   window._mobileMap=mmap;
+  _mHelpCluster = L.markerClusterGroup({
+    maxClusterRadius: 50,
+    spiderfyOnMaxZoom: true,
+    showCoverageOnHover: false,
+    zoomToBoundsOnClick: true,
+    disableClusteringAtZoom: 13,
+  });
+  mmap.addLayer(_mHelpCluster);
   mRenderResources();
 }
 

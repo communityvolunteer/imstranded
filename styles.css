@@ -218,6 +218,21 @@ transform: translateX(-50%);
   white-space:nowrap;width:fit-content !important;max-width:none !important;
 }
 
+/* Marker clusters — blue theme */
+.marker-cluster-small,.marker-cluster-medium,.marker-cluster-large{
+  background:rgba(52,152,236,.35);
+}
+.marker-cluster-small div,.marker-cluster-medium div,.marker-cluster-large div{
+  background:#3498ec;color:#fff;
+  font-family:'Inter',sans-serif;font-weight:800;font-size:13px;
+}
+.marker-cluster{background-clip:padding-box;border-radius:50%;}
+.marker-cluster div{
+  width:36px;height:36px;margin-left:6px;margin-top:6px;
+  border-radius:50%;text-align:center;line-height:36px;
+}
+.marker-cluster span{line-height:36px;}
+
 /* ── RESOURCES VIEW ─────────────────────────────────────── */
 #resources-view{padding:2.5rem 0;background:#0c0d0d;}
 .section-header{margin-bottom:1.5rem;}
