@@ -473,7 +473,7 @@ function renderPosts() {
   el.innerHTML = offerPosts.map(p => {
     const t = p.created_at ? new Date(p.created_at).toLocaleString() : '';
     return `<div class="post-card">
-      <div class="post-header"><span class="post-type">Spare Room</span><span class="post-time">${t}</span></div>
+      <div class="post-header"><span class="post-type">Offering</span><span class="post-time">${t}</span></div>
       <div class="post-loc">📍 ${p.location}</div>
       <div class="post-body">${p.body}</div>
       <div class="post-footer">
@@ -942,6 +942,25 @@ async function checkXRedirect() {
   const hash = window.location.hash;
   if (!hash) return;
 
+  // X error: #x-error:message
+  if (hash.startsWith('#x-error:')) {
+    const msg = decodeURIComponent(hash.replace('#x-error:', ''));
+    window.location.hash = '';
+    alert(msg);
+    return;
+  }
+
+  // X linked successfully: #x-linked
+  if (hash === '#x-linked') {
+    window.location.hash = '';
+    if (isLoggedIn()) {
+      await loadProfile();
+      if (!isMob()) showView('profile');
+      else mTab('profile', document.getElementById('mtab-filters'));
+    }
+    return;
+  }
+
   // X login: #x-login:email:password
   if (hash.startsWith('#x-login:')) {
     const parts = hash.replace('#x-login:', '').split(':');
@@ -951,12 +970,12 @@ async function checkXRedirect() {
       window.location.hash = '';
       sessionStorage.setItem('postLogin', 'profile');
       const { error } = await _sb.auth.signInWithPassword({ email, password });
-      if (error) { console.error('X sign-in failed:', error.message); }
+      if (error) { alert('X sign-in failed: ' + error.message); }
     }
     return;
   }
 
-  // X link: #profile (just show profile after linking)
+  // Generic profile redirect: #profile
   if (hash === '#profile') {
     window.location.hash = '';
     if (isLoggedIn()) {

@@ -2,17 +2,18 @@
  * /api/auth/x-callback.js
  * Handles X/Twitter OAuth 2.0 callback
  * 
- * Env vars: X_CLIENT_ID, X_CLIENT_SECRET, SUPABASE_URL, SUPABASE_SERVICE_KEY, TELEGRAM_BOT_TOKEN
+ * Env vars: X_CLIENT_ID, X_CLIENT_SECRET, SUPABASE_URL, SUPABASE_SERVICE_KEY
  */
 
 const crypto = require('crypto');
 const https = require('https');
-const { URL } = require('url');
 
 function httpRequest(method, hostname, path, headers, body) {
   return new Promise((resolve, reject) => {
-    const opts = { hostname, path, method, headers: { ...headers }, timeout: 10000 };
-    if (!headers['Content-Type'] && body) opts.headers['Content-Type'] = 'application/json';
+    const bodyStr = typeof body === 'string' ? body : (body ? JSON.stringify(body) : null);
+    const h = { ...headers };
+    if (bodyStr) h['Content-Length'] = Buffer.byteLength(bodyStr);
+    const opts = { hostname, path, method, headers: h, timeout: 15000 };
     const req = https.request(opts, (res) => {
       let d = '';
       res.on('data', chunk => d += chunk);
@@ -22,10 +23,7 @@ function httpRequest(method, hostname, path, headers, body) {
       });
     });
     req.on('error', reject);
-    if (body) {
-      if (typeof body === 'string') req.write(body);
-      else req.write(JSON.stringify(body));
-    }
+    if (bodyStr) req.write(bodyStr);
     req.end();
   });
 }
@@ -43,6 +41,12 @@ function derivePassword(xId, secret) {
   return crypto.createHmac('sha256', secret).update('x_pwd_' + xId).digest('hex');
 }
 
+// Helper to redirect with visible error
+function errorRedirect(res, step, detail) {
+  const msg = encodeURIComponent(`X auth failed at ${step}: ${detail}`);
+  return res.redirect(`/#x-error:${msg}`);
+}
+
 module.exports = async function handler(req, res) {
   const clientId = process.env.X_CLIENT_ID;
   const clientSecret = process.env.X_CLIENT_SECRET;
@@ -50,12 +54,12 @@ module.exports = async function handler(req, res) {
   const serviceKey = process.env.SUPABASE_SERVICE_KEY;
 
   if (!clientId || !clientSecret || !supabaseUrl || !serviceKey) {
-    return res.status(500).send('Missing env vars');
+    return errorRedirect(res, 'config', 'missing env vars');
   }
 
   const { code, state, error: oauthError } = req.query;
-  if (oauthError) return res.redirect('/?error=' + oauthError);
-  if (!code || !state) return res.status(400).send('Missing code or state');
+  if (oauthError) return errorRedirect(res, 'oauth', oauthError);
+  if (!code || !state) return errorRedirect(res, 'params', 'missing code or state');
 
   // Parse cookie
   const cookies = parseCookies(req.headers.cookie);
@@ -63,20 +67,20 @@ module.exports = async function handler(req, res) {
   try {
     cookieData = JSON.parse(Buffer.from(cookies.x_auth || '', 'base64').toString());
   } catch (e) {
-    return res.status(400).send('Invalid session cookie');
+    return errorRedirect(res, 'cookie', 'invalid or missing session cookie');
   }
 
-  if (cookieData.state !== state) return res.status(401).send('State mismatch');
+  if (cookieData.state !== state) return errorRedirect(res, 'state', 'mismatch');
 
   // Clear cookie
   res.setHeader('Set-Cookie', 'x_auth=; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=0');
 
   const callbackUrl = `${req.headers['x-forwarded-proto'] || 'https'}://${req.headers.host}/api/auth/x-callback`;
   const host = supabaseUrl.replace('https://', '');
-  const H = { 'apikey': serviceKey, 'Authorization': `Bearer ${serviceKey}` };
+  const H = { 'apikey': serviceKey, 'Authorization': `Bearer ${serviceKey}`, 'Content-Type': 'application/json' };
 
   try {
-    // ── Exchange code for token ──
+    // ── 1. Exchange code for token ──
     const tokenBody = new URLSearchParams({
       grant_type: 'authorization_code',
       code: code,
@@ -87,30 +91,41 @@ module.exports = async function handler(req, res) {
 
     const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
 
-    const tokenRes = await httpRequest('POST', 'api.x.com', '/2/oauth2/token', {
+    // Try api.x.com first, fall back to api.twitter.com
+    let tokenRes = await httpRequest('POST', 'api.x.com', '/2/oauth2/token', {
       'Content-Type': 'application/x-www-form-urlencoded',
       'Authorization': `Basic ${basicAuth}`,
     }, tokenBody);
 
-    console.log('Token response:', tokenRes.status);
+    if (tokenRes.status !== 200) {
+      console.log('api.x.com failed, trying api.twitter.com');
+      tokenRes = await httpRequest('POST', 'api.twitter.com', '/2/oauth2/token', {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${basicAuth}`,
+      }, tokenBody);
+    }
 
     if (tokenRes.status !== 200 || !tokenRes.body?.access_token) {
-      console.error('Token exchange failed:', JSON.stringify(tokenRes.body).slice(0, 300));
-      return res.redirect('/?error=token_failed');
+      console.error('Token exchange failed:', tokenRes.status, JSON.stringify(tokenRes.body).slice(0, 500));
+      return errorRedirect(res, 'token', `status ${tokenRes.status} - ${tokenRes.body?.error_description || tokenRes.body?.error || 'unknown'}`);
     }
 
     const accessToken = tokenRes.body.access_token;
 
-    // ── Fetch X user profile ──
-    const meRes = await httpRequest('GET', 'api.x.com', '/2/users/me?user.fields=profile_image_url,username,name', {
+    // ── 2. Fetch X user profile ──
+    let meRes = await httpRequest('GET', 'api.x.com', '/2/users/me?user.fields=profile_image_url,username,name', {
       'Authorization': `Bearer ${accessToken}`,
     }, null);
 
-    console.log('User profile response:', meRes.status);
+    if (meRes.status !== 200) {
+      meRes = await httpRequest('GET', 'api.twitter.com', '/2/users/me?user.fields=profile_image_url,username,name', {
+        'Authorization': `Bearer ${accessToken}`,
+      }, null);
+    }
 
     if (meRes.status !== 200 || !meRes.body?.data) {
-      console.error('Profile fetch failed:', JSON.stringify(meRes.body).slice(0, 300));
-      return res.redirect('/?error=profile_failed');
+      console.error('Profile fetch failed:', meRes.status, JSON.stringify(meRes.body).slice(0, 300));
+      return errorRedirect(res, 'profile', `status ${meRes.status}`);
     }
 
     const xUser = meRes.body.data;
@@ -121,47 +136,53 @@ module.exports = async function handler(req, res) {
 
     console.log('X user:', xUsername, xId);
 
-    // ── MODE: LINK (add X to existing account) ──
+    // ── 3. MODE: LINK (add X to existing account) ──
     if (cookieData.mode === 'link' && cookieData.linkUserId) {
-      await httpRequest('PATCH', host, `/rest/v1/profiles?id=eq.${cookieData.linkUserId}`, {
-        ...H, 'Content-Type': 'application/json', 'Prefer': 'return=minimal'
+      const patchRes = await httpRequest('PATCH', host, `/rest/v1/profiles?id=eq.${cookieData.linkUserId}`, {
+        ...H, 'Prefer': 'return=minimal'
       }, {
         x_handle: xUsername,
         x_verified: true,
         avatar_url: xAvatar,
       });
-      console.log('Linked X to user:', cookieData.linkUserId);
-      return res.redirect('/#profile');
+      console.log('Link X result:', patchRes.status);
+      if (patchRes.status >= 400) {
+        return errorRedirect(res, 'link', `profile update failed: ${patchRes.status}`);
+      }
+      return res.redirect('/#x-linked');
     }
 
-    // ── MODE: LOGIN (sign in with X) ──
+    // ── 4. MODE: LOGIN ──
     const xEmail = `x_${xId}@x.imstranded.org`;
     const xPassword = derivePassword(xId, clientSecret);
 
     let userId = null;
+    let signInEmail = null;
 
     // Check if X handle already linked to an account
     if (xUsername) {
       const profileRes = await httpRequest('GET', host,
-        `/rest/v1/profiles?select=id&x_handle=eq.${encodeURIComponent(xUsername)}&x_verified=eq.true&limit=1`,
-        { ...H, 'Content-Type': 'application/json' }, null);
+        `/rest/v1/profiles?select=id&x_handle=eq.${encodeURIComponent(xUsername)}&x_verified=eq.true&limit=1`, H, null);
       if (profileRes.status === 200 && Array.isArray(profileRes.body) && profileRes.body.length > 0) {
         userId = profileRes.body[0].id;
         const userRes = await httpRequest('GET', host, `/auth/v1/admin/users/${userId}`, H, null);
-        if (userRes.status === 200) {
+        if (userRes.status === 200 && userRes.body?.email) {
+          signInEmail = userRes.body.email;
           await httpRequest('PUT', host, `/auth/v1/admin/users/${userId}`, H, { password: xPassword });
-          return res.redirect(`/#x-login:${userRes.body.email}:${xPassword}`);
         }
       }
     }
 
     // Check if x_xxx user exists
-    const listRes = await httpRequest('GET', host, `/auth/v1/admin/users?page=1&per_page=50`, H, null);
-    if (listRes.status === 200 && listRes.body?.users) {
-      const match = listRes.body.users.find(u => u.email === xEmail);
-      if (match) {
-        userId = match.id;
-        await httpRequest('PUT', host, `/auth/v1/admin/users/${userId}`, H, { password: xPassword });
+    if (!userId) {
+      const listRes = await httpRequest('GET', host, `/auth/v1/admin/users?page=1&per_page=50`, H, null);
+      if (listRes.status === 200 && listRes.body?.users) {
+        const match = listRes.body.users.find(u => u.email === xEmail);
+        if (match) {
+          userId = match.id;
+          signInEmail = xEmail;
+          await httpRequest('PUT', host, `/auth/v1/admin/users/${userId}`, H, { password: xPassword });
+        }
       }
     }
 
@@ -175,29 +196,29 @@ module.exports = async function handler(req, res) {
       });
       if (createRes.status !== 200 && createRes.status !== 201) {
         console.error('Create user failed:', JSON.stringify(createRes.body).slice(0, 300));
-        return res.redirect('/?error=create_failed');
+        return errorRedirect(res, 'create_user', `${createRes.status} - ${createRes.body?.message || ''}`);
       }
       userId = createRes.body.id;
+      signInEmail = xEmail;
     }
 
     // Ensure profile
-    const checkProfile = await httpRequest('GET', host, `/rest/v1/profiles?select=id&id=eq.${userId}`,
-      { ...H, 'Content-Type': 'application/json' }, null);
+    const checkProfile = await httpRequest('GET', host, `/rest/v1/profiles?select=id&id=eq.${userId}`, H, null);
     if (checkProfile.status === 200 && Array.isArray(checkProfile.body) && checkProfile.body.length > 0) {
       await httpRequest('PATCH', host, `/rest/v1/profiles?id=eq.${userId}`, {
-        ...H, 'Content-Type': 'application/json', 'Prefer': 'return=minimal'
+        ...H, 'Prefer': 'return=minimal'
       }, { x_handle: xUsername, x_verified: true, avatar_url: xAvatar });
     } else {
       await httpRequest('POST', host, '/rest/v1/profiles', {
-        ...H, 'Content-Type': 'application/json', 'Prefer': 'return=minimal'
-      }, { id: userId, email: xEmail, display_name: xName, avatar_url: xAvatar, x_handle: xUsername, x_verified: true });
+        ...H, 'Prefer': 'return=minimal'
+      }, { id: userId, email: signInEmail, display_name: xName, avatar_url: xAvatar, x_handle: xUsername, x_verified: true });
     }
 
-    // Redirect with credentials in hash (client-side picks them up)
-    return res.redirect(`/#x-login:${xEmail}:${xPassword}`);
+    // Redirect with credentials
+    return res.redirect(`/#x-login:${signInEmail}:${xPassword}`);
 
   } catch (e) {
     console.error('X callback error:', e);
-    return res.redirect('/?error=internal');
+    return errorRedirect(res, 'exception', e.message);
   }
 };
