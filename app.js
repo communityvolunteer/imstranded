@@ -703,7 +703,7 @@ async function mDeletePost(id){
 // ============================================================
 window.addEventListener('DOMContentLoaded',()=>{
   if(isMob()){ initMobile(); }
-  else { showView('map'); initMap(); }
+  else { showView('map'); }
   refreshSitrep();
   setInterval(refreshSitrep,5*60*1000);
   if(SB_ON){loadPosts();subscribeStream();}
