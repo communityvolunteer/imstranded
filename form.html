@@ -159,6 +159,10 @@ html,body{background:transparent;min-height:100%;font-family:'Inter',sans-serif;
       <label class="form-label">X Handle <span>(optional)</span></label>
       <input type="text" id="f-xhandle" placeholder="@yourhandle">
     </div>
+    <div class="form-row">
+      <label class="form-label">Password <span>(to edit/delete later)</span></label>
+      <input type="text" id="f-password" placeholder="Something you'll remember">
+    </div>
     <button class="form-submit" id="f-submit" onclick="submitOffer()">OFFER A ROOM</button>
   </div>
 
@@ -232,6 +236,9 @@ async function submitOffer(){
   if(!l||!b||!n||!c){alert('Please fill in all required fields.');return;}
   if(!lat||!lng){alert('Please select a location from the dropdown suggestions.');return;}
 
+  const editCode = document.getElementById('f-password').value.trim();
+  if(!editCode||editCode.length<4){alert('Please enter a password (at least 4 characters) to manage your post later.');return;}
+
   const btn = document.getElementById('f-submit');
   btn.textContent='Posting...'; btn.disabled=true;
 
@@ -239,7 +246,7 @@ async function submitOffer(){
     const{error}=await _sb.from('help_posts').insert({
       type:'offer',post_type:'Housing / spare room',
       location:l,body:b,name:n,contact:c,
-      xhandle:x||null,lat,lng,flagged:false
+      xhandle:x||null,lat,lng,edit_code:editCode,flagged:false
     });
     if(error) throw error;
 
@@ -252,7 +259,7 @@ async function submitOffer(){
 }
 
 function resetForm(){
-  ['f-location','f-body','f-name','f-contact','f-xhandle'].forEach(id=>{
+  ['f-location','f-body','f-name','f-contact','f-xhandle','f-password'].forEach(id=>{
     document.getElementById(id).value='';
   });
   document.getElementById('f-lat').value='';

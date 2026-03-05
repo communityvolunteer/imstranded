@@ -441,12 +441,14 @@ async function submitPost(type) {
     lng=parseFloat(document.getElementById(type+'-lng')?.value)||null;
   if(!t||!l||!b||!n||!c){alert('Please fill in all required fields.');return;}
   if(!lat||!lng){alert('Please select a location from the dropdown suggestions.');return;}
+  const editCode = document.getElementById(type+'-password')?.value?.trim();
+  if(!editCode||editCode.length<4){alert('Please enter a password (at least 4 characters) to manage your post later.');return;}
   const btn=document.querySelector(`.submit-btn--${type}`); if(!btn)return;
   btn.textContent='Posting...'; btn.disabled=true;
   try {
-    const{error}=await _sb.from('help_posts').insert({type,post_type:t,location:l,body:b,name:n,contact:c,xhandle:x||null,lat,lng,flagged:false});
+    const{error}=await _sb.from('help_posts').insert({type,post_type:t,location:l,body:b,name:n,contact:c,xhandle:x||null,lat,lng,edit_code:editCode,flagged:false});
     if(error)throw error;
-    ['type','location','body','name','contact','xhandle'].forEach(f=>{const el=document.getElementById(type+'-'+f);if(el)el.tagName==='SELECT'?el.selectedIndex=0:el.value='';});
+    ['type','location','body','name','contact','xhandle','password'].forEach(f=>{const el=document.getElementById(type+'-'+f);if(el)el.tagName==='SELECT'?el.selectedIndex=0:el.value='';});
     document.getElementById(type+'-lat').value='';document.getElementById(type+'-lng').value='';
     btn.textContent='Posted!';
     setTimeout(()=>{btn.textContent='Post Offer';btn.disabled=false;},3000);
@@ -520,7 +522,7 @@ async function refreshSitrep() {
 // ============================================================
 async function loadPosts() {
   if(!SB_ON)return;
-  const{data}=await _sb.from('help_posts').select('*').eq('flagged',false).eq('type','offer').order('created_at',{ascending:false}).limit(100);
+  const{data}=await _sb.from('help_posts').select('id,type,post_type,location,body,name,contact,xhandle,lat,lng,created_at').eq('flagged',false).eq('type','offer').order('created_at',{ascending:false}).limit(100);
   if(data){posts=data;renderPosts();renderPostsOnMap(window._crisisMap||window._mobileMap);}
 }
 function subscribeStream(){
@@ -701,13 +703,16 @@ async function mSubmitOffer(){
     lng=parseFloat(document.getElementById('m-offer-lng')?.value)||null;
   if(!l||!b||!n||!c){alert('Please fill in all fields.');return;}
   if(!lat||!lng){alert('Please select a location from the dropdown suggestions.');return;}
+  const editCode = document.getElementById('m-offer-password')?.value?.trim();
+  if(!editCode||editCode.length<4){alert('Please enter a password (at least 4 characters) to manage your post later.');return;}
   const btn=document.querySelector('#m-offer-content .m-submit');btn.textContent='Posting...';btn.disabled=true;
   try{
-    const{error}=await _sb.from('help_posts').insert({type:'offer',post_type:'General',location:l,body:b,name:n,contact:c,xhandle:x||null,lat,lng,flagged:false});
+    const{error}=await _sb.from('help_posts').insert({type:'offer',post_type:'General',location:l,body:b,name:n,contact:c,xhandle:x||null,lat,lng,edit_code:editCode,flagged:false});
     if(error)throw error;
-    ['location','body','name','contact','xhandle'].forEach(f=>{const el=document.getElementById('m-offer-'+f);if(el)el.value='';});
+    ['location','body','name','contact','xhandle','password'].forEach(f=>{const el=document.getElementById('m-offer-'+f);if(el)el.value='';});
     document.getElementById('m-offer-lat').value='';document.getElementById('m-offer-lng').value='';
-    btn.textContent='Posted!';setTimeout(()=>{btn.textContent='Post Offer';btn.disabled=false;},3000);
+    btn.textContent='Posted!';
+    setTimeout(()=>{btn.textContent='Post Offer';btn.disabled=false;},3000);
     loadPosts();
   }catch(e){alert('Failed: '+e.message);btn.textContent='Post Offer';btn.disabled=false;}
 }
@@ -720,16 +725,16 @@ function openEditPostsSheet(){
 }
 
 async function mSearchMyPosts(){
-  const contact = (document.getElementById('m-edit-contact')?.value||'').trim();
-  if(!contact){alert('Please enter your contact info.');return;}
+  const code = (document.getElementById('m-edit-contact')?.value||'').trim();
+  if(!code){alert('Please enter your password.');return;}
   const list = document.getElementById('m-my-posts-list');
   if(!list)return;
   list.innerHTML='<div style="color:rgba(255,255,255,.5);font-size:.82rem;padding:.5rem 0">Searching...</div>';
   try{
-    const{data,error}=await _sb.from('help_posts').select('*').eq('contact',contact).eq('type','offer').eq('flagged',false).order('created_at',{ascending:false});
+    const{data,error}=await _sb.from('help_posts').select('id,location,body,created_at').eq('edit_code',code).eq('type','offer').eq('flagged',false).order('created_at',{ascending:false});
     if(error)throw error;
     if(!data||!data.length){
-      list.innerHTML='<div style="color:rgba(255,255,255,.5);font-size:.82rem;padding:.5rem 0">No posts found for that contact.</div>';
+      list.innerHTML='<div style="color:rgba(255,255,255,.5);font-size:.82rem;padding:.5rem 0">No posts found for that password.</div>';
       return;
     }
     list.innerHTML=data.map(p=>{
@@ -739,7 +744,7 @@ async function mSearchMyPosts(){
         <div style="font-size:.85rem;font-weight:600;color:#fff;margin-bottom:.15rem">📍 ${p.location}</div>
         <div style="font-size:.8rem;color:rgba(255,255,255,.7);line-height:1.5;margin-bottom:.6rem">${(p.body||'').slice(0,120)}${(p.body||'').length>120?'...':''}</div>
         <div style="display:flex;gap:.5rem">
-          <button onclick="mDeletePost('${p.id}')" style="background:#ec3452;color:#fff;border:none;border-radius:7px;padding:.35rem .8rem;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Delete</button>
+          <button onclick="mDeletePost('${p.id}','${code}')" style="background:#ec3452;color:#fff;border:none;border-radius:7px;padding:.35rem .8rem;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Delete</button>
         </div>
       </div>`;
     }).join('');
@@ -748,10 +753,10 @@ async function mSearchMyPosts(){
   }
 }
 
-async function mDeletePost(id){
+async function mDeletePost(id, code){
   if(!confirm('Delete this post? This cannot be undone.'))return;
   try{
-    const{error}=await _sb.from('help_posts').update({flagged:true}).eq('id',id);
+    const{error}=await _sb.from('help_posts').update({flagged:true}).eq('id',id).eq('edit_code',code);
     if(error)throw error;
     mSearchMyPosts();
     loadPosts();
