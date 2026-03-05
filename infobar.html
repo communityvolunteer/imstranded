@@ -139,25 +139,22 @@ async function refresh(){
   const icon=document.getElementById('refresh-icon');
   if(icon) icon.classList.add('spinning');
 
-  let liveStats=null;
+  let vals = null;
   try{
-    const res=await fetch('/api/aviation',{signal:AbortSignal.timeout(8000)});
-    if(res.ok){
-      const data=await res.json();
-      if(data&&data.airports){
-        data.airports.forEach(live=>{
-          const idx=AIRPORT_DATA.findIndex(a=>a.iata===live.iata);
-          if(idx>=0) Object.assign(AIRPORT_DATA[idx],live);
-        });
-      }
-      if(data&&data.stats) liveStats=data.stats;
+    const { data, error } = await _sb.from('sitrep').select('*').eq('id','current').single();
+    if(!error && data){
+      const stranded = (data.cancelled_flights||1847) * (data.avg_passengers_per_flight||459);
+      vals = { stranded, cancelled:data.cancelled_flights, airports:data.airports_closed, airspace:data.airspace_closed_countries };
     }
   }catch(e){}
 
-  const totalCancelled=AIRPORT_DATA.reduce((s,a)=>s+a.cancelled,0);
-  const totalStranded=AIRPORT_DATA.reduce((s,a)=>s+a.stranded,0);
-  const airportsClosed=AIRPORT_DATA.filter(a=>a.status==='CLOSED').length;
-  const vals=liveStats||{stranded:totalStranded,cancelled:totalCancelled,airports:airportsClosed,airspace:4};
+  // Fallback to seeded data
+  if(!vals){
+    const totalCancelled=AIRPORT_DATA.reduce((s,a)=>s+a.cancelled,0);
+    const totalStranded=AIRPORT_DATA.reduce((s,a)=>s+a.stranded,0);
+    const airportsClosed=AIRPORT_DATA.filter(a=>a.status==='CLOSED').length;
+    vals={stranded:totalStranded,cancelled:totalCancelled,airports:airportsClosed,airspace:4};
+  }
 
   animCount('stat-stranded',vals.stranded,1200);
   animCount('stat-cancelled',vals.cancelled,800);

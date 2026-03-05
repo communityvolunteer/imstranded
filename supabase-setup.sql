@@ -11,6 +11,7 @@ create table if not exists help_posts (
   body        text not null,
   name        text not null,
   contact     text not null,
+  xhandle     text,
   flagged     boolean not null default false,
   created_at  timestamptz not null default now()
 );

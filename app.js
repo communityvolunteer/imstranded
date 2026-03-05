@@ -95,22 +95,22 @@ let AIRPORT_DATA = [
 ];
 
 // ============================================================
-// AVIATIONSTACK
+// LIVE DATA FROM SUPABASE
 // ============================================================
-async function fetchAviationData() {
+async function fetchSitrepFromSupabase() {
   try {
-    const res = await fetch('/api/aviation', {signal: AbortSignal.timeout(8000)});
-    if (!res.ok) return null;
-    const data = await res.json();
-    if (data && data.airports) {
-      data.airports.forEach(live => {
-        const idx = AIRPORT_DATA.findIndex(a => a.iata === live.iata);
-        if (idx >= 0) AIRPORT_DATA[idx] = {...AIRPORT_DATA[idx], ...live};
-      });
-    }
-    return data && data.stats ? data.stats : null;
+    const { data, error } = await _sb.from('sitrep').select('*').eq('id', 'current').single();
+    if (error || !data) return null;
+    const stranded = (data.cancelled_flights || 1847) * (data.avg_passengers_per_flight || 459);
+    return {
+      stranded,
+      cancelled: data.cancelled_flights,
+      airports: data.airports_closed,
+      airspace: data.airspace_closed_countries,
+      lastUpdated: data.last_updated,
+    };
   } catch(e) {
-    console.warn('Aviation API unavailable, using seeded data');
+    console.warn('Supabase sitrep unavailable, using seeded data');
     return null;
   }
 }
@@ -434,11 +434,11 @@ async function refreshSitrep() {
   const icon=document.getElementById('refresh-icon');
   if(icon) icon.classList.add('spinning');
 
-  const liveStats = await fetchAviationData();
+  const liveStats = await fetchSitrepFromSupabase();
   const totalCancelled = AIRPORT_DATA.reduce((s,a)=>s+a.cancelled,0);
   const totalStranded  = AIRPORT_DATA.reduce((s,a)=>s+a.stranded,0);
   const airportsClosed = AIRPORT_DATA.filter(a=>a.status==='CLOSED').length;
-  const vals = liveStats || {stranded:totalStranded,cancelled:totalCancelled,airports:airportsClosed,airspace:4,routes:3};
+  const vals = liveStats || {stranded:totalStranded,cancelled:totalCancelled,airports:airportsClosed,airspace:4};
 
   setStatNow('stat-stranded',vals.stranded);
   setStatNow('stat-cancelled',vals.cancelled);
@@ -485,6 +485,10 @@ function subscribeStream(){
   if(!SB_ON)return;
   _sb.channel('help_posts').on('postgres_changes',{event:'INSERT',schema:'public',table:'help_posts'},p=>{
     if(p.new.type==='offer'){posts.unshift(p.new);renderPosts();renderPostsOnMap(window._crisisMap);}
+  }).subscribe();
+  // Live sitrep updates — when scraper writes new data, refresh instantly
+  _sb.channel('sitrep').on('postgres_changes',{event:'UPDATE',schema:'public',table:'sitrep'},()=>{
+    refreshSitrep();
   }).subscribe();
 }
 
