@@ -112,39 +112,54 @@ module.exports = async function handler(req, res) {
 
     const accessToken = tokenRes.body.access_token;
 
-    // ── 2. Fetch X user profile ──
-    let meRes = await httpRequest('GET', 'api.twitter.com', '/2/users/me?user.fields=profile_image_url,username,name', {
-      'Authorization': `Bearer ${accessToken}`,
-    }, null);
+    // ── 2. Get X user info from JWT token (Free tier blocks /2/users/me) ──
+    let xUsername = '';
+    let xName = '';
+    let xAvatar = '';
+    let xId = '';
 
-    if (meRes.status !== 200) {
-      meRes = await httpRequest('GET', 'api.x.com', '/2/users/me?user.fields=profile_image_url,username,name', {
-        'Authorization': `Bearer ${accessToken}`,
-      }, null);
+    // Decode JWT access token — Twitter OAuth 2.0 tokens are JWTs
+    try {
+      const [, payload] = accessToken.split('.');
+      const claims = JSON.parse(Buffer.from(payload, 'base64url').toString());
+      xId = claims.sub || '';
+      console.log('JWT claims:', JSON.stringify(claims).slice(0, 300));
+    } catch (e) {
+      console.error('JWT decode failed:', e.message);
     }
 
-    if (meRes.status !== 200 || !meRes.body?.data) {
-      console.error('Profile fetch failed:', meRes.status, JSON.stringify(meRes.body).slice(0, 300));
-      return errorRedirect(res, 'profile', `status ${meRes.status}`);
+    // Try to fetch profile (might work on Basic/Pro tier)
+    for (const domain of ['api.twitter.com', 'api.x.com']) {
+      try {
+        const r = await httpRequest('GET', domain, '/2/users/me?user.fields=profile_image_url,username,name', {
+          'Authorization': `Bearer ${accessToken}`,
+        }, null);
+        if (r.status === 200 && r.body?.data) {
+          xUsername = r.body.data.username || '';
+          xName = r.body.data.name || '';
+          xAvatar = (r.body.data.profile_image_url || '').replace('_normal', '_400x400');
+          xId = r.body.data.id || xId;
+          console.log('Got X profile from API:', xUsername);
+          break;
+        }
+      } catch (e) {}
     }
 
-    const xUser = meRes.body.data;
-    const xUsername = xUser.username || '';
-    const xName = xUser.name || xUsername;
-    const xAvatar = (xUser.profile_image_url || '').replace('_normal', '_400x400');
-    const xId = xUser.id;
+    // If API failed but we have JWT user ID, we can still proceed
+    if (!xId) {
+      return errorRedirect(res, 'profile', 'Could not determine X user ID');
+    }
 
-    console.log('X user:', xUsername, xId);
+    console.log('X auth: id=' + xId + ' username=' + xUsername);
 
     // ── 3. MODE: LINK (add X to existing account) ──
     if (cookieData.mode === 'link' && cookieData.linkUserId) {
+      const updateData = { x_verified: true };
+      if (xUsername) updateData.x_handle = xUsername;
+      if (xAvatar) updateData.avatar_url = xAvatar;
       const patchRes = await httpRequest('PATCH', host, `/rest/v1/profiles?id=eq.${cookieData.linkUserId}`, {
         ...H, 'Prefer': 'return=minimal'
-      }, {
-        x_handle: xUsername,
-        x_verified: true,
-        avatar_url: xAvatar,
-      });
+      }, updateData);
       console.log('Link X result:', patchRes.status);
       if (patchRes.status >= 400) {
         return errorRedirect(res, 'link', `profile update failed: ${patchRes.status}`);
@@ -214,13 +229,16 @@ module.exports = async function handler(req, res) {
     // Ensure profile
     const checkProfile = await httpRequest('GET', host, `/rest/v1/profiles?select=id&id=eq.${userId}`, H, null);
     if (checkProfile.status === 200 && Array.isArray(checkProfile.body) && checkProfile.body.length > 0) {
+      const updateData = { x_verified: true };
+      if (xUsername) updateData.x_handle = xUsername;
+      if (xAvatar) updateData.avatar_url = xAvatar;
       await httpRequest('PATCH', host, `/rest/v1/profiles?id=eq.${userId}`, {
         ...H, 'Prefer': 'return=minimal'
-      }, { x_handle: xUsername, x_verified: true, avatar_url: xAvatar });
+      }, updateData);
     } else {
       await httpRequest('POST', host, '/rest/v1/profiles', {
         ...H, 'Prefer': 'return=minimal'
-      }, { id: userId, email: signInEmail, display_name: xName, avatar_url: xAvatar, x_handle: xUsername, x_verified: true });
+      }, { id: userId, email: signInEmail, display_name: xName || xUsername || 'X User', avatar_url: xAvatar, x_handle: xUsername, x_verified: true });
     }
 
     // Redirect with credentials
