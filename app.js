@@ -225,11 +225,11 @@ function initMap() {
     attribution:'(c)OpenStreetMap (c)CARTO',maxZoom:19
   }).addTo(map);
 
-  // Custom panes — higher z = renders on top
+  // Custom panes — BELOW markerPane (600) so clusters sit on top
   map.createPane('countryPane');
-  map.getPane('countryPane').style.zIndex = 650;
+  map.getPane('countryPane').style.zIndex = 550;
   map.createPane('worldwidePane');
-  map.getPane('worldwidePane').style.zIndex = 640;
+  map.getPane('worldwidePane').style.zIndex = 540;
 
   COUNTRIES.forEach(c => {
     const col = SC[c.status];
@@ -546,9 +546,9 @@ function initMobile(){
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mmap);
 
   mmap.createPane('countryPane');
-  mmap.getPane('countryPane').style.zIndex = 650;
+  mmap.getPane('countryPane').style.zIndex = 550;
   mmap.createPane('worldwidePane');
-  mmap.getPane('worldwidePane').style.zIndex = 640;
+  mmap.getPane('worldwidePane').style.zIndex = 540;
 
   COUNTRIES.forEach(c => {
     const col = SC[c.status];
