@@ -493,18 +493,22 @@ async function submitPost(type) {
     l=document.getElementById(type+'-location')?.value,
     b=document.getElementById(type+'-body')?.value,
     n=document.getElementById(type+'-name')?.value,
-    c=document.getElementById(type+'-contact')?.value,
+    email=document.getElementById(type+'-contact')?.value?.trim()||'',
+    tgContact=document.getElementById(type+'-tg-contact')?.value?.trim()||'',
     x=(document.getElementById(type+'-xhandle')?.value||'').trim().replace(/^@+/,''),
     lat=parseFloat(document.getElementById(type+'-lat')?.value)||null,
     lng=parseFloat(document.getElementById(type+'-lng')?.value)||null;
-  if(!t||!l||!b||!n||!c){alert('Please fill in all required fields.');return;}
+  // Combine contacts
+  const c = [email, tgContact].filter(Boolean).join(' | ') || email || tgContact;
+  if(!t||!l||!b||!n){alert('Please fill in all required fields.');return;}
+  if(!c){alert('Please link at least one contact method (Google or Telegram).');return;}
   if(!lat||!lng){alert('Please select a location from the dropdown suggestions.');return;}
   const btn=document.querySelector(`.submit-btn--${type}`); if(!btn)return;
   btn.textContent='Posting...'; btn.disabled=true;
   try {
     const{error}=await _sb.from('help_posts').insert({type,post_type:t,location:l,body:b,name:n,contact:c,xhandle:x||null,lat,lng,user_id:_currentUser.id,flagged:false});
     if(error)throw error;
-    ['type','location','body','name','contact','xhandle'].forEach(f=>{const el=document.getElementById(type+'-'+f);if(el)el.tagName==='SELECT'?el.selectedIndex=0:el.value='';});
+    ['type','location','body','name'].forEach(f=>{const el=document.getElementById(type+'-'+f);if(el)el.tagName==='SELECT'?el.selectedIndex=0:el.value='';});
     document.getElementById(type+'-lat').value='';document.getElementById(type+'-lng').value='';
     btn.textContent='Posted!';
     setTimeout(()=>{btn.textContent='Post Offer';btn.disabled=false;},3000);
@@ -754,17 +758,21 @@ function mRenderResources(){
 async function mSubmitOffer(){
   if (!isLoggedIn()) { alert('Please sign in first to post.'); mTab('profile',document.getElementById('mtab-filters')); return; }
   const l=document.getElementById('m-offer-location')?.value,b=document.getElementById('m-offer-body')?.value,
-    n=document.getElementById('m-offer-name')?.value,c=document.getElementById('m-offer-contact')?.value,
+    n=document.getElementById('m-offer-name')?.value,
+    email=document.getElementById('m-offer-contact')?.value?.trim()||'',
+    tgContact=document.getElementById('m-offer-tg-contact')?.value?.trim()||'',
     x=(document.getElementById('m-offer-xhandle')?.value||'').trim().replace(/^@+/,''),
     lat=parseFloat(document.getElementById('m-offer-lat')?.value)||null,
     lng=parseFloat(document.getElementById('m-offer-lng')?.value)||null;
-  if(!l||!b||!n||!c){alert('Please fill in all fields.');return;}
+  const c = [email, tgContact].filter(Boolean).join(' | ') || email || tgContact;
+  if(!l||!b||!n){alert('Please fill in all fields.');return;}
+  if(!c){alert('Please link at least one contact method (Google or Telegram).');return;}
   if(!lat||!lng){alert('Please select a location from the dropdown suggestions.');return;}
   const btn=document.querySelector('#m-offer-content .m-submit');btn.textContent='Posting...';btn.disabled=true;
   try{
     const{error}=await _sb.from('help_posts').insert({type:'offer',post_type:'General',location:l,body:b,name:n,contact:c,xhandle:x||null,lat,lng,user_id:_currentUser.id,flagged:false});
     if(error)throw error;
-    ['location','body','name','contact','xhandle'].forEach(f=>{const el=document.getElementById('m-offer-'+f);if(el)el.value='';});
+    ['location','body','name'].forEach(f=>{const el=document.getElementById('m-offer-'+f);if(el)el.value='';});
     document.getElementById('m-offer-lat').value='';document.getElementById('m-offer-lng').value='';
     btn.textContent='Posted!';
     setTimeout(()=>{btn.textContent='Post Offer';btn.disabled=false;},3000);
@@ -867,8 +875,80 @@ async function loadProfile() {
   }
   _currentProfile = data;
   if (_currentProfile?.avatar_url) setProfileAvatar(_currentProfile.avatar_url);
+  updateLinkedFields();
   renderProfileView();
   renderMobileProfileView();
+}
+
+function updateLinkedFields() {
+  const p = _currentProfile;
+  const lockSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+
+  // Google → Email
+  ['offer-contact','m-offer-contact'].forEach(id => {
+    const input = document.getElementById(id);
+    const wrap = input?.closest('.linked-input');
+    if (!input || !wrap) return;
+    if (p?.google_verified && _currentUser?.email) {
+      input.value = _currentUser.email;
+      input.classList.add('filled');
+      wrap.classList.add('linked-input--active');
+      if (!wrap.querySelector('.linked-input-lock')) {
+        wrap.insertAdjacentHTML('beforeend', `<div class="linked-input-lock">${lockSvg}</div>`);
+      }
+    } else {
+      input.value = '';
+      input.classList.remove('filled');
+      wrap.classList.remove('linked-input--active');
+      const lock = wrap.querySelector('.linked-input-lock');
+      if (lock) lock.remove();
+      input.placeholder = isLoggedIn() ? 'Google verified — email linked' : 'Sign in with Google to add email';
+    }
+  });
+
+  // Telegram → Contact
+  ['offer-tg-contact','m-offer-tg-contact'].forEach(id => {
+    const input = document.getElementById(id);
+    const wrap = input?.closest('.linked-input');
+    if (!input || !wrap) return;
+    if (p?.tg_verified && p?.tg_handle) {
+      input.value = '@' + p.tg_handle;
+      input.classList.add('filled');
+      wrap.classList.add('linked-input--active');
+      if (!wrap.querySelector('.linked-input-lock')) {
+        wrap.insertAdjacentHTML('beforeend', `<div class="linked-input-lock">${lockSvg}</div>`);
+      }
+    } else {
+      input.value = '';
+      input.classList.remove('filled');
+      wrap.classList.remove('linked-input--active');
+      const lock = wrap.querySelector('.linked-input-lock');
+      if (lock) lock.remove();
+      input.placeholder = isLoggedIn() ? 'Link Telegram to add contact' : 'Sign in to link Telegram';
+    }
+  });
+
+  // X → Handle
+  ['offer-xhandle','m-offer-xhandle'].forEach(id => {
+    const input = document.getElementById(id);
+    const wrap = input?.closest('.linked-input');
+    if (!input || !wrap) return;
+    if (p?.x_verified && p?.x_handle) {
+      input.value = '@' + p.x_handle;
+      input.classList.add('filled');
+      wrap.classList.add('linked-input--active');
+      if (!wrap.querySelector('.linked-input-lock')) {
+        wrap.insertAdjacentHTML('beforeend', `<div class="linked-input-lock">${lockSvg}</div>`);
+      }
+    } else {
+      input.value = '';
+      input.classList.remove('filled');
+      wrap.classList.remove('linked-input--active');
+      const lock = wrap.querySelector('.linked-input-lock');
+      if (lock) lock.remove();
+      input.placeholder = isLoggedIn() ? 'Link X to add @handle & enable tips' : 'Sign in to link X';
+    }
+  });
 }
 
 // ── Auth Tab Switching ────────────────────────────────────
@@ -931,6 +1011,21 @@ function linkTelegram() {
 function linkX() {
   if (!isLoggedIn()) { alert('Please sign in first.'); return; }
   window.location.href = '/api/auth/x-login?mode=link&user_id=' + _currentUser.id;
+}
+
+async function unlinkProvider(provider) {
+  if (!isLoggedIn()) return;
+  const names = { tg: 'Telegram', x: 'X', google: 'Google' };
+  if (!confirm(`Unlink ${names[provider]}? Your ${names[provider]} data will be removed from your profile.`)) return;
+  try {
+    const update = {};
+    if (provider === 'tg') { update.tg_handle = null; update.tg_verified = false; }
+    if (provider === 'x') { update.x_handle = null; update.x_verified = false; }
+    if (provider === 'google') { update.google_verified = false; }
+    const { error } = await _sb.from('profiles').update(update).eq('id', _currentUser.id);
+    if (error) throw error;
+    await loadProfile();
+  } catch (e) { alert('Failed to unlink: ' + e.message); }
 }
 
 async function handleTelegramAuthData(tgData) {
@@ -1028,6 +1123,7 @@ async function doSignOut() {
   _currentUser = null;
   _currentProfile = null;
   clearProfileAvatar();
+  updateLinkedFields();
   renderProfileView();
   renderMobileProfileView();
   showView('map');
@@ -1064,16 +1160,17 @@ function updateVerifyStatus(provider, verified) {
   const btn = document.getElementById('verify-btn-' + provider);
   if (btn) {
     if (verified) {
-      btn.textContent = 'Verified ✓';
+      btn.innerHTML = 'Verified ✓ <span style="font-size:.55rem;opacity:.5;margin-left:4px" onclick="event.stopPropagation();unlinkProvider(\'' + provider + '\')">unlink</span>';
       btn.className = 'p-verify-btn p-verify-btn--linked';
-      btn.disabled = true;
+      btn.disabled = false;
+      btn.style.cursor = 'default';
       btn.onclick = null;
     } else if (provider === 'tg' || provider === 'x') {
       btn.textContent = 'Link';
       btn.className = 'p-verify-btn p-verify-btn--link';
       btn.disabled = false;
     } else {
-      btn.textContent = 'Coming Soon';
+      btn.textContent = 'Linked';
       btn.className = 'p-verify-btn';
       btn.disabled = true;
     }
@@ -1082,7 +1179,7 @@ function updateVerifyStatus(provider, verified) {
   const mLabel = document.getElementById('m-verify-' + provider);
   if (mLabel) {
     if (verified) {
-      mLabel.textContent = 'Verified ✓';
+      mLabel.innerHTML = 'Verified ✓ <span style="font-size:.5rem;opacity:.4" onclick="event.stopPropagation();unlinkProvider(\'' + provider + '\')">unlink</span>';
       mLabel.style.color = '#3498ec';
       mLabel.style.cursor = 'default';
       mLabel.onclick = null;

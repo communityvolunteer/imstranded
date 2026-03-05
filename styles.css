@@ -368,6 +368,32 @@ transform: translateX(-50%);
 }
 .auth-provider-btn--m{padding:.65rem;font-size:.85rem;border-radius:9px;}
 
+/* Linked account input fields */
+.linked-input{
+  position:relative;display:flex;align-items:center;
+  background:#1a1c1e;border:1.5px solid rgba(255,255,255,.1);
+  border-radius:10px;overflow:hidden;transition:border-color .15s;
+}
+.linked-input--active{border-color:rgba(52,152,236,.3);}
+.linked-input-icon{
+  width:30px;height:30px;min-width:30px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  margin:4px 0 4px 6px;cursor:pointer;transition:opacity .15s;
+}
+.linked-input-icon:hover{opacity:.8;}
+.linked-input-field{
+  flex:1;border:none !important;background:transparent !important;
+  padding:.6rem .7rem !important;margin:0 !important;
+  font-family:'Inter',sans-serif;font-size:.82rem;color:rgba(255,255,255,.35);
+  outline:none;cursor:default;
+}
+.linked-input-field.filled{color:#fff;font-weight:500;}
+.linked-input-lock{
+  position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  color:rgba(52,152,236,.5);display:none;
+}
+.linked-input--active .linked-input-lock{display:block;}
+
 .help-tabs{display:none;}
 .help-tab{
   display:flex;align-items:center;gap:.5rem;
