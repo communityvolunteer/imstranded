@@ -335,8 +335,8 @@ transform: translateX(-50%);
   color:rgba(255,255,255,.3);cursor:default;
 }
 .p-verify-btn--linked{
-  background:rgba(5,150,105,.15);border-color:rgba(5,150,105,.3);
-  color:#059669;
+  background:rgba(52,152,236,.15);border-color:rgba(52,152,236,.3);
+  color:#3498ec;
 }
 .badge-verified{color:#3498ec;font-size:.72rem;font-weight:700;}
 .badge-unverified{color:rgba(150,150,150,.35);font-size:.72rem;font-weight:700;}

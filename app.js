@@ -886,12 +886,29 @@ function renderProfileView() {
 }
 
 function updateVerifyStatus(provider, verified) {
+  // Desktop button
   const btn = document.getElementById('verify-btn-' + provider);
-  if (!btn) return;
-  if (verified) {
-    btn.textContent = 'Linked ✓';
-    btn.className = 'p-verify-btn p-verify-btn--linked';
-    btn.disabled = true;
+  if (btn) {
+    if (verified) {
+      btn.textContent = 'Verified ✓';
+      btn.className = 'p-verify-btn p-verify-btn--linked';
+      btn.disabled = true;
+    } else {
+      btn.textContent = 'Coming Soon';
+      btn.className = 'p-verify-btn';
+      btn.disabled = true;
+    }
+  }
+  // Mobile label
+  const mLabel = document.getElementById('m-verify-' + provider);
+  if (mLabel) {
+    if (verified) {
+      mLabel.textContent = 'Verified ✓';
+      mLabel.style.color = '#3498ec';
+    } else {
+      mLabel.textContent = 'Soon';
+      mLabel.style.color = 'rgba(255,255,255,.25)';
+    }
   }
 }
 
@@ -942,6 +959,9 @@ function renderMobileProfileView() {
     mainEl.style.display = 'block';
     const nameEl = document.getElementById('m-profile-display-name');
     if (nameEl) nameEl.textContent = _currentProfile?.display_name || _currentUser.email;
+    updateVerifyStatus('google', _currentProfile?.google_verified);
+    updateVerifyStatus('x', _currentProfile?.x_verified);
+    updateVerifyStatus('tg', _currentProfile?.tg_verified);
     mRenderProfilePosts();
   } else {
     loginEl.style.display = 'block';
