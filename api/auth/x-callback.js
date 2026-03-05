@@ -231,7 +231,7 @@ module.exports = async function handler(req, res) {
 
     // Mode enforcement
     if (authMode === 'login' && !userId) {
-      return errorRedirect(res, 'login', 'No account found for this X account. Try signing up first.');
+      return errorRedirect(res, 'login', 'No account found. If you signed up with Google or Telegram and linked X, please log in with your original provider instead. X login only works for accounts created with X.');
     }
     if (authMode === 'signup' && userId) {
       return errorRedirect(res, 'signup', 'An account with this X already exists. Try logging in instead.');

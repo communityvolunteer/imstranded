@@ -186,11 +186,7 @@
       <div id="auth-panel-login" style="max-width:340px;margin:0 auto">
         <div style="font-size:.84rem;color:rgba(255,255,255,.45);margin-bottom:1.2rem;line-height:1.55">Sign in with an account you've already linked.</div>
 
-        <button onclick="authAction('x','login')" class="auth-provider-btn" style="background:#000;color:#fff;border:1.5px solid rgba(255,255,255,.2)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-          Log in with X
-        </button>
-        <button onclick="authAction('google','login')" class="auth-provider-btn" style="margin-top:.55rem;background:#fff;color:#333;box-shadow:0 1px 3px rgba(0,0,0,.2)">
+        <button onclick="authAction('google','login')" class="auth-provider-btn" style="background:#fff;color:#333;box-shadow:0 1px 3px rgba(0,0,0,.2)">
           <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
           Log in with Google
         </button>
@@ -203,13 +199,9 @@
 
       <!-- Signup panel -->
       <div id="auth-panel-signup" style="max-width:340px;margin:0 auto;display:none">
-        <div style="font-size:.84rem;color:rgba(255,255,255,.45);margin-bottom:1.2rem;line-height:1.55">Create your account. You can link additional accounts from your profile later.</div>
+        <div style="font-size:.84rem;color:rgba(255,255,255,.45);margin-bottom:1.2rem;line-height:1.55">Create your account. You can link X and other accounts from your profile.</div>
 
-        <button onclick="authAction('x','signup')" class="auth-provider-btn" style="background:#000;color:#fff;border:1.5px solid rgba(255,255,255,.2)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-          Sign up with X
-        </button>
-        <button onclick="authAction('google','signup')" class="auth-provider-btn" style="margin-top:.55rem;background:#fff;color:#333;box-shadow:0 1px 3px rgba(0,0,0,.2)">
+        <button onclick="authAction('google','signup')" class="auth-provider-btn" style="background:#fff;color:#333;box-shadow:0 1px 3px rgba(0,0,0,.2)">
           <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
           Sign up with Google
         </button>
@@ -222,7 +214,7 @@
 
       <div style="max-width:340px;margin:1.5rem auto 0;padding:.85rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;text-align:left">
         <div style="font-size:.75rem;color:rgba(255,255,255,.5);line-height:1.6">
-          <strong style="color:#3498ec">Why sign in?</strong> Your posts get a <span style="color:#3498ec;font-weight:700">✓</span> verified badge. You can link additional accounts after signing in.
+          <strong style="color:#3498ec">Why sign in?</strong> Your posts get a <span style="color:#3498ec;font-weight:700">✓</span> verified badge. Link your X account from your profile to enable $HELP tips.
         </div>
       </div>
     </div>
@@ -280,6 +272,12 @@
       <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:1.3rem">
         <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);margin-bottom:.75rem">My Listings</div>
         <div id="profile-posts-list"></div>
+      </div>
+
+      <!-- Delete Account -->
+      <div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,.06);text-align:center">
+        <button onclick="deleteAccount()" style="background:none;border:1px solid rgba(236,52,82,.3);color:rgba(236,52,82,.6);border-radius:8px;padding:.4rem 1.2rem;font-family:Inter,sans-serif;font-size:.72rem;font-weight:600;cursor:pointer;transition:all .15s">Delete My Account</button>
+        <div style="font-size:.65rem;color:rgba(255,255,255,.2);margin-top:.4rem">Permanently removes your account, posts, and all associated data.</div>
       </div>
     </div>
   </div>
@@ -382,11 +380,7 @@
           <!-- Mobile login panel -->
           <div id="m-auth-panel-login">
             <div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-bottom:.8rem;text-align:center;line-height:1.5">Sign in with a linked account.</div>
-            <button onclick="authAction('x','login')" class="auth-provider-btn auth-provider-btn--m" style="background:#000;color:#fff;border:1.5px solid rgba(255,255,255,.2)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-              Log in with X
-            </button>
-            <button onclick="authAction('google','login')" class="auth-provider-btn auth-provider-btn--m" style="margin-top:.45rem;background:#fff;color:#333;box-shadow:0 1px 3px rgba(0,0,0,.2)">
+            <button onclick="authAction('google','login')" class="auth-provider-btn auth-provider-btn--m" style="background:#fff;color:#333;box-shadow:0 1px 3px rgba(0,0,0,.2)">
               <svg width="16" height="16" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
               Log in with Google
             </button>
@@ -399,12 +393,8 @@
 
           <!-- Mobile signup panel -->
           <div id="m-auth-panel-signup" style="display:none">
-            <div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-bottom:.8rem;text-align:center;line-height:1.5">Create your account. Link more from your profile.</div>
-            <button onclick="authAction('x','signup')" class="auth-provider-btn auth-provider-btn--m" style="background:#000;color:#fff;border:1.5px solid rgba(255,255,255,.2)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-              Sign up with X
-            </button>
-            <button onclick="authAction('google','signup')" class="auth-provider-btn auth-provider-btn--m" style="margin-top:.45rem;background:#fff;color:#333;box-shadow:0 1px 3px rgba(0,0,0,.2)">
+            <div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-bottom:.8rem;text-align:center;line-height:1.5">Create your account. Link X from your profile.</div>
+            <button onclick="authAction('google','signup')" class="auth-provider-btn auth-provider-btn--m" style="background:#fff;color:#333;box-shadow:0 1px 3px rgba(0,0,0,.2)">
               <svg width="16" height="16" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
               Sign up with Google
             </button>
@@ -461,6 +451,11 @@
           <!-- My posts -->
           <div style="font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.3);margin-bottom:.5rem">My Listings</div>
           <div id="m-my-posts-list" style="margin-top:.25rem"></div>
+
+          <!-- Delete Account -->
+          <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,.06);text-align:center">
+            <button onclick="deleteAccount()" style="background:none;border:1px solid rgba(236,52,82,.25);color:rgba(236,52,82,.5);border-radius:7px;padding:.3rem 1rem;font-family:Inter,sans-serif;font-size:.65rem;font-weight:600;cursor:pointer">Delete My Account</button>
+          </div>
         </div>
       </div>
     </div>

@@ -55,7 +55,13 @@ module.exports = async function handler(req, res) {
 
   const tgData = req.body;
   if (!tgData || !tgData.hash || !tgData.id) return res.status(400).json({ error: 'Invalid data' });
-  if (!verifyTelegramData(tgData, botToken)) return res.status(401).json({ error: 'Verification failed' });
+
+  // Extract mode before verification (it's not part of TG's signed data)
+  const mode = tgData.mode || 'login';
+  const verifyData = { ...tgData };
+  delete verifyData.mode;
+
+  if (!verifyTelegramData(verifyData, botToken)) return res.status(401).json({ error: 'Verification failed' });
 
   const authAge = Math.floor(Date.now() / 1000) - (tgData.auth_date || 0);
   if (authAge > 300) return res.status(401).json({ error: 'Auth expired' });
@@ -66,7 +72,6 @@ module.exports = async function handler(req, res) {
   const displayName = [tgData.first_name, tgData.last_name].filter(Boolean).join(' ') || tgData.username || 'Telegram User';
   const avatarUrl = tgData.photo_url || '';
   const tgUsername = tgData.username || '';
-  const mode = tgData.mode || 'login'; // 'login' or 'signup'
   const H = { 'apikey': serviceKey, 'Authorization': `Bearer ${serviceKey}` };
 
   try {

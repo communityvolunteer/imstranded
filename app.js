@@ -347,17 +347,19 @@ function buildContactButtons(contact, xhandle, name) {
 
 function buildTipButton(xhandle, hasUserId) {
   if (!xhandle) return '';
+  const tipIcon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>';
   if (!hasUserId) {
-    return `<span style="display:inline-flex;align-items:center;gap:4px;margin-top:.45rem;padding:.28rem .65rem;background:rgba(255,255,255,.08);color:rgba(255,255,255,.3);font-size:.68rem;font-weight:700;border-radius:5px;font-family:Inter,sans-serif;cursor:default" title="Unverified user">💰 Tip $HELP <span style="font-size:.58rem;opacity:.6">(unverified)</span></span>`;
+    return `<span style="display:inline-flex;align-items:center;gap:4px;margin-top:.45rem;padding:.28rem .65rem;background:rgba(255,255,255,.08);color:rgba(255,255,255,.3);font-size:.68rem;font-weight:700;border-radius:5px;font-family:Inter,sans-serif;cursor:default" title="Unverified user">${tipIcon} Tip $HELP <span style="font-size:.58rem;opacity:.6">(unverified)</span></span>`;
   }
   const tweetText = encodeURIComponent(`@bankrbot Tip 1 $HELP to @${xhandle}`);
-  return `<a href="https://x.com/intent/tweet?text=${tweetText}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;margin-top:.45rem;padding:.28rem .65rem;background:#3498ec;color:#fff;font-size:.68rem;font-weight:700;border-radius:5px;text-decoration:none;font-family:Inter,sans-serif">💰 Tip $HELP</a>`;
+  return `<a href="https://x.com/intent/tweet?text=${tweetText}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;margin-top:.45rem;padding:.28rem .65rem;background:#3498ec;color:#fff;font-size:.68rem;font-weight:700;border-radius:5px;text-decoration:none;font-family:Inter,sans-serif">${tipIcon} Tip $HELP</a>`;
 }
 
 function buildBadge(verified) {
-  return verified
-    ? '<span style="color:#3498ec;font-size:.7rem;font-weight:700" title="Verified">✓</span>'
-    : '<span style="color:rgba(150,150,150,.35);font-size:.7rem;font-weight:700" title="Not yet verified">✓</span>';
+  if (verified) {
+    return `<svg width="14" height="14" viewBox="0 0 24 24" fill="#3498ec" style="vertical-align:middle;margin-left:2px" title="Verified"><path d="M12 22c-1.1 0-2-.2-2.7-.6L3.5 18.2c-.4-.3-.7-.7-.9-1.1-.2-.5-.3-1-.3-1.5V8.4c0-.5.1-1 .3-1.5.2-.4.5-.8.9-1.1l5.8-3.2C10 2.2 11 2 12 2s2 .2 2.7.6l5.8 3.2c.4.3.7.7.9 1.1.2.5.3 1 .3 1.5v7.2c0 .5-.1 1-.3 1.5-.2.4-.5.8-.9 1.1l-5.8 3.2c-.7.4-1.6.6-2.7.6z"/><path d="M9 12l2 2 4-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  }
+  return `<svg width="14" height="14" viewBox="0 0 24 24" fill="rgba(150,150,150,.2)" style="vertical-align:middle;margin-left:2px" title="Not verified"><path d="M12 22c-1.1 0-2-.2-2.7-.6L3.5 18.2c-.4-.3-.7-.7-.9-1.1-.2-.5-.3-1-.3-1.5V8.4c0-.5.1-1 .3-1.5.2-.4.5-.8.9-1.1l5.8-3.2C10 2.2 11 2 12 2s2 .2 2.7.6l5.8 3.2c.4.3.7.7.9 1.1.2.5.3 1 .3 1.5v7.2c0 .5-.1 1-.3 1.5-.2.4-.5.8-.9 1.1l-5.8 3.2c-.7.4-1.6.6-2.7.6z"/><path d="M9 12l2 2 4-4" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
 
 async function renderPostsOnMap(map) {
@@ -1130,6 +1132,28 @@ async function profileDeletePost(id) {
     renderProfilePosts();
     loadPosts();
   } catch (e) { alert('Failed to delete: ' + e.message); }
+}
+
+async function deleteAccount() {
+  if (!confirm('Are you sure you want to delete your account? All your posts and data will be permanently removed. This cannot be undone.')) return;
+  if (!confirm('This is irreversible. Type OK to the next prompt to confirm.')) return;
+  const confirmText = prompt('Type DELETE to permanently delete your account:');
+  if (confirmText !== 'DELETE') { alert('Account deletion cancelled.'); return; }
+  try {
+    // Flag all user's posts
+    await _sb.from('help_posts').update({ flagged: true }).eq('user_id', _currentUser.id);
+    // Delete profile
+    await _sb.from('profiles').delete().eq('id', _currentUser.id);
+    // Sign out
+    await _sb.auth.signOut();
+    _currentUser = null;
+    _currentProfile = null;
+    clearProfileAvatar();
+    renderProfileView();
+    renderMobileProfileView();
+    showView('map');
+    alert('Your account has been deleted.');
+  } catch (e) { alert('Failed to delete account: ' + e.message); }
 }
 
 // ── Mobile Profile ───────────────────────────────────────
