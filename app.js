@@ -473,7 +473,7 @@ function renderPosts() {
   el.innerHTML = offerPosts.map(p => {
     const t = p.created_at ? new Date(p.created_at).toLocaleString() : '';
     return `<div class="post-card">
-      <div class="post-header"><span class="post-type">Offering</span><span class="post-time">${t}</span></div>
+      <div class="post-header"><span class="post-type">Spare Room</span><span class="post-time">${t}</span></div>
       <div class="post-loc">📍 ${p.location}</div>
       <div class="post-body">${p.body}</div>
       <div class="post-footer">
