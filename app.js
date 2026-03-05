@@ -835,29 +835,20 @@ async function initAuth() {
 async function loadProfile() {
   if (!_currentUser) return;
   let { data, error } = await _sb.from('profiles').select('*').eq('id', _currentUser.id).single();
-  console.log('loadProfile query:', { data, error });
-  // If no profile exists (user signed up before trigger was created), create one
   if (!data) {
     const meta = _currentUser.user_metadata || {};
-    const insertPayload = {
+    const insertRes = await _sb.from('profiles').insert({
       id: _currentUser.id,
       email: _currentUser.email,
       display_name: meta.full_name || meta.name || '',
       avatar_url: meta.avatar_url || meta.picture || '',
       google_verified: true
-    };
-    console.log('Creating profile:', insertPayload);
-    const insertRes = await _sb.from('profiles').insert(insertPayload);
-    console.log('Insert result:', insertRes);
-    if (insertRes.error) {
-      console.error('Profile insert failed:', insertRes.error);
-    }
+    });
+    if (insertRes.error) console.error('Profile insert failed:', insertRes.error);
     const res = await _sb.from('profiles').select('*').eq('id', _currentUser.id).single();
-    console.log('Re-fetch profile:', res);
     data = res.data;
   }
   _currentProfile = data;
-  console.log('Final profile:', _currentProfile);
   if (_currentProfile?.avatar_url) setProfileAvatar(_currentProfile.avatar_url);
   renderProfileView();
   renderMobileProfileView();
@@ -870,6 +861,51 @@ async function signInWithGoogle() {
     options: { redirectTo: window.location.origin + window.location.pathname }
   });
   if (error) alert('Sign in failed: ' + error.message);
+}
+
+function linkTelegram() {
+  if (!isLoggedIn()) { alert('Please sign in with Google first.'); return; }
+  window.Telegram.Login.auth(
+    { bot_id: '8600585901', request_access: 'write' },
+    async function(tgData) {
+      if (!tgData) { alert('Telegram login cancelled.'); return; }
+      const tgHandle = tgData.username || tgData.first_name || '';
+      const { error } = await _sb.from('profiles').update({
+        tg_handle: tgHandle,
+        tg_verified: true
+      }).eq('id', _currentUser.id);
+      if (error) { alert('Failed to link Telegram: ' + error.message); return; }
+      await loadProfile();
+    }
+  );
+}
+
+function signInWithTelegram() {
+  sessionStorage.setItem('postLogin', 'profile');
+  window.Telegram.Login.auth(
+    { bot_id: '8600585901', request_access: 'write' },
+    async function(tgData) {
+      if (!tgData) { alert('Telegram login cancelled.'); return; }
+      try {
+        const res = await fetch('/api/auth/telegram', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(tgData)
+        });
+        const result = await res.json();
+        if (!res.ok) { alert('Login failed: ' + (result.error || 'Unknown error')); return; }
+        // Use the token to establish a Supabase session
+        const { error } = await _sb.auth.verifyOtp({
+          token_hash: result.token_hash,
+          type: 'magiclink'
+        });
+        if (error) { alert('Session failed: ' + error.message); return; }
+        // Session established — onAuthStateChange will handle the rest
+      } catch (e) {
+        alert('Login failed: ' + e.message);
+      }
+    }
+  );
 }
 
 async function doSignOut() {
@@ -915,6 +951,11 @@ function updateVerifyStatus(provider, verified) {
       btn.textContent = 'Verified ✓';
       btn.className = 'p-verify-btn p-verify-btn--linked';
       btn.disabled = true;
+      btn.onclick = null;
+    } else if (provider === 'tg') {
+      btn.textContent = 'Link';
+      btn.className = 'p-verify-btn p-verify-btn--link';
+      btn.disabled = false;
     } else {
       btn.textContent = 'Coming Soon';
       btn.className = 'p-verify-btn';
@@ -927,6 +968,12 @@ function updateVerifyStatus(provider, verified) {
     if (verified) {
       mLabel.textContent = 'Verified ✓';
       mLabel.style.color = '#3498ec';
+      mLabel.style.cursor = 'default';
+      mLabel.onclick = null;
+    } else if (provider === 'tg') {
+      mLabel.textContent = 'Link';
+      mLabel.style.color = '#3498ec';
+      mLabel.style.cursor = 'pointer';
     } else {
       mLabel.textContent = 'Soon';
       mLabel.style.color = 'rgba(255,255,255,.25)';
