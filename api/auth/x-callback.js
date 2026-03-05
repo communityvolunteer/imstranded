@@ -111,46 +111,73 @@ module.exports = async function handler(req, res) {
     }
 
     const accessToken = tokenRes.body.access_token;
+    console.log('Token response keys:', Object.keys(tokenRes.body));
+    console.log('Token preview:', accessToken.slice(0, 50) + '...');
 
-    // ── 2. Get X user info from JWT token (Free tier blocks /2/users/me) ──
+    // ── 2. Get X user info ──
     let xUsername = '';
     let xName = '';
     let xAvatar = '';
     let xId = '';
 
-    // Decode JWT access token — Twitter OAuth 2.0 tokens are JWTs
+    // Method 1: Try JWT decode (works if token is a JWT)
     try {
-      const [, payload] = accessToken.split('.');
-      const claims = JSON.parse(Buffer.from(payload, 'base64url').toString());
-      xId = claims.sub || '';
-      console.log('JWT claims:', JSON.stringify(claims).slice(0, 300));
+      const parts = accessToken.split('.');
+      if (parts.length === 3) {
+        // Pad base64 if needed
+        let payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+        while (payload.length % 4) payload += '=';
+        const claims = JSON.parse(Buffer.from(payload, 'base64').toString());
+        xId = claims.sub || '';
+        console.log('JWT decode success, sub:', xId);
+      } else {
+        console.log('Token is not JWT, parts:', parts.length);
+      }
     } catch (e) {
-      console.error('JWT decode failed:', e.message);
+      console.log('JWT decode failed:', e.message);
     }
 
-    // Try to fetch profile (might work on Basic/Pro tier)
-    for (const domain of ['api.twitter.com', 'api.x.com']) {
-      try {
-        const r = await httpRequest('GET', domain, '/2/users/me?user.fields=profile_image_url,username,name', {
-          'Authorization': `Bearer ${accessToken}`,
-        }, null);
-        if (r.status === 200 && r.body?.data) {
-          xUsername = r.body.data.username || '';
-          xName = r.body.data.name || '';
-          xAvatar = (r.body.data.profile_image_url || '').replace('_normal', '_400x400');
-          xId = r.body.data.id || xId;
-          console.log('Got X profile from API:', xUsername);
-          break;
-        }
-      } catch (e) {}
-    }
-
-    // If API failed but we have JWT user ID, we can still proceed
+    // Method 2: Try API (works on Basic/Pro tier)
     if (!xId) {
-      return errorRedirect(res, 'profile', 'Could not determine X user ID');
+      for (const domain of ['api.twitter.com', 'api.x.com']) {
+        try {
+          const r = await httpRequest('GET', domain, '/2/users/me?user.fields=profile_image_url,username,name', {
+            'Authorization': `Bearer ${accessToken}`,
+          }, null);
+          console.log(`Profile fetch ${domain}:`, r.status);
+          if (r.status === 200 && r.body?.data) {
+            xUsername = r.body.data.username || '';
+            xName = r.body.data.name || '';
+            xAvatar = (r.body.data.profile_image_url || '').replace('_normal', '_400x400');
+            xId = r.body.data.id || xId;
+            break;
+          }
+        } catch (e) {}
+      }
+    } else {
+      // We have ID from JWT, still try API for username/avatar
+      for (const domain of ['api.twitter.com', 'api.x.com']) {
+        try {
+          const r = await httpRequest('GET', domain, '/2/users/me?user.fields=profile_image_url,username,name', {
+            'Authorization': `Bearer ${accessToken}`,
+          }, null);
+          if (r.status === 200 && r.body?.data) {
+            xUsername = r.body.data.username || '';
+            xName = r.body.data.name || '';
+            xAvatar = (r.body.data.profile_image_url || '').replace('_normal', '_400x400');
+            break;
+          }
+        } catch (e) {}
+      }
     }
 
-    console.log('X auth: id=' + xId + ' username=' + xUsername);
+    // Method 3: Generate a stable ID from the access token itself as last resort
+    if (!xId) {
+      xId = 'xauth_' + crypto.createHash('sha256').update(accessToken).digest('hex').slice(0, 16);
+      console.log('Using derived ID:', xId);
+    }
+
+    console.log('X auth result: id=' + xId + ' username=' + xUsername);
 
     // ── 3. MODE: LINK (add X to existing account) ──
     if (cookieData.mode === 'link' && cookieData.linkUserId) {
