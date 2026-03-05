@@ -834,21 +834,30 @@ async function initAuth() {
 
 async function loadProfile() {
   if (!_currentUser) return;
-  let { data } = await _sb.from('profiles').select('*').eq('id', _currentUser.id).single();
+  let { data, error } = await _sb.from('profiles').select('*').eq('id', _currentUser.id).single();
+  console.log('loadProfile query:', { data, error });
   // If no profile exists (user signed up before trigger was created), create one
   if (!data) {
     const meta = _currentUser.user_metadata || {};
-    await _sb.from('profiles').insert({
+    const insertPayload = {
       id: _currentUser.id,
       email: _currentUser.email,
       display_name: meta.full_name || meta.name || '',
       avatar_url: meta.avatar_url || meta.picture || '',
       google_verified: true
-    });
+    };
+    console.log('Creating profile:', insertPayload);
+    const insertRes = await _sb.from('profiles').insert(insertPayload);
+    console.log('Insert result:', insertRes);
+    if (insertRes.error) {
+      console.error('Profile insert failed:', insertRes.error);
+    }
     const res = await _sb.from('profiles').select('*').eq('id', _currentUser.id).single();
+    console.log('Re-fetch profile:', res);
     data = res.data;
   }
   _currentProfile = data;
+  console.log('Final profile:', _currentProfile);
   if (_currentProfile?.avatar_url) setProfileAvatar(_currentProfile.avatar_url);
   renderProfileView();
   renderMobileProfileView();
