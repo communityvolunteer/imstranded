@@ -703,3 +703,85 @@ transform: translateX(-50%);
 /* $HELP CTA */
 .map-cta--help{background:rgba(241,196,68,.9);color:#000;}
 .map-cta--help:hover{background:#f1c40f;}
+/* ═══ Filter Panel ═══ */
+.filter-panel{
+  position:absolute;top:0;right:0;bottom:0;width:320px;z-index:900;
+  background:rgba(10,10,10,.95);backdrop-filter:blur(12px);
+  border-left:1px solid rgba(255,255,255,.08);
+  transform:translateX(100%);transition:transform .3s ease;
+  overflow-y:auto;padding:0;
+}
+.filter-panel.open{transform:translateX(0);}
+.fp-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.1rem .75rem;border-bottom:1px solid rgba(255,255,255,.06);}
+.fp-title{font-size:.95rem;font-weight:800;color:#fff;letter-spacing:.02em;}
+.fp-close{background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;padding:4px;line-height:0;}
+.fp-close:hover{color:#fff;}
+
+/* Sections */
+.fp-section{border-bottom:1px solid rgba(255,255,255,.06);}
+.fp-section-head{
+  display:flex;align-items:center;gap:.5rem;padding:.75rem 1.1rem;cursor:pointer;
+  font-size:.82rem;font-weight:700;color:#fff;transition:background .15s;
+}
+.fp-section-head:hover{background:rgba(255,255,255,.04);}
+.fp-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.fp-chevron{margin-left:auto;transition:transform .2s;color:rgba(255,255,255,.3);}
+.fp-section-head:has(+ .fp-section-body.open) .fp-chevron{transform:rotate(180deg);}
+.fp-section-body{display:none;padding:0 1.1rem .85rem;}
+.fp-section-body.open{display:block;}
+
+/* Toggle switch */
+.fp-toggle{
+  display:flex;align-items:center;gap:.55rem;cursor:pointer;
+  font-size:.75rem;color:rgba(255,255,255,.55);font-family:'Inter',sans-serif;
+  margin-bottom:.55rem;
+}
+.fp-toggle input{display:none;}
+.fp-toggle-slider{
+  width:32px;height:18px;background:rgba(255,255,255,.12);border-radius:10px;
+  position:relative;transition:background .2s;flex-shrink:0;
+}
+.fp-toggle-slider::after{
+  content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;
+  border-radius:50%;background:#fff;transition:transform .2s;
+}
+.fp-toggle input:checked + .fp-toggle-slider{background:#3498ec;}
+.fp-toggle input:checked + .fp-toggle-slider::after{transform:translateX(14px);}
+
+/* Labels, chips, selects */
+.fp-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.3);margin:.55rem 0 .35rem;}
+.fp-chips{display:flex;flex-wrap:wrap;gap:.3rem;}
+.fp-chip{
+  display:inline-flex;align-items:center;gap:.25rem;
+  padding:.25rem .55rem;background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08);border-radius:16px;
+  font-size:.68rem;color:rgba(255,255,255,.45);cursor:pointer;
+  font-family:'Inter',sans-serif;transition:all .15s;
+}
+.fp-chip input{display:none;}
+.fp-chip--blue:has(input:checked){background:rgba(52,152,236,.15);border-color:rgba(52,152,236,.3);color:#3498ec;}
+.fp-chip--red:has(input:checked){background:rgba(236,52,82,.15);border-color:rgba(236,52,82,.3);color:#ec3452;}
+.fp-select{
+  width:100%;padding:.45rem .7rem;background:#1a1a1a;border:1px solid rgba(255,255,255,.1);
+  border-radius:8px;color:#fff;font-family:'Inter',sans-serif;font-size:.78rem;
+  outline:none;-webkit-appearance:none;cursor:pointer;
+}
+.fp-clear{
+  display:flex;align-items:center;justify-content:center;gap:.4rem;
+  width:100%;padding:.6rem;background:none;border:1px solid rgba(255,255,255,.08);
+  border-radius:10px;color:rgba(255,255,255,.35);font-family:'Inter',sans-serif;
+  font-size:.72rem;font-weight:600;cursor:pointer;margin:1rem 1.1rem 1rem;
+  width:calc(100% - 2.2rem);transition:all .15s;
+}
+.fp-clear:hover{color:#fff;border-color:rgba(255,255,255,.2);}
+
+/* Sitrep filter stat */
+.sitrep-stat--filter{cursor:pointer;}
+.sitrep-stat--filter svg{stroke:rgba(255,255,255,.5);transition:stroke .15s;}
+.sitrep-stat--filter:hover svg{stroke:#fff;}
+.sitrep-stat--filter.active-filter{background:rgba(52,152,236,.1);}
+.sitrep-stat--filter.active-filter svg{stroke:#3498ec;}
+
+@media(max-width:768px){
+  .filter-panel{display:none !important;}
+}

@@ -154,17 +154,146 @@ let _activeFilter = 'all';
 let _postMarkers = [];
 let posts = [];
 const _dataPins = {airports:[]};
-let _legendOpen = true;
+let _activeFilter = 'all';
 
 // ============================================================
 // LEGEND TOGGLE
 // ============================================================
-function toggleLegend() {
-  _legendOpen = !_legendOpen;
-  const leg = document.getElementById('map-legend');
-  const btn = document.getElementById('legend-toggle-btn');
-  if (leg) leg.style.display = _legendOpen ? 'block' : 'none';
-  if (btn) btn.style.display = _legendOpen ? 'none' : 'flex';
+let _filterPanelOpen = false;
+
+function toggleFilterPanel() {
+  _filterPanelOpen = !_filterPanelOpen;
+  const panel = document.getElementById('filter-panel');
+  if (panel) panel.classList.toggle('open', _filterPanelOpen);
+  document.getElementById('ss-filter')?.classList.toggle('active-filter', _filterPanelOpen);
+}
+
+function toggleFpSection(head) {
+  const body = head.nextElementSibling;
+  if (body) body.classList.toggle('open');
+}
+
+function getFilterState() {
+  // Read from whichever panel exists (desktop fp- or mobile mfp-)
+  const isMobile = window.innerWidth <= 768;
+  const p = isMobile ? 'mfp' : 'fp';
+  
+  const getChecked = (id) => [...document.querySelectorAll(`#${id} input:checked`)].map(c => c.value);
+
+  return {
+    showOffers: document.getElementById(p+'-show-offers')?.checked ?? true,
+    offersVerified: document.getElementById(p+'-offers-verified')?.checked ?? false,
+    offerTypes: getChecked(p+'-offer-type'),
+    showStranded: document.getElementById(p+'-show-stranded')?.checked ?? true,
+    strandedVerified: document.getElementById(p+'-stranded-verified')?.checked ?? false,
+    nationality: document.getElementById(p+'-nationality')?.value || '',
+    strandedNeeds: getChecked(p+'-stranded-needs'),
+    groupSize: document.getElementById(p+'-group-size')?.value || '',
+    showWorldwide: document.getElementById(p+'-show-worldwide')?.checked ?? true,
+    worldwideVerified: document.getElementById(p+'-worldwide-verified')?.checked ?? false,
+  };
+}
+
+function applyFilters() {
+  const f = getFilterState();
+  const map = window._crisisMap || window._mobileMap;
+  if (!map) return;
+
+  // Sync desktop ↔ mobile panels
+  syncFilterPanels();
+
+  // Offerings — show/hide help post cluster
+  if (window._helpCluster) {
+    f.showOffers ? map.addLayer(window._helpCluster) : map.removeLayer(window._helpCluster);
+  }
+  if (window._mHelpCluster) {
+    const mm = window._mobileMap;
+    if (mm) f.showOffers ? mm.addLayer(window._mHelpCluster) : mm.removeLayer(window._mHelpCluster);
+  }
+
+  // Stranded — show/hide stranded cluster
+  if (window._strandedCluster) {
+    f.showStranded ? map.addLayer(window._strandedCluster) : map.removeLayer(window._strandedCluster);
+  }
+  if (window._mStrandedCluster) {
+    const mm = window._mobileMap;
+    if (mm) f.showStranded ? mm.addLayer(window._mStrandedCluster) : mm.removeLayer(window._mStrandedCluster);
+  }
+
+  // Worldwide markers
+  if (_mk.worldwide) {
+    _mk.worldwide.forEach(m => {
+      if (f.showWorldwide) { m.addTo(map); if (window._mobileMap) m.addTo(window._mobileMap); }
+      else { map.removeLayer(m); if (window._mobileMap) window._mobileMap.removeLayer(m); }
+    });
+  }
+
+  // Country markers always visible
+  if (_mk.country) {
+    _mk.country.forEach(({marker}) => { marker.addTo(map); if (window._mobileMap) marker.addTo(window._mobileMap); });
+  }
+
+  // Update sitrep highlights
+  document.querySelectorAll('.sitrep-stat').forEach(s => s.classList.remove('active-filter'));
+  if (!f.showOffers || !f.showStranded || !f.showWorldwide || f.nationality || f.strandedNeeds.length || f.offerTypes.length) {
+    document.getElementById('ss-filter')?.classList.add('active-filter');
+  }
+}
+
+function syncFilterPanels() {
+  // Sync state between desktop (fp-) and mobile (mfp-) panels
+  const pairs = [
+    ['fp-show-offers','mfp-show-offers'],['fp-offers-verified','mfp-offers-verified'],
+    ['fp-show-stranded','mfp-show-stranded'],['fp-stranded-verified','mfp-stranded-verified'],
+    ['fp-show-worldwide','mfp-show-worldwide'],['fp-worldwide-verified','mfp-worldwide-verified'],
+  ];
+  const isMobile = window.innerWidth <= 768;
+  pairs.forEach(([d,m]) => {
+    const src = document.getElementById(isMobile ? m : d);
+    const dst = document.getElementById(isMobile ? d : m);
+    if (src && dst) dst.checked = src.checked;
+  });
+  // Sync selects
+  [['fp-nationality','mfp-nationality'],['fp-group-size','mfp-group-size']].forEach(([d,m]) => {
+    const src = document.getElementById(isMobile ? m : d);
+    const dst = document.getElementById(isMobile ? d : m);
+    if (src && dst) dst.value = src.value;
+  });
+}
+
+function clearAllFilters() {
+  // Reset all checkboxes and selects
+  document.querySelectorAll('.fp-chip input, .fp-toggle input[type="checkbox"]').forEach(cb => {
+    if (cb.id.includes('show-')) cb.checked = true; // show toggles default ON
+    else cb.checked = false;
+  });
+  document.querySelectorAll('.fp-select').forEach(s => s.value = '');
+  applyFilters();
+}
+
+// Legacy compat — old filterMap calls
+function filterMap(type) {
+  if (type === 'all') { clearAllFilters(); return; }
+  if (type === 'help') {
+    document.querySelectorAll('[id$="-show-offers"]').forEach(c => c.checked = true);
+    document.querySelectorAll('[id$="-show-stranded"]').forEach(c => c.checked = false);
+    document.querySelectorAll('[id$="-show-worldwide"]').forEach(c => c.checked = false);
+    applyFilters(); return;
+  }
+  if (type === 'worldwide') {
+    document.querySelectorAll('[id$="-show-offers"]').forEach(c => c.checked = false);
+    document.querySelectorAll('[id$="-show-stranded"]').forEach(c => c.checked = false);
+    document.querySelectorAll('[id$="-show-worldwide"]').forEach(c => c.checked = true);
+    applyFilters(); return;
+  }
+  if (type === 'stranded') {
+    document.querySelectorAll('[id$="-show-offers"]').forEach(c => c.checked = false);
+    document.querySelectorAll('[id$="-show-stranded"]').forEach(c => c.checked = true);
+    document.querySelectorAll('[id$="-show-worldwide"]').forEach(c => c.checked = false);
+    applyFilters(); return;
+  }
+  // Default — show all
+  clearAllFilters();
 }
 
 // ============================================================
@@ -215,53 +344,6 @@ function toggleMapTheme() {
     if (sun) sun.style.display = _mapDark ? 'block' : 'none';
     if (moon) moon.style.display = _mapDark ? 'none' : 'block';
   });
-}
-
-// ============================================================
-// DESKTOP MAP FILTER
-// ============================================================
-function filterMap(type) {
-  if (!window._mapInit) { showView('map'); setTimeout(() => filterMap(type), 500); return; }
-  if (_activeFilter === type) type = 'all';
-  _activeFilter = type;
-  const map = window._crisisMap;
-
-  document.querySelectorAll('.sitrep-stat').forEach(s => s.classList.remove('active-filter'));
-  const ssMap = {stranded:'ss-stranded',cancelled:'ss-cancelled',airports:'ss-airports',
-                 airspace:'ss-airspace',help:'ss-help-offer'};
-  if (ssMap[type]) document.getElementById(ssMap[type])?.classList.add('active-filter');
-
-  document.querySelectorAll('.legend-item').forEach(l => l.classList.remove('active-legend'));
-  const lm = {help:'leg-help',worldwide:'leg-worldwide'};
-  if (lm[type]) document.getElementById(lm[type])?.classList.add('active-legend');
-
-  _mk.country.forEach(({marker,status}) => {
-    const show = type==='all'||type===status||
-      ['stranded','cancelled','airports','airspace','danger','warn','safe'].includes(type);
-    show ? marker.addTo(map) : map.removeLayer(marker);
-  });
-  _mk.routes.forEach(({marker,status}) => {
-    const show = type==='all'||type==='routes'||
-      (type==='danger'&&status==='danger')||(type==='warn'&&status!=='safe');
-    show ? marker.addTo(map) : map.removeLayer(marker);
-  });
-  _mk.worldwide.forEach(m => {
-    (type==='all'||type==='worldwide') ? m.addTo(map) : map.removeLayer(m);
-  });
-  // Help cluster layer
-  if (_helpCluster) {
-    (type==='all'||type==='help') ? map.addLayer(_helpCluster) : map.removeLayer(_helpCluster);
-  }
-
-  if (type==='airports'||type==='cancelled'||type==='stranded') {
-    renderAirportPins(map, type); map.flyTo([28,47],5,{duration:1});
-  } else { clearDataPins(map); }
-  if (type==='routes')    map.flyTo([28,46],5,{duration:1});
-  if (type==='worldwide') map.flyTo([20,60],3,{duration:1.2});
-  if (type==='help') map.flyTo([28,45],5,{duration:1});
-  if (type==='all') { clearDataPins(map); map.flyTo([28,45],5,{duration:1}); }
-
-  showView('map');
 }
 
 // ============================================================
@@ -687,14 +769,7 @@ function initMobile(){
 }
 
 function mFilterMap(type){
-  document.querySelectorAll('.m-stat').forEach(s=>s.classList.remove('active-filter'));
-  const msMap={stranded:'mss-stranded',cancelled:'mss-cancelled',help:'mss-offer'};
-  if(msMap[type]) document.getElementById(msMap[type])?.classList.add('active-filter');
-  const mm=window._mobileMap; if(!mm)return;
-  if(type==='airports'||type==='cancelled'||type==='stranded'){renderAirportPins(mm,type);mm.flyTo([28,47],5,{duration:1});}
-  else clearDataPins(mm);
-  if(type==='worldwide') mm.flyTo([20,40],3,{duration:1.2});
-  if(type==='all'){clearDataPins(mm);mm.flyTo([28,45],4,{duration:1});}
+  filterMap(type);
 }
 
 function openMFilterLegend(){
