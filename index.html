@@ -449,27 +449,19 @@
       <span class="m-stat-num" id="m-stat-stranded">847,773</span>
       <span class="m-stat-label">EST.<br>STRANDED</span>
     </div>
-    <div class="m-stat" onclick="openStrandedForm()" style="background:rgba(236,52,82,.12);border-color:rgba(236,52,82,.25)">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      <span class="m-stat-label" style="color:#ec3452">I'M<br>STRANDED</span>
-    </div>
-    <div class="m-stat m-stat--report" onclick="openReportForm()" style="background:rgba(230,126,34,.15);border-color:rgba(230,126,34,.3)">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e67e22" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49"/></svg>
-      <span class="m-stat-label" style="color:#e67e22">GROUND<br>REPORT</span>
-    </div>
     <div class="m-stat m-stat--offer" id="mss-offer" onclick="mTab('offer',document.getElementById('mtab-spare'))">
       <svg width="30" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      <span class="m-stat-label">OFFER<br>ROOM</span>
+      <span class="m-stat-label">OFFER<br>SPARE ROOM</span>
     </div>
   </div>
 
-  <!-- Filter pill + theme toggle row -->
-  <div style="display:flex;align-items:center;justify-content:center;padding:.4rem .8rem 0;gap:.5rem">
-    <button onclick="openMFilterLegend()" style="background:#111;border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:.35rem .85rem;font-family:Inter,sans-serif;font-size:.68rem;font-weight:600;color:rgba(255,255,255,.6);cursor:pointer;display:flex;align-items:center;gap:.4rem;box-shadow:0 2px 8px rgba(0,0,0,.3)">
+  <!-- Filter pill (left) + theme toggle (right) -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:.35rem 1rem 0">
+    <button onclick="openMFilterLegend()" class="m-map-pill" style="position:static;box-shadow:none">
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
-      MAP FILTERS
+      Map Filters
     </button>
-    <button onclick="toggleMapTheme()" style="background:#111;border:1px solid rgba(255,255,255,.15);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3);flex-shrink:0;color:rgba(255,255,255,.6)">
+    <button onclick="toggleMapTheme()" class="m-map-pill" style="position:static;box-shadow:none;padding:.4rem .65rem">
       <svg id="m-theme-icon-sun" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       <svg id="m-theme-icon-moon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </button>
