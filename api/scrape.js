@@ -241,11 +241,14 @@ async function upsertMany(hostname, serviceKey, table, rows) {
 
 // ── MAIN HANDLER ─────────────────────────────────────────
 module.exports = async function handler(req, res) {
+  // Allow Vercel cron, secret param, or manual GET trigger
   const authHeader = req.headers['authorization'];
   const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  const querySecret = req.query?.secret;
+  if (cronSecret && req.method === 'POST') {
     const isVercelCron = req.headers['x-vercel-cron'] === '1';
-    if (!isVercelCron) return res.status(401).json({ error: 'Unauthorized' });
+    const hasAuth = authHeader === `Bearer ${cronSecret}` || querySecret === cronSecret;
+    if (!isVercelCron && !hasAuth) return res.status(401).json({ error: 'Unauthorized' });
   }
 
   const supabaseUrl = process.env.SUPABASE_URL;

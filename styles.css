@@ -531,6 +531,7 @@ transform: translateX(-50%);
   }
   .m-map-pill:hover{background:#222;color:#fff;}
   .m-map-pill--left{left:1rem;}
+  .m-map-pill--center{left:50%;transform:translateX(-50%);}
   .m-map-pill--right{right:1rem;}
 
   /* Country full-screen popup */
@@ -654,6 +655,11 @@ transform: translateX(-50%);
 }
 
 /* Live Feed */
+#feed-view{background:#000;min-height:calc(100vh - 56px);}
+#feed-view .section-header{color:#fff;}
+#feed-view .section-title{color:#fff;}
+#feed-view .section-subtitle{color:rgba(255,255,255,.45);}
+
 .feed-filter{
   padding:.35rem .75rem;border-radius:20px;border:1px solid rgba(255,255,255,.1);
   background:rgba(255,255,255,.04);color:rgba(255,255,255,.45);
