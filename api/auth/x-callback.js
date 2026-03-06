@@ -120,83 +120,72 @@ module.exports = async function handler(req, res) {
     let xAvatar = '';
     let xId = '';
 
-    // Method 1: Try JWT decode (works if token is a JWT)
-    try {
-      const parts = accessToken.split('.');
-      if (parts.length === 3) {
-        // Pad base64 if needed
-        let payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-        while (payload.length % 4) payload += '=';
-        const claims = JSON.parse(Buffer.from(payload, 'base64').toString());
-        xId = claims.sub || '';
-        console.log('JWT decode success, sub:', xId);
-      } else {
-        console.log('Token is not JWT, parts:', parts.length);
+    // Try API with retries (both domains, up to 3 attempts)
+    for (let attempt = 0; attempt < 3 && !xUsername; attempt++) {
+      if (attempt > 0) await new Promise(r => setTimeout(r, 1000));
+      for (const domain of ['api.twitter.com', 'api.x.com']) {
+        try {
+          const r = await httpRequest('GET', domain, '/2/users/me?user.fields=profile_image_url,username,name', {
+            'Authorization': `Bearer ${accessToken}`,
+          }, null);
+          console.log(`Attempt ${attempt + 1} ${domain}:`, r.status);
+          if (r.status === 200 && r.body?.data) {
+            xUsername = r.body.data.username || '';
+            xName = r.body.data.name || '';
+            xAvatar = (r.body.data.profile_image_url || '').replace('_normal', '_400x400');
+            xId = r.body.data.id || '';
+            break;
+          }
+        } catch (e) { console.log(`${domain} error:`, e.message); }
       }
-    } catch (e) {
-      console.log('JWT decode failed:', e.message);
+      if (xUsername) break;
     }
 
-    // Method 2: Try API (works on Basic/Pro tier)
+    // Fallback ID from JWT if API didn't return one
     if (!xId) {
-      for (const domain of ['api.twitter.com', 'api.x.com']) {
-        try {
-          const r = await httpRequest('GET', domain, '/2/users/me?user.fields=profile_image_url,username,name', {
-            'Authorization': `Bearer ${accessToken}`,
-          }, null);
-          console.log(`Profile fetch ${domain}:`, r.status);
-          if (r.status === 200 && r.body?.data) {
-            xUsername = r.body.data.username || '';
-            xName = r.body.data.name || '';
-            xAvatar = (r.body.data.profile_image_url || '').replace('_normal', '_400x400');
-            xId = r.body.data.id || xId;
-            break;
-          }
-        } catch (e) {}
-      }
-    } else {
-      // We have ID from JWT, still try API for username/avatar
-      for (const domain of ['api.twitter.com', 'api.x.com']) {
-        try {
-          const r = await httpRequest('GET', domain, '/2/users/me?user.fields=profile_image_url,username,name', {
-            'Authorization': `Bearer ${accessToken}`,
-          }, null);
-          if (r.status === 200 && r.body?.data) {
-            xUsername = r.body.data.username || '';
-            xName = r.body.data.name || '';
-            xAvatar = (r.body.data.profile_image_url || '').replace('_normal', '_400x400');
-            break;
-          }
-        } catch (e) {}
-      }
+      try {
+        const parts = accessToken.split('.');
+        if (parts.length === 3) {
+          let payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+          while (payload.length % 4) payload += '=';
+          const claims = JSON.parse(Buffer.from(payload, 'base64').toString());
+          xId = claims.sub || '';
+        }
+      } catch (e) {}
     }
 
-    // Method 3: Generate a stable ID from the access token itself as last resort
+    // Last resort: derive stable ID from token (for account creation only, never as handle)
     if (!xId) {
       xId = 'xauth_' + crypto.createHash('sha256').update(accessToken).digest('hex').slice(0, 16);
-      console.log('Using derived ID:', xId);
     }
 
-    console.log('X auth result: id=' + xId + ' username=' + xUsername);
+    console.log('X auth result: id=' + xId + ' username=' + xUsername + ' name=' + xName);
 
     // ── 3. MODE: LINK (add X to existing account) ──
     if (cookieData.mode === 'link' && cookieData.linkUserId) {
-      console.log('Linking X: handle=' + xUsername + ' avatar=' + (xAvatar ? 'yes' : 'no') + ' userId=' + cookieData.linkUserId);
-      const updateData = { x_verified: true };
-      if (xUsername) updateData.x_handle = xUsername;
-      if (xAvatar) updateData.avatar_url = xAvatar;
-      if (!xUsername && xId) updateData.x_handle = 'x_' + xId; // fallback handle
+      if (!xUsername) {
+        return errorRedirect(res, 'link', 'Could not fetch your X username. Twitter API may be temporarily unavailable. Please try again in a moment.');
+      }
+      console.log('Linking X: @' + xUsername + ' to user ' + cookieData.linkUserId);
       const patchRes = await httpRequest('PATCH', host, `/rest/v1/profiles?id=eq.${cookieData.linkUserId}`, {
         ...H, 'Prefer': 'return=representation'
-      }, updateData);
-      console.log('Link X PATCH result:', patchRes.status, JSON.stringify(patchRes.body).slice(0, 200));
+      }, {
+        x_handle: xUsername,
+        x_verified: true,
+        avatar_url: xAvatar || undefined,
+      });
+      console.log('Link PATCH:', patchRes.status);
       if (patchRes.status >= 400) {
-        return errorRedirect(res, 'link', `profile update failed: ${patchRes.status} ${JSON.stringify(patchRes.body).slice(0, 100)}`);
+        return errorRedirect(res, 'link', `Update failed: ${patchRes.status}`);
       }
       return res.redirect('/#x-linked');
     }
 
     // ── 4. MODE: LOGIN or SIGNUP ──
+    if (!xUsername) {
+      return errorRedirect(res, 'profile', 'Could not fetch your X username. Twitter API may be temporarily unavailable. Please try again.');
+    }
+
     const xEmail = `x_${xId}@x.imstranded.org`;
     const xPassword = derivePassword(xId, clientSecret);
     const authMode = cookieData.mode || 'login';
