@@ -83,15 +83,43 @@ const NGOS = [
 
 
 let AIRPORT_DATA = [
+  // Gulf — Major
   {city:'Dubai',code:'DXB',iata:'DXB',coords:[25.252,55.364],cancelled:312,status:'CLOSED',stranded:56160,updated:'--:--'},
   {city:'Abu Dhabi',code:'AUH',iata:'AUH',coords:[24.432,54.651],cancelled:198,status:'CLOSED',stranded:35640,updated:'--:--'},
-  {city:'Kuwait City',code:'KWI',iata:'KWI',coords:[29.226,47.968],cancelled:143,status:'CLOSED',stranded:25740,updated:'--:--'},
   {city:'Doha',code:'DOH',iata:'DOH',coords:[25.273,51.608],cancelled:117,status:'RESTRICTED',stranded:18720,updated:'--:--'},
+  {city:'Kuwait City',code:'KWI',iata:'KWI',coords:[29.226,47.968],cancelled:143,status:'CLOSED',stranded:25740,updated:'--:--'},
   {city:'Bahrain',code:'BAH',iata:'BAH',coords:[26.270,50.633],cancelled:89,status:'CLOSED',stranded:16020,updated:'--:--'},
   {city:'Muscat',code:'MCT',iata:'MCT',coords:[23.593,58.284],cancelled:34,status:'OPEN',stranded:2720,updated:'--:--'},
+  // Gulf — Regional
+  {city:'Sharjah',code:'SHJ',iata:'SHJ',coords:[25.329,55.517],cancelled:67,status:'CLOSED',stranded:8040,updated:'--:--'},
+  {city:'Al Maktoum (DWC)',code:'DWC',iata:'DWC',coords:[24.896,55.161],cancelled:28,status:'CLOSED',stranded:3360,updated:'--:--'},
+  {city:'Ras Al Khaimah',code:'RKT',iata:'RKT',coords:[25.613,55.939],cancelled:12,status:'RESTRICTED',stranded:960,updated:'--:--'},
+  {city:'Salalah',code:'SLL',iata:'SLL',coords:[17.038,54.091],cancelled:8,status:'OPEN',stranded:480,updated:'--:--'},
+  // Saudi
   {city:'Riyadh',code:'RUH',iata:'RUH',coords:[24.957,46.698],cancelled:41,status:'PARTIALLY OPEN',stranded:3280,updated:'--:--'},
+  {city:'Jeddah',code:'JED',iata:'JED',coords:[21.670,39.150],cancelled:52,status:'OPEN',stranded:4160,updated:'--:--'},
+  {city:'Dammam',code:'DMM',iata:'DMM',coords:[26.471,49.798],cancelled:38,status:'PARTIALLY OPEN',stranded:3040,updated:'--:--'},
+  {city:'Medina',code:'MED',iata:'MED',coords:[24.553,39.705],cancelled:15,status:'OPEN',stranded:1200,updated:'--:--'},
+  // Conflict zone
   {city:'Tehran',code:'IKA',iata:'IKA',coords:[35.416,51.152],cancelled:201,status:'CLOSED',stranded:36180,updated:'--:--'},
   {city:'Baghdad',code:'BGW',iata:'BGW',coords:[33.262,44.235],cancelled:88,status:'CLOSED',stranded:15840,updated:'--:--'},
+  {city:'Erbil',code:'EBL',iata:'EBL',coords:[36.237,43.963],cancelled:22,status:'RESTRICTED',stranded:2640,updated:'--:--'},
+  {city:'Basra',code:'BSR',iata:'BSR',coords:[30.549,47.662],cancelled:19,status:'CLOSED',stranded:2280,updated:'--:--'},
+  {city:'Tel Aviv',code:'TLV',iata:'TLV',coords:[32.011,34.887],cancelled:156,status:'CLOSED',stranded:28080,updated:'--:--'},
+  // Transit / Alternative routes
+  {city:'Amman',code:'AMM',iata:'AMM',coords:[31.723,35.993],cancelled:24,status:'OPEN',stranded:1920,updated:'--:--'},
+  {city:'Beirut',code:'BEY',iata:'BEY',coords:[33.821,35.488],cancelled:31,status:'RESTRICTED',stranded:3720,updated:'--:--'},
+  {city:'Cairo',code:'CAI',iata:'CAI',coords:[30.122,31.406],cancelled:18,status:'OPEN',stranded:1440,updated:'--:--'},
+  {city:'Istanbul',code:'IST',iata:'IST',coords:[41.261,28.742],cancelled:45,status:'OPEN',stranded:5400,updated:'--:--'},
+  // Key destination airports (where people are trying to GET to)
+  {city:'Mumbai',code:'BOM',iata:'BOM',coords:[19.089,72.868],cancelled:87,status:'DISRUPTED',stranded:6960,updated:'--:--'},
+  {city:'Delhi',code:'DEL',iata:'DEL',coords:[28.556,77.100],cancelled:94,status:'DISRUPTED',stranded:7520,updated:'--:--'},
+  {city:'Manila',code:'MNL',iata:'MNL',coords:[14.508,121.020],cancelled:63,status:'DISRUPTED',stranded:5040,updated:'--:--'},
+  {city:'Islamabad',code:'ISB',iata:'ISB',coords:[33.616,72.829],cancelled:42,status:'DISRUPTED',stranded:3360,updated:'--:--'},
+  {city:'Dhaka',code:'DAC',iata:'DAC',coords:[23.843,90.398],cancelled:38,status:'DISRUPTED',stranded:3040,updated:'--:--'},
+  {city:'Colombo',code:'CMB',iata:'CMB',coords:[7.181,79.884],cancelled:21,status:'DISRUPTED',stranded:1680,updated:'--:--'},
+  {city:'Kathmandu',code:'KTM',iata:'KTM',coords:[27.697,85.358],cancelled:16,status:'DISRUPTED',stranded:1280,updated:'--:--'},
+  {city:'Bali',code:'DPS',iata:'DPS',coords:[-8.748,115.167],cancelled:29,status:'DISRUPTED',stranded:2320,updated:'--:--'},
 ];
 
 // ============================================================
@@ -271,6 +299,7 @@ function initMap() {
 
   renderPostsOnMap(map);
   renderReportsOnMap(map);
+  renderStrandedOnMap(map, false);
   window._crisisMap = map;
 }
 
@@ -636,6 +665,7 @@ function initMobile(){
   });
   mmap.addLayer(_mHelpCluster);
   renderReportsOnMap(mmap);
+  renderStrandedOnMap(mmap, true);
   mRenderResources();
 }
 
@@ -1614,6 +1644,143 @@ function initLocationAutocomplete(inputId, latId, lngId, listId) {
 // INIT
 // ============================================================
 // ============================================================
+// STRANDED PEOPLE
+// ============================================================
+let _strandedPeople = [];
+let _strandedCluster = null;
+let _mStrandedCluster = null;
+
+function openStrandedForm() {
+  if (!isLoggedIn()) { alert('Please sign in to register as stranded.'); showView('profile'); return; }
+  document.getElementById('stranded-modal').classList.add('open');
+}
+
+function closeStrandedForm() {
+  document.getElementById('stranded-modal').classList.remove('open');
+}
+
+async function submitStranded() {
+  if (!isLoggedIn()) { alert('Please sign in first.'); return; }
+  const loc = document.getElementById('stranded-location').value.trim();
+  const lat = parseFloat(document.getElementById('stranded-lat').value) || null;
+  const lng = parseFloat(document.getElementById('stranded-lng').value) || null;
+  const dest = document.getElementById('stranded-dest').value.trim();
+  const destLat = parseFloat(document.getElementById('stranded-dest-lat').value) || null;
+  const destLng = parseFloat(document.getElementById('stranded-dest-lng').value) || null;
+  const nationality = document.getElementById('stranded-nationality').value;
+  const groupSize = parseInt(document.getElementById('stranded-group').value) || 1;
+  const since = document.getElementById('stranded-since').value || null;
+  const details = document.getElementById('stranded-details').value.trim();
+  const needs = [...document.querySelectorAll('#stranded-needs input:checked')].map(c => c.value);
+
+  if (!loc || !dest) { alert('Please fill in your current location and destination.'); return; }
+  if (!lat || !lng) { alert('Please select your current location from suggestions.'); return; }
+
+  // Build contact from linked accounts
+  const email = _currentUser?.email || '';
+  const tg = _currentProfile?.tg_handle ? '@' + _currentProfile.tg_handle : '';
+  const contact = [email, tg].filter(Boolean).join(' | ');
+
+  const btn = document.getElementById('stranded-submit-btn');
+  btn.textContent = 'Registering...'; btn.disabled = true;
+  try {
+    const { error } = await _sb.from('stranded_people').insert({
+      user_id: _currentUser.id,
+      current_location: loc, current_lat: lat, current_lng: lng,
+      destination: dest, dest_lat: destLat, dest_lng: destLng,
+      nationality, group_size: groupSize,
+      needs: needs.length ? `{${needs.join(',')}}` : '{}',
+      stranded_since: since, details, contact,
+    });
+    if (error) throw error;
+    closeStrandedForm();
+    btn.textContent = 'Register as Stranded'; btn.disabled = false;
+    alert('You\'ve been registered. Stay safe — help is on the way.');
+    loadStranded();
+  } catch (e) {
+    alert('Failed: ' + e.message);
+    btn.textContent = 'Register as Stranded'; btn.disabled = false;
+  }
+}
+
+async function loadStranded() {
+  try {
+    const { data } = await _sb.from('stranded_people').select('id,current_location,current_lat,current_lng,destination,nationality,group_size,needs,stranded_since,details,status,created_at')
+      .eq('flagged', false).eq('status', 'active').order('created_at', { ascending: false }).limit(500);
+    _strandedPeople = data || [];
+
+    // Update stranded count in sitrep bar
+    const totalPeople = _strandedPeople.reduce((sum, p) => sum + (p.group_size || 1), 0);
+    const countEl = document.getElementById('stat-stranded');
+    const mCountEl = document.getElementById('m-stat-stranded');
+    // Only update if we have registered people (otherwise keep the estimated number)
+    if (totalPeople > 0) {
+      if (countEl) countEl.textContent = totalPeople.toLocaleString() + '+';
+      if (mCountEl) mCountEl.textContent = totalPeople.toLocaleString() + '+';
+    }
+
+    renderStrandedOnMap(window._crisisMap, false);
+    renderStrandedOnMap(window._mobileMap, true);
+  } catch (e) { console.error('Load stranded error:', e); }
+}
+
+const NEED_LABELS = { housing: 'Housing', flight: 'Flight home', food: 'Food/water', medical: 'Medical', money: 'Financial', translation: 'Translation' };
+
+function renderStrandedOnMap(map, isMobile) {
+  if (!map) return;
+  // Clear existing cluster
+  const clusterRef = isMobile ? _mStrandedCluster : _strandedCluster;
+  if (clusterRef) { map.removeLayer(clusterRef); }
+
+  const cluster = L.markerClusterGroup({
+    maxClusterRadius: 60,
+    spiderfyOnMaxZoom: true,
+    showCoverageOnHover: false,
+    zoomToBoundsOnClick: true,
+    iconCreateFunction: function(c) {
+      const count = c.getAllChildMarkers().reduce((sum, m) => sum + (m.options.groupSize || 1), 0);
+      const size = count > 50 ? 44 : count > 10 ? 36 : 28;
+      return L.divIcon({ html: `<div class="stranded-cluster" style="width:${size}px;height:${size}px">${count}</div>`, className: '', iconSize: [size, size] });
+    }
+  });
+
+  for (const p of _strandedPeople) {
+    if (!p.current_lat || !p.current_lng) continue;
+    const age = timeAgo(p.created_at);
+    const needsList = (p.needs || []).map(n => NEED_LABELS[n] || n).join(', ');
+    const sinceTxt = p.stranded_since ? 'Since ' + new Date(p.stranded_since).toLocaleDateString() : '';
+    const icon = L.divIcon({ className: '', html: '<div class="stranded-pin"></div>', iconSize: [10, 10], iconAnchor: [5, 5] });
+    const marker = L.marker([p.current_lat, p.current_lng], { icon, groupSize: p.group_size || 1 });
+    marker.bindPopup(`
+      <div style="min-width:200px;font-family:Inter,sans-serif">
+        <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:#ec3452;margin-bottom:.3rem">STRANDED · ${age}</div>
+        <div style="font-size:.82rem;font-weight:700;color:#fff;margin-bottom:.15rem">${p.group_size > 1 ? p.group_size + ' people' : '1 person'}${p.nationality ? ' · ' + p.nationality : ''}</div>
+        <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">From: ${p.current_location}</div>
+        <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.3rem">Need to reach: <strong style="color:#fff">${p.destination}</strong></div>
+        ${needsList ? `<div style="font-size:.68rem;color:#e67e22;margin-bottom:.2rem">Needs: ${needsList}</div>` : ''}
+        ${sinceTxt ? `<div style="font-size:.65rem;color:rgba(255,255,255,.35)">${sinceTxt}</div>` : ''}
+        ${p.details ? `<div style="font-size:.75rem;color:rgba(255,255,255,.5);line-height:1.4;margin-top:.3rem">${p.details.slice(0, 150)}</div>` : ''}
+      </div>
+    `, { className: 'dark-popup', maxWidth: 280 });
+    cluster.addLayer(marker);
+  }
+
+  map.addLayer(cluster);
+  if (isMobile) _mStrandedCluster = cluster;
+  else _strandedCluster = cluster;
+}
+
+function initStrandedRealtime() {
+  _sb.channel('stranded_people').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'stranded_people' }, payload => {
+    if (payload.new && !payload.new.flagged) {
+      _strandedPeople.unshift(payload.new);
+      renderStrandedOnMap(window._crisisMap, false);
+      renderStrandedOnMap(window._mobileMap, true);
+    }
+  }).subscribe();
+}
+
+// ============================================================
 // GROUND REPORTS
 // ============================================================
 let _reports = [];
@@ -1814,8 +1981,12 @@ window.addEventListener('DOMContentLoaded',()=>{
   checkXRedirect();
   initFeedRealtime();
   initReportRealtime();
+  initStrandedRealtime();
   loadReports();
+  loadStranded();
   initLocationAutocomplete('report-location','report-lat','report-lng','report-location-ac');
+  initLocationAutocomplete('stranded-location','stranded-lat','stranded-lng','stranded-location-ac');
+  initLocationAutocomplete('stranded-dest','stranded-dest-lat','stranded-dest-lng','stranded-dest-ac');
   refreshSitrep();
   setInterval(refreshSitrep,5*60*1000);
   if(SB_ON){loadPosts();subscribeStream();}
