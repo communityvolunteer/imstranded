@@ -27,6 +27,7 @@
   </a>
   <nav>
     <button class="active" onclick="showView('map')">Map</button>
+    <button onclick="showView('feed')">Live Feed</button>
     <button onclick="showView('resources')">Additional Resources</button>
   </nav>
   <div class="header-right">
@@ -127,6 +128,26 @@
       <button class="filter-btn" onclick="filterResources('info',this)">Info &amp; Tools</button>
     </div>
     <div id="resources-grid" class="countries-grid"></div>
+  </div>
+</div>
+
+<!-- LIVE FEED VIEW -->
+<div id="feed-view" class="view">
+  <div class="container" style="max-width:780px">
+    <div class="section-header">
+      <div class="section-title">LIVE CRISIS FEED</div>
+      <div class="section-subtitle">Real-time news, advisories, and humanitarian updates</div>
+    </div>
+    <!-- Feed filters -->
+    <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1rem">
+      <button class="feed-filter active" data-filter="all" onclick="filterFeed('all',this)">All</button>
+      <button class="feed-filter" data-filter="news" onclick="filterFeed('news',this)">News</button>
+      <button class="feed-filter" data-filter="advisory" onclick="filterFeed('advisory',this)">Advisories</button>
+      <button class="feed-filter" data-filter="humanitarian" onclick="filterFeed('humanitarian',this)">Humanitarian</button>
+      <button class="feed-filter" data-filter="community" onclick="filterFeed('community',this)">Field Reports</button>
+    </div>
+    <div id="feed-list" style="margin-top:.5rem"></div>
+    <div id="feed-loading" style="text-align:center;padding:2rem;color:rgba(255,255,255,.4);font-size:.82rem">Loading live feed...</div>
   </div>
 </div>
 
@@ -379,12 +400,17 @@
       Back Home
     </a>
 
+    <!-- Live Feed pill -->
+    <a class="m-map-pill" href="#" onclick="mTab('feed',document.getElementById('mtab-filters'));return false;" style="background:rgba(52,152,236,.15);border-color:rgba(52,152,236,.3);color:#3498ec">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg>
+      LIVE FEED
+    </a>
+
     <!-- My Profile pill (right) -->
     <a class="m-map-pill m-map-pill--right" href="#" onclick="mTab('profile',document.getElementById('mtab-filters'));return false;" id="m-profile-pill">
       <svg id="m-profile-avatar-default" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <img id="m-profile-avatar-img" style="display:none;width:18px;height:18px;border-radius:50%;object-fit:cover" alt="">
       MY PROFILE
-    </a>
     </a>
   </div>
 
@@ -401,6 +427,16 @@
     </div>
     <div id="m-sheet-body">
       <div id="m-resources-content" style="display:none"></div>
+      <div id="m-feed-content" style="display:none">
+        <div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.75rem">
+          <button class="feed-filter active" data-filter="all" onclick="filterFeed('all',this)">All</button>
+          <button class="feed-filter" data-filter="news" onclick="filterFeed('news',this)">News</button>
+          <button class="feed-filter" data-filter="advisory" onclick="filterFeed('advisory',this)">Gov</button>
+          <button class="feed-filter" data-filter="humanitarian" onclick="filterFeed('humanitarian',this)">Aid</button>
+          <button class="feed-filter" data-filter="community" onclick="filterFeed('community',this)">Reports</button>
+        </div>
+        <div id="m-feed-list"></div>
+      </div>
       <div id="m-offer-content" style="display:none">
         <div class="m-form-note">Your contact will be public so people who need help can reach you.</div>
         <div class="m-form-row"><label class="m-form-label">Your Location</label><div class="loc-ac-wrap"><input type="text" id="m-offer-location" placeholder="Start typing an address…" autocomplete="off"><input type="hidden" id="m-offer-lat"><input type="hidden" id="m-offer-lng"><div class="loc-ac-list" id="m-offer-location-ac"></div></div></div>

@@ -152,9 +152,11 @@ function showView(name) {
   if (view) { view.classList.add('active'); view.style.display = 'block'; }
   const navBtns = document.querySelectorAll('nav button');
   if (name === 'map' && navBtns[0]) navBtns[0].classList.add('active');
-  if (name === 'resources' && navBtns[1]) navBtns[1].classList.add('active');
+  if (name === 'feed' && navBtns[1]) navBtns[1].classList.add('active');
+  if (name === 'resources' && navBtns[2]) navBtns[2].classList.add('active');
   if (name === 'map' && !window._mapInit) initMap();
   if (name === 'resources') renderResources();
+  if (name === 'feed') loadFeed();
   if (name === 'help') { renderPosts(); }
   if (name === 'profile') { renderProfileView(); }
 }
@@ -721,12 +723,14 @@ function mTab(tab,btn){
   _mCurrentTab=tab;
   if(tab==='map'){_mSheetOpen=false;sheet.classList.remove('open');}
   else if(tab==='resources') mShowSheetContent('resources','ADDITIONAL RESOURCES');
+  else if(tab==='feed')      { mShowSheetContent('feed','LIVE FEED'); loadFeed(); }
   else if(tab==='offer')     mShowSheetContent('offer','OFFER A SPARE ROOM');
   else if(tab==='profile')   { mShowSheetContent('profile','MY PROFILE'); renderMobileProfileView(); }
 }
 
 function mShowSheetContent(which,title){
   document.getElementById('m-resources-content').style.display=which==='resources'?'block':'none';
+  document.getElementById('m-feed-content').style.display=which==='feed'?'block':'none';
   document.getElementById('m-offer-content').style.display=which==='offer'?'block':'none';
   document.getElementById('m-edit-content').style.display=which==='profile'?'block':'none';
   const titleEl = document.getElementById('m-sheet-title-text');
@@ -1607,6 +1611,102 @@ function initLocationAutocomplete(inputId, latId, lngId, listId) {
 // ============================================================
 // INIT
 // ============================================================
+// ============================================================
+// LIVE FEED
+// ============================================================
+let _feedArticles = [];
+let _feedFilter = 'all';
+let _feedLoaded = false;
+
+async function loadFeed() {
+  if (_feedLoaded && _feedArticles.length) { renderFeed(); return; }
+  try {
+    const { data, error } = await _sb.from('news_feed').select('*').order('published_at', { ascending: false }).limit(80);
+    if (error) throw error;
+    _feedArticles = data || [];
+    _feedLoaded = true;
+    renderFeed();
+  } catch (e) {
+    console.error('Feed load error:', e);
+    const el = document.getElementById('feed-list');
+    const mEl = document.getElementById('m-feed-list');
+    const msg = '<div style="text-align:center;padding:2rem;color:rgba(255,255,255,.4);font-size:.82rem">Unable to load feed. Data will appear once the scraper runs.</div>';
+    if (el) el.innerHTML = msg;
+    if (mEl) mEl.innerHTML = msg;
+  }
+  const loadEl = document.getElementById('feed-loading');
+  if (loadEl) loadEl.style.display = 'none';
+}
+
+function filterFeed(filter, btn) {
+  _feedFilter = filter;
+  document.querySelectorAll('.feed-filter').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  // Sync both desktop and mobile filter buttons
+  document.querySelectorAll(`.feed-filter[data-filter="${filter}"]`).forEach(b => b.classList.add('active'));
+  renderFeed();
+}
+
+function timeAgo(dateStr) {
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  const diff = Math.max(0, now - then);
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return mins + 'm ago';
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + 'h ago';
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return days + 'd ago';
+  return new Date(dateStr).toLocaleDateString();
+}
+
+const SOURCE_ICONS = {
+  'news': '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
+  'advisory': '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c-1.1 0-2-.2-2.7-.6L3.5 18.2c-.4-.3-.7-.7-.9-1.1-.2-.5-.3-1-.3-1.5V8.4c0-.5.1-1 .3-1.5.2-.4.5-.8.9-1.1l5.8-3.2C10 2.2 11 2 12 2s2 .2 2.7.6l5.8 3.2c.4.3.7.7.9 1.1.2.5.3 1 .3 1.5v7.2c0 .5-.1 1-.3 1.5-.2.4-.5.8-.9 1.1l-5.8 3.2c-.7.4-1.6.6-2.7.6z"/></svg>',
+  'humanitarian': '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
+  'community': '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+};
+
+const SOURCE_COLORS = {
+  'news': '#3498ec',
+  'advisory': '#e67e22',
+  'humanitarian': '#e74c3c',
+  'community': '#2ecc71',
+};
+
+function renderFeed() {
+  const filtered = _feedFilter === 'all' ? _feedArticles : _feedArticles.filter(a => a.source_type === _feedFilter);
+  const html = filtered.length ? filtered.map(a => {
+    const icon = SOURCE_ICONS[a.source_type] || SOURCE_ICONS.news;
+    const color = SOURCE_COLORS[a.source_type] || '#3498ec';
+    return `<a href="${a.url || '#'}" target="_blank" rel="noopener" class="feed-item" style="border-left-color:${color}">
+      <div class="feed-item-header">
+        <span class="feed-item-source" style="color:${color}">${icon} ${a.source}</span>
+        <span class="feed-item-time">${timeAgo(a.published_at)}</span>
+      </div>
+      <div class="feed-item-title">${a.title}</div>
+      ${a.summary ? `<div class="feed-item-summary">${a.summary.slice(0, 180)}${a.summary.length > 180 ? '...' : ''}</div>` : ''}
+    </a>`;
+  }).join('') : '<div style="text-align:center;padding:2rem;color:rgba(255,255,255,.35);font-size:.82rem">No articles for this filter yet.</div>';
+
+  const el = document.getElementById('feed-list');
+  const mEl = document.getElementById('m-feed-list');
+  if (el) el.innerHTML = html;
+  if (mEl) mEl.innerHTML = html;
+}
+
+// Realtime feed updates
+function initFeedRealtime() {
+  _sb.channel('news_feed').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'news_feed' }, payload => {
+    if (payload.new) {
+      _feedArticles.unshift(payload.new);
+      if (_feedArticles.length > 100) _feedArticles.pop();
+      renderFeed();
+    }
+  }).subscribe();
+}
+
 window.addEventListener('DOMContentLoaded',()=>{
   if(isMob()){ initMobile(); }
   else { showView('map'); }
@@ -1616,6 +1716,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   initAuth();
   checkTelegramRedirect();
   checkXRedirect();
+  initFeedRealtime();
   refreshSitrep();
   setInterval(refreshSitrep,5*60*1000);
   if(SB_ON){loadPosts();subscribeStream();}
