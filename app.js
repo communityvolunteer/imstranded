@@ -199,6 +199,27 @@ function switchHelpTab(tab) {
 }
 
 // ============================================================
+// MAP THEME TOGGLE
+// ============================================================
+let _mapDark = true;
+const TILE_DARK = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+const TILE_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+
+function toggleMapTheme() {
+  _mapDark = !_mapDark;
+  const url = _mapDark ? TILE_DARK : TILE_LIGHT;
+  if (window._dtTile) window._dtTile.setUrl(url);
+  if (window._mTile) window._mTile.setUrl(url);
+  // Sync icons on both desktop and mobile buttons
+  ['','m-'].forEach(prefix => {
+    const sun = document.getElementById(prefix + 'theme-icon-sun');
+    const moon = document.getElementById(prefix + 'theme-icon-moon');
+    if (sun) sun.style.display = _mapDark ? 'block' : 'none';
+    if (moon) moon.style.display = _mapDark ? 'none' : 'block';
+  });
+}
+
+// ============================================================
 // DESKTOP MAP FILTER
 // ============================================================
 function filterMap(type) {
@@ -252,7 +273,7 @@ function initMap() {
   window._mapInit = true;
   const map = L.map('crisis-map',{zoomControl:false}).setView([28,45],5);
   L.control.zoom({position:'bottomright'}).addTo(map);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
+  window._dtTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
     attribution:'(c)OpenStreetMap (c)CARTO',maxZoom:19
   }).addTo(map);
 
@@ -638,7 +659,7 @@ function initMobile(){
   window._mobileInit=true;
   document.getElementById('m-shell').style.display='flex';
   const mmap=L.map('m-crisis-map',{zoomControl:false,attributionControl:false}).setView([28,45],4);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mmap);
+  window._mTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mmap);
 
   mmap.createPane('countryPane');
   mmap.getPane('countryPane').style.zIndex = 590;

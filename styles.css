@@ -752,3 +752,13 @@ transform: translateX(-50%);
   font-family:Inter,sans-serif;font-weight:800;font-size:11px;
   border:2px solid #fff;box-shadow:0 2px 8px rgba(236,52,82,.4);
 }
+/* Map theme toggle */
+.map-theme-btn{
+  position:absolute;bottom:1.5rem;left:1.5rem;z-index:800;
+  width:36px;height:36px;border-radius:50%;
+  background:#111;border:1px solid rgba(255,255,255,.15);
+  color:rgba(255,255,255,.6);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 8px rgba(0,0,0,.3);transition:all .15s;
+}
+.map-theme-btn:hover{background:#222;color:#fff;}
