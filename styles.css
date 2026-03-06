@@ -575,10 +575,10 @@ transform: translateX(-50%);
     padding:.4rem 0;font-family:'Inter',sans-serif;font-size:.5rem;
     font-weight:700;letter-spacing:.06em;text-transform:uppercase;
   }
-  .m-tab svg{width:25px;height:25px;stroke:rgba(255,255,255,.45);}
+  .m-tab svg{width:25px;height:25px;stroke:rgb(255, 255, 255);}
   .m-tab.active{color:#fff;border-top-color:#3498ec;}
   .m-tab.active svg{stroke:#fff;}
-  .m-tab:hover:not(.active){color:rgba(255,255,255,.7);}
+  .m-tab:hover:not(.active){color:rgb(255, 255, 255);}
 
   /* SPARE ROOMS tab — toggle style */
   .m-tab-spare{
