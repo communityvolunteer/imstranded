@@ -1148,18 +1148,22 @@ function b64urlDecode(s) {
   return atob(b);
 }
 
-// Fetch X profile from browser (Vercel IPs are blocked by Twitter, browser isn't)
+// Fetch X profile via our proxy (Twitter blocks browser CORS, proxy retries 503s)
 async function fetchXProfile(accessToken) {
-  for (const base of ['https://api.twitter.com', 'https://api.x.com']) {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    if (attempt > 0) await new Promise(r => setTimeout(r, 2000));
     try {
-      const r = await fetch(`${base}/2/users/me?user.fields=profile_image_url,username,name`, {
-        headers: { 'Authorization': `Bearer ${accessToken}` }
+      const r = await fetch('/api/auth/x-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: accessToken })
       });
       if (r.ok) {
         const json = await r.json();
         if (json?.data) return json.data;
       }
-    } catch (e) {}
+      console.log('X profile proxy attempt', attempt + 1, ':', r.status);
+    } catch (e) { console.log('X profile proxy error:', e.message); }
   }
   return null;
 }
@@ -1167,7 +1171,7 @@ async function fetchXProfile(accessToken) {
 async function finishXLink(userId, accessToken) {
   const xUser = await fetchXProfile(accessToken);
   if (!xUser || !xUser.username) {
-    alert('Could not fetch your X profile. Please try again.');
+    alert('Twitter API is temporarily unavailable (503). This is a known issue with their free tier. Please try linking X again in a few minutes.');
     return;
   }
   const avatar = (xUser.profile_image_url || '').replace('_normal', '_400x400');
@@ -1185,7 +1189,7 @@ async function finishXLink(userId, accessToken) {
 async function finishXAuth(mode, xId, accessToken) {
   const xUser = await fetchXProfile(accessToken);
   if (!xUser || !xUser.username) {
-    alert('Could not fetch your X profile. Please try again.');
+    alert('Twitter API is temporarily unavailable (503). Please try again in a few minutes.');
     return;
   }
   const xUsername = xUser.username;
