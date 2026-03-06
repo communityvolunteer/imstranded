@@ -729,7 +729,8 @@ function mShowSheetContent(which,title){
   document.getElementById('m-resources-content').style.display=which==='resources'?'block':'none';
   document.getElementById('m-offer-content').style.display=which==='offer'?'block':'none';
   document.getElementById('m-edit-content').style.display=which==='profile'?'block':'none';
-  document.getElementById('m-sheet-title').textContent=title;
+  const titleEl = document.getElementById('m-sheet-title-text');
+  if (titleEl) titleEl.textContent = title;
   _mSheetOpen=true;document.getElementById('m-sheet').classList.add('open');
 }
 
@@ -1261,7 +1262,7 @@ function updateVerifyStatus(provider, verified) {
   const btn = document.getElementById('verify-btn-' + provider);
   if (btn) {
     if (verified) {
-      btn.innerHTML = 'Verified ✓ <span style="font-size:.55rem;opacity:.5;margin-left:4px" onclick="event.stopPropagation();unlinkProvider(\'' + provider + '\')">unlink</span>';
+      btn.innerHTML = 'Verified <svg width="10" height="10" viewBox="0 0 24 24" fill="#3498ec" style="vertical-align:middle"><path d="M12 22c-1.1 0-2-.2-2.7-.6L3.5 18.2c-.4-.3-.7-.7-.9-1.1-.2-.5-.3-1-.3-1.5V8.4c0-.5.1-1 .3-1.5.2-.4.5-.8.9-1.1l5.8-3.2C10 2.2 11 2 12 2s2 .2 2.7.6l5.8 3.2c.4.3.7.7.9 1.1.2.5.3 1 .3 1.5v7.2c0 .5-.1 1-.3 1.5-.2.4-.5.8-.9 1.1l-5.8 3.2c-.7.4-1.6.6-2.7.6z"/><path d="M9 12l2 2 4-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> <span style="font-size:.55rem;opacity:.5;margin-left:4px" onclick="event.stopPropagation();unlinkProvider(\'' + provider + '\')">unlink</span>';
       btn.className = 'p-verify-btn p-verify-btn--linked';
       btn.disabled = false;
       btn.style.cursor = 'default';
@@ -1290,7 +1291,7 @@ function updateVerifyStatus(provider, verified) {
   const mLabel = document.getElementById('m-verify-' + provider);
   if (mLabel) {
     if (verified) {
-      mLabel.innerHTML = 'Verified ✓ <span style="font-size:.5rem;opacity:.4" onclick="event.stopPropagation();unlinkProvider(\'' + provider + '\')">unlink</span>';
+      mLabel.innerHTML = 'Verified <svg width="10" height="10" viewBox="0 0 24 24" fill="#3498ec" style="vertical-align:middle"><path d="M12 22c-1.1 0-2-.2-2.7-.6L3.5 18.2c-.4-.3-.7-.7-.9-1.1-.2-.5-.3-1-.3-1.5V8.4c0-.5.1-1 .3-1.5.2-.4.5-.8.9-1.1l5.8-3.2C10 2.2 11 2 12 2s2 .2 2.7.6l5.8 3.2c.4.3.7.7.9 1.1.2.5.3 1 .3 1.5v7.2c0 .5-.1 1-.3 1.5-.2.4-.5.8-.9 1.1l-5.8 3.2c-.7.4-1.6.6-2.7.6z"/><path d="M9 12l2 2 4-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> <span style="font-size:.5rem;opacity:.4" onclick="event.stopPropagation();unlinkProvider(\'' + provider + '\')">unlink</span>';
       mLabel.style.color = '#3498ec';
       mLabel.style.cursor = 'default';
       mLabel.onclick = null;
