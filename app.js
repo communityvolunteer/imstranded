@@ -768,8 +768,7 @@ function mTab(tab,btn){
 
   if(_mCurrentTab===tab&&tab!=='map'&&_mSheetOpen){
     _mSheetOpen=false;sheet.classList.remove('open');_mCurrentTab='map';
-    document.querySelectorAll('.m-tab,.m-tab-spare').forEach(b=>b.classList.remove('active'));
-    document.getElementById('mtab-filters').classList.add('active');return;
+    document.querySelectorAll('.m-tab,.m-tab-spare').forEach(b=>b.classList.remove('active'));return;
   }
   document.querySelectorAll('.m-tab,.m-tab-spare').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
@@ -777,6 +776,7 @@ function mTab(tab,btn){
   if(tab==='map'){_mSheetOpen=false;sheet.classList.remove('open');}
   else if(tab==='resources') mShowSheetContent('resources','ADDITIONAL RESOURCES');
   else if(tab==='feed')      { mShowSheetContent('feed','LIVE FEED'); loadFeed(); }
+  else if(tab==='help-money') mShowSheetContent('help-money','$HELP');
   else if(tab==='offer')     mShowSheetContent('offer','OFFER A SPARE ROOM');
   else if(tab==='profile')   { mShowSheetContent('profile','MY PROFILE'); renderMobileProfileView(); }
 }
@@ -784,6 +784,7 @@ function mTab(tab,btn){
 function mShowSheetContent(which,title){
   document.getElementById('m-resources-content').style.display=which==='resources'?'block':'none';
   document.getElementById('m-feed-content').style.display=which==='feed'?'block':'none';
+  document.getElementById('m-help-money-content').style.display=which==='help-money'?'block':'none';
   document.getElementById('m-offer-content').style.display=which==='offer'?'block':'none';
   document.getElementById('m-edit-content').style.display=which==='profile'?'block':'none';
   const titleEl = document.getElementById('m-sheet-title-text');
@@ -793,7 +794,7 @@ function mShowSheetContent(which,title){
 
 function mSheetToggle(){
   _mSheetOpen=!_mSheetOpen;document.getElementById('m-sheet').classList.toggle('open',_mSheetOpen);
-  if(!_mSheetOpen){_mCurrentTab='map';document.querySelectorAll('.m-tab,.m-tab-spare').forEach(b=>b.classList.remove('active'));document.getElementById('mtab-filters').classList.add('active');}
+  if(!_mSheetOpen){_mCurrentTab='map';document.querySelectorAll('.m-tab,.m-tab-spare').forEach(b=>b.classList.remove('active'));}
 }
 
 function mRenderResources(){
@@ -814,7 +815,7 @@ function mRenderResources(){
 }
 
 async function mSubmitOffer(){
-  if (!isLoggedIn()) { alert('Please sign in first to post.'); mTab('profile',document.getElementById('mtab-filters')); return; }
+  if (!isLoggedIn()) { alert('Please sign in first to post.'); mTab('profile',document.getElementById('mtab-help')); return; }
   const l=document.getElementById('m-offer-location')?.value,b=document.getElementById('m-offer-body')?.value,
     n=document.getElementById('m-offer-name')?.value,
     email=document.getElementById('m-offer-contact')?.value?.trim()||'',
@@ -877,7 +878,7 @@ async function initAuth() {
     if (sessionStorage.getItem('postLogin') === 'profile') {
       sessionStorage.removeItem('postLogin');
       if (!isMob()) showView('profile');
-      else mTab('profile', document.getElementById('mtab-filters'));
+      else mTab('profile', document.getElementById('mtab-help'));
     }
   }
   // Listen for auth changes (login, logout, token refresh)
@@ -904,7 +905,7 @@ async function initAuth() {
       if (sessionStorage.getItem('postLogin') === 'profile') {
         sessionStorage.removeItem('postLogin');
         if (!isMob()) showView('profile');
-        else mTab('profile', document.getElementById('mtab-filters'));
+        else mTab('profile', document.getElementById('mtab-help'));
       }
     } else if (event === 'SIGNED_OUT') {
       _currentUser = null;
@@ -1145,7 +1146,7 @@ async function checkXRedirect() {
     if (isLoggedIn()) {
       await loadProfile();
       if (!isMob()) showView('profile');
-      else mTab('profile', document.getElementById('mtab-filters'));
+      else mTab('profile', document.getElementById('mtab-help'));
     }
     return;
   }
@@ -1195,7 +1196,7 @@ async function checkXRedirect() {
     if (isLoggedIn()) {
       await loadProfile();
       if (!isMob()) showView('profile');
-      else mTab('profile', document.getElementById('mtab-filters'));
+      else mTab('profile', document.getElementById('mtab-help'));
     }
   }
 }
@@ -1242,7 +1243,7 @@ async function finishXLink(userId, accessToken) {
   if (error) { alert('Failed to link X: ' + error.message); return; }
   await loadProfile();
   if (!isMob()) showView('profile');
-  else mTab('profile', document.getElementById('mtab-filters'));
+  else mTab('profile', document.getElementById('mtab-help'));
 }
 
 async function finishXAuth(mode, xId, accessToken) {
@@ -1491,7 +1492,7 @@ async function mSubmitEditPost() {
     if (error) throw error;
     cancelEdit('m-offer');
     loadPosts();
-    mTab('profile', document.getElementById('mtab-filters'));
+    mTab('profile', document.getElementById('mtab-help'));
   } catch (e) { alert('Failed to update: ' + e.message); if (btn) { btn.textContent = 'Update Post'; btn.disabled = false; } }
 }
 
