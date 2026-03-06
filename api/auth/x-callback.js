@@ -111,165 +111,32 @@ module.exports = async function handler(req, res) {
     }
 
     const accessToken = tokenRes.body.access_token;
-    console.log('Token response keys:', Object.keys(tokenRes.body));
-    console.log('Token type:', tokenRes.body.token_type);
-    console.log('Token scope:', tokenRes.body.scope);
-    console.log('Token preview:', accessToken.slice(0, 50) + '...');
+    console.log('Token type:', tokenRes.body.token_type, 'scope:', tokenRes.body.scope);
 
-    // ── 2. Get X user info ──
-    let xUsername = '';
-    let xName = '';
-    let xAvatar = '';
+    // Get xId from JWT if possible (fallback for login/signup)
     let xId = '';
-
-    // Try API with native fetch + retries
-    for (let attempt = 0; attempt < 3 && !xUsername; attempt++) {
-      if (attempt > 0) await new Promise(r => setTimeout(r, 1500));
-      for (const base of ['https://api.twitter.com', 'https://api.x.com']) {
-        try {
-          const r = await fetch(`${base}/2/users/me?user.fields=profile_image_url,username,name`, {
-            headers: { 'Authorization': `Bearer ${accessToken}`, 'User-Agent': 'ImStranded/1.0' },
-          });
-          console.log(`Attempt ${attempt + 1} ${base}: ${r.status}`);
-          if (r.ok) {
-            const json = await r.json();
-            if (json?.data) {
-              xUsername = json.data.username || '';
-              xName = json.data.name || '';
-              xAvatar = (json.data.profile_image_url || '').replace('_normal', '_400x400');
-              xId = json.data.id || '';
-              console.log('Got X profile:', xUsername, xId);
-              break;
-            }
-          } else {
-            const errText = await r.text();
-            console.log(`${base} error body:`, errText.slice(0, 200));
-          }
-        } catch (e) { console.log(`${base} fetch error:`, e.message); }
+    try {
+      const parts = accessToken.split('.');
+      if (parts.length === 3) {
+        let payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+        while (payload.length % 4) payload += '=';
+        const claims = JSON.parse(Buffer.from(payload, 'base64').toString());
+        xId = claims.sub || '';
       }
-      if (xUsername) break;
-    }
-
-    // Fallback ID from JWT if API didn't return one
-    if (!xId) {
-      try {
-        const parts = accessToken.split('.');
-        if (parts.length === 3) {
-          let payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-          while (payload.length % 4) payload += '=';
-          const claims = JSON.parse(Buffer.from(payload, 'base64').toString());
-          xId = claims.sub || '';
-        }
-      } catch (e) {}
-    }
-
-    // Last resort: derive stable ID from token (for account creation only, never as handle)
+    } catch (e) {}
     if (!xId) {
       xId = 'xauth_' + crypto.createHash('sha256').update(accessToken).digest('hex').slice(0, 16);
     }
 
-    console.log('X auth result: id=' + xId + ' username=' + xUsername + ' name=' + xName);
+    // Pass token to client — browser will call Twitter API (Vercel IPs are blocked)
+    const tokenB64 = Buffer.from(accessToken).toString('base64url');
 
-    // ── 3. MODE: LINK (add X to existing account) ──
     if (cookieData.mode === 'link' && cookieData.linkUserId) {
-      if (!xUsername) {
-        return errorRedirect(res, 'link', 'Could not fetch your X username. Twitter API may be temporarily unavailable. Please try again in a moment.');
-      }
-      console.log('Linking X: @' + xUsername + ' to user ' + cookieData.linkUserId);
-      const patchRes = await httpRequest('PATCH', host, `/rest/v1/profiles?id=eq.${cookieData.linkUserId}`, {
-        ...H, 'Prefer': 'return=representation'
-      }, {
-        x_handle: xUsername,
-        x_verified: true,
-        avatar_url: xAvatar || undefined,
-      });
-      console.log('Link PATCH:', patchRes.status);
-      if (patchRes.status >= 400) {
-        return errorRedirect(res, 'link', `Update failed: ${patchRes.status}`);
-      }
-      return res.redirect('/#x-linked');
+      return res.redirect(`/#x-link-finish:${cookieData.linkUserId}:${tokenB64}`);
     }
 
-    // ── 4. MODE: LOGIN or SIGNUP ──
-    if (!xUsername) {
-      return errorRedirect(res, 'profile', 'Could not fetch your X username. Twitter API may be temporarily unavailable. Please try again.');
-    }
-
-    const xEmail = `x_${xId}@x.imstranded.org`;
-    const xPassword = derivePassword(xId, clientSecret);
     const authMode = cookieData.mode || 'login';
-
-    let userId = null;
-    let signInEmail = null;
-
-    // Check if X handle already linked to an account
-    if (xUsername) {
-      const profileRes = await httpRequest('GET', host,
-        `/rest/v1/profiles?select=id&x_handle=eq.${encodeURIComponent(xUsername)}&x_verified=eq.true&limit=1`, H, null);
-      if (profileRes.status === 200 && Array.isArray(profileRes.body) && profileRes.body.length > 0) {
-        userId = profileRes.body[0].id;
-        const userRes = await httpRequest('GET', host, `/auth/v1/admin/users/${userId}`, H, null);
-        if (userRes.status === 200 && userRes.body?.email) {
-          signInEmail = userRes.body.email;
-          await httpRequest('PUT', host, `/auth/v1/admin/users/${userId}`, H, { password: xPassword });
-        }
-      }
-    }
-
-    // Check if x_xxx user exists
-    if (!userId) {
-      const listRes = await httpRequest('GET', host, `/auth/v1/admin/users?page=1&per_page=50`, H, null);
-      if (listRes.status === 200 && listRes.body?.users) {
-        const match = listRes.body.users.find(u => u.email === xEmail);
-        if (match) {
-          userId = match.id;
-          signInEmail = xEmail;
-          await httpRequest('PUT', host, `/auth/v1/admin/users/${userId}`, H, { password: xPassword });
-        }
-      }
-    }
-
-    // Mode enforcement
-    if (authMode === 'login' && !userId) {
-      return errorRedirect(res, 'login', 'No account found. If you signed up with Google or Telegram and linked X, please log in with your original provider instead. X login only works for accounts created with X.');
-    }
-    if (authMode === 'signup' && userId) {
-      return errorRedirect(res, 'signup', 'An account with this X already exists. Try logging in instead.');
-    }
-
-    // Create new user (signup only)
-    if (!userId) {
-      const createRes = await httpRequest('POST', host, '/auth/v1/admin/users', H, {
-        email: xEmail,
-        password: xPassword,
-        email_confirm: true,
-        user_metadata: { full_name: xName, avatar_url: xAvatar, provider: 'x', x_id: xId, x_username: xUsername }
-      });
-      if (createRes.status !== 200 && createRes.status !== 201) {
-        console.error('Create user failed:', JSON.stringify(createRes.body).slice(0, 300));
-        return errorRedirect(res, 'create_user', `${createRes.status} - ${createRes.body?.message || ''}`);
-      }
-      userId = createRes.body.id;
-      signInEmail = xEmail;
-    }
-
-    // Ensure profile
-    const checkProfile = await httpRequest('GET', host, `/rest/v1/profiles?select=id&id=eq.${userId}`, H, null);
-    if (checkProfile.status === 200 && Array.isArray(checkProfile.body) && checkProfile.body.length > 0) {
-      const updateData = { x_verified: true };
-      if (xUsername) updateData.x_handle = xUsername;
-      if (xAvatar) updateData.avatar_url = xAvatar;
-      await httpRequest('PATCH', host, `/rest/v1/profiles?id=eq.${userId}`, {
-        ...H, 'Prefer': 'return=minimal'
-      }, updateData);
-    } else {
-      await httpRequest('POST', host, '/rest/v1/profiles', {
-        ...H, 'Prefer': 'return=minimal'
-      }, { id: userId, email: signInEmail, display_name: xName || xUsername || 'X User', avatar_url: xAvatar, x_handle: xUsername, x_verified: true });
-    }
-
-    // Redirect with credentials
-    return res.redirect(`/#x-login:${signInEmail}:${xPassword}`);
+    return res.redirect(`/#x-auth-finish:${authMode}:${xId}:${tokenB64}`);
 
   } catch (e) {
     console.error('X callback error:', e);

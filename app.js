@@ -1091,6 +1091,31 @@ async function checkXRedirect() {
     return;
   }
 
+  // X link finish — browser calls Twitter API: #x-link-finish:userId:tokenB64
+  if (hash.startsWith('#x-link-finish:')) {
+    const parts = hash.replace('#x-link-finish:', '').split(':');
+    window.location.hash = '';
+    if (parts.length >= 2) {
+      const userId = parts[0];
+      const token = b64urlDecode(parts.slice(1).join(':'));
+      await finishXLink(userId, token);
+    }
+    return;
+  }
+
+  // X login/signup finish: #x-auth-finish:mode:xId:tokenB64
+  if (hash.startsWith('#x-auth-finish:')) {
+    const parts = hash.replace('#x-auth-finish:', '').split(':');
+    window.location.hash = '';
+    if (parts.length >= 3) {
+      const mode = parts[0];
+      const xId = parts[1];
+      const token = b64urlDecode(parts.slice(2).join(':'));
+      await finishXAuth(mode, xId, token);
+    }
+    return;
+  }
+
   // X login: #x-login:email:password
   if (hash.startsWith('#x-login:')) {
     const parts = hash.replace('#x-login:', '').split(':');
@@ -1113,6 +1138,77 @@ async function checkXRedirect() {
       if (!isMob()) showView('profile');
       else mTab('profile', document.getElementById('mtab-filters'));
     }
+  }
+}
+
+// Base64url decode helper
+function b64urlDecode(s) {
+  let b = s.replace(/-/g, '+').replace(/_/g, '/');
+  while (b.length % 4) b += '=';
+  return atob(b);
+}
+
+// Fetch X profile from browser (Vercel IPs are blocked by Twitter, browser isn't)
+async function fetchXProfile(accessToken) {
+  for (const base of ['https://api.twitter.com', 'https://api.x.com']) {
+    try {
+      const r = await fetch(`${base}/2/users/me?user.fields=profile_image_url,username,name`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      });
+      if (r.ok) {
+        const json = await r.json();
+        if (json?.data) return json.data;
+      }
+    } catch (e) {}
+  }
+  return null;
+}
+
+async function finishXLink(userId, accessToken) {
+  const xUser = await fetchXProfile(accessToken);
+  if (!xUser || !xUser.username) {
+    alert('Could not fetch your X profile. Please try again.');
+    return;
+  }
+  const avatar = (xUser.profile_image_url || '').replace('_normal', '_400x400');
+  const { error } = await _sb.from('profiles').update({
+    x_handle: xUser.username,
+    x_verified: true,
+    avatar_url: avatar || undefined,
+  }).eq('id', userId);
+  if (error) { alert('Failed to link X: ' + error.message); return; }
+  await loadProfile();
+  if (!isMob()) showView('profile');
+  else mTab('profile', document.getElementById('mtab-filters'));
+}
+
+async function finishXAuth(mode, xId, accessToken) {
+  const xUser = await fetchXProfile(accessToken);
+  if (!xUser || !xUser.username) {
+    alert('Could not fetch your X profile. Please try again.');
+    return;
+  }
+  const xUsername = xUser.username;
+  const xName = xUser.name || xUsername;
+  const avatar = (xUser.profile_image_url || '').replace('_normal', '_400x400');
+
+  // Call server to complete login/signup with the profile data
+  try {
+    const res = await fetch('/api/auth/x-complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode, xId, xUsername, xName, avatar })
+    });
+    const result = await res.json();
+    if (!res.ok) {
+      alert(result.detail || result.error || 'X auth failed');
+      return;
+    }
+    sessionStorage.setItem('postLogin', 'profile');
+    const { error } = await _sb.auth.signInWithPassword({ email: result.email, password: result.password });
+    if (error) alert('Sign in failed: ' + error.message);
+  } catch (e) {
+    alert('X auth failed: ' + e.message);
   }
 }
 
