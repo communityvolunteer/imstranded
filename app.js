@@ -1796,8 +1796,6 @@ function initStrandedRealtime() {
   }).subscribe();
 }
 
-  }).subscribe();
-}
 
 window.addEventListener('DOMContentLoaded',()=>{
   if(isMob()){ initMobile(); }
