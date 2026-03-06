@@ -170,7 +170,7 @@ function timeAgo(dateStr) {
 // ============================================================
 // FILTER PANEL
 // ============================================================
-let _filterPanelOpen = false;
+let _filterPanelOpen = true;
 
 function toggleFilterPanel() {
   _filterPanelOpen = !_filterPanelOpen;
@@ -394,10 +394,24 @@ function showView(name) {
 // ============================================================
 // HELP TABS (offer only now)
 // ============================================================
-function switchHelpTab(tab) {
-  // Only offer tab remains
-  const offerPanel = document.getElementById('help-panel-offer');
-  if (offerPanel) offerPanel.style.display = 'grid';
+function switchHelpTab(tab) { switchHelpMode(tab === 'offer' ? 'helper' : 'stranded'); }
+
+function switchHelpMode(mode) {
+  const sp = document.getElementById('help-panel-stranded');
+  const op = document.getElementById('help-panel-offer');
+  const bs = document.getElementById('help-toggle-stranded');
+  const bh = document.getElementById('help-toggle-helper');
+  if (mode === 'stranded') {
+    if (sp) sp.style.display = 'block';
+    if (op) op.style.display = 'none';
+    if (bs) bs.classList.add('active');
+    if (bh) bh.classList.remove('active');
+  } else {
+    if (sp) sp.style.display = 'none';
+    if (op) op.style.display = 'grid';
+    if (bh) bh.classList.add('active');
+    if (bs) bs.classList.remove('active');
+  }
 }
 
 // ============================================================
@@ -906,6 +920,7 @@ function mTab(tab,btn){
   else if(tab==='resources') mShowSheetContent('resources','ADDITIONAL RESOURCES');
   else if(tab==='filters')   mShowSheetContent('filters','MAP FILTERS');
   else if(tab==='help-money') mShowSheetContent('help-money','$HELP');
+  else if(tab==='stranded')  mShowSheetContent('stranded','I\'M STRANDED');
   else if(tab==='offer')     mShowSheetContent('offer','OFFER A SPARE ROOM');
   else if(tab==='profile')   { mShowSheetContent('profile','MY PROFILE'); renderMobileProfileView(); }
 }
@@ -914,6 +929,7 @@ function mShowSheetContent(which,title){
   document.getElementById('m-resources-content').style.display=which==='resources'?'block':'none';
   document.getElementById('m-filters-content').style.display=which==='filters'?'block':'none';
   document.getElementById('m-help-money-content').style.display=which==='help-money'?'block':'none';
+  document.getElementById('m-stranded-content').style.display=which==='stranded'?'block':'none';
   document.getElementById('m-offer-content').style.display=which==='offer'?'block':'none';
   document.getElementById('m-edit-content').style.display=which==='profile'?'block':'none';
   const titleEl = document.getElementById('m-sheet-title-text');
@@ -1807,12 +1823,47 @@ function toggleHelpPanel() {
 }
 
 function openStrandedForm() {
-  if (!isLoggedIn()) { alert('Please sign in to register as stranded.'); showView('profile'); return; }
-  document.getElementById('stranded-modal').classList.add('open');
+  if (isMob()) { mTab('stranded', null); }
+  else { showView('help'); switchHelpMode('stranded'); }
 }
 
 function closeStrandedForm() {
-  document.getElementById('stranded-modal').classList.remove('open');
+  showView('map');
+}
+
+async function mSubmitStranded() {
+  if (!isLoggedIn()) { alert('Please sign in first.'); mTab('profile', null); return; }
+  const loc = document.getElementById('m-stranded-location').value.trim();
+  const lat = parseFloat(document.getElementById('m-stranded-lat').value) || null;
+  const lng = parseFloat(document.getElementById('m-stranded-lng').value) || null;
+  const dest = document.getElementById('m-stranded-dest').value.trim();
+  const destLat = parseFloat(document.getElementById('m-stranded-dest-lat').value) || null;
+  const destLng = parseFloat(document.getElementById('m-stranded-dest-lng').value) || null;
+  const nationality = document.getElementById('m-stranded-nationality').value;
+  const groupSize = parseInt(document.getElementById('m-stranded-group').value) || 1;
+  const since = document.getElementById('m-stranded-since').value || null;
+  const details = document.getElementById('m-stranded-details').value.trim();
+  const needs = [...document.querySelectorAll('#m-stranded-needs input:checked')].map(c => c.value);
+  if (!loc || !dest) { alert('Please fill in your location and destination.'); return; }
+  if (!lat || !lng) { alert('Please select your location from suggestions.'); return; }
+  const email = _currentUser?.email || '';
+  const tg = _currentProfile?.tg_handle ? '@' + _currentProfile.tg_handle : '';
+  const contact = [email, tg].filter(Boolean).join(' | ');
+  const btn = document.getElementById('m-stranded-submit-btn');
+  btn.textContent = 'Registering...'; btn.disabled = true;
+  try {
+    const { error } = await _sb.from('stranded_people').insert({
+      user_id: _currentUser.id, current_location: loc, current_lat: lat, current_lng: lng,
+      destination: dest, dest_lat: destLat, dest_lng: destLng,
+      nationality, group_size: groupSize,
+      needs: needs.length ? '{' + needs.join(',') + '}' : '{}',
+      stranded_since: since, details, contact,
+    });
+    if (error) throw error;
+    btn.textContent = "You're on the map!"; btn.style.background = '#27ae60';
+    setTimeout(() => { btn.textContent = 'Add Me to the Map'; btn.disabled = false; btn.style.background = '#ec3452'; }, 4000);
+    loadStranded();
+  } catch (e) { alert('Failed: ' + e.message); btn.textContent = 'Add Me to the Map'; btn.disabled = false; }
 }
 
 async function submitStranded() {
@@ -1950,6 +2001,8 @@ window.addEventListener('DOMContentLoaded',()=>{
   loadStranded();
   initLocationAutocomplete('stranded-location','stranded-lat','stranded-lng','stranded-location-ac');
   initLocationAutocomplete('stranded-dest','stranded-dest-lat','stranded-dest-lng','stranded-dest-ac');
+  initLocationAutocomplete('m-stranded-location','m-stranded-lat','m-stranded-lng','m-stranded-location-ac');
+  initLocationAutocomplete('m-stranded-dest','m-stranded-dest-lat','m-stranded-dest-lng','m-stranded-dest-ac');
   refreshSitrep();
   setInterval(refreshSitrep,5*60*1000);
   if(SB_ON){loadPosts();subscribeStream();}

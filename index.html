@@ -30,6 +30,10 @@
     <button onclick="showView('resources')">Additional Resources</button>
   </nav>
   <div class="header-right">
+    <button class="theme-header-btn" onclick="toggleMapTheme()" title="Toggle light/dark map">
+      <svg id="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg id="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
     <button class="profile-btn" id="profile-avatar-btn" onclick="showView('profile')" title="My Profile">
       <svg id="profile-avatar-default" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <img id="profile-avatar-img" style="display:none;width:28px;height:28px;border-radius:50%;object-fit:cover" alt="">
@@ -46,7 +50,7 @@
     <div class="sitrep-sub">tap · filter map</div>
   </div>
   <div class="sitrep-stat sitrep-stat--filter" id="ss-filter" onclick="toggleFilterPanel()">
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
     <div class="sitrep-label">Map Filters</div>
     <div class="sitrep-sub">tap · open panel</div>
   </div>
@@ -55,7 +59,7 @@
     <div class="sitrep-label">$HELP</div>
     <div class="sitrep-sub">tap · donate</div>
   </div>
-  <div class="sitrep-stat sitrep-stat--im-stranded" id="ss-im-stranded" onclick="openStrandedForm()">
+  <div class="sitrep-stat sitrep-stat--im-stranded" id="ss-im-stranded" onclick="showView('help');switchHelpMode('stranded')">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
     <div class="sitrep-label" style="color:#ec3452">I'm Stranded</div>
     <div class="sitrep-sub">tap · register</div>
@@ -79,7 +83,7 @@
   <div id="crisis-map"></div>
 
   <!-- Filter Panel (fly-in from right) -->
-  <div class="filter-panel" id="filter-panel">
+  <div class="filter-panel open" id="filter-panel">
     <div class="fp-header">
       <div class="fp-title">Filter Map</div>
       <button class="fp-close" onclick="toggleFilterPanel()">
@@ -167,7 +171,7 @@
 
   <!-- Bottom-right CTA buttons -->
   <div class="map-cta-group">
-    <button class="map-cta map-cta--stranded" onclick="openStrandedForm()">
+    <button class="map-cta map-cta--stranded" onclick="showView('help');switchHelpMode('stranded')">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       I'M STRANDED
     </button>
@@ -181,67 +185,7 @@
     </button>
   </div>
 
-  <!-- Map theme toggle -->
-  <button class="map-theme-btn" id="map-theme-btn" onclick="toggleMapTheme()" title="Toggle light/dark map">
-    <svg id="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-    <svg id="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-  </button>
 
-  <!-- Stranded Registration Modal -->
-  <div id="stranded-modal">
-    <div style="background:#111;border:1px solid rgba(255,255,255,.15);border-radius:16px;max-width:480px;width:92%;max-height:90vh;overflow-y:auto;padding:1.5rem;position:relative">
-      <button onclick="closeStrandedForm()" style="position:absolute;top:.8rem;right:.8rem;background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;padding:4px;line-height:0;z-index:1">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-      <div style="font-size:1.1rem;font-weight:800;color:#fff;margin-bottom:.2rem">I'm Stranded</div>
-      <div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-bottom:1.2rem;line-height:1.5">Register so embassies, NGOs, and volunteers can find and help you.</div>
-
-      <div class="form-row"><label class="modal-label">Where are you now?</label>
-        <div class="loc-ac-wrap"><input type="text" id="stranded-location" placeholder="City, airport, or address" autocomplete="off" class="modal-input"><input type="hidden" id="stranded-lat"><input type="hidden" id="stranded-lng"><div class="loc-ac-list" id="stranded-location-ac"></div></div>
-      </div>
-
-      <div class="form-row"><label class="modal-label">Where do you need to get to?</label>
-        <div class="loc-ac-wrap"><input type="text" id="stranded-dest" placeholder="Home city or country" autocomplete="off" class="modal-input"><input type="hidden" id="stranded-dest-lat"><input type="hidden" id="stranded-dest-lng"><div class="loc-ac-list" id="stranded-dest-ac"></div></div>
-      </div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
-        <div class="form-row"><label class="modal-label">Nationality</label>
-          <select id="stranded-nationality" class="modal-input">
-            <option value="">Select...</option>
-            <option>Indian</option><option>Filipino</option><option>Pakistani</option><option>Bangladeshi</option><option>Nepali</option><option>Sri Lankan</option><option>Egyptian</option>
-            <option>American</option><option>British</option><option>Canadian</option><option>Australian</option><option>German</option><option>French</option><option>Italian</option>
-            <option>South Korean</option><option>Japanese</option><option>Chinese</option><option>Thai</option><option>Malaysian</option><option>Indonesian</option>
-            <option>South African</option><option>Nigerian</option><option>Kenyan</option><option>Jordanian</option><option>Lebanese</option><option>Palestinian</option><option>Syrian</option><option>Yemeni</option><option>Other</option>
-          </select>
-        </div>
-        <div class="form-row"><label class="modal-label">People in group</label>
-          <input type="number" id="stranded-group" value="1" min="1" max="50" class="modal-input">
-        </div>
-      </div>
-
-      <div class="form-row"><label class="modal-label">What do you need?</label>
-        <div style="display:flex;flex-wrap:wrap;gap:.4rem" id="stranded-needs">
-          <label class="need-chip"><input type="checkbox" value="housing"> Housing</label>
-          <label class="need-chip"><input type="checkbox" value="flight"> Flight home</label>
-          <label class="need-chip"><input type="checkbox" value="food"> Food / water</label>
-          <label class="need-chip"><input type="checkbox" value="medical"> Medical</label>
-          <label class="need-chip"><input type="checkbox" value="money"> Financial</label>
-          <label class="need-chip"><input type="checkbox" value="translation"> Translation</label>
-        </div>
-      </div>
-
-      <div class="form-row"><label class="modal-label">Stranded since</label>
-        <input type="date" id="stranded-since" class="modal-input">
-      </div>
-
-      <div class="form-row"><label class="modal-label">Details <span style="opacity:.5;font-weight:400;text-transform:none">(optional)</span></label>
-        <textarea id="stranded-details" placeholder="Any additional context..." class="modal-input" style="min-height:60px;resize:none"></textarea>
-      </div>
-
-      <button onclick="submitStranded()" id="stranded-submit-btn" style="width:100%;background:#ec3452;color:#fff;border:none;border-radius:10px;padding:.75rem;font-family:Inter,sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;margin-top:.4rem">Register as Stranded</button>
-      <div style="font-size:.65rem;color:rgba(255,255,255,.25);text-align:center;margin-top:.5rem;line-height:1.4">Your location will be visible on the map. Contact info is only shared with verified helpers.</div>
-    </div>
-  </div>
 
   <!-- $HELP Modal -->
   <div id="help-money-modal">
@@ -285,16 +229,39 @@
   </div>
 </div>
 
-<!-- HELP VIEW — offer only -->
+<!-- HELP VIEW — toggled -->
 <div id="help-view" class="view">
   <div class="container" style="max-width:960px">
-    <div class="section-header">
-      <div class="section-title">OFFER A SPARE ROOM TO SOMEONE STRANDED</div>
-      <div class="section-subtitle">Meet new folks from around the world</div>
+    <!-- Toggle: I'M STRANDED / I CAN HELP -->
+    <div style="display:flex;max-width:480px;margin:1.5rem auto 1.5rem;background:rgba(255,255,255,.06);border-radius:12px;padding:4px;border:1px solid rgba(255,255,255,.08)">
+      <button id="help-toggle-stranded" onclick="switchHelpMode('stranded')" class="help-toggle help-toggle--stranded active">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        I'M STRANDED
+      </button>
+      <button id="help-toggle-helper" onclick="switchHelpMode('helper')" class="help-toggle help-toggle--helper">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        I CAN HELP
+      </button>
     </div>
-
-    <!-- Offer panel (always visible, no tabs) -->
-    <div id="help-panel-offer" class="help-panel" style="display:grid;grid-template-columns:1fr 1fr;gap:2rem">
+    <!-- STRANDED PANEL -->
+    <div id="help-panel-stranded" style="max-width:560px;margin:0 auto">
+      <div style="background:rgba(236,52,82,.08);border:1px solid rgba(236,52,82,.2);border-radius:14px;padding:1.5rem">
+        <div style="font-size:1.15rem;font-weight:800;color:#ec3452;margin-bottom:.25rem">Add Yourself to the Map</div>
+        <div style="font-size:.82rem;color:rgba(255,255,255,.5);margin-bottom:1.3rem;line-height:1.5">Register so embassies, NGOs, and volunteers can find and help you.</div>
+        <div class="form-row"><label class="modal-label">Where are you right now?</label><div class="loc-ac-wrap"><input type="text" id="stranded-location" placeholder="City, airport, or address" autocomplete="off" class="modal-input"><input type="hidden" id="stranded-lat"><input type="hidden" id="stranded-lng"><div class="loc-ac-list" id="stranded-location-ac"></div></div></div>
+        <div class="form-row"><label class="modal-label">Where do you need to get to?</label><div class="loc-ac-wrap"><input type="text" id="stranded-dest" placeholder="Home city or country" autocomplete="off" class="modal-input"><input type="hidden" id="stranded-dest-lat"><input type="hidden" id="stranded-dest-lng"><div class="loc-ac-list" id="stranded-dest-ac"></div></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+          <div class="form-row"><label class="modal-label">Nationality</label><select id="stranded-nationality" class="modal-input"><option value="">Select...</option><option>Indian</option><option>Filipino</option><option>Pakistani</option><option>Bangladeshi</option><option>Nepali</option><option>Sri Lankan</option><option>Egyptian</option><option>American</option><option>British</option><option>Canadian</option><option>Australian</option><option>German</option><option>French</option><option>Italian</option><option>South Korean</option><option>Japanese</option><option>Chinese</option><option>Thai</option><option>Malaysian</option><option>Indonesian</option><option>South African</option><option>Nigerian</option><option>Kenyan</option><option>Jordanian</option><option>Lebanese</option><option>Palestinian</option><option>Syrian</option><option>Yemeni</option><option>Other</option></select></div>
+          <div class="form-row"><label class="modal-label">People in group</label><input type="number" id="stranded-group" value="1" min="1" max="50" class="modal-input"></div>
+        </div>
+        <div class="form-row"><label class="modal-label">What do you need?</label><div style="display:flex;flex-wrap:wrap;gap:.4rem" id="stranded-needs"><label class="need-chip"><input type="checkbox" value="housing"> Housing</label><label class="need-chip"><input type="checkbox" value="flight"> Flight home</label><label class="need-chip"><input type="checkbox" value="food"> Food / water</label><label class="need-chip"><input type="checkbox" value="medical"> Medical</label><label class="need-chip"><input type="checkbox" value="money"> Financial</label><label class="need-chip"><input type="checkbox" value="translation"> Translation</label></div></div>
+        <div class="form-row"><label class="modal-label">Stranded since</label><input type="date" id="stranded-since" class="modal-input"></div>
+        <div class="form-row"><label class="modal-label">Details <span style="opacity:.5;font-weight:400;text-transform:none">(optional)</span></label><textarea id="stranded-details" placeholder="Any additional context..." class="modal-input" style="min-height:60px;resize:none"></textarea></div>
+        <button onclick="submitStranded()" id="stranded-submit-btn" style="width:100%;background:#ec3452;color:#fff;border:none;border-radius:10px;padding:.75rem;font-family:Inter,sans-serif;font-size:.92rem;font-weight:700;cursor:pointer;margin-top:.3rem">Add Me to the Map</button>
+      </div>
+    </div>
+    <!-- HELPER PANEL -->
+    <div id="help-panel-offer" class="help-panel" style="display:none;grid-template-columns:1fr 1fr;gap:2rem">
       <div>
         <div class="post-form-header post-form-header--offer">OFFER UP A SPARE ROOM</div>
         <div class="post-form">
@@ -486,7 +453,7 @@
       <span class="m-stat-num" id="m-stat-stranded">847,773</span>
       <span class="m-stat-label">EST.<br>STRANDED</span>
     </div>
-    <div class="m-stat m-stat--offer" id="mss-offer" onclick="openStrandedForm()" style="background:rgba(236,52,82,.15);border-color:rgba(236,52,82,.2)">
+    <div class="m-stat m-stat--offer" id="mss-offer" onclick="mTab('stranded',this)" style="background:rgba(236,52,82,.15);border-color:rgba(236,52,82,.2)">
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <span class="m-stat-label" style="color:#ec3452">I'M<br>STRANDED</span>
     </div>
@@ -635,6 +602,16 @@
           <div style="font-size:.68rem;color:rgba(255,255,255,.4)">Find helpers on the map, tap their post to tip</div>
         </a>
         <div style="font-size:.65rem;color:rgba(255,255,255,.25);text-align:center;line-height:1.5;margin-top:.8rem">$HELP tips are processed via <a href="https://x.com/bankrbot" target="_blank" style="color:rgba(255,255,255,.4)">@bankrbot</a> on X. Link your X account in your profile to receive tips.</div>
+      </div>
+      <div id="m-stranded-content" style="display:none">
+        <div style="font-size:.85rem;color:rgba(255,255,255,.45);margin-bottom:1rem;line-height:1.5"><strong style="color:#ec3452">Add yourself to the map</strong> so help can find you.</div>
+        <div class="m-form-row"><label class="m-form-label">Where are you now?</label><div class="loc-ac-wrap"><input type="text" id="m-stranded-location" placeholder="City, airport, or address" autocomplete="off"><input type="hidden" id="m-stranded-lat"><input type="hidden" id="m-stranded-lng"><div class="loc-ac-list" id="m-stranded-location-ac"></div></div></div>
+        <div class="m-form-row"><label class="m-form-label">Where do you need to get to?</label><div class="loc-ac-wrap"><input type="text" id="m-stranded-dest" placeholder="Home city or country" autocomplete="off"><input type="hidden" id="m-stranded-dest-lat"><input type="hidden" id="m-stranded-dest-lng"><div class="loc-ac-list" id="m-stranded-dest-ac"></div></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem"><div class="m-form-row"><label class="m-form-label">Nationality</label><select id="m-stranded-nationality" style="width:100%;padding:.5rem;background:#1a1c1e;border:1.5px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem"><option value="">Select...</option><option>Indian</option><option>Filipino</option><option>Pakistani</option><option>Bangladeshi</option><option>Nepali</option><option>Sri Lankan</option><option>Egyptian</option><option>American</option><option>British</option><option>Canadian</option><option>Australian</option><option>German</option><option>French</option><option>Italian</option><option>South Korean</option><option>Japanese</option><option>Chinese</option><option>Thai</option><option>Malaysian</option><option>Indonesian</option><option>South African</option><option>Nigerian</option><option>Kenyan</option><option>Jordanian</option><option>Lebanese</option><option>Palestinian</option><option>Syrian</option><option>Yemeni</option><option>Other</option></select></div><div class="m-form-row"><label class="m-form-label">Group size</label><input type="number" id="m-stranded-group" value="1" min="1" max="50" style="width:100%;padding:.5rem;background:#1a1c1e;border:1.5px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem"></div></div>
+        <div class="m-form-row"><label class="m-form-label">What do you need?</label><div style="display:flex;flex-wrap:wrap;gap:.3rem" id="m-stranded-needs"><label class="need-chip"><input type="checkbox" value="housing"> Housing</label><label class="need-chip"><input type="checkbox" value="flight"> Flight</label><label class="need-chip"><input type="checkbox" value="food"> Food</label><label class="need-chip"><input type="checkbox" value="medical"> Medical</label><label class="need-chip"><input type="checkbox" value="money"> Financial</label><label class="need-chip"><input type="checkbox" value="translation"> Translation</label></div></div>
+        <div class="m-form-row"><label class="m-form-label">Stranded since</label><input type="date" id="m-stranded-since" style="width:100%;padding:.5rem;background:#1a1c1e;border:1.5px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem"></div>
+        <div class="m-form-row"><label class="m-form-label">Details <span style="opacity:.4;font-weight:400">(optional)</span></label><textarea id="m-stranded-details" placeholder="Any additional context..." style="width:100%;min-height:60px;padding:.5rem;background:#1a1c1e;border:1.5px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem;resize:none"></textarea></div>
+        <button onclick="mSubmitStranded()" id="m-stranded-submit-btn" style="width:100%;background:#ec3452;color:#fff;border:none;border-radius:10px;padding:.75rem;font-family:Inter,sans-serif;font-size:.88rem;font-weight:700;cursor:pointer">Add Me to the Map</button>
       </div>
       <div id="m-offer-content" style="display:none">
         <div class="m-form-note">Your contact will be public so people who need help can reach you.</div>
