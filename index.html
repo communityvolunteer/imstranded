@@ -105,12 +105,42 @@
     Filters
   </button>
 
-  <!-- Bottom-right dual CTA buttons — offer only -->
+  <!-- Bottom-right CTA buttons -->
   <div class="map-cta-group">
+    <button class="map-cta map-cta--report" onclick="openReportForm()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49"/></svg>
+      GROUND REPORT
+    </button>
     <button class="map-cta map-cta--offer" onclick="showView('help');switchHelpTab('offer')">
       <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       OFFER A SPARE ROOM
     </button>
+  </div>
+
+  <!-- Ground Report Modal -->
+  <div id="report-modal">
+    <div style="background:#111;border:1px solid rgba(255,255,255,.15);border-radius:16px;max-width:440px;width:90%;padding:1.5rem;position:relative">
+      <button onclick="closeReportForm()" style="position:absolute;top:.8rem;right:.8rem;background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;padding:4px;line-height:0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div style="font-size:1rem;font-weight:800;color:#fff;margin-bottom:.3rem">Ground Report</div>
+      <div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-bottom:1.2rem">Share what's happening on the ground right now.</div>
+      <div class="form-row"><label style="color:#fff;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.3rem;display:block">Report Type</label>
+        <select id="report-type" style="width:100%;padding:.6rem .9rem;border:1.5px solid rgba(255,255,255,.12);border-radius:10px;background:#1a1c1e;color:#fff;font-family:Inter,sans-serif;font-size:.88rem">
+          <option value="ground">General ground report</option>
+          <option value="airport">Airport situation</option>
+          <option value="border">Border crossing</option>
+          <option value="supply">Food / water / supplies</option>
+        </select>
+      </div>
+      <div class="form-row"><label style="color:#fff;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.3rem;display:block">Location</label>
+        <div class="loc-ac-wrap"><input type="text" id="report-location" placeholder="Where are you?" autocomplete="off" style="width:100%;padding:.6rem .9rem;border:1.5px solid rgba(255,255,255,.12);border-radius:10px;background:#1a1c1e;color:#fff;font-family:Inter,sans-serif;font-size:.88rem"><input type="hidden" id="report-lat"><input type="hidden" id="report-lng"><div class="loc-ac-list" id="report-location-ac"></div></div>
+      </div>
+      <div class="form-row"><label style="color:#fff;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.3rem;display:block">What's happening?</label>
+        <textarea id="report-body" placeholder="Describe the situation..." style="width:100%;min-height:80px;padding:.6rem .9rem;border:1.5px solid rgba(255,255,255,.12);border-radius:10px;background:#1a1c1e;color:#fff;font-family:Inter,sans-serif;font-size:.88rem;resize:none"></textarea>
+      </div>
+      <button onclick="submitReport()" id="report-submit-btn" style="width:100%;background:#e67e22;color:#fff;border:none;border-radius:10px;padding:.7rem;font-family:Inter,sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;margin-top:.3rem">Post Report</button>
+    </div>
   </div>
 </div>
 
@@ -351,6 +381,10 @@
     <div class="m-stat" id="mss-stranded" onclick="mFilterMap('stranded')">
       <span class="m-stat-num" id="m-stat-stranded">847,773</span>
       <span class="m-stat-label">EST.<br>STRANDED</span>
+    </div>
+    <div class="m-stat m-stat--report" onclick="openReportForm()" style="background:rgba(230,126,34,.15);border-color:rgba(230,126,34,.3)">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e67e22" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49"/></svg>
+      <span class="m-stat-label" style="color:#e67e22">GROUND<br>REPORT</span>
     </div>
     <div class="m-stat m-stat--offer" id="mss-offer" onclick="mTab('offer',document.getElementById('mtab-spare'))">
       <svg width="35" height="33" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>

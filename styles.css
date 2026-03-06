@@ -202,6 +202,8 @@ transform: translateX(-50%);
 .map-cta:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(0,0,0,.4);}
 .map-cta--offer{background:#3498ec;color:#fff;}
 .map-cta--offer:hover{background:#2980c8;}
+.map-cta--report{background:rgba(230,126,34,.9);color:#fff;}
+.map-cta--report:hover{background:#d35400;}
 
 /* Leaflet */
 .leaflet-container{background:#c9d2d8 !important;}
@@ -705,3 +707,19 @@ transform: translateX(-50%);
   .feed-item-summary{font-size:.72rem;}
   .feed-filter{font-size:.65rem;padding:.3rem .6rem;}
 }
+
+/* Ground Report Pins */
+.report-pin{
+  width:12px;height:12px;border-radius:50%;
+  border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4);
+  animation:report-pulse 3s infinite;
+}
+.report-pin--ground{background:#e67e22;}
+.report-pin--airport{background:#e74c3c;}
+.report-pin--border{background:#f39c12;}
+.report-pin--supply{background:#2ecc71;}
+@keyframes report-pulse{0%,100%{box-shadow:0 0 0 0 rgba(230,126,34,.5);}50%{box-shadow:0 0 0 6px rgba(230,126,34,0);}}
+
+/* Report Modal */
+#report-modal{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.7);align-items:center;justify-content:center;}
+#report-modal.open{display:flex;}

@@ -270,6 +270,7 @@ function initMap() {
   map.addLayer(_helpCluster);
 
   renderPostsOnMap(map);
+  renderReportsOnMap(map);
   window._crisisMap = map;
 }
 
@@ -634,6 +635,7 @@ function initMobile(){
     disableClusteringAtZoom: 16,
   });
   mmap.addLayer(_mHelpCluster);
+  renderReportsOnMap(mmap);
   mRenderResources();
 }
 
@@ -1612,6 +1614,100 @@ function initLocationAutocomplete(inputId, latId, lngId, listId) {
 // INIT
 // ============================================================
 // ============================================================
+// GROUND REPORTS
+// ============================================================
+let _reports = [];
+
+function openReportForm() {
+  if (!isLoggedIn()) { alert('Please sign in to post a ground report.'); showView('profile'); return; }
+  document.getElementById('report-modal').classList.add('open');
+}
+
+function closeReportForm() {
+  document.getElementById('report-modal').classList.remove('open');
+  document.getElementById('report-body').value = '';
+  document.getElementById('report-location').value = '';
+  document.getElementById('report-lat').value = '';
+  document.getElementById('report-lng').value = '';
+}
+
+async function submitReport() {
+  if (!isLoggedIn()) { alert('Please sign in first.'); return; }
+  const type = document.getElementById('report-type').value;
+  const loc = document.getElementById('report-location').value.trim();
+  const body = document.getElementById('report-body').value.trim();
+  const lat = parseFloat(document.getElementById('report-lat').value) || null;
+  const lng = parseFloat(document.getElementById('report-lng').value) || null;
+  if (!loc || !body) { alert('Please fill in location and description.'); return; }
+  if (!lat || !lng) { alert('Please select a location from suggestions.'); return; }
+  const btn = document.getElementById('report-submit-btn');
+  btn.textContent = 'Posting...'; btn.disabled = true;
+  try {
+    const { error } = await _sb.from('situation_reports').insert({ user_id: _currentUser.id, location: loc, body, report_type: type, lat, lng });
+    if (error) throw error;
+    closeReportForm();
+    btn.textContent = 'Post Report'; btn.disabled = false;
+    loadReports();
+  } catch (e) {
+    alert('Failed: ' + e.message);
+    btn.textContent = 'Post Report'; btn.disabled = false;
+  }
+}
+
+const REPORT_COLORS = { ground: '#e67e22', airport: '#e74c3c', border: '#f39c12', supply: '#2ecc71' };
+const REPORT_LABELS = { ground: 'Ground Report', airport: 'Airport', border: 'Border Crossing', supply: 'Supplies' };
+let _reportMarkers = [];
+
+async function loadReports() {
+  try {
+    const { data } = await _sb.from('situation_reports').select('id,user_id,location,body,report_type,lat,lng,created_at').eq('flagged', false).order('created_at', { ascending: false }).limit(100);
+    _reports = data || [];
+    renderReportsOnMap(window._crisisMap);
+    renderReportsOnMap(window._mobileMap);
+  } catch (e) { console.error('Load reports error:', e); }
+}
+
+function renderReportsOnMap(map) {
+  if (!map) return;
+  // Clear existing report markers
+  _reportMarkers.forEach(m => map.removeLayer(m));
+  _reportMarkers = [];
+
+  for (const r of _reports) {
+    if (!r.lat || !r.lng) continue;
+    const color = REPORT_COLORS[r.report_type] || '#e67e22';
+    const label = REPORT_LABELS[r.report_type] || 'Report';
+    const age = timeAgo(r.created_at);
+    const icon = L.divIcon({
+      className: '',
+      html: `<div class="report-pin report-pin--${r.report_type}"></div>`,
+      iconSize: [12, 12],
+      iconAnchor: [6, 6]
+    });
+    const marker = L.marker([r.lat, r.lng], { icon }).addTo(map);
+    marker.bindPopup(`
+      <div style="min-width:180px;font-family:Inter,sans-serif">
+        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:${color};margin-bottom:.25rem">${label} · ${age}</div>
+        <div style="font-size:.78rem;font-weight:600;color:#fff;margin-bottom:.15rem">📍 ${r.location}</div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.5">${r.body}</div>
+      </div>
+    `, { className: 'dark-popup', maxWidth: 260 });
+    _reportMarkers.push(marker);
+  }
+}
+
+// Realtime report updates
+function initReportRealtime() {
+  _sb.channel('situation_reports').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'situation_reports' }, payload => {
+    if (payload.new && !payload.new.flagged) {
+      _reports.unshift(payload.new);
+      renderReportsOnMap(window._crisisMap);
+      renderReportsOnMap(window._mobileMap);
+    }
+  }).subscribe();
+}
+
+// ============================================================
 // LIVE FEED
 // ============================================================
 let _feedArticles = [];
@@ -1717,6 +1813,9 @@ window.addEventListener('DOMContentLoaded',()=>{
   checkTelegramRedirect();
   checkXRedirect();
   initFeedRealtime();
+  initReportRealtime();
+  loadReports();
+  initLocationAutocomplete('report-location','report-lat','report-lng','report-location-ac');
   refreshSitrep();
   setInterval(refreshSitrep,5*60*1000);
   if(SB_ON){loadPosts();subscribeStream();}
