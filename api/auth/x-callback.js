@@ -112,6 +112,8 @@ module.exports = async function handler(req, res) {
 
     const accessToken = tokenRes.body.access_token;
     console.log('Token response keys:', Object.keys(tokenRes.body));
+    console.log('Token type:', tokenRes.body.token_type);
+    console.log('Token scope:', tokenRes.body.scope);
     console.log('Token preview:', accessToken.slice(0, 50) + '...');
 
     // ── 2. Get X user info ──
@@ -120,23 +122,30 @@ module.exports = async function handler(req, res) {
     let xAvatar = '';
     let xId = '';
 
-    // Try API with retries (both domains, up to 3 attempts)
+    // Try API with native fetch + retries
     for (let attempt = 0; attempt < 3 && !xUsername; attempt++) {
-      if (attempt > 0) await new Promise(r => setTimeout(r, 1000));
-      for (const domain of ['api.twitter.com', 'api.x.com']) {
+      if (attempt > 0) await new Promise(r => setTimeout(r, 1500));
+      for (const base of ['https://api.twitter.com', 'https://api.x.com']) {
         try {
-          const r = await httpRequest('GET', domain, '/2/users/me?user.fields=profile_image_url,username,name', {
-            'Authorization': `Bearer ${accessToken}`,
-          }, null);
-          console.log(`Attempt ${attempt + 1} ${domain}:`, r.status);
-          if (r.status === 200 && r.body?.data) {
-            xUsername = r.body.data.username || '';
-            xName = r.body.data.name || '';
-            xAvatar = (r.body.data.profile_image_url || '').replace('_normal', '_400x400');
-            xId = r.body.data.id || '';
-            break;
+          const r = await fetch(`${base}/2/users/me?user.fields=profile_image_url,username,name`, {
+            headers: { 'Authorization': `Bearer ${accessToken}`, 'User-Agent': 'ImStranded/1.0' },
+          });
+          console.log(`Attempt ${attempt + 1} ${base}: ${r.status}`);
+          if (r.ok) {
+            const json = await r.json();
+            if (json?.data) {
+              xUsername = json.data.username || '';
+              xName = json.data.name || '';
+              xAvatar = (json.data.profile_image_url || '').replace('_normal', '_400x400');
+              xId = json.data.id || '';
+              console.log('Got X profile:', xUsername, xId);
+              break;
+            }
+          } else {
+            const errText = await r.text();
+            console.log(`${base} error body:`, errText.slice(0, 200));
           }
-        } catch (e) { console.log(`${domain} error:`, e.message); }
+        } catch (e) { console.log(`${base} fetch error:`, e.message); }
       }
       if (xUsername) break;
     }
