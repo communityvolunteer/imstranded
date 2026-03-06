@@ -1801,6 +1801,11 @@ let _strandedPeople = [];
 let _strandedCluster = null;
 let _mStrandedCluster = null;
 
+function toggleHelpPanel() {
+  const modal = document.getElementById('help-money-modal');
+  if (modal) modal.classList.toggle('open');
+}
+
 function openStrandedForm() {
   if (!isLoggedIn()) { alert('Please sign in to register as stranded.'); showView('profile'); return; }
   document.getElementById('stranded-modal').classList.add('open');

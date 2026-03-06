@@ -50,20 +50,20 @@
     <div class="sitrep-label">Map Filters</div>
     <div class="sitrep-sub">tap · open panel</div>
   </div>
-  <div class="sitrep-stat" id="ss-airports" onclick="filterMap('airports')">
-    <span class="sitrep-num" id="stat-airports-closed">5</span>
-    <div class="sitrep-label">Airports Closed</div>
-    <div class="sitrep-sub">tap · filter map</div>
+  <div class="sitrep-stat sitrep-stat--help-money" id="ss-help-money" onclick="toggleHelpPanel()">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    <div class="sitrep-label">$HELP</div>
+    <div class="sitrep-sub">tap · donate</div>
   </div>
-  <div class="sitrep-stat" id="ss-airspace" onclick="filterMap('airspace')">
-    <span class="sitrep-num" id="stat-airspace">4</span>
-    <div class="sitrep-label">Airspace Closed</div>
-    <div class="sitrep-sub">tap · filter map</div>
+  <div class="sitrep-stat sitrep-stat--im-stranded" id="ss-im-stranded" onclick="openStrandedForm()">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <div class="sitrep-label" style="color:#ec3452">I'm Stranded</div>
+    <div class="sitrep-sub">tap · register</div>
   </div>
-  <div class="sitrep-stat sitrep-stat--offer" id="ss-help-offer" onclick="filterMap('help')">
-    <span class="sitrep-num" id="stat-help-posts">0</span>
-    <div class="sitrep-label">PEOPLE OFFERING A SPARE ROOM</div>
-    <div class="sitrep-sub">tap · filter map</div>
+  <div class="sitrep-stat sitrep-stat--offer-room" id="ss-offer-room" onclick="showView('help');switchHelpTab('offer')">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    <div class="sitrep-label" style="color:#3498ec">Offer Spare Room</div>
+    <div class="sitrep-sub">tap · help someone</div>
   </div>
   <button class="sitrep-refresh" onclick="refreshSitrep()" title="Refresh data">
     <span id="refresh-icon" style="display:flex;align-items:center">
@@ -240,6 +240,29 @@
 
       <button onclick="submitStranded()" id="stranded-submit-btn" style="width:100%;background:#ec3452;color:#fff;border:none;border-radius:10px;padding:.75rem;font-family:Inter,sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;margin-top:.4rem">Register as Stranded</button>
       <div style="font-size:.65rem;color:rgba(255,255,255,.25);text-align:center;margin-top:.5rem;line-height:1.4">Your location will be visible on the map. Contact info is only shared with verified helpers.</div>
+    </div>
+  </div>
+
+  <!-- $HELP Modal -->
+  <div id="help-money-modal">
+    <div style="background:#111;border:1px solid rgba(255,255,255,.15);border-radius:16px;max-width:420px;width:90%;padding:1.8rem;position:relative">
+      <button onclick="toggleHelpPanel()" style="position:absolute;top:.8rem;right:.8rem;background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;padding:4px;line-height:0;z-index:1">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div style="text-align:center;padding:0 0 1rem">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#f1c40f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <div style="font-size:1.15rem;font-weight:800;color:#fff;margin-top:.5rem;margin-bottom:.3rem">Support with $HELP</div>
+        <div style="font-size:.82rem;color:rgba(255,255,255,.45);line-height:1.5">$HELP is a community token on X. Tip helpers, fund the project, or send aid to those stranded.</div>
+      </div>
+      <a href="https://x.com/intent/tweet?text=@bankrbot%20Tip%201%20$HELP%20to%20@ImStranded" target="_blank" style="display:block;background:rgba(241,196,68,.12);border:1px solid rgba(241,196,68,.25);border-radius:12px;padding:1rem;text-align:center;text-decoration:none;margin-bottom:.65rem;transition:background .15s" onmouseover="this.style.background='rgba(241,196,68,.2)'" onmouseout="this.style.background='rgba(241,196,68,.12)'">
+        <div style="font-size:.88rem;font-weight:700;color:#f1c40f;margin-bottom:.2rem">Donate to the Project</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.4)">Tips go to @ImStranded to fund operations</div>
+      </a>
+      <a href="https://x.com/search?q=%23imstranded%20%24HELP" target="_blank" style="display:block;background:rgba(52,152,236,.08);border:1px solid rgba(52,152,236,.15);border-radius:12px;padding:1rem;text-align:center;text-decoration:none;margin-bottom:.65rem;transition:background .15s" onmouseover="this.style.background='rgba(52,152,236,.15)'" onmouseout="this.style.background='rgba(52,152,236,.08)'">
+        <div style="font-size:.88rem;font-weight:700;color:#3498ec;margin-bottom:.2rem">Tip Someone Offering a Room</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.4)">Find helpers on the map, tap their post to tip</div>
+      </a>
+      <div style="font-size:.68rem;color:rgba(255,255,255,.2);text-align:center;line-height:1.5;margin-top:.5rem">$HELP tips are processed via <a href="https://x.com/bankrbot" target="_blank" style="color:rgba(255,255,255,.35)">@bankrbot</a> on X. Link your X account in your profile to receive tips.</div>
     </div>
   </div>
 

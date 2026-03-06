@@ -785,3 +785,14 @@ transform: translateX(-50%);
 @media(max-width:768px){
   .filter-panel{display:none !important;}
 }
+/* Sitrep action buttons */
+.sitrep-stat--im-stranded{background:rgba(236,52,82,.12) !important;cursor:pointer;transition:background .15s;}
+.sitrep-stat--im-stranded:hover{background:rgba(236,52,82,.2) !important;}
+.sitrep-stat--offer-room{background:rgba(52,152,236,.12) !important;cursor:pointer;transition:background .15s;}
+.sitrep-stat--offer-room:hover{background:rgba(52,152,236,.2) !important;}
+.sitrep-stat--help-money{background:rgba(241,196,68,.08) !important;cursor:pointer;transition:background .15s;}
+.sitrep-stat--help-money:hover{background:rgba(241,196,68,.15) !important;}
+
+/* $HELP modal */
+#help-money-modal{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.7);align-items:center;justify-content:center;}
+#help-money-modal.open{display:flex;}
