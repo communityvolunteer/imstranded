@@ -154,7 +154,6 @@ let _activeFilter = 'all';
 let _postMarkers = [];
 let posts = [];
 const _dataPins = {airports:[]};
-let _activeFilter = 'all';
 
 // ============================================================
 // LEGEND TOGGLE
