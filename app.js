@@ -150,10 +150,10 @@ const SC = {danger:'#a855f7',warn:'#a855f7',safe:'#a855f7'};
 const _mk = {country:[],routes:[],worldwide:[],help:[]};
 let _helpCluster = null;
 let _mHelpCluster = null;
-let _activeFilter = 'all';
 let _postMarkers = [];
 let posts = [];
 const _dataPins = {airports:[]};
+let _activeFilter = 'all';
 
 // ============================================================
 // LEGEND TOGGLE
