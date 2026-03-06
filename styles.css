@@ -463,7 +463,7 @@ transform: translateX(-50%);
     height:3px;background:#ec3452;border-radius:3px 3px 0 0;
   }
   /* OFFER SPARE ROOM stat — blue bg */
-  .m-stat--offer{background:#3498ec !important;}
+  .m-stat--offer{background:#ec345226 !important;}
   .m-stat--offer:hover{background:#2980c8 !important;}
   .m-stat--offer .m-stat-num{color:#fff !important;}
   .m-stat--offer .m-stat-label{color:rgba(255,255,255,.85) !important;}
