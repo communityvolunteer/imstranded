@@ -147,6 +147,9 @@
           <option value="2-5">Small group (2-5)</option>
           <option value="6+">Large group (6+)</option>
         </select>
+        <div class="fp-label">Heading home to</div>
+        <div class="loc-ac-wrap"><input type="text" id="fp-dest-search" class="fp-select" style="cursor:text" placeholder="Type city or airport..." oninput="airportAutocomplete(this,'fp-dest-ac','fp-filter')" onfocus="this.select()"><div class="loc-ac-list" id="fp-dest-ac"></div></div>
+        <input type="hidden" id="fp-filter-dest-country"><input type="hidden" id="fp-filter-dest-airport">
       </div>
     </div>
 
@@ -248,8 +251,12 @@
       <div style="background:rgba(236,52,82,.08);border:1px solid rgba(236,52,82,.2);border-radius:14px;padding:1.5rem">
         <div style="font-size:1.15rem;font-weight:800;color:#ec3452;margin-bottom:.25rem">Add Yourself to the Map</div>
         <div style="font-size:.82rem;color:rgba(255,255,255,.5);margin-bottom:1.3rem;line-height:1.5">Register so embassies, NGOs, and volunteers can find and help you.</div>
-        <div class="form-row"><label class="modal-label">Where are you right now?</label><div class="loc-ac-wrap"><input type="text" id="stranded-location" placeholder="City, airport, or address" autocomplete="off" class="modal-input"><input type="hidden" id="stranded-lat"><input type="hidden" id="stranded-lng"><div class="loc-ac-list" id="stranded-location-ac"></div></div></div>
-        <div class="form-row"><label class="modal-label">Where do you need to get to?</label><div class="loc-ac-wrap"><input type="text" id="stranded-dest" placeholder="Home city or country" autocomplete="off" class="modal-input"><input type="hidden" id="stranded-dest-lat"><input type="hidden" id="stranded-dest-lng"><div class="loc-ac-list" id="stranded-dest-ac"></div></div></div>
+        <div class="form-row"><label class="modal-label">Where are you right now?</label>
+          <div style="display:flex;gap:.4rem"><div class="loc-ac-wrap" style="flex:1"><input type="text" id="stranded-location" placeholder="City, airport, or address" autocomplete="off" class="modal-input"><input type="hidden" id="stranded-lat"><input type="hidden" id="stranded-lng"><div class="loc-ac-list" id="stranded-location-ac"></div></div><button type="button" onclick="useMyLocation('stranded')" class="gps-btn" title="Use my location"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2"/></svg></button></div>
+        </div>
+        <div class="form-row"><label class="modal-label">Where are you trying to get home to? <span style="opacity:.4;font-weight:400;text-transform:none">(type city or airport)</span></label>
+          <div class="loc-ac-wrap"><input type="text" id="stranded-dest" placeholder="e.g. Boston, London, Manila..." autocomplete="off" class="modal-input" oninput="airportAutocomplete(this,'stranded-dest-ac','stranded')"><input type="hidden" id="stranded-dest-lat"><input type="hidden" id="stranded-dest-lng"><input type="hidden" id="stranded-dest-country"><input type="hidden" id="stranded-dest-airport"><div class="loc-ac-list" id="stranded-dest-ac"></div></div>
+        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
           <div class="form-row"><label class="modal-label">Nationality</label><select id="stranded-nationality" class="modal-input"><option value="">Select...</option><option>Indian</option><option>Filipino</option><option>Pakistani</option><option>Bangladeshi</option><option>Nepali</option><option>Sri Lankan</option><option>Egyptian</option><option>American</option><option>British</option><option>Canadian</option><option>Australian</option><option>German</option><option>French</option><option>Italian</option><option>South Korean</option><option>Japanese</option><option>Chinese</option><option>Thai</option><option>Malaysian</option><option>Indonesian</option><option>South African</option><option>Nigerian</option><option>Kenyan</option><option>Jordanian</option><option>Lebanese</option><option>Palestinian</option><option>Syrian</option><option>Yemeni</option><option>Other</option></select></div>
           <div class="form-row"><label class="modal-label">People in group</label><input type="number" id="stranded-group" value="1" min="1" max="50" class="modal-input"></div>
@@ -567,6 +574,9 @@
               <option value="2-5">Small (2-5)</option>
               <option value="6+">Large (6+)</option>
             </select>
+            <div class="fp-label">Heading home to</div>
+            <div class="loc-ac-wrap"><input type="text" id="mfp-dest-search" class="fp-select" style="cursor:text" placeholder="Type city or airport..." oninput="airportAutocomplete(this,'mfp-dest-ac','mfp-filter')" onfocus="this.select()"><div class="loc-ac-list" id="mfp-dest-ac"></div></div>
+            <input type="hidden" id="mfp-filter-dest-country"><input type="hidden" id="mfp-filter-dest-airport">
           </div>
         </div>
         <!-- Disruptions Globally -->
@@ -605,8 +615,8 @@
       </div>
       <div id="m-stranded-content" style="display:none">
         <div style="font-size:.85rem;color:rgba(255,255,255,.45);margin-bottom:1rem;line-height:1.5"><strong style="color:#ec3452">Add yourself to the map</strong> so help can find you.</div>
-        <div class="m-form-row"><label class="m-form-label">Where are you now?</label><div class="loc-ac-wrap"><input type="text" id="m-stranded-location" placeholder="City, airport, or address" autocomplete="off"><input type="hidden" id="m-stranded-lat"><input type="hidden" id="m-stranded-lng"><div class="loc-ac-list" id="m-stranded-location-ac"></div></div></div>
-        <div class="m-form-row"><label class="m-form-label">Where do you need to get to?</label><div class="loc-ac-wrap"><input type="text" id="m-stranded-dest" placeholder="Home city or country" autocomplete="off"><input type="hidden" id="m-stranded-dest-lat"><input type="hidden" id="m-stranded-dest-lng"><div class="loc-ac-list" id="m-stranded-dest-ac"></div></div></div>
+        <div class="m-form-row"><label class="m-form-label">Where are you now?</label><div style="display:flex;gap:.3rem"><div class="loc-ac-wrap" style="flex:1"><input type="text" id="m-stranded-location" placeholder="City, airport, or address" autocomplete="off"><input type="hidden" id="m-stranded-lat"><input type="hidden" id="m-stranded-lng"><div class="loc-ac-list" id="m-stranded-location-ac"></div></div><button type="button" onclick="useMyLocation('m-stranded')" class="gps-btn" title="Use my location"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2"/></svg></button></div></div>
+        <div class="m-form-row"><label class="m-form-label">Where are you trying to get home to?</label><div class="loc-ac-wrap"><input type="text" id="m-stranded-dest" placeholder="e.g. Boston, London, Manila..." autocomplete="off" oninput="airportAutocomplete(this,'m-stranded-dest-ac','m-stranded')"><input type="hidden" id="m-stranded-dest-lat"><input type="hidden" id="m-stranded-dest-lng"><input type="hidden" id="m-stranded-dest-country"><input type="hidden" id="m-stranded-dest-airport"><div class="loc-ac-list" id="m-stranded-dest-ac"></div></div></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem"><div class="m-form-row"><label class="m-form-label">Nationality</label><select id="m-stranded-nationality" style="width:100%;padding:.5rem;background:#1a1c1e;border:1.5px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem"><option value="">Select...</option><option>Indian</option><option>Filipino</option><option>Pakistani</option><option>Bangladeshi</option><option>Nepali</option><option>Sri Lankan</option><option>Egyptian</option><option>American</option><option>British</option><option>Canadian</option><option>Australian</option><option>German</option><option>French</option><option>Italian</option><option>South Korean</option><option>Japanese</option><option>Chinese</option><option>Thai</option><option>Malaysian</option><option>Indonesian</option><option>South African</option><option>Nigerian</option><option>Kenyan</option><option>Jordanian</option><option>Lebanese</option><option>Palestinian</option><option>Syrian</option><option>Yemeni</option><option>Other</option></select></div><div class="m-form-row"><label class="m-form-label">Group size</label><input type="number" id="m-stranded-group" value="1" min="1" max="50" style="width:100%;padding:.5rem;background:#1a1c1e;border:1.5px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem"></div></div>
         <div class="m-form-row"><label class="m-form-label">What do you need?</label><div style="display:flex;flex-wrap:wrap;gap:.3rem" id="m-stranded-needs"><label class="need-chip"><input type="checkbox" value="housing"> Housing</label><label class="need-chip"><input type="checkbox" value="flight"> Flight</label><label class="need-chip"><input type="checkbox" value="food"> Food</label><label class="need-chip"><input type="checkbox" value="medical"> Medical</label><label class="need-chip"><input type="checkbox" value="money"> Financial</label><label class="need-chip"><input type="checkbox" value="translation"> Translation</label></div></div>
         <div class="m-form-row"><label class="m-form-label">Stranded since</label><input type="date" id="m-stranded-since" style="width:100%;padding:.5rem;background:#1a1c1e;border:1.5px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem"></div>
@@ -763,6 +773,7 @@
   </div>
 </div>
 
+<script src="airports.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

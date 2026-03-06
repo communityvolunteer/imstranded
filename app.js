@@ -170,6 +170,67 @@ function timeAgo(dateStr) {
 // ============================================================
 // FILTER PANEL
 // ============================================================
+
+// GPS geolocation
+function useMyLocation(prefix) {
+  if (!navigator.geolocation) { alert('Geolocation not supported.'); return; }
+  const locInput = document.getElementById(prefix + '-location');
+  if (locInput) locInput.value = 'Locating...';
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    const lat = pos.coords.latitude, lng = pos.coords.longitude;
+    document.getElementById(prefix + '-lat').value = lat;
+    document.getElementById(prefix + '-lng').value = lng;
+    try {
+      const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`, { headers: { 'User-Agent': 'ImStranded/1.0' } });
+      const d = await r.json();
+      if (locInput) locInput.value = d.display_name?.split(',').slice(0, 3).join(',').trim() || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    } catch (e) { if (locInput) locInput.value = `${lat.toFixed(4)}, ${lng.toFixed(4)}`; }
+  }, () => { if (locInput) locInput.value = ''; alert('Could not get location. Please enter manually.'); }, { enableHighAccuracy: true, timeout: 10000 });
+}
+
+// Airport search autocomplete
+let _apTimer = null;
+function airportAutocomplete(input, listId, prefix) {
+  clearTimeout(_apTimer);
+  const list = document.getElementById(listId);
+  const q = input.value.trim();
+  if (q.length < 2) { list.classList.remove('open'); return; }
+  _apTimer = setTimeout(() => {
+    const results = searchAirports(q, 8);
+    if (!results.length) { list.classList.remove('open'); return; }
+    list.innerHTML = results.map((a, i) => 
+      `<div class="loc-ac-item" data-idx="${i}" onmousedown="pickAirport(event,'${prefix}',${i},'${listId}')">
+        <strong>${a.iata}</strong> — ${a.city} <small>${a.name}, ${a.countryName}</small>
+      </div>`
+    ).join('');
+    list.classList.add('open');
+    list._results = results;
+  }, 150);
+  input.addEventListener('blur', () => setTimeout(() => list.classList.remove('open'), 200), { once: true });
+}
+
+function pickAirport(e, prefix, idx, listId) {
+  e.preventDefault();
+  const list = document.getElementById(listId);
+  const a = list._results?.[idx];
+  if (!a) return;
+  // Find the input — it's the sibling before the list's parent, or the input in the same loc-ac-wrap
+  const wrap = list.closest('.loc-ac-wrap');
+  const input = wrap?.querySelector('input[type="text"]');
+  if (input) input.value = `${a.iata} — ${a.city}, ${a.countryName}`;
+  // Set hidden fields
+  const latEl = document.getElementById(prefix + '-dest-lat');
+  const lngEl = document.getElementById(prefix + '-dest-lng');
+  const countryEl = document.getElementById(prefix + '-dest-country');
+  const airportEl = document.getElementById(prefix + '-dest-airport');
+  if (latEl) latEl.value = a.lat;
+  if (lngEl) lngEl.value = a.lng;
+  if (countryEl) countryEl.value = a.countryCode;
+  if (airportEl) airportEl.value = a.iata;
+  list.classList.remove('open');
+  // For filter panels, apply immediately
+  if (prefix.includes('filter')) applyFilters();
+}
 let _filterPanelOpen = true;
 
 function toggleFilterPanel() {
@@ -200,7 +261,9 @@ function getFilterState() {
   const groupSize = val('fp-group-size') || val('mfp-group-size') || '';
   const showWorldwide = val('fp-show-worldwide') ?? val('mfp-show-worldwide') ?? true;
 
-  return { showOffers, offersVerified, offerTypes, showStranded, strandedVerified, nationality, strandedNeeds, groupSize, showWorldwide };
+  const destCountry = val('fp-filter-dest-country') || val('mfp-filter-dest-country') || '';
+  const destAirport = val('fp-filter-dest-airport') || val('mfp-filter-dest-airport') || '';
+  return { showOffers, offersVerified, offerTypes, showStranded, strandedVerified, nationality, strandedNeeds, groupSize, showWorldwide, destCountry, destAirport };
 }
 
 function applyFilters() {
@@ -233,10 +296,19 @@ function applyFilters() {
       if (f.groupSize === '2-5' && (gs < 2 || gs > 5)) return false;
       if (f.groupSize === '6+' && gs < 6) return false;
     }
+    if (f.destCountry && p.dest_country !== f.destCountry) return false;
+    if (f.destAirport && p.dest_airport !== f.destAirport) return false;
     return true;
   });
   renderFilteredStranded(window._crisisMap, false, filteredStranded);
   renderFilteredStranded(window._mobileMap, true, filteredStranded);
+
+  // ── Arc lines (only when dest filter active) ──
+  clearArcLines();
+  if (f.destCountry || f.destAirport) {
+    drawArcLines(window._crisisMap, filteredStranded);
+    drawArcLines(window._mobileMap, filteredStranded);
+  }
 
   // ── Worldwide markers ──
   if (_mk.worldwide) {
@@ -305,7 +377,7 @@ function renderFilteredStranded(map, isMobile, filteredData) {
         <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:#ec3452;margin-bottom:.3rem">STRANDED · ${age}</div>
         <div style="font-size:.82rem;font-weight:700;color:#fff;margin-bottom:.15rem">${p.group_size > 1 ? p.group_size + ' people' : '1 person'}${p.nationality ? ' · ' + p.nationality : ''}</div>
         <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">From: ${p.current_location}</div>
-        <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.3rem">Need to reach: <strong style="color:#fff">${p.destination}</strong></div>
+        <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.3rem">Need to reach: <strong style="color:#fff">${p.destination}</strong>${p.dest_airport ? ' <span style="background:rgba(255,255,255,.1);padding:.1rem .4rem;border-radius:4px;font-size:.65rem;font-weight:600">✈ '+p.dest_airport+'</span>' : ''}</div>
         ${needsList ? '<div style="font-size:.68rem;color:#e67e22;margin-bottom:.2rem">Needs: '+needsList+'</div>' : ''}
         ${sinceTxt ? '<div style="font-size:.65rem;color:rgba(255,255,255,.35)">'+sinceTxt+'</div>' : ''}
         ${p.details ? '<div style="font-size:.75rem;color:rgba(255,255,255,.5);line-height:1.4;margin-top:.3rem">'+p.details.slice(0,150)+'</div>' : ''}
@@ -348,8 +420,46 @@ function clearAllFilters() {
   document.querySelectorAll('.fp-chip input').forEach(cb => cb.checked = false);
   document.querySelectorAll('[id$="-show-offers"],[id$="-show-stranded"],[id$="-show-worldwide"]').forEach(cb => cb.checked = true);
   document.querySelectorAll('[id$="-offers-verified"],[id$="-stranded-verified"],[id$="-worldwide-verified"]').forEach(cb => cb.checked = false);
-  document.querySelectorAll('.fp-select').forEach(s => s.value = '');
+  document.querySelectorAll('.fp-select').forEach(s => { if (s.tagName === 'SELECT') s.value = ''; else if (s.type === 'text') s.value = ''; });
+  document.querySelectorAll('[id$="filter-dest-country"],[id$="filter-dest-airport"]').forEach(h => h.value = '');
+  clearArcLines();
   applyFilters();
+}
+
+// ── ARC LINES (stranded → destination) ──
+let _arcLines = [];
+
+function clearArcLines() {
+  _arcLines.forEach(line => {
+    [window._crisisMap, window._mobileMap].forEach(m => { if (m) try { m.removeLayer(line); } catch(e) {} });
+  });
+  _arcLines = [];
+}
+
+function drawArcLines(map, strandedData) {
+  if (!map) return;
+  for (const p of strandedData) {
+    if (!p.current_lat || !p.current_lng || !p.dest_lat || !p.dest_lng) continue;
+    const from = [p.current_lat, p.current_lng];
+    const to = [p.dest_lat, p.dest_lng];
+    const arc = generateArc(from, to, 30);
+    const line = L.polyline(arc, { color: 'rgba(236,52,82,.35)', weight: 1.2, dashArray: '4 6', interactive: false }).addTo(map);
+    _arcLines.push(line);
+    const dot = L.circleMarker(to, { radius: 3, fillColor: '#ec3452', color: '#fff', weight: 1, fillOpacity: .7, interactive: false }).addTo(map);
+    _arcLines.push(dot);
+  }
+}
+
+function generateArc(from, to, numPoints) {
+  const points = [];
+  const latD = to[0] - from[0], lngD = to[1] - from[1];
+  const dist = Math.sqrt(latD * latD + lngD * lngD);
+  const bulge = dist * 0.2;
+  for (let i = 0; i <= numPoints; i++) {
+    const t = i / numPoints;
+    points.push([from[0] + latD * t + bulge * Math.sin(t * Math.PI), from[1] + lngD * t]);
+  }
+  return points;
 }
 
 // Legacy filterMap compat
@@ -1839,13 +1949,16 @@ async function mSubmitStranded() {
   const dest = document.getElementById('m-stranded-dest').value.trim();
   const destLat = parseFloat(document.getElementById('m-stranded-dest-lat').value) || null;
   const destLng = parseFloat(document.getElementById('m-stranded-dest-lng').value) || null;
+  const destCountry = document.getElementById('m-stranded-dest-country')?.value || '';
+  const destAirport = document.getElementById('m-stranded-dest-airport')?.value || '';
   const nationality = document.getElementById('m-stranded-nationality').value;
   const groupSize = parseInt(document.getElementById('m-stranded-group').value) || 1;
   const since = document.getElementById('m-stranded-since').value || null;
   const details = document.getElementById('m-stranded-details').value.trim();
   const needs = [...document.querySelectorAll('#m-stranded-needs input:checked')].map(c => c.value);
-  if (!loc || !dest) { alert('Please fill in your location and destination.'); return; }
-  if (!lat || !lng) { alert('Please select your location from suggestions.'); return; }
+  if (!loc) { alert('Please fill in your current location.'); return; }
+  if (!lat || !lng) { alert('Please select your location or use GPS.'); return; }
+  if (!dest) { alert('Please select where you need to get home to.'); return; }
   const email = _currentUser?.email || '';
   const tg = _currentProfile?.tg_handle ? '@' + _currentProfile.tg_handle : '';
   const contact = [email, tg].filter(Boolean).join(' | ');
@@ -1855,6 +1968,7 @@ async function mSubmitStranded() {
     const { error } = await _sb.from('stranded_people').insert({
       user_id: _currentUser.id, current_location: loc, current_lat: lat, current_lng: lng,
       destination: dest, dest_lat: destLat, dest_lng: destLng,
+      dest_country: destCountry || null, dest_airport: destAirport || null,
       nationality, group_size: groupSize,
       needs: needs.length ? '{' + needs.join(',') + '}' : '{}',
       stranded_since: since, details, contact,
@@ -1874,16 +1988,18 @@ async function submitStranded() {
   const dest = document.getElementById('stranded-dest').value.trim();
   const destLat = parseFloat(document.getElementById('stranded-dest-lat').value) || null;
   const destLng = parseFloat(document.getElementById('stranded-dest-lng').value) || null;
+  const destCountry = document.getElementById('stranded-dest-country')?.value || '';
+  const destAirport = document.getElementById('stranded-dest-airport')?.value || '';
   const nationality = document.getElementById('stranded-nationality').value;
   const groupSize = parseInt(document.getElementById('stranded-group').value) || 1;
   const since = document.getElementById('stranded-since').value || null;
   const details = document.getElementById('stranded-details').value.trim();
   const needs = [...document.querySelectorAll('#stranded-needs input:checked')].map(c => c.value);
 
-  if (!loc || !dest) { alert('Please fill in your current location and destination.'); return; }
-  if (!lat || !lng) { alert('Please select your current location from suggestions.'); return; }
+  if (!loc) { alert('Please fill in your current location.'); return; }
+  if (!lat || !lng) { alert('Please select your location from suggestions or use GPS.'); return; }
+  if (!dest) { alert('Please select where you need to get home to.'); return; }
 
-  // Build contact from linked accounts
   const email = _currentUser?.email || '';
   const tg = _currentProfile?.tg_handle ? '@' + _currentProfile.tg_handle : '';
   const contact = [email, tg].filter(Boolean).join(' | ');
@@ -1895,24 +2011,24 @@ async function submitStranded() {
       user_id: _currentUser.id,
       current_location: loc, current_lat: lat, current_lng: lng,
       destination: dest, dest_lat: destLat, dest_lng: destLng,
+      dest_country: destCountry || null, dest_airport: destAirport || null,
       nationality, group_size: groupSize,
       needs: needs.length ? `{${needs.join(',')}}` : '{}',
       stranded_since: since, details, contact,
     });
     if (error) throw error;
-    closeStrandedForm();
-    btn.textContent = 'Register as Stranded'; btn.disabled = false;
-    alert('You\'ve been registered. Stay safe — help is on the way.');
+    btn.textContent = "You're on the map!"; btn.style.background = '#27ae60';
+    setTimeout(() => { btn.textContent = 'Add Me to the Map'; btn.disabled = false; btn.style.background = '#ec3452'; }, 4000);
     loadStranded();
   } catch (e) {
     alert('Failed: ' + e.message);
-    btn.textContent = 'Register as Stranded'; btn.disabled = false;
+    btn.textContent = 'Add Me to the Map'; btn.disabled = false;
   }
 }
 
 async function loadStranded() {
   try {
-    const { data } = await _sb.from('stranded_people').select('id,current_location,current_lat,current_lng,destination,nationality,group_size,needs,stranded_since,details,status,created_at')
+    const { data } = await _sb.from('stranded_people').select('id,user_id,current_location,current_lat,current_lng,destination,dest_lat,dest_lng,dest_country,dest_airport,nationality,group_size,needs,stranded_since,details,status,created_at')
       .eq('flagged', false).eq('status', 'active').order('created_at', { ascending: false }).limit(500);
     _strandedPeople = data || [];
 
@@ -1963,7 +2079,7 @@ function renderStrandedOnMap(map, isMobile) {
         <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:#ec3452;margin-bottom:.3rem">STRANDED · ${age}</div>
         <div style="font-size:.82rem;font-weight:700;color:#fff;margin-bottom:.15rem">${p.group_size > 1 ? p.group_size + ' people' : '1 person'}${p.nationality ? ' · ' + p.nationality : ''}</div>
         <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">From: ${p.current_location}</div>
-        <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.3rem">Need to reach: <strong style="color:#fff">${p.destination}</strong></div>
+        <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.3rem">Need to reach: <strong style="color:#fff">${p.destination}</strong>${p.dest_airport ? ' <span style="background:rgba(255,255,255,.1);padding:.1rem .4rem;border-radius:4px;font-size:.65rem;font-weight:600">✈ '+p.dest_airport+'</span>' : ''}</div>
         ${needsList ? `<div style="font-size:.68rem;color:#e67e22;margin-bottom:.2rem">Needs: ${needsList}</div>` : ''}
         ${sinceTxt ? `<div style="font-size:.65rem;color:rgba(255,255,255,.35)">${sinceTxt}</div>` : ''}
         ${p.details ? `<div style="font-size:.75rem;color:rgba(255,255,255,.5);line-height:1.4;margin-top:.3rem">${p.details.slice(0, 150)}</div>` : ''}
@@ -2000,9 +2116,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   initStrandedRealtime();
   loadStranded();
   initLocationAutocomplete('stranded-location','stranded-lat','stranded-lng','stranded-location-ac');
-  initLocationAutocomplete('stranded-dest','stranded-dest-lat','stranded-dest-lng','stranded-dest-ac');
   initLocationAutocomplete('m-stranded-location','m-stranded-lat','m-stranded-lng','m-stranded-location-ac');
-  initLocationAutocomplete('m-stranded-dest','m-stranded-dest-lat','m-stranded-dest-lng','m-stranded-dest-ac');
   refreshSitrep();
   setInterval(refreshSitrep,5*60*1000);
   if(SB_ON){loadPosts();subscribeStream();}

@@ -811,3 +811,12 @@ transform: translateX(-50%);
 }
 .help-toggle--stranded.active{background:rgba(236,52,82,.15);color:#ec3452;border:1px solid rgba(236,52,82,.2);}
 .help-toggle--helper.active{background:rgba(52,152,236,.15);color:#3498ec;border:1px solid rgba(52,152,236,.2);}
+/* GPS button */
+.gps-btn{
+  width:42px;height:42px;min-width:42px;border-radius:10px;
+  background:rgba(52,152,236,.15);border:1.5px solid rgba(52,152,236,.25);
+  color:#3498ec;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+}
+.gps-btn:hover{background:rgba(52,152,236,.25);}
+@media(max-width:768px){.gps-btn{width:38px;height:38px;min-width:38px;}}
