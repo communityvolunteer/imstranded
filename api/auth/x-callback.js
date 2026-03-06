@@ -181,15 +181,17 @@ module.exports = async function handler(req, res) {
 
     // ── 3. MODE: LINK (add X to existing account) ──
     if (cookieData.mode === 'link' && cookieData.linkUserId) {
+      console.log('Linking X: handle=' + xUsername + ' avatar=' + (xAvatar ? 'yes' : 'no') + ' userId=' + cookieData.linkUserId);
       const updateData = { x_verified: true };
       if (xUsername) updateData.x_handle = xUsername;
       if (xAvatar) updateData.avatar_url = xAvatar;
+      if (!xUsername && xId) updateData.x_handle = 'x_' + xId; // fallback handle
       const patchRes = await httpRequest('PATCH', host, `/rest/v1/profiles?id=eq.${cookieData.linkUserId}`, {
-        ...H, 'Prefer': 'return=minimal'
+        ...H, 'Prefer': 'return=representation'
       }, updateData);
-      console.log('Link X result:', patchRes.status);
+      console.log('Link X PATCH result:', patchRes.status, JSON.stringify(patchRes.body).slice(0, 200));
       if (patchRes.status >= 400) {
-        return errorRedirect(res, 'link', `profile update failed: ${patchRes.status}`);
+        return errorRedirect(res, 'link', `profile update failed: ${patchRes.status} ${JSON.stringify(patchRes.body).slice(0, 100)}`);
       }
       return res.redirect('/#x-linked');
     }

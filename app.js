@@ -1156,6 +1156,7 @@ function renderProfileView() {
 }
 
 function updateVerifyStatus(provider, verified) {
+  const p = _currentProfile;
   // Desktop button
   const btn = document.getElementById('verify-btn-' + provider);
   if (btn) {
@@ -1175,6 +1176,16 @@ function updateVerifyStatus(provider, verified) {
       btn.disabled = true;
     }
   }
+  // Desktop subtitle — show handle when linked
+  const sub = document.getElementById('verify-sub-' + provider);
+  if (sub) {
+    if (provider === 'x' && p?.x_handle) sub.textContent = '@' + p.x_handle;
+    else if (provider === 'tg' && p?.tg_handle) sub.textContent = '@' + p.tg_handle;
+    else if (provider === 'google' && verified) sub.textContent = _currentUser?.email || 'Email verified';
+    else if (provider === 'x') sub.textContent = 'Required for $HELP tips';
+    else if (provider === 'tg') sub.textContent = 'Verify your Telegram identity';
+    else if (provider === 'google') sub.textContent = 'Verifies your email automatically';
+  }
   // Mobile label
   const mLabel = document.getElementById('m-verify-' + provider);
   if (mLabel) {
@@ -1191,6 +1202,16 @@ function updateVerifyStatus(provider, verified) {
       mLabel.textContent = 'Soon';
       mLabel.style.color = 'rgba(255,255,255,.25)';
     }
+  }
+  // Mobile subtitle
+  const mSub = document.getElementById('m-verify-sub-' + provider);
+  if (mSub) {
+    if (provider === 'x' && p?.x_handle) mSub.textContent = '@' + p.x_handle;
+    else if (provider === 'tg' && p?.tg_handle) mSub.textContent = '@' + p.tg_handle;
+    else if (provider === 'google' && verified) mSub.textContent = _currentUser?.email || 'Verified';
+    else if (provider === 'x') mSub.textContent = 'Enables $HELP tips';
+    else if (provider === 'tg') mSub.textContent = 'Verify your identity';
+    else if (provider === 'google') mSub.textContent = 'Auto-verifies email';
   }
 }
 
