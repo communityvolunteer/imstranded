@@ -705,10 +705,10 @@ transform: translateX(-50%);
 .map-cta--help:hover{background:#f1c40f;}
 /* ═══ Filter Panel ═══ */
 .filter-panel{
-  position:absolute;top:0;right:0;bottom:0;width:320px;z-index:900;
+  position:absolute;top:0;left:0;bottom:0;width:320px;z-index:900;
   background:rgba(10,10,10,.95);backdrop-filter:blur(12px);
-  border-left:1px solid rgba(255,255,255,.08);
-  transform:translateX(100%);transition:transform .3s ease;
+  border-right:1px solid rgba(255,255,255,.08);
+  transform:translateX(-100%);transition:transform .3s ease;
   overflow-y:auto;padding:0;
 }
 .filter-panel.open{transform:translateX(0);}

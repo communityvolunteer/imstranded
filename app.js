@@ -155,8 +155,20 @@ let posts = [];
 const _dataPins = {airports:[]};
 let _activeFilter = 'all';
 
+function timeAgo(dateStr) {
+  const diff = Math.max(0, Date.now() - new Date(dateStr).getTime());
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return mins + 'm ago';
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + 'h ago';
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return days + 'd ago';
+  return new Date(dateStr).toLocaleDateString();
+}
+
 // ============================================================
-// LEGEND TOGGLE
+// FILTER PANEL
 // ============================================================
 let _filterPanelOpen = false;
 
@@ -173,126 +185,190 @@ function toggleFpSection(head) {
 }
 
 function getFilterState() {
-  // Read from whichever panel exists (desktop fp- or mobile mfp-)
-  const isMobile = window.innerWidth <= 768;
-  const p = isMobile ? 'mfp' : 'fp';
-  
-  const getChecked = (id) => [...document.querySelectorAll(`#${id} input:checked`)].map(c => c.value);
+  // Read from whichever set of controls exists — use fp- (desktop) as primary, fall back to mfp- (mobile)
+  function val(id) { const el = document.getElementById(id); return el ? (el.type === 'checkbox' ? el.checked : el.value) : null; }
+  function checked(containerId) { return [...document.querySelectorAll('#' + containerId + ' input:checked')].map(c => c.value); }
 
-  return {
-    showOffers: document.getElementById(p+'-show-offers')?.checked ?? true,
-    offersVerified: document.getElementById(p+'-offers-verified')?.checked ?? false,
-    offerTypes: getChecked(p+'-offer-type'),
-    showStranded: document.getElementById(p+'-show-stranded')?.checked ?? true,
-    strandedVerified: document.getElementById(p+'-stranded-verified')?.checked ?? false,
-    nationality: document.getElementById(p+'-nationality')?.value || '',
-    strandedNeeds: getChecked(p+'-stranded-needs'),
-    groupSize: document.getElementById(p+'-group-size')?.value || '',
-    showWorldwide: document.getElementById(p+'-show-worldwide')?.checked ?? true,
-    worldwideVerified: document.getElementById(p+'-worldwide-verified')?.checked ?? false,
-  };
+  // Try desktop first, then mobile
+  const showOffers = val('fp-show-offers') ?? val('mfp-show-offers') ?? true;
+  const offersVerified = val('fp-offers-verified') ?? val('mfp-offers-verified') ?? false;
+  const offerTypes = checked('fp-offer-type').length ? checked('fp-offer-type') : checked('mfp-offer-type');
+  const showStranded = val('fp-show-stranded') ?? val('mfp-show-stranded') ?? true;
+  const strandedVerified = val('fp-stranded-verified') ?? val('mfp-stranded-verified') ?? false;
+  const nationality = val('fp-nationality') || val('mfp-nationality') || '';
+  const strandedNeeds = checked('fp-stranded-needs').length ? checked('fp-stranded-needs') : checked('mfp-stranded-needs');
+  const groupSize = val('fp-group-size') || val('mfp-group-size') || '';
+  const showWorldwide = val('fp-show-worldwide') ?? val('mfp-show-worldwide') ?? true;
+
+  return { showOffers, offersVerified, offerTypes, showStranded, strandedVerified, nationality, strandedNeeds, groupSize, showWorldwide };
 }
 
 function applyFilters() {
   const f = getFilterState();
-  const map = window._crisisMap || window._mobileMap;
-  if (!map) return;
-
-  // Sync desktop ↔ mobile panels
   syncFilterPanels();
 
-  // Offerings — show/hide help post cluster
-  if (window._helpCluster) {
-    f.showOffers ? map.addLayer(window._helpCluster) : map.removeLayer(window._helpCluster);
-  }
-  if (window._mHelpCluster) {
-    const mm = window._mobileMap;
-    if (mm) f.showOffers ? mm.addLayer(window._mHelpCluster) : mm.removeLayer(window._mHelpCluster);
-  }
+  // ── Filter & re-render help posts (offers) ──
+  const filteredPosts = posts.filter(p => {
+    if (p.type !== 'offer') return false;
+    if (!f.showOffers) return false;
+    if (f.offersVerified && !p.user_id) return false;
+    if (f.offerTypes.length && !f.offerTypes.includes(p.post_type)) return false;
+    return true;
+  });
+  renderFilteredPosts(window._crisisMap, _helpCluster, filteredPosts);
+  renderFilteredPosts(window._mobileMap, _mHelpCluster, filteredPosts);
 
-  // Stranded — show/hide stranded cluster
-  if (window._strandedCluster) {
-    f.showStranded ? map.addLayer(window._strandedCluster) : map.removeLayer(window._strandedCluster);
-  }
-  if (window._mStrandedCluster) {
-    const mm = window._mobileMap;
-    if (mm) f.showStranded ? mm.addLayer(window._mStrandedCluster) : mm.removeLayer(window._mStrandedCluster);
-  }
+  // ── Filter & re-render stranded people ──
+  const filteredStranded = _strandedPeople.filter(p => {
+    if (!f.showStranded) return false;
+    if (f.strandedVerified && !p.user_id) return false;
+    if (f.nationality && p.nationality !== f.nationality) return false;
+    if (f.strandedNeeds.length) {
+      const pNeeds = p.needs || [];
+      if (!f.strandedNeeds.some(n => pNeeds.includes(n))) return false;
+    }
+    if (f.groupSize) {
+      const gs = p.group_size || 1;
+      if (f.groupSize === '1' && gs !== 1) return false;
+      if (f.groupSize === '2-5' && (gs < 2 || gs > 5)) return false;
+      if (f.groupSize === '6+' && gs < 6) return false;
+    }
+    return true;
+  });
+  renderFilteredStranded(window._crisisMap, false, filteredStranded);
+  renderFilteredStranded(window._mobileMap, true, filteredStranded);
 
-  // Worldwide markers
+  // ── Worldwide markers ──
   if (_mk.worldwide) {
     _mk.worldwide.forEach(m => {
-      if (f.showWorldwide) { m.addTo(map); if (window._mobileMap) m.addTo(window._mobileMap); }
-      else { map.removeLayer(m); if (window._mobileMap) window._mobileMap.removeLayer(m); }
+      [window._crisisMap, window._mobileMap].forEach(map => {
+        if (!map) return;
+        f.showWorldwide ? m.addTo(map) : map.removeLayer(m);
+      });
     });
   }
 
   // Country markers always visible
   if (_mk.country) {
-    _mk.country.forEach(({marker}) => { marker.addTo(map); if (window._mobileMap) marker.addTo(window._mobileMap); });
-  }
-
-  // Update sitrep highlights
-  document.querySelectorAll('.sitrep-stat').forEach(s => s.classList.remove('active-filter'));
-  if (!f.showOffers || !f.showStranded || !f.showWorldwide || f.nationality || f.strandedNeeds.length || f.offerTypes.length) {
-    document.getElementById('ss-filter')?.classList.add('active-filter');
+    _mk.country.forEach(({marker}) => {
+      [window._crisisMap, window._mobileMap].forEach(map => { if (map) marker.addTo(map); });
+    });
   }
 }
 
+function renderFilteredPosts(map, cluster, filteredPosts) {
+  if (!map || !cluster) return;
+  cluster.clearLayers();
+  for (const p of filteredPosts) {
+    if (!p.lat || !p.lng) continue;
+    const helpIcon = L.divIcon({
+      className:'help-pin',
+      html:'<div style="width:14px;height:14px;background:#3b82f6;border:2px solid #fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.3)"></div>',
+      iconSize:[14,14],iconAnchor:[7,7]
+    });
+    const m = L.marker([p.lat, p.lng], {icon: helpIcon})
+      .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:220px;max-width:280px">
+        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#93c5fd;margin-bottom:.25rem">SPARE ROOM</div>
+        <div style="font-weight:600;font-size:.84rem;margin-bottom:.2rem;color:#fff">${p.name} ${buildBadge(!!p.user_id)}</div>
+        <div style="font-size:.77rem;color:rgba(255,255,255,.75);line-height:1.5;margin-bottom:.3rem">${(p.body||'').slice(0,120)}${(p.body||'').length>120?'...':''}</div>
+        <div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-bottom:.15rem">📍 ${p.location}</div>
+        ${buildContactButtons(p.contact, p.xhandle, p.name)}
+        ${buildTipButton(p.xhandle, !!p.user_id)}
+      </div>`);
+    cluster.addLayer(m);
+  }
+}
+
+function renderFilteredStranded(map, isMobile, filteredData) {
+  if (!map) return;
+  const clusterRef = isMobile ? _mStrandedCluster : _strandedCluster;
+  if (clusterRef) map.removeLayer(clusterRef);
+
+  const cluster = L.markerClusterGroup({
+    maxClusterRadius: 60, spiderfyOnMaxZoom: true, showCoverageOnHover: false, zoomToBoundsOnClick: true,
+    iconCreateFunction: function(c) {
+      const count = c.getAllChildMarkers().reduce((sum, m) => sum + (m.options.groupSize || 1), 0);
+      const size = count > 50 ? 44 : count > 10 ? 36 : 28;
+      return L.divIcon({ html: '<div class="stranded-cluster" style="width:'+size+'px;height:'+size+'px">'+count+'</div>', className: '', iconSize: [size, size] });
+    }
+  });
+
+  for (const p of filteredData) {
+    if (!p.current_lat || !p.current_lng) continue;
+    const age = timeAgo(p.created_at);
+    const needsList = (p.needs || []).map(n => NEED_LABELS[n] || n).join(', ');
+    const sinceTxt = p.stranded_since ? 'Since ' + new Date(p.stranded_since).toLocaleDateString() : '';
+    const icon = L.divIcon({ className: '', html: '<div class="stranded-pin"></div>', iconSize: [10, 10], iconAnchor: [5, 5] });
+    const marker = L.marker([p.current_lat, p.current_lng], { icon, groupSize: p.group_size || 1 });
+    marker.bindPopup(`
+      <div style="min-width:200px;font-family:Inter,sans-serif">
+        <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:#ec3452;margin-bottom:.3rem">STRANDED · ${age}</div>
+        <div style="font-size:.82rem;font-weight:700;color:#fff;margin-bottom:.15rem">${p.group_size > 1 ? p.group_size + ' people' : '1 person'}${p.nationality ? ' · ' + p.nationality : ''}</div>
+        <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">From: ${p.current_location}</div>
+        <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.3rem">Need to reach: <strong style="color:#fff">${p.destination}</strong></div>
+        ${needsList ? '<div style="font-size:.68rem;color:#e67e22;margin-bottom:.2rem">Needs: '+needsList+'</div>' : ''}
+        ${sinceTxt ? '<div style="font-size:.65rem;color:rgba(255,255,255,.35)">'+sinceTxt+'</div>' : ''}
+        ${p.details ? '<div style="font-size:.75rem;color:rgba(255,255,255,.5);line-height:1.4;margin-top:.3rem">'+p.details.slice(0,150)+'</div>' : ''}
+      </div>
+    `, { className: 'dark-popup', maxWidth: 280 });
+    cluster.addLayer(marker);
+  }
+
+  map.addLayer(cluster);
+  if (isMobile) _mStrandedCluster = cluster;
+  else _strandedCluster = cluster;
+}
+
 function syncFilterPanels() {
-  // Sync state between desktop (fp-) and mobile (mfp-) panels
+  const isMobile = window.innerWidth <= 768;
   const pairs = [
     ['fp-show-offers','mfp-show-offers'],['fp-offers-verified','mfp-offers-verified'],
     ['fp-show-stranded','mfp-show-stranded'],['fp-stranded-verified','mfp-stranded-verified'],
     ['fp-show-worldwide','mfp-show-worldwide'],['fp-worldwide-verified','mfp-worldwide-verified'],
   ];
-  const isMobile = window.innerWidth <= 768;
   pairs.forEach(([d,m]) => {
     const src = document.getElementById(isMobile ? m : d);
     const dst = document.getElementById(isMobile ? d : m);
     if (src && dst) dst.checked = src.checked;
   });
-  // Sync selects
   [['fp-nationality','mfp-nationality'],['fp-group-size','mfp-group-size']].forEach(([d,m]) => {
     const src = document.getElementById(isMobile ? m : d);
     const dst = document.getElementById(isMobile ? d : m);
     if (src && dst) dst.value = src.value;
   });
+  // Sync chip checkboxes
+  [['fp-offer-type','mfp-offer-type'],['fp-stranded-needs','mfp-stranded-needs']].forEach(([d,m]) => {
+    const srcId = isMobile ? m : d, dstId = isMobile ? d : m;
+    const srcChecked = [...document.querySelectorAll('#'+srcId+' input:checked')].map(c=>c.value);
+    document.querySelectorAll('#'+dstId+' input').forEach(c => c.checked = srcChecked.includes(c.value));
+  });
 }
 
 function clearAllFilters() {
-  // Reset all checkboxes and selects
-  document.querySelectorAll('.fp-chip input, .fp-toggle input[type="checkbox"]').forEach(cb => {
-    if (cb.id.includes('show-')) cb.checked = true; // show toggles default ON
-    else cb.checked = false;
-  });
+  document.querySelectorAll('.fp-chip input').forEach(cb => cb.checked = false);
+  document.querySelectorAll('[id$="-show-offers"],[id$="-show-stranded"],[id$="-show-worldwide"]').forEach(cb => cb.checked = true);
+  document.querySelectorAll('[id$="-offers-verified"],[id$="-stranded-verified"],[id$="-worldwide-verified"]').forEach(cb => cb.checked = false);
   document.querySelectorAll('.fp-select').forEach(s => s.value = '');
   applyFilters();
 }
 
-// Legacy compat — old filterMap calls
+// Legacy filterMap compat
 function filterMap(type) {
   if (type === 'all') { clearAllFilters(); return; }
   if (type === 'help') {
     document.querySelectorAll('[id$="-show-offers"]').forEach(c => c.checked = true);
     document.querySelectorAll('[id$="-show-stranded"]').forEach(c => c.checked = false);
     document.querySelectorAll('[id$="-show-worldwide"]').forEach(c => c.checked = false);
-    applyFilters(); return;
-  }
-  if (type === 'worldwide') {
+  } else if (type === 'worldwide') {
     document.querySelectorAll('[id$="-show-offers"]').forEach(c => c.checked = false);
     document.querySelectorAll('[id$="-show-stranded"]').forEach(c => c.checked = false);
     document.querySelectorAll('[id$="-show-worldwide"]').forEach(c => c.checked = true);
-    applyFilters(); return;
-  }
-  if (type === 'stranded') {
+  } else if (type === 'stranded') {
     document.querySelectorAll('[id$="-show-offers"]').forEach(c => c.checked = false);
     document.querySelectorAll('[id$="-show-stranded"]').forEach(c => c.checked = true);
     document.querySelectorAll('[id$="-show-worldwide"]').forEach(c => c.checked = false);
-    applyFilters(); return;
   }
-  // Default — show all
-  clearAllFilters();
+  applyFilters();
 }
 
 // ============================================================
@@ -771,12 +847,8 @@ function mFilterMap(type){
   filterMap(type);
 }
 
-function openMFilterLegend(){
-  document.getElementById('m-filter-legend')?.classList.add('open');
-}
-function closeMFilterLegend(){
-  document.getElementById('m-filter-legend')?.classList.remove('open');
-}
+function openMFilterLegend(){ mTab('filters', null); }
+function closeMFilterLegend(){ mSheetToggle(); }
 
 const PHONE_SVG=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`;
 
@@ -823,19 +895,6 @@ function closeMPopup(){document.getElementById('m-country-popup').classList.remo
 function mTab(tab,btn){
   const sheet=document.getElementById('m-sheet');
 
-  // MAP FILTERS tab opens the filter legend overlay (no sheet)
-  if(tab==='filters'){
-    // Close sheet if open
-    _mSheetOpen=false; sheet.classList.remove('open');
-    // Toggle filter legend
-    openMFilterLegend();
-    // Highlight
-    document.querySelectorAll('.m-tab,.m-tab-spare').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    _mCurrentTab='filters';
-    return;
-  }
-
   if(_mCurrentTab===tab&&tab!=='map'&&_mSheetOpen){
     _mSheetOpen=false;sheet.classList.remove('open');_mCurrentTab='map';
     document.querySelectorAll('.m-tab,.m-tab-spare').forEach(b=>b.classList.remove('active'));return;
@@ -845,6 +904,7 @@ function mTab(tab,btn){
   _mCurrentTab=tab;
   if(tab==='map'){_mSheetOpen=false;sheet.classList.remove('open');}
   else if(tab==='resources') mShowSheetContent('resources','ADDITIONAL RESOURCES');
+  else if(tab==='filters')   mShowSheetContent('filters','MAP FILTERS');
   else if(tab==='help-money') mShowSheetContent('help-money','$HELP');
   else if(tab==='offer')     mShowSheetContent('offer','OFFER A SPARE ROOM');
   else if(tab==='profile')   { mShowSheetContent('profile','MY PROFILE'); renderMobileProfileView(); }
@@ -852,6 +912,7 @@ function mTab(tab,btn){
 
 function mShowSheetContent(which,title){
   document.getElementById('m-resources-content').style.display=which==='resources'?'block':'none';
+  document.getElementById('m-filters-content').style.display=which==='filters'?'block':'none';
   document.getElementById('m-help-money-content').style.display=which==='help-money'?'block':'none';
   document.getElementById('m-offer-content').style.display=which==='offer'?'block':'none';
   document.getElementById('m-edit-content').style.display=which==='profile'?'block':'none';
