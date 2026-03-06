@@ -27,7 +27,6 @@
   </a>
   <nav>
     <button class="active" onclick="showView('map')">Map</button>
-    <button onclick="showView('feed')">Live Feed</button>
     <button onclick="showView('resources')">Additional Resources</button>
   </nav>
   <div class="header-right">
@@ -111,10 +110,10 @@
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       I'M STRANDED
     </button>
-    <button class="map-cta map-cta--report" onclick="openReportForm()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49"/></svg>
-      GROUND REPORT
-    </button>
+    <a class="map-cta map-cta--help" href="https://x.com/intent/tweet?text=@bankrbot%20Tip%201%20$HELP%20to%20@ImStranded" target="_blank" style="text-decoration:none">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      $HELP
+    </a>
     <button class="map-cta map-cta--offer" onclick="showView('help');switchHelpTab('offer')">
       <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       OFFER A SPARE ROOM
@@ -126,32 +125,6 @@
     <svg id="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
     <svg id="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
   </button>
-
-  <!-- Ground Report Modal -->
-  <div id="report-modal">
-    <div style="background:#111;border:1px solid rgba(255,255,255,.15);border-radius:16px;max-width:440px;width:90%;padding:1.5rem;position:relative">
-      <button onclick="closeReportForm()" style="position:absolute;top:.8rem;right:.8rem;background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;padding:4px;line-height:0">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-      <div style="font-size:1rem;font-weight:800;color:#fff;margin-bottom:.3rem">Ground Report</div>
-      <div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-bottom:1.2rem">Share what's happening on the ground right now.</div>
-      <div class="form-row"><label style="color:#fff;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.3rem;display:block">Report Type</label>
-        <select id="report-type" style="width:100%;padding:.6rem .9rem;border:1.5px solid rgba(255,255,255,.12);border-radius:10px;background:#1a1c1e;color:#fff;font-family:Inter,sans-serif;font-size:.88rem">
-          <option value="ground">General ground report</option>
-          <option value="airport">Airport situation</option>
-          <option value="border">Border crossing</option>
-          <option value="supply">Food / water / supplies</option>
-        </select>
-      </div>
-      <div class="form-row"><label style="color:#fff;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.3rem;display:block">Location</label>
-        <div class="loc-ac-wrap"><input type="text" id="report-location" placeholder="Where are you?" autocomplete="off" style="width:100%;padding:.6rem .9rem;border:1.5px solid rgba(255,255,255,.12);border-radius:10px;background:#1a1c1e;color:#fff;font-family:Inter,sans-serif;font-size:.88rem"><input type="hidden" id="report-lat"><input type="hidden" id="report-lng"><div class="loc-ac-list" id="report-location-ac"></div></div>
-      </div>
-      <div class="form-row"><label style="color:#fff;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.3rem;display:block">What's happening?</label>
-        <textarea id="report-body" placeholder="Describe the situation..." style="width:100%;min-height:80px;padding:.6rem .9rem;border:1.5px solid rgba(255,255,255,.12);border-radius:10px;background:#1a1c1e;color:#fff;font-family:Inter,sans-serif;font-size:.88rem;resize:none"></textarea>
-      </div>
-      <button onclick="submitReport()" id="report-submit-btn" style="width:100%;background:#e67e22;color:#fff;border:none;border-radius:10px;padding:.7rem;font-family:Inter,sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;margin-top:.3rem">Post Report</button>
-    </div>
-  </div>
 
   <!-- Stranded Registration Modal -->
   <div id="stranded-modal">
@@ -225,26 +198,6 @@
       <button class="filter-btn" onclick="filterResources('info',this)">Info &amp; Tools</button>
     </div>
     <div id="resources-grid" class="countries-grid"></div>
-  </div>
-</div>
-
-<!-- LIVE FEED VIEW -->
-<div id="feed-view" class="view">
-  <div class="container" style="max-width:780px">
-    <div class="section-header">
-      <div class="section-title">LIVE CRISIS FEED</div>
-      <div class="section-subtitle">Real-time news, advisories, and humanitarian updates</div>
-    </div>
-    <!-- Feed filters -->
-    <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1rem">
-      <button class="feed-filter active" data-filter="all" onclick="filterFeed('all',this)">All</button>
-      <button class="feed-filter" data-filter="news" onclick="filterFeed('news',this)">News</button>
-      <button class="feed-filter" data-filter="advisory" onclick="filterFeed('advisory',this)">Advisories</button>
-      <button class="feed-filter" data-filter="humanitarian" onclick="filterFeed('humanitarian',this)">Humanitarian</button>
-      <button class="feed-filter" data-filter="community" onclick="filterFeed('community',this)">Field Reports</button>
-    </div>
-    <div id="feed-list" style="margin-top:.5rem"></div>
-    <div id="feed-loading" style="text-align:center;padding:2rem;color:rgba(255,255,255,.4);font-size:.82rem">Loading live feed...</div>
   </div>
 </div>
 
@@ -530,16 +483,6 @@
     </div>
     <div id="m-sheet-body">
       <div id="m-resources-content" style="display:none"></div>
-      <div id="m-feed-content" style="display:none">
-        <div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.75rem">
-          <button class="feed-filter active" data-filter="all" onclick="filterFeed('all',this)">All</button>
-          <button class="feed-filter" data-filter="news" onclick="filterFeed('news',this)">News</button>
-          <button class="feed-filter" data-filter="advisory" onclick="filterFeed('advisory',this)">Gov</button>
-          <button class="feed-filter" data-filter="humanitarian" onclick="filterFeed('humanitarian',this)">Aid</button>
-          <button class="feed-filter" data-filter="community" onclick="filterFeed('community',this)">Reports</button>
-        </div>
-        <div id="m-feed-list"></div>
-      </div>
       <div id="m-help-money-content" style="display:none">
         <div style="text-align:center;padding:.5rem 0 1rem">
           <div style="font-size:2rem;margin-bottom:.5rem">

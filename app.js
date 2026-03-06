@@ -180,11 +180,9 @@ function showView(name) {
   if (view) { view.classList.add('active'); view.style.display = 'block'; }
   const navBtns = document.querySelectorAll('nav button');
   if (name === 'map' && navBtns[0]) navBtns[0].classList.add('active');
-  if (name === 'feed' && navBtns[1]) navBtns[1].classList.add('active');
-  if (name === 'resources' && navBtns[2]) navBtns[2].classList.add('active');
+  if (name === 'resources' && navBtns[1]) navBtns[1].classList.add('active');
   if (name === 'map' && !window._mapInit) initMap();
   if (name === 'resources') renderResources();
-  if (name === 'feed') loadFeed();
   if (name === 'help') { renderPosts(); }
   if (name === 'profile') { renderProfileView(); }
 }
@@ -319,7 +317,6 @@ function initMap() {
   map.addLayer(_helpCluster);
 
   renderPostsOnMap(map);
-  renderReportsOnMap(map);
   renderStrandedOnMap(map, false);
   window._crisisMap = map;
 }
@@ -685,7 +682,6 @@ function initMobile(){
     disableClusteringAtZoom: 16,
   });
   mmap.addLayer(_mHelpCluster);
-  renderReportsOnMap(mmap);
   renderStrandedOnMap(mmap, true);
   mRenderResources();
 }
@@ -775,7 +771,6 @@ function mTab(tab,btn){
   _mCurrentTab=tab;
   if(tab==='map'){_mSheetOpen=false;sheet.classList.remove('open');}
   else if(tab==='resources') mShowSheetContent('resources','ADDITIONAL RESOURCES');
-  else if(tab==='feed')      { mShowSheetContent('feed','LIVE FEED'); loadFeed(); }
   else if(tab==='help-money') mShowSheetContent('help-money','$HELP');
   else if(tab==='offer')     mShowSheetContent('offer','OFFER A SPARE ROOM');
   else if(tab==='profile')   { mShowSheetContent('profile','MY PROFILE'); renderMobileProfileView(); }
@@ -783,7 +778,6 @@ function mTab(tab,btn){
 
 function mShowSheetContent(which,title){
   document.getElementById('m-resources-content').style.display=which==='resources'?'block':'none';
-  document.getElementById('m-feed-content').style.display=which==='feed'?'block':'none';
   document.getElementById('m-help-money-content').style.display=which==='help-money'?'block':'none';
   document.getElementById('m-offer-content').style.display=which==='offer'?'block':'none';
   document.getElementById('m-edit-content').style.display=which==='profile'?'block':'none';
@@ -1802,193 +1796,6 @@ function initStrandedRealtime() {
   }).subscribe();
 }
 
-// ============================================================
-// GROUND REPORTS
-// ============================================================
-let _reports = [];
-
-function openReportForm() {
-  if (!isLoggedIn()) { alert('Please sign in to post a ground report.'); showView('profile'); return; }
-  document.getElementById('report-modal').classList.add('open');
-}
-
-function closeReportForm() {
-  document.getElementById('report-modal').classList.remove('open');
-  document.getElementById('report-body').value = '';
-  document.getElementById('report-location').value = '';
-  document.getElementById('report-lat').value = '';
-  document.getElementById('report-lng').value = '';
-}
-
-async function submitReport() {
-  if (!isLoggedIn()) { alert('Please sign in first.'); return; }
-  const type = document.getElementById('report-type').value;
-  const loc = document.getElementById('report-location').value.trim();
-  const body = document.getElementById('report-body').value.trim();
-  const lat = parseFloat(document.getElementById('report-lat').value) || null;
-  const lng = parseFloat(document.getElementById('report-lng').value) || null;
-  if (!loc || !body) { alert('Please fill in location and description.'); return; }
-  if (!lat || !lng) { alert('Please select a location from suggestions.'); return; }
-  const btn = document.getElementById('report-submit-btn');
-  btn.textContent = 'Posting...'; btn.disabled = true;
-  try {
-    const { error } = await _sb.from('situation_reports').insert({ user_id: _currentUser.id, location: loc, body, report_type: type, lat, lng });
-    if (error) throw error;
-    closeReportForm();
-    btn.textContent = 'Post Report'; btn.disabled = false;
-    loadReports();
-  } catch (e) {
-    alert('Failed: ' + e.message);
-    btn.textContent = 'Post Report'; btn.disabled = false;
-  }
-}
-
-const REPORT_COLORS = { ground: '#e67e22', airport: '#e74c3c', border: '#f39c12', supply: '#2ecc71' };
-const REPORT_LABELS = { ground: 'Ground Report', airport: 'Airport', border: 'Border Crossing', supply: 'Supplies' };
-let _reportMarkers = [];
-
-async function loadReports() {
-  try {
-    const { data } = await _sb.from('situation_reports').select('id,user_id,location,body,report_type,lat,lng,created_at').eq('flagged', false).order('created_at', { ascending: false }).limit(100);
-    _reports = data || [];
-    renderReportsOnMap(window._crisisMap);
-    renderReportsOnMap(window._mobileMap);
-  } catch (e) { console.error('Load reports error:', e); }
-}
-
-function renderReportsOnMap(map) {
-  if (!map) return;
-  // Clear existing report markers
-  _reportMarkers.forEach(m => map.removeLayer(m));
-  _reportMarkers = [];
-
-  for (const r of _reports) {
-    if (!r.lat || !r.lng) continue;
-    const color = REPORT_COLORS[r.report_type] || '#e67e22';
-    const label = REPORT_LABELS[r.report_type] || 'Report';
-    const age = timeAgo(r.created_at);
-    const icon = L.divIcon({
-      className: '',
-      html: `<div class="report-pin report-pin--${r.report_type}"></div>`,
-      iconSize: [12, 12],
-      iconAnchor: [6, 6]
-    });
-    const marker = L.marker([r.lat, r.lng], { icon }).addTo(map);
-    marker.bindPopup(`
-      <div style="min-width:180px;font-family:Inter,sans-serif">
-        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:${color};margin-bottom:.25rem">${label} · ${age}</div>
-        <div style="font-size:.78rem;font-weight:600;color:#fff;margin-bottom:.15rem">📍 ${r.location}</div>
-        <div style="font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.5">${r.body}</div>
-      </div>
-    `, { className: 'dark-popup', maxWidth: 260 });
-    _reportMarkers.push(marker);
-  }
-}
-
-// Realtime report updates
-function initReportRealtime() {
-  _sb.channel('situation_reports').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'situation_reports' }, payload => {
-    if (payload.new && !payload.new.flagged) {
-      _reports.unshift(payload.new);
-      renderReportsOnMap(window._crisisMap);
-      renderReportsOnMap(window._mobileMap);
-    }
-  }).subscribe();
-}
-
-// ============================================================
-// LIVE FEED
-// ============================================================
-let _feedArticles = [];
-let _feedFilter = 'all';
-let _feedLoaded = false;
-
-async function loadFeed() {
-  if (_feedLoaded && _feedArticles.length) { renderFeed(); return; }
-  try {
-    const { data, error } = await _sb.from('news_feed').select('*').order('published_at', { ascending: false }).limit(80);
-    if (error) throw error;
-    _feedArticles = data || [];
-    _feedLoaded = true;
-    renderFeed();
-  } catch (e) {
-    console.error('Feed load error:', e);
-    const el = document.getElementById('feed-list');
-    const mEl = document.getElementById('m-feed-list');
-    const msg = '<div style="text-align:center;padding:2rem;color:rgba(255,255,255,.4);font-size:.82rem">Unable to load feed. Data will appear once the scraper runs.</div>';
-    if (el) el.innerHTML = msg;
-    if (mEl) mEl.innerHTML = msg;
-  }
-  const loadEl = document.getElementById('feed-loading');
-  if (loadEl) loadEl.style.display = 'none';
-}
-
-function filterFeed(filter, btn) {
-  _feedFilter = filter;
-  document.querySelectorAll('.feed-filter').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  // Sync both desktop and mobile filter buttons
-  document.querySelectorAll(`.feed-filter[data-filter="${filter}"]`).forEach(b => b.classList.add('active'));
-  renderFeed();
-}
-
-function timeAgo(dateStr) {
-  const now = Date.now();
-  const then = new Date(dateStr).getTime();
-  const diff = Math.max(0, now - then);
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return mins + 'm ago';
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return hrs + 'h ago';
-  const days = Math.floor(hrs / 24);
-  if (days < 7) return days + 'd ago';
-  return new Date(dateStr).toLocaleDateString();
-}
-
-const SOURCE_ICONS = {
-  'news': '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
-  'advisory': '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c-1.1 0-2-.2-2.7-.6L3.5 18.2c-.4-.3-.7-.7-.9-1.1-.2-.5-.3-1-.3-1.5V8.4c0-.5.1-1 .3-1.5.2-.4.5-.8.9-1.1l5.8-3.2C10 2.2 11 2 12 2s2 .2 2.7.6l5.8 3.2c.4.3.7.7.9 1.1.2.5.3 1 .3 1.5v7.2c0 .5-.1 1-.3 1.5-.2.4-.5.8-.9 1.1l-5.8 3.2c-.7.4-1.6.6-2.7.6z"/></svg>',
-  'humanitarian': '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
-  'community': '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
-};
-
-const SOURCE_COLORS = {
-  'news': '#3498ec',
-  'advisory': '#e67e22',
-  'humanitarian': '#e74c3c',
-  'community': '#2ecc71',
-};
-
-function renderFeed() {
-  const filtered = _feedFilter === 'all' ? _feedArticles : _feedArticles.filter(a => a.source_type === _feedFilter);
-  const html = filtered.length ? filtered.map(a => {
-    const icon = SOURCE_ICONS[a.source_type] || SOURCE_ICONS.news;
-    const color = SOURCE_COLORS[a.source_type] || '#3498ec';
-    return `<a href="${a.url || '#'}" target="_blank" rel="noopener" class="feed-item" style="border-left-color:${color}">
-      <div class="feed-item-header">
-        <span class="feed-item-source" style="color:${color}">${icon} ${a.source}</span>
-        <span class="feed-item-time">${timeAgo(a.published_at)}</span>
-      </div>
-      <div class="feed-item-title">${a.title}</div>
-      ${a.summary ? `<div class="feed-item-summary">${a.summary.slice(0, 180)}${a.summary.length > 180 ? '...' : ''}</div>` : ''}
-    </a>`;
-  }).join('') : '<div style="text-align:center;padding:2rem;color:rgba(255,255,255,.35);font-size:.82rem">No articles for this filter yet.</div>';
-
-  const el = document.getElementById('feed-list');
-  const mEl = document.getElementById('m-feed-list');
-  if (el) el.innerHTML = html;
-  if (mEl) mEl.innerHTML = html;
-}
-
-// Realtime feed updates
-function initFeedRealtime() {
-  _sb.channel('news_feed').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'news_feed' }, payload => {
-    if (payload.new) {
-      _feedArticles.unshift(payload.new);
-      if (_feedArticles.length > 100) _feedArticles.pop();
-      renderFeed();
-    }
   }).subscribe();
 }
 
@@ -2001,12 +1808,8 @@ window.addEventListener('DOMContentLoaded',()=>{
   initAuth();
   checkTelegramRedirect();
   checkXRedirect();
-  initFeedRealtime();
-  initReportRealtime();
   initStrandedRealtime();
-  loadReports();
   loadStranded();
-  initLocationAutocomplete('report-location','report-lat','report-lng','report-location-ac');
   initLocationAutocomplete('stranded-location','stranded-lat','stranded-lng','stranded-location-ac');
   initLocationAutocomplete('stranded-dest','stranded-dest-lat','stranded-dest-lng','stranded-dest-ac');
   refreshSitrep();
@@ -2017,4 +1820,4 @@ window.addEventListener('DOMContentLoaded',()=>{
     if(el)el.innerHTML='<div class="empty-state" style="color:var(--warn)">Supabase not configured.</div>';
   }
 });
-window.addEventListener('resize',()=>{if(isMob()&&!window._mobileInit)initMobile();}); 
+window.addEventListener('resize',()=>{if(isMob()&&!window._mobileInit)initMobile();});
