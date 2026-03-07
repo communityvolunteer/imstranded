@@ -417,11 +417,15 @@ function syncFilterPanels() {
 }
 
 function clearAllFilters() {
+  _mapFilterActive = '';
   document.querySelectorAll('.fp-chip input').forEach(cb => cb.checked = false);
   document.querySelectorAll('[id$="-show-offers"],[id$="-show-stranded"],[id$="-show-worldwide"]').forEach(cb => cb.checked = true);
   document.querySelectorAll('[id$="-offers-verified"],[id$="-stranded-verified"],[id$="-worldwide-verified"]').forEach(cb => cb.checked = false);
   document.querySelectorAll('.fp-select').forEach(s => { if (s.tagName === 'SELECT') s.value = ''; else if (s.type === 'text') s.value = ''; });
   document.querySelectorAll('[id$="filter-dest-country"],[id$="filter-dest-airport"]').forEach(h => h.value = '');
+  document.querySelectorAll('.sitrep-stat,.m-stat').forEach(s => s.classList.remove('active-filter'));
+  // Clear airport pins on both maps
+  [window._crisisMap, window._mobileMap].forEach(map => { if (map) clearDataPins(map); });
   clearArcLines();
   applyFilters();
 }
@@ -463,8 +467,14 @@ function generateArc(from, to, numPoints) {
 }
 
 // Legacy filterMap compat
+let _mapFilterActive = '';
+
 function filterMap(type) {
-  if (type === 'all') { clearAllFilters(); return; }
+  // Toggle: click same filter again → show all
+  if (_mapFilterActive === type) { _mapFilterActive = ''; clearAllFilters(); return; }
+  _mapFilterActive = type;
+
+  if (type === 'all') { _mapFilterActive = ''; clearAllFilters(); return; }
   if (type === 'help') {
     document.querySelectorAll('[id$="-show-offers"]').forEach(c => c.checked = true);
     document.querySelectorAll('[id$="-show-stranded"]').forEach(c => c.checked = false);
@@ -479,6 +489,21 @@ function filterMap(type) {
     document.querySelectorAll('[id$="-show-worldwide"]').forEach(c => c.checked = false);
   }
   applyFilters();
+
+  // Airport pins — show when stranded filter is active
+  [window._crisisMap, window._mobileMap].forEach(map => {
+    if (!map) return;
+    clearDataPins(map);
+    if (type === 'stranded') renderAirportPins(map, 'stranded');
+  });
+
+  // Highlight active sitrep stat
+  document.querySelectorAll('.sitrep-stat').forEach(s => s.classList.remove('active-filter'));
+  if (type === 'stranded') document.getElementById('ss-stranded')?.classList.add('active-filter');
+
+  // Highlight mobile stat
+  document.querySelectorAll('.m-stat').forEach(s => s.classList.remove('active-filter'));
+  if (type === 'stranded') document.getElementById('mss-stranded')?.classList.add('active-filter');
 }
 
 // ============================================================
