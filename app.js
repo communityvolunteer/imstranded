@@ -821,7 +821,7 @@ const LANGUAGES = [
   {code:'en',name:'English',native:'English'},{code:'fa',name:'Farsi',native:'فارسی'},
   {code:'tl',name:'Filipino',native:'Filipino'},{code:'fr',name:'French',native:'Français'},
   {code:'de',name:'German',native:'Deutsch'},{code:'el',name:'Greek',native:'Ελληνικά'},
-  {code:'hi',name:'Hindi',native:'हिन्दी'},{code:'id',name:'Indonesian',native:'Bahasa'},
+  {code:'hi',name:'Hindi',native:'हिन्दी'},{code:'iw',name:'Hebrew',native:'עברית'},{code:'id',name:'Indonesian',native:'Bahasa'},
   {code:'it',name:'Italian',native:'Italiano'},{code:'ja',name:'Japanese',native:'日本語'},
   {code:'ko',name:'Korean',native:'한국어'},{code:'ms',name:'Malay',native:'Melayu'},
   {code:'ne',name:'Nepali',native:'नेपाली'},{code:'pl',name:'Polish',native:'Polski'},
