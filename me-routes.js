@@ -283,7 +283,53 @@ function computeGlobalDisruptions(meAirportStatuses) {
     .sort((a, b) => b.stranded - a.stranded);
 }
 
+// ── COMPUTE REVERSE DISRUPTIONS (Heading To) ─────────────
+// Given a destination IATA, find everyone stuck in ME trying to get there
+function computeReverseDisruptions(destIata, meAirportStatuses) {
+  const results = []; // Each ME hub that serves this destination
+
+  for (const [airlineKey, airline] of Object.entries(AIRLINE_ROUTES)) {
+    if (!airline.destinations.includes(destIata)) continue;
+    
+    for (const hub of airline.hubs) {
+      const hubStatus = meAirportStatuses[hub];
+      if (!hubStatus || hubStatus.cancelRate < 0.05) continue;
+      const meHub = ME_AIRPORTS[hub];
+      if (!meHub) continue;
+      
+      const totalDests = airline.destinations.length || 1;
+      const flightsPerDest = Math.max(1, Math.round((meHub.dailyFlights * 0.7) / totalDests));
+      const cancelledFlights = Math.round(flightsPerDest * hubStatus.cancelRate);
+      const stranded = cancelledFlights * (meHub.avgPax || 180);
+      
+      // Check if this hub already in results
+      const existing = results.find(r => r.iata === hub);
+      if (existing) {
+        existing.cancelled += cancelledFlights;
+        existing.stranded += stranded;
+        existing.airlines.add(airline.name);
+      } else {
+        results.push({
+          iata: hub,
+          city: meHub.city,
+          lat: meHub.lat,
+          lng: meHub.lng,
+          cancelled: cancelledFlights,
+          stranded,
+          airlines: new Set([airline.name]),
+          dest: destIata,
+        });
+      }
+    }
+  }
+  
+  return results
+    .map(r => ({ ...r, airlines: [...r.airlines] }))
+    .filter(r => r.cancelled > 0)
+    .sort((a, b) => b.stranded - a.stranded);
+}
+
 // Export for both Node (scraper) and browser (frontend)
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { ME_AIRPORTS, AIRLINE_ROUTES, computeGlobalDisruptions };
+  module.exports = { ME_AIRPORTS, AIRLINE_ROUTES, computeGlobalDisruptions, computeReverseDisruptions };
 }

@@ -210,7 +210,10 @@ function googleTranslateInit() {
       <div class="fp-section-body">
         <label class="fp-toggle"><input type="checkbox" id="fp-show-worldwide" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show on map</label>
         <label class="fp-toggle"><input type="checkbox" id="fp-worldwide-arcs" onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show route arcs</label>
-        <div class="fp-label">Where they're stranded</div>
+        <div class="fp-dir-toggle">
+          <button class="fp-dir-btn active" id="fp-dir-at" onclick="setGlobalDir('at','fp')">Stranded at</button>
+          <button class="fp-dir-btn" id="fp-dir-to" onclick="setGlobalDir('to','fp')">Heading to</button>
+        </div>
         <div class="loc-ac-wrap"><input type="text" id="fp-global-search" class="fp-select" style="cursor:text" placeholder="Type city or airport..." oninput="globalAirportAutocomplete(this,'fp-global-ac')" onfocus="this.select()"><div class="loc-ac-list" id="fp-global-ac"></div></div>
         <input type="hidden" id="fp-global-iata">
       </div>
@@ -667,7 +670,10 @@ function googleTranslateInit() {
           <div class="fp-section-body">
             <label class="fp-toggle"><input type="checkbox" id="mfp-show-worldwide" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show on map</label>
             <label class="fp-toggle"><input type="checkbox" id="mfp-worldwide-arcs" onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show route arcs</label>
-            <div class="fp-label">Where they're stranded</div>
+            <div class="fp-dir-toggle">
+              <button class="fp-dir-btn active" id="mfp-dir-at" onclick="setGlobalDir('at','mfp')">Stranded at</button>
+              <button class="fp-dir-btn" id="mfp-dir-to" onclick="setGlobalDir('to','mfp')">Heading to</button>
+            </div>
             <div class="loc-ac-wrap"><input type="text" id="mfp-global-search" class="fp-select" style="cursor:text" placeholder="Type city or airport..." oninput="globalAirportAutocomplete(this,'mfp-global-ac')" onfocus="this.select()"><div class="loc-ac-list" id="mfp-global-ac"></div></div>
             <input type="hidden" id="mfp-global-iata">
           </div>

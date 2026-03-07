@@ -887,3 +887,9 @@ html.translated-ltr body,html.translated-rtl body{top:0 !important;}
 /* Global disruption dots */
 .global-disruption-dot{transition:fill-opacity .3s;}
 .global-disruption-dot:hover{fill-opacity:.6 !important;}
+/* Direction toggle (Stranded at / Heading to) */
+.fp-dir-toggle{display:flex;gap:0;margin:.5rem 0;border-radius:6px;overflow:hidden;border:1px solid rgba(255,255,255,.08);}
+.fp-dir-btn{flex:1;padding:.4rem .5rem;font-family:Inter,sans-serif;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;background:transparent;border:none;color:rgba(255,255,255,.35);cursor:pointer;transition:all .15s;}
+.fp-dir-btn:first-child{border-right:1px solid rgba(255,255,255,.08);}
+.fp-dir-btn.active{background:rgba(168,85,247,.15);color:#a855f7;}
+.fp-dir-btn:hover:not(.active){background:rgba(255,255,255,.04);color:rgba(255,255,255,.5);}

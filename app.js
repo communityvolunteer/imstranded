@@ -401,38 +401,87 @@ function applyFilters() {
     });
   }
   
-  // ── Global disruption dots — filter by selected airport ──
+  // ── Global disruption dots — bidirectional filter ──
   clearGlobalArcs();
-  const filteredGlobal = f.globalIata
-    ? _globalDisruptions.filter(g => g.iata === f.globalIata)
-    : _globalDisruptions;
-  
   _globalPins.forEach(m => {
-    [window._crisisMap, window._mobileMap].forEach(map => {
-      if (!map) return;
-      map.removeLayer(m);
-    });
+    [window._crisisMap, window._mobileMap].forEach(map => { if (map) try { map.removeLayer(m); } catch(e) {} });
   });
+  _globalPins = [];
   
-  if (f.showWorldwide) {
-    // Re-render global dots (filtered or all)
-    [window._crisisMap, window._mobileMap].forEach(map => {
-      if (!map) return;
-      _globalPins.forEach(m => map.removeLayer(m));
-    });
-    _globalPins = [];
-    renderGlobalDisruptions(window._crisisMap, filteredGlobal);
-    renderGlobalDisruptions(window._mobileMap, filteredGlobal);
+  let filteredGlobal = [];
+  let reverseData = [];
+  
+  if (f.globalIata && _globalDir === 'to') {
+    // "Heading to" mode — show ME hubs where people are stuck trying to reach this airport
+    reverseData = _computeReverseCached(f.globalIata);
+    if (f.showWorldwide) {
+      // Render orange/red dots at ME hubs
+      [window._crisisMap, window._mobileMap].forEach(map => {
+        if (!map) return;
+        for (const r of reverseData) {
+          const radius = 4 + Math.min(14, (r.stranded / Math.max(...reverseData.map(x=>x.stranded), 1)) * 14);
+          const circle = L.circleMarker([r.lat, r.lng], {
+            radius, fillColor: '#ec3452', color: 'rgba(236,52,82,.4)', weight: 1.5, fillOpacity: 0.45,
+          }).addTo(map);
+          const ap = typeof findAirport === 'function' ? findAirport(f.globalIata) : null;
+          circle.bindPopup(`
+            <div style="min-width:200px;font-family:Inter,sans-serif">
+              <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:#ec3452;margin-bottom:.3rem">STRANDED — TRYING TO REACH ${(ap?.city || f.globalIata).toUpperCase()}</div>
+              <div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:.15rem">${r.city} (${r.iata})</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem;margin-bottom:.4rem;margin-top:.4rem">
+                <div><div style="font-size:1.1rem;font-weight:800;color:#a855f7">${r.cancelled.toLocaleString()}</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase">Flights Cancelled</div></div>
+                <div><div style="font-size:1.1rem;font-weight:800;color:#ec3452">${r.stranded.toLocaleString()}</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase">Pax Stranded</div></div>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:3px">
+                ${r.airlines.map(a => '<span style="padding:.15rem .4rem;background:rgba(168,85,247,.12);border-radius:4px;font-size:.6rem;color:#a855f7;font-weight:600">'+a+'</span>').join('')}
+              </div>
+            </div>
+          `, { className: 'dark-popup', maxWidth: 280 });
+          _globalPins.push(circle);
+        }
+      });
+      // Draw arcs FROM ME hubs TO the destination
+      if (f.showArcs || f.globalIata) {
+        const destAp = typeof findAirport === 'function' ? findAirport(f.globalIata) : null;
+        if (destAp) {
+          const maxC = Math.max(...reverseData.map(r => r.cancelled), 1);
+          for (const r of reverseData) {
+            const weight = 0.5 + (r.cancelled / maxC) * 3.5;
+            const arc = generateArc([r.lat, r.lng], [destAp.lat, destAp.lng], 30);
+            [window._crisisMap, window._mobileMap].forEach(map => {
+              if (!map) return;
+              const line = L.polyline(arc, { color: 'rgba(236,52,82,.3)', weight, interactive: false }).addTo(map);
+              _globalArcLines.push(line);
+            });
+          }
+          // Destination dot
+          [window._crisisMap, window._mobileMap].forEach(map => {
+            if (!map) return;
+            const dot = L.circleMarker([destAp.lat, destAp.lng], { radius: 6, fillColor: '#22c55e', color: '#fff', weight: 2, fillOpacity: .8, interactive: false }).addTo(map);
+            _globalArcLines.push(dot);
+          });
+        }
+      }
+    }
+  } else {
+    // "Stranded at" mode (default) — show global disrupted airports
+    filteredGlobal = f.globalIata
+      ? _globalDisruptions.filter(g => g.iata === f.globalIata)
+      : _globalDisruptions;
     
-    // Route arcs (when toggle is on, or when filtering a specific airport)
-    if (f.showArcs || f.globalIata) {
-      drawGlobalRouteArcs(window._crisisMap, filteredGlobal);
-      drawGlobalRouteArcs(window._mobileMap, filteredGlobal);
+    if (f.showWorldwide) {
+      renderGlobalDisruptions(window._crisisMap, filteredGlobal);
+      renderGlobalDisruptions(window._mobileMap, filteredGlobal);
+      
+      if (f.showArcs || f.globalIata) {
+        drawGlobalRouteArcs(window._crisisMap, filteredGlobal);
+        drawGlobalRouteArcs(window._mobileMap, filteredGlobal);
+      }
     }
   }
   
   // ── Update Est. Stranded label ──
-  updateStrandedLabel(f.globalIata, filteredGlobal);
+  updateStrandedLabel(f.globalIata, filteredGlobal, reverseData);
 
   // Country markers always visible
   if (_mk.country) {
@@ -550,29 +599,40 @@ function clearAllFilters() {
 }
 
 // ── UPDATE EST. STRANDED LABEL ──────────────────────────
-function updateStrandedLabel(globalIata, filteredGlobal) {
+function updateStrandedLabel(globalIata, filteredGlobal, reverseData) {
   const pcLabel = document.getElementById('stranded-label');
   const pcSub = document.getElementById('stranded-sub');
   const mLabel = document.getElementById('m-stranded-label');
   
-  if (globalIata && filteredGlobal?.length) {
-    const g = filteredGlobal[0];
+  if (globalIata && _globalDir === 'to' && reverseData?.length) {
+    const totalStranded = reverseData.reduce((s, r) => s + r.stranded, 0);
+    const totalAirlines = new Set(reverseData.flatMap(r => r.airlines)).size;
     const ap = typeof findAirport === 'function' ? findAirport(globalIata) : null;
     const city = ap?.city || globalIata;
-    const num = (g.stranded || 0);
     
     ['stat-stranded', 'm-stat-stranded'].forEach(id => {
       const el = document.getElementById(id);
-      if (el) el.textContent = num.toLocaleString();
+      if (el) el.textContent = totalStranded.toLocaleString();
     });
-    if (pcLabel) pcLabel.textContent = `Stranded at ${city}`;
-    if (pcSub) pcSub.textContent = `${globalIata} · ${(g.airlines||[]).length} airlines`;
-    if (mLabel) mLabel.innerHTML = `AT ${city.toUpperCase()}<br>${globalIata}`;
+    if (pcLabel) pcLabel.textContent = 'Heading to ' + city;
+    if (pcSub) pcSub.textContent = reverseData.length + ' ME hubs · ' + totalAirlines + ' airlines';
+    if (mLabel) mLabel.innerHTML = 'TO ' + city.toUpperCase() + '<br>' + globalIata;
+  } else if (globalIata && filteredGlobal?.length) {
+    const g = filteredGlobal[0];
+    const ap = typeof findAirport === 'function' ? findAirport(globalIata) : null;
+    const city = ap?.city || globalIata;
+    
+    ['stat-stranded', 'm-stat-stranded'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = (g.stranded || 0).toLocaleString();
+    });
+    if (pcLabel) pcLabel.textContent = 'Stranded at ' + city;
+    if (pcSub) pcSub.textContent = globalIata + ' · ' + (g.airlines||[]).length + ' airlines';
+    if (mLabel) mLabel.innerHTML = 'AT ' + city.toUpperCase() + '<br>' + globalIata;
   } else {
     if (pcLabel) pcLabel.textContent = 'Est. Stranded';
     if (pcSub) pcSub.textContent = 'tap · see how';
     if (mLabel) mLabel.innerHTML = 'EST.<br>STRANDED';
-    // Restore full number from last refresh
     refreshStrandedCount();
   }
 }
@@ -589,6 +649,7 @@ function refreshStrandedCount() {
 let _arcLines = [];
 let _globalArcLines = [];
 let _globalFilterIata = '';
+let _globalDir = 'at'; // 'at' = stranded at this airport, 'to' = heading to this airport
 
 function clearArcLines() {
   _arcLines.forEach(line => {
@@ -654,6 +715,26 @@ function drawGlobalRouteArcs(map, disruptions) {
   }
 }
 
+// ── GLOBAL DIRECTION TOGGLE ─────────────────────────────
+function setGlobalDir(dir, prefix) {
+  _globalDir = dir;
+  // Sync both panels
+  ['fp','mfp'].forEach(p => {
+    const atBtn = document.getElementById(p + '-dir-at');
+    const toBtn = document.getElementById(p + '-dir-to');
+    if (atBtn) atBtn.classList.toggle('active', dir === 'at');
+    if (toBtn) toBtn.classList.toggle('active', dir === 'to');
+  });
+  // Update placeholder
+  const ph = dir === 'at' ? 'Type city or airport...' : 'Type home city or airport...';
+  ['fp-global-search','mfp-global-search'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.placeholder = ph; el.value = ''; }
+  });
+  _globalFilterIata = '';
+  applyFilters();
+}
+
 // ── GLOBAL AIRPORT AUTOCOMPLETE ─────────────────────────
 let _gacTimer = null;
 function globalAirportAutocomplete(input, listId) {
@@ -663,33 +744,80 @@ function globalAirportAutocomplete(input, listId) {
   if (q.length < 2) { list.classList.remove('open'); return; }
   
   _gacTimer = setTimeout(() => {
-    // Search within _globalDisruptions
-    const results = _globalDisruptions.filter(g => {
-      const ap = typeof findAirport === 'function' ? findAirport(g.iata) : null;
-      if (!ap) return false;
-      return g.iata.toLowerCase().startsWith(q) || ap.city.toLowerCase().startsWith(q) || (ap.countryName || '').toLowerCase().startsWith(q);
-    }).slice(0, 8);
+    let results = [];
+    
+    if (_globalDir === 'at') {
+      // "Stranded at" — search within disrupted global airports
+      results = _globalDisruptions.filter(g => {
+        const ap = typeof findAirport === 'function' ? findAirport(g.iata) : null;
+        if (!ap) return false;
+        return g.iata.toLowerCase().startsWith(q) || ap.city.toLowerCase().includes(q) || (ap.countryName || '').toLowerCase().startsWith(q);
+      }).slice(0, 8).map(g => {
+        const ap = findAirport(g.iata);
+        return { iata: g.iata, city: ap?.city || '?', stranded: g.stranded || 0 };
+      });
+    } else {
+      // "Heading to" — search ALL airports (anyone could be trying to get home)
+      const all = typeof searchAirports === 'function' ? searchAirports(q, 8) : [];
+      results = all.map(ap => {
+        // Compute reverse disruption for this destination
+        const rev = _computeReverseCached(ap.iata);
+        const totalStranded = rev.reduce((s, r) => s + r.stranded, 0);
+        return { iata: ap.iata, city: ap.city, stranded: totalStranded };
+      }).filter(r => r.stranded > 0);
+    }
     
     if (!results.length) { list.classList.remove('open'); return; }
-    list.innerHTML = results.map((g, i) => {
-      const ap = findAirport(g.iata);
-      return `<div class="loc-ac-item" onmousedown="pickGlobalAirport(event,'${g.iata}','${listId}')">
-        <strong>${g.iata}</strong> — ${ap?.city || '?'} <small>${(g.stranded||0).toLocaleString()} stranded</small>
-      </div>`;
-    }).join('');
+    const dirLabel = _globalDir === 'at' ? 'stranded' : 'trying to reach';
+    list.innerHTML = results.map(r => 
+      `<div class="loc-ac-item" onmousedown="pickGlobalAirport(event,'${r.iata}','${listId}')">
+        <strong>${r.iata}</strong> — ${r.city} <small>${r.stranded.toLocaleString()} ${dirLabel}</small>
+      </div>`
+    ).join('');
     list.classList.add('open');
   }, 150);
   input.addEventListener('blur', () => setTimeout(() => list.classList.remove('open'), 200), { once: true });
 }
 
+// Cache reverse computations (expensive to redo per keystroke)
+let _reverseCache = {};
+function _computeReverseCached(destIata) {
+  if (_reverseCache[destIata]) return _reverseCache[destIata];
+  if (typeof computeReverseDisruptions !== 'function' || typeof ME_AIRPORTS === 'undefined') return [];
+  // Build ME statuses from AIRPORT_DATA
+  const meStatuses = {};
+  for (const a of AIRPORT_DATA) {
+    const iata = a.iata || a.code;
+    const cr = (a.cancelRate && a.cancelRate > 1) ? a.cancelRate / 100
+      : a.status === 'CLOSED' ? 0.93
+      : a.status === 'RESTRICTED' || a.status === 'LIMITED' ? 0.6
+      : a.status === 'PARTIALLY OPEN' ? 0.3
+      : 0.05;
+    meStatuses[iata] = { cancelRate: cr };
+  }
+  for (const iata of Object.keys(ME_AIRPORTS)) {
+    if (!meStatuses[iata]) {
+      meStatuses[iata] = { cancelRate: ['IR','IQ','YE','SY'].includes(ME_AIRPORTS[iata].country) ? 0.85 : 0.3 };
+    }
+  }
+  const raw = computeReverseDisruptions(destIata, meStatuses);
+  const days = Math.max(1, Math.floor((Date.now() - new Date('2026-02-28').getTime()) / 86400000));
+  const altRate = Math.min(0.3, days * 0.03);
+  const result = raw.map(r => ({
+    ...r,
+    cancelled: Math.round(r.cancelled * days),
+    stranded: Math.round(r.stranded * days * (1 - altRate)),
+  }));
+  _reverseCache[destIata] = result;
+  return result;
+}
+
 function pickGlobalAirport(e, iata, listId) {
   e.preventDefault();
-  const list = document.getElementById(listId);
-  list.classList.remove('open');
+  document.getElementById(listId)?.classList.remove('open');
   _globalFilterIata = iata;
   const ap = typeof findAirport === 'function' ? findAirport(iata) : null;
   const label = ap ? `${iata} — ${ap.city}` : iata;
-  // Update both PC and mobile inputs
   ['fp-global-search', 'mfp-global-search'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = label;
@@ -703,6 +831,7 @@ function pickGlobalAirport(e, iata, listId) {
 
 function clearGlobalFilter() {
   _globalFilterIata = '';
+  _globalDir = 'at';
   ['fp-global-search', 'mfp-global-search'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
@@ -710,6 +839,12 @@ function clearGlobalFilter() {
   ['fp-global-iata', 'mfp-global-iata'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
+  });
+  ['fp','mfp'].forEach(p => {
+    const atBtn = document.getElementById(p + '-dir-at');
+    const toBtn = document.getElementById(p + '-dir-to');
+    if (atBtn) atBtn.classList.add('active');
+    if (toBtn) toBtn.classList.remove('active');
   });
 }
 
