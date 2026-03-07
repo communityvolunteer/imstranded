@@ -84,42 +84,42 @@ const NGOS = [
 
 let AIRPORT_DATA = [
   // Gulf — Major
-  {city:'Dubai',code:'DXB',iata:'DXB',coords:[25.252,55.364],cancelled:312,status:'CLOSED',stranded:56160,updated:'--:--'},
-  {city:'Abu Dhabi',code:'AUH',iata:'AUH',coords:[24.432,54.651],cancelled:198,status:'CLOSED',stranded:35640,updated:'--:--'},
-  {city:'Doha',code:'DOH',iata:'DOH',coords:[25.273,51.608],cancelled:117,status:'RESTRICTED',stranded:18720,updated:'--:--'},
-  {city:'Kuwait City',code:'KWI',iata:'KWI',coords:[29.226,47.968],cancelled:143,status:'CLOSED',stranded:25740,updated:'--:--'},
-  {city:'Bahrain',code:'BAH',iata:'BAH',coords:[26.270,50.633],cancelled:89,status:'CLOSED',stranded:16020,updated:'--:--'},
-  {city:'Muscat',code:'MCT',iata:'MCT',coords:[23.593,58.284],cancelled:34,status:'OPEN',stranded:2720,updated:'--:--'},
+  {city:'Dubai',code:'DXB',iata:'DXB',coords:[25.252,55.364],cancelled:312,status:'CLOSED',stranded:295000,updated:'--:--'},
+  {city:'Abu Dhabi',code:'AUH',iata:'AUH',coords:[24.432,54.651],cancelled:198,status:'CLOSED',stranded:187000,updated:'--:--'},
+  {city:'Doha',code:'DOH',iata:'DOH',coords:[25.273,51.608],cancelled:117,status:'RESTRICTED',stranded:82000,updated:'--:--'},
+  {city:'Kuwait City',code:'KWI',iata:'KWI',coords:[29.226,47.968],cancelled:143,status:'CLOSED',stranded:135000,updated:'--:--'},
+  {city:'Bahrain',code:'BAH',iata:'BAH',coords:[26.270,50.633],cancelled:89,status:'CLOSED',stranded:84000,updated:'--:--'},
+  {city:'Muscat',code:'MCT',iata:'MCT',coords:[23.593,58.284],cancelled:34,status:'OPEN',stranded:14000,updated:'--:--'},
   // Gulf — Regional
-  {city:'Sharjah',code:'SHJ',iata:'SHJ',coords:[25.329,55.517],cancelled:67,status:'CLOSED',stranded:8040,updated:'--:--'},
-  {city:'Al Maktoum (DWC)',code:'DWC',iata:'DWC',coords:[24.896,55.161],cancelled:28,status:'CLOSED',stranded:3360,updated:'--:--'},
-  {city:'Ras Al Khaimah',code:'RKT',iata:'RKT',coords:[25.613,55.939],cancelled:12,status:'RESTRICTED',stranded:960,updated:'--:--'},
-  {city:'Salalah',code:'SLL',iata:'SLL',coords:[17.038,54.091],cancelled:8,status:'OPEN',stranded:480,updated:'--:--'},
+  {city:'Sharjah',code:'SHJ',iata:'SHJ',coords:[25.329,55.517],cancelled:67,status:'CLOSED',stranded:42000,updated:'--:--'},
+  {city:'Al Maktoum (DWC)',code:'DWC',iata:'DWC',coords:[24.896,55.161],cancelled:28,status:'CLOSED',stranded:17500,updated:'--:--'},
+  {city:'Ras Al Khaimah',code:'RKT',iata:'RKT',coords:[25.613,55.939],cancelled:12,status:'RESTRICTED',stranded:5000,updated:'--:--'},
+  {city:'Salalah',code:'SLL',iata:'SLL',coords:[17.038,54.091],cancelled:8,status:'OPEN',stranded:2500,updated:'--:--'},
   // Saudi
-  {city:'Riyadh',code:'RUH',iata:'RUH',coords:[24.957,46.698],cancelled:41,status:'PARTIALLY OPEN',stranded:3280,updated:'--:--'},
-  {city:'Jeddah',code:'JED',iata:'JED',coords:[21.670,39.150],cancelled:52,status:'OPEN',stranded:4160,updated:'--:--'},
-  {city:'Dammam',code:'DMM',iata:'DMM',coords:[26.471,49.798],cancelled:38,status:'PARTIALLY OPEN',stranded:3040,updated:'--:--'},
-  {city:'Medina',code:'MED',iata:'MED',coords:[24.553,39.705],cancelled:15,status:'OPEN',stranded:1200,updated:'--:--'},
+  {city:'Riyadh',code:'RUH',iata:'RUH',coords:[24.957,46.698],cancelled:41,status:'PARTIALLY OPEN',stranded:17000,updated:'--:--'},
+  {city:'Jeddah',code:'JED',iata:'JED',coords:[21.670,39.150],cancelled:52,status:'OPEN',stranded:15000,updated:'--:--'},
+  {city:'Dammam',code:'DMM',iata:'DMM',coords:[26.471,49.798],cancelled:38,status:'PARTIALLY OPEN',stranded:16000,updated:'--:--'},
+  {city:'Medina',code:'MED',iata:'MED',coords:[24.553,39.705],cancelled:15,status:'OPEN',stranded:6000,updated:'--:--'},
   // Conflict zone
-  {city:'Tehran',code:'IKA',iata:'IKA',coords:[35.416,51.152],cancelled:201,status:'CLOSED',stranded:36180,updated:'--:--'},
-  {city:'Baghdad',code:'BGW',iata:'BGW',coords:[33.262,44.235],cancelled:88,status:'CLOSED',stranded:15840,updated:'--:--'},
-  {city:'Erbil',code:'EBL',iata:'EBL',coords:[36.237,43.963],cancelled:22,status:'RESTRICTED',stranded:2640,updated:'--:--'},
-  {city:'Basra',code:'BSR',iata:'BSR',coords:[30.549,47.662],cancelled:19,status:'CLOSED',stranded:2280,updated:'--:--'},
-  {city:'Tel Aviv',code:'TLV',iata:'TLV',coords:[32.011,34.887],cancelled:156,status:'CLOSED',stranded:28080,updated:'--:--'},
+  {city:'Tehran',code:'IKA',iata:'IKA',coords:[35.416,51.152],cancelled:201,status:'CLOSED',stranded:190000,updated:'--:--'},
+  {city:'Baghdad',code:'BGW',iata:'BGW',coords:[33.262,44.235],cancelled:88,status:'CLOSED',stranded:83000,updated:'--:--'},
+  {city:'Erbil',code:'EBL',iata:'EBL',coords:[36.237,43.963],cancelled:22,status:'RESTRICTED',stranded:14000,updated:'--:--'},
+  {city:'Basra',code:'BSR',iata:'BSR',coords:[30.549,47.662],cancelled:19,status:'CLOSED',stranded:12000,updated:'--:--'},
+  {city:'Tel Aviv',code:'TLV',iata:'TLV',coords:[32.011,34.887],cancelled:156,status:'CLOSED',stranded:147000,updated:'--:--'},
   // Transit / Alternative routes
-  {city:'Amman',code:'AMM',iata:'AMM',coords:[31.723,35.993],cancelled:24,status:'OPEN',stranded:1920,updated:'--:--'},
-  {city:'Beirut',code:'BEY',iata:'BEY',coords:[33.821,35.488],cancelled:31,status:'RESTRICTED',stranded:3720,updated:'--:--'},
-  {city:'Cairo',code:'CAI',iata:'CAI',coords:[30.122,31.406],cancelled:18,status:'OPEN',stranded:1440,updated:'--:--'},
-  {city:'Istanbul',code:'IST',iata:'IST',coords:[41.261,28.742],cancelled:45,status:'OPEN',stranded:5400,updated:'--:--'},
+  {city:'Amman',code:'AMM',iata:'AMM',coords:[31.723,35.993],cancelled:24,status:'OPEN',stranded:10000,updated:'--:--'},
+  {city:'Beirut',code:'BEY',iata:'BEY',coords:[33.821,35.488],cancelled:31,status:'RESTRICTED',stranded:19500,updated:'--:--'},
+  {city:'Cairo',code:'CAI',iata:'CAI',coords:[30.122,31.406],cancelled:18,status:'OPEN',stranded:7500,updated:'--:--'},
+  {city:'Istanbul',code:'IST',iata:'IST',coords:[41.261,28.742],cancelled:45,status:'OPEN',stranded:28000,updated:'--:--'},
   // Key destination airports (where people are trying to GET to)
-  {city:'Mumbai',code:'BOM',iata:'BOM',coords:[19.089,72.868],cancelled:87,status:'DISRUPTED',stranded:6960,updated:'--:--'},
-  {city:'Delhi',code:'DEL',iata:'DEL',coords:[28.556,77.100],cancelled:94,status:'DISRUPTED',stranded:7520,updated:'--:--'},
-  {city:'Manila',code:'MNL',iata:'MNL',coords:[14.508,121.020],cancelled:63,status:'DISRUPTED',stranded:5040,updated:'--:--'},
-  {city:'Islamabad',code:'ISB',iata:'ISB',coords:[33.616,72.829],cancelled:42,status:'DISRUPTED',stranded:3360,updated:'--:--'},
-  {city:'Dhaka',code:'DAC',iata:'DAC',coords:[23.843,90.398],cancelled:38,status:'DISRUPTED',stranded:3040,updated:'--:--'},
-  {city:'Colombo',code:'CMB',iata:'CMB',coords:[7.181,79.884],cancelled:21,status:'DISRUPTED',stranded:1680,updated:'--:--'},
-  {city:'Kathmandu',code:'KTM',iata:'KTM',coords:[27.697,85.358],cancelled:16,status:'DISRUPTED',stranded:1280,updated:'--:--'},
-  {city:'Bali',code:'DPS',iata:'DPS',coords:[-8.748,115.167],cancelled:29,status:'DISRUPTED',stranded:2320,updated:'--:--'},
+  {city:'Mumbai',code:'BOM',iata:'BOM',coords:[19.089,72.868],cancelled:87,status:'DISRUPTED',stranded:36500,updated:'--:--'},
+  {city:'Delhi',code:'DEL',iata:'DEL',coords:[28.556,77.100],cancelled:94,status:'DISRUPTED',stranded:39500,updated:'--:--'},
+  {city:'Manila',code:'MNL',iata:'MNL',coords:[14.508,121.020],cancelled:63,status:'DISRUPTED',stranded:26500,updated:'--:--'},
+  {city:'Islamabad',code:'ISB',iata:'ISB',coords:[33.616,72.829],cancelled:42,status:'DISRUPTED',stranded:17600,updated:'--:--'},
+  {city:'Dhaka',code:'DAC',iata:'DAC',coords:[23.843,90.398],cancelled:38,status:'DISRUPTED',stranded:16000,updated:'--:--'},
+  {city:'Colombo',code:'CMB',iata:'CMB',coords:[7.181,79.884],cancelled:21,status:'DISRUPTED',stranded:8800,updated:'--:--'},
+  {city:'Kathmandu',code:'KTM',iata:'KTM',coords:[27.697,85.358],cancelled:16,status:'DISRUPTED',stranded:6700,updated:'--:--'},
+  {city:'Bali',code:'DPS',iata:'DPS',coords:[-8.748,115.167],cancelled:29,status:'DISRUPTED',stranded:12200,updated:'--:--'},
 ];
 
 // ============================================================
@@ -130,9 +130,9 @@ let _globalDisruptions = [];
 async function fetchSitrepFromSupabase() {
   try {
     const { data, error } = await _sb.from('sitrep').select('*').eq('id', 'current').single();
-    if (error || !data) return null;
+    if (error || !data) throw new Error('No sitrep data');
     
-    // Update AIRPORT_DATA from live airport_status
+    // Update AIRPORT_DATA from live airport_status if available
     const liveAirports = typeof data.airport_status === 'string' ? JSON.parse(data.airport_status || '[]') : (data.airport_status || []);
     if (liveAirports.length) {
       AIRPORT_DATA = liveAirports.map(a => ({
@@ -147,10 +147,10 @@ async function fetchSitrepFromSupabase() {
       }));
     }
     
-    // Store global disruptions for map rendering
-    _globalDisruptions = typeof data.global_disruptions === 'string' ? JSON.parse(data.global_disruptions || '[]') : (data.global_disruptions || []);
+    // ALWAYS compute global disruptions client-side
+    _globalDisruptions = computeGlobalFromAirportData();
+    const stranded = computeTotalStranded();
     
-    const stranded = data.est_stranded || AIRPORT_DATA.reduce((s,a) => s + (a.stranded||0), 0);
     return {
       stranded,
       cancelled: data.cancelled_flights,
@@ -161,9 +161,64 @@ async function fetchSitrepFromSupabase() {
       sources: data.sources_used,
     };
   } catch(e) {
-    console.warn('Supabase sitrep unavailable, using seeded data');
-    return null;
+    console.warn('Supabase sitrep unavailable, computing locally:', e.message);
+    // Even without Supabase, compute everything from seeded AIRPORT_DATA + me-routes
+    _globalDisruptions = computeGlobalFromAirportData();
+    const totalStranded = computeTotalStranded();
+    return {
+      stranded: totalStranded,
+      cancelled: AIRPORT_DATA.reduce((s,a) => s + (a.cancelled||0), 0),
+      airports: AIRPORT_DATA.filter(a => a.status === 'CLOSED').length,
+      airspace: 4,
+    };
   }
+}
+
+function computeGlobalFromAirportData() {
+  if (typeof computeGlobalDisruptions !== 'function') {
+    console.warn('[Global] computeGlobalDisruptions not available — is me-routes.js loaded?');
+    return [];
+  }
+  if (typeof ME_AIRPORTS === 'undefined') {
+    console.warn('[Global] ME_AIRPORTS not available — is me-routes.js loaded?');
+    return [];
+  }
+  const meStatuses = {};
+  // Build from AIRPORT_DATA (could be live or seeded)
+  for (const a of AIRPORT_DATA) {
+    const iata = a.iata || a.code;
+    const cr = (a.cancelRate && a.cancelRate > 1) ? a.cancelRate / 100 // from live data (stored as %)
+      : a.status === 'CLOSED' ? 0.93
+      : a.status === 'RESTRICTED' || a.status === 'LIMITED' ? 0.6
+      : a.status === 'PARTIALLY OPEN' ? 0.3
+      : a.status === 'DISRUPTED' ? 0.15
+      : 0.05;
+    meStatuses[iata] = { cancelRate: cr };
+  }
+  // Fill in any ME_AIRPORTS not in AIRPORT_DATA
+  for (const iata of Object.keys(ME_AIRPORTS)) {
+    if (!meStatuses[iata]) {
+      const base = ME_AIRPORTS[iata];
+      meStatuses[iata] = { cancelRate: ['IR','IQ','YE','SY'].includes(base.country) ? 0.85 : 0.3 };
+    }
+  }
+  const raw = computeGlobalDisruptions(meStatuses);
+  // Scale by days since crisis start
+  const days = Math.max(1, Math.floor((Date.now() - new Date('2026-02-28').getTime()) / 86400000));
+  const altRate = Math.min(0.3, days * 0.03);
+  const result = raw.map(g => ({
+    ...g,
+    cancelled: Math.round(g.cancelled * days),
+    stranded: Math.round(g.stranded * days * (1 - altRate)),
+  }));
+  console.log(`[Global] Computed ${result.length} disrupted airports, ${result.reduce((s,g)=>s+g.stranded,0).toLocaleString()} globally stranded`);
+  return result;
+}
+
+function computeTotalStranded() {
+  const meStranded = AIRPORT_DATA.reduce((s, a) => s + (a.stranded || 0), 0);
+  const globalStranded = _globalDisruptions.reduce((s, g) => s + (g.stranded || 0), 0);
+  return meStranded + globalStranded;
 }
 
 // ============================================================

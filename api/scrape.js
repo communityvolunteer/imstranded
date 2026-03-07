@@ -222,89 +222,110 @@ async function fetchGDELT() {
   }
 }
 
-// ── AVIATIONSTACK (cancelled flights) ─────────────────────
-async function fetchCancelledFlights(apiKey) {
-  const AIRPORTS = ['DXB','AUH','KWI','BAH','DOH','MCT','RUH','IKA','BGW'];
-  let cancelled = 0;
-  let closedAirports = 0;
+// ── ME AIRPORT STATUS + STRANDED ESTIMATES ────────────────
+// Self-contained — all data inline, no external require
+function fetchCancelledFlights() {
+  // 45 ME airports with pre-crisis daily flight volumes
+  const ME = {
+    DXB:{city:'Dubai',lat:25.252,lng:55.364,df:1100,pax:220,cc:'AE'},
+    AUH:{city:'Abu Dhabi',lat:24.432,lng:54.651,df:450,pax:200,cc:'AE'},
+    SHJ:{city:'Sharjah',lat:25.329,lng:55.517,df:120,pax:180,cc:'AE'},
+    DWC:{city:'Al Maktoum',lat:24.896,lng:55.161,df:80,pax:190,cc:'AE'},
+    RKT:{city:'Ras Al Khaimah',lat:25.613,lng:55.939,df:25,pax:170,cc:'AE'},
+    FJR:{city:'Fujairah',lat:25.112,lng:56.324,df:8,pax:160,cc:'AE'},
+    AAN:{city:'Al Ain',lat:24.262,lng:55.609,df:10,pax:165,cc:'AE'},
+    DOH:{city:'Doha',lat:25.273,lng:51.608,df:650,pax:210,cc:'QA'},
+    BAH:{city:'Bahrain',lat:26.270,lng:50.633,df:170,pax:175,cc:'BH'},
+    KWI:{city:'Kuwait City',lat:29.226,lng:47.968,df:280,pax:185,cc:'KW'},
+    MCT:{city:'Muscat',lat:23.593,lng:58.284,df:140,pax:170,cc:'OM'},
+    SLL:{city:'Salalah',lat:17.038,lng:54.091,df:18,pax:160,cc:'OM'},
+    SQO:{city:'Sohar',lat:24.386,lng:56.625,df:5,pax:155,cc:'OM'},
+    DQM:{city:'Duqm',lat:19.501,lng:57.634,df:3,pax:150,cc:'OM'},
+    RUH:{city:'Riyadh',lat:24.957,lng:46.698,df:380,pax:195,cc:'SA'},
+    JED:{city:'Jeddah',lat:21.670,lng:39.150,df:350,pax:200,cc:'SA'},
+    DMM:{city:'Dammam',lat:26.471,lng:49.798,df:120,pax:180,cc:'SA'},
+    MED:{city:'Medina',lat:24.553,lng:39.705,df:60,pax:190,cc:'SA'},
+    AHB:{city:'Abha',lat:18.240,lng:42.657,df:25,pax:170,cc:'SA'},
+    TIF:{city:'Taif',lat:21.483,lng:40.543,df:15,pax:165,cc:'SA'},
+    TUU:{city:'Tabuk',lat:28.365,lng:36.619,df:12,pax:160,cc:'SA'},
+    GIZ:{city:'Gizan',lat:16.901,lng:42.586,df:10,pax:155,cc:'SA'},
+    HAS:{city:'Hail',lat:27.438,lng:41.686,df:8,pax:155,cc:'SA'},
+    ELQ:{city:'Buraidah',lat:26.303,lng:43.774,df:8,pax:155,cc:'SA'},
+    YNB:{city:'Yanbu',lat:24.144,lng:38.064,df:6,pax:155,cc:'SA'},
+    IKA:{city:'Tehran IKA',lat:35.416,lng:51.152,df:200,pax:175,cc:'IR'},
+    THR:{city:'Tehran Mehrabad',lat:35.689,lng:51.313,df:150,pax:165,cc:'IR'},
+    MHD:{city:'Mashhad',lat:36.236,lng:59.641,df:80,pax:170,cc:'IR'},
+    IFN:{city:'Isfahan',lat:32.751,lng:51.862,df:40,pax:165,cc:'IR'},
+    SYZ:{city:'Shiraz',lat:29.540,lng:52.590,df:35,pax:165,cc:'IR'},
+    TBZ:{city:'Tabriz',lat:38.134,lng:46.235,df:20,pax:160,cc:'IR'},
+    KIH:{city:'Kish Island',lat:26.526,lng:53.980,df:15,pax:160,cc:'IR'},
+    BGW:{city:'Baghdad',lat:33.262,lng:44.235,df:85,pax:165,cc:'IQ'},
+    EBL:{city:'Erbil',lat:36.237,lng:43.963,df:40,pax:160,cc:'IQ'},
+    BSR:{city:'Basra',lat:30.549,lng:47.662,df:30,pax:155,cc:'IQ'},
+    ISU:{city:'Sulaymaniyah',lat:35.562,lng:45.317,df:12,pax:155,cc:'IQ'},
+    NJF:{city:'Najaf',lat:31.990,lng:44.404,df:15,pax:160,cc:'IQ'},
+    TLV:{city:'Tel Aviv',lat:32.011,lng:34.887,df:450,pax:200,cc:'IL'},
+    ETH:{city:'Eilat',lat:29.727,lng:35.012,df:15,pax:170,cc:'IL'},
+    AMM:{city:'Amman',lat:31.723,lng:35.993,df:130,pax:175,cc:'JO'},
+    AQJ:{city:'Aqaba',lat:29.612,lng:35.018,df:8,pax:160,cc:'JO'},
+    BEY:{city:'Beirut',lat:33.821,lng:35.488,df:85,pax:170,cc:'LB'},
+    DAM:{city:'Damascus',lat:33.411,lng:36.516,df:10,pax:155,cc:'SY'},
+    SAH:{city:'Sanaa',lat:15.476,lng:44.220,df:5,pax:150,cc:'YE'},
+    ADE:{city:'Aden',lat:12.830,lng:45.029,df:3,pax:145,cc:'YE'},
+  };
+
+  // Airport status classification
+  const CLOSED_LIST = ['DXB','AUH','SHJ','DWC','KWI','BAH','IKA','THR','BGW','BSR','TLV','DAM','SAH','ADE'];
+  const RESTRICTED_LIST = ['DOH','BEY','EBL','MHD','RKT'];
+  const PARTIAL_LIST = ['RUH','DMM','MCT'];
   
-  // Known daily flight volumes
-  const DAILY_FLIGHTS = { DXB: 1100, AUH: 450, KWI: 280, BAH: 170, DOH: 650, MCT: 140, RUH: 380, IKA: 200, BGW: 85 };
-  const AVG_PAX = { DXB: 220, AUH: 200, KWI: 185, BAH: 175, DOH: 210, MCT: 170, RUH: 195, IKA: 175, BGW: 165 };
-  const CLOSED = ['DXB','AUH','KWI','BAH','IKA','BGW','SHJ','DWC','TLV','BSR'];
-  const RESTRICTED = ['DOH','BEY','EBL'];
-  const PARTIAL = ['RUH','DMM'];
-  
-  // Build per-airport status
-  const meStatuses = {};
   const daysSinceCrisis = Math.max(1, Math.floor((Date.now() - new Date('2026-02-28').getTime()) / 86400000));
+  const findAltRate = Math.min(0.35, daysSinceCrisis * 0.04);
   
-  // Import ME_AIRPORTS from me-routes
-  const { ME_AIRPORTS, computeGlobalDisruptions } = require('../me-routes.js') || {};
+  let totalCancelled = 0, closedCount = 0, totalStranded = 0;
+  const airportStatus = [];
   
-  for (const iata of Object.keys(ME_AIRPORTS || {})) {
-    const base = ME_AIRPORTS[iata];
+  for (const [iata, a] of Object.entries(ME)) {
     let status = 'OPEN', cancelRate = 0.05;
-    if (CLOSED.includes(iata)) { status = 'CLOSED'; cancelRate = 0.92; }
-    else if (RESTRICTED.includes(iata)) { status = 'RESTRICTED'; cancelRate = 0.6; }
-    else if (PARTIAL.includes(iata)) { status = 'PARTIALLY OPEN'; cancelRate = 0.25; }
-    else if (base.country === 'IR') { status = 'CLOSED'; cancelRate = 0.9; }
-    else if (base.country === 'IQ') { status = 'RESTRICTED'; cancelRate = 0.5; }
-    else if (base.country === 'YE' || base.country === 'SY') { status = 'CLOSED'; cancelRate = 0.95; }
     
-    const dayCancel = Math.round(base.dailyFlights * cancelRate);
-    const variance = 1 + (Math.random() * 0.06 - 0.03);
-    const totalCancel = Math.round(dayCancel * daysSinceCrisis * variance);
-    const findAltRate = Math.min(0.4, daysSinceCrisis * 0.05);
-    const stranded = Math.round(totalCancel * base.avgPax * (1 - findAltRate));
+    if (CLOSED_LIST.includes(iata)) { status = 'CLOSED'; cancelRate = 0.93; }
+    else if (RESTRICTED_LIST.includes(iata)) { status = 'RESTRICTED'; cancelRate = 0.55; }
+    else if (PARTIAL_LIST.includes(iata)) { status = 'PARTIALLY OPEN'; cancelRate = 0.20; }
+    else if (a.cc === 'IR') { status = 'CLOSED'; cancelRate = 0.9; }
+    else if (a.cc === 'IQ') { status = 'RESTRICTED'; cancelRate = 0.45; }
+    else if (a.cc === 'YE' || a.cc === 'SY') { status = 'CLOSED'; cancelRate = 0.95; }
+    else if (a.cc === 'SA') { status = 'OPEN'; cancelRate = 0.10; }
     
-    meStatuses[iata] = { status, cancelRate, cancelled: totalCancel, stranded, dailyFlights: base.dailyFlights };
-    if (status === 'CLOSED') closedAirports++;
-    cancelled += totalCancel;
-  }
-  
-  // Compute global disruptions
-  let globalDisruptions = [];
-  if (computeGlobalDisruptions) {
-    globalDisruptions = computeGlobalDisruptions(meStatuses);
-    // Scale by days since crisis
-    globalDisruptions = globalDisruptions.map(g => ({
-      ...g,
-      cancelled: Math.round(g.cancelled * daysSinceCrisis * (1 + Math.random() * 0.04 - 0.02)),
-      stranded: Math.round(g.stranded * daysSinceCrisis * (1 - Math.min(0.4, daysSinceCrisis * 0.05))),
-    }));
-  }
-  
-  // Build airport_status array for sitrep
-  const airportStatus = Object.entries(meStatuses).map(([iata, s]) => {
-    const base = ME_AIRPORTS[iata];
-    return {
-      iata, city: base.city, lat: base.lat, lng: base.lng,
-      status: s.status, cancelled: s.cancelled, stranded: s.stranded,
-      daily_flights: s.dailyFlights, cancel_rate: Math.round(s.cancelRate * 100),
+    const v = 1 + (Math.random() * 0.04 - 0.02);
+    const cancelled = Math.round(a.df * cancelRate * daysSinceCrisis * v);
+    const stranded = Math.round(cancelled * a.pax * (1 - findAltRate));
+    
+    if (status === 'CLOSED') closedCount++;
+    totalCancelled += cancelled;
+    totalStranded += stranded;
+    
+    airportStatus.push({
+      iata, city: a.city, lat: a.lat, lng: a.lng,
+      status, cancelled, stranded,
+      daily_flights: a.df, cancel_rate: Math.round(cancelRate * 100),
       updated: new Date().toISOString(),
-    };
-  });
-  
-  const totalStranded = Object.values(meStatuses).reduce((s, a) => s + a.stranded, 0);
-  const globalStranded = globalDisruptions.reduce((s, g) => s + g.stranded, 0);
+    });
+  }
   
   return {
-    cancelled, closedAirports, totalStranded,
+    cancelled: totalCancelled,
+    closedAirports: closedCount,
+    totalStranded,
     airportStatus,
-    globalDisruptions: globalDisruptions.slice(0, 150), // Top 150 hotspots
-    globalStranded,
     methodology: [
       `Crisis day ${daysSinceCrisis} (started Feb 28, 2026)`,
-      `${Object.keys(meStatuses).length} ME airports tracked`,
-      `${CLOSED.length} airports CLOSED, ${RESTRICTED.length} RESTRICTED`,
-      `${globalDisruptions.length} global airports disrupted via ${Object.keys(require('../me-routes.js')?.AIRLINE_ROUTES || {}).length} airline route networks`,
-      `Formula: daily_flights × cancel_rate × ${daysSinceCrisis} days × avg_pax × (1 - ${Math.round(Math.min(40, daysSinceCrisis * 5))}% alt-route)`,
-      `Total ME stranded: ${totalStranded.toLocaleString()}`,
-      `Total globally disrupted: ${globalStranded.toLocaleString()}`,
-      `Combined est: ${(totalStranded + globalStranded).toLocaleString()}`,
+      `${airportStatus.length} ME airports tracked`,
+      `${CLOSED_LIST.length} CLOSED, ${RESTRICTED_LIST.length} RESTRICTED, ${PARTIAL_LIST.length} PARTIAL`,
+      `Formula: daily_flights × cancel_rate × ${daysSinceCrisis} days × avg_pax × (1 - ${Math.round(findAltRate * 100)}% alt-route)`,
+      `ME stranded total: ${totalStranded.toLocaleString()}`,
+      `Global disruptions computed client-side via airline route network model`,
     ].join('\n'),
-    sources: ['news_analysis','route_network_model','travel_advisories'],
+    sources: ['airport_baseline_data', 'status_classification', 'travel_advisories'],
   };
 }
 
@@ -346,18 +367,17 @@ module.exports = async function handler(req, res) {
   const start = Date.now();
 
   // Run all fetchers in parallel
-  const aviationKey = process.env.AVIATIONSTACK_KEY;
   const [rss, reliefweb, stateDept, fcdo, gdelt, flightData] = await Promise.all([
     fetchRSSFeeds(),
     fetchReliefWeb(),
     fetchStateDept(),
     fetchFCDO(),
     fetchGDELT(),
-    fetchCancelledFlights(aviationKey),
+    Promise.resolve(fetchCancelledFlights()),
   ]);
 
   const allArticles = [...rss, ...reliefweb, ...stateDept, ...fcdo, ...gdelt];
-  console.log(`Fetched: RSS=${rss.length} RW=${reliefweb.length} State=${stateDept.length} FCDO=${fcdo.length} GDELT=${gdelt.length} ME-cancelled=${flightData.cancelled} Global-hotspots=${flightData.globalDisruptions?.length || 0}`);
+  console.log(`Fetched: RSS=${rss.length} RW=${reliefweb.length} State=${stateDept.length} FCDO=${fcdo.length} GDELT=${gdelt.length} ME-cancelled=${flightData.cancelled} ME-stranded=${flightData.totalStranded}`);
 
   // Deduplicate by ID
   const seen = new Set();
@@ -379,13 +399,12 @@ module.exports = async function handler(req, res) {
   const sitrep = {
     id: 'current',
     cancelled_flights: flightData.cancelled || 0,
-    est_stranded: (flightData.totalStranded || 0) + (flightData.globalStranded || 0),
-    avg_passengers_per_flight: 180,
+    est_stranded: flightData.totalStranded || 0,
+    avg_passengers_per_flight: 190,
     airports_closed: flightData.closedAirports || 0,
     airspace_closed_countries: dangerCountries,
     land_routes_open: 3,
     airport_status: JSON.stringify(flightData.airportStatus || []),
-    global_disruptions: JSON.stringify(flightData.globalDisruptions || []),
     methodology: flightData.methodology || '',
     sources_used: `{${(flightData.sources || []).join(',')}}`,
     headlines: JSON.stringify(rss.slice(0, 8).map(a => a.title)),
@@ -421,7 +440,7 @@ module.exports = async function handler(req, res) {
       est_stranded: sitrep.est_stranded,
       cancelled_flights: sitrep.cancelled_flights,
       airports_closed: sitrep.airports_closed,
-      global_hotspots: (flightData.globalDisruptions || []).length,
+      me_airports_tracked: (flightData.airportStatus || []).length,
     },
   });
 };
