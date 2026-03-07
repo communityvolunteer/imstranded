@@ -877,6 +877,9 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 }
 .goog-te-gadget .goog-te-combo:focus{border-color:rgba(52,152,236,.5) !important;}
 .goog-te-gadget > span{display:none !important;}
-/* Hide Google Translate top bar */
-.skiptranslate{display:none !important;}
+/* Hide Google Translate top banner only */
+.goog-te-banner-frame{display:none !important;}
+iframe.goog-te-banner-frame{display:none !important;}
+body > .skiptranslate{display:none !important;}
+#google_translate_element{display:block !important;visibility:visible !important;}
 body{top:0 !important;}

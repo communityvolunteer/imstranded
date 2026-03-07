@@ -609,27 +609,50 @@ function toggleTranslate() {
 }
 
 function setTranslation(langCode) {
-  // Try triggering Google Translate's hidden combo
-  const combo = document.querySelector('.goog-te-combo');
-  if (combo) {
-    combo.value = langCode;
-    combo.dispatchEvent(new Event('change'));
-  } else {
-    // Fallback: set cookie and reload
-    document.cookie = `googtrans=/en/${langCode};path=/`;
-    document.cookie = `googtrans=/en/${langCode};path=/;domain=${location.hostname}`;
-    location.reload();
-  }
   // Update active state
   document.querySelectorAll('.lang-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.lang === langCode);
   });
-  // Show/hide reset button
   const resetBtn = document.getElementById('lang-reset');
   if (resetBtn) resetBtn.style.display = langCode === 'en' ? 'none' : 'block';
+
   // Close panel
   const overlay = document.getElementById('translate-overlay');
-  if (overlay) setTimeout(() => overlay.classList.remove('open'), 300);
+  if (overlay) setTimeout(() => overlay.classList.remove('open'), 200);
+
+  if (langCode === 'en') {
+    // Reset translation
+    document.cookie = 'googtrans=;path=/;expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    document.cookie = 'googtrans=;path=/;domain=.' + location.hostname + ';expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    const frame = document.querySelector('.goog-te-banner-frame');
+    if (frame) {
+      try { const r = frame.contentDocument.querySelector('.goog-close-link'); if (r) { r.click(); return; } } catch(e) {}
+    }
+    location.reload();
+    return;
+  }
+
+  // Try triggering Google Translate combo with retries
+  _triggerGoogleTranslate(langCode, 0);
+}
+
+function _triggerGoogleTranslate(langCode, attempt) {
+  const combo = document.querySelector('.goog-te-combo');
+  if (combo && combo.options.length > 1) {
+    combo.value = langCode;
+    combo.dispatchEvent(new Event('change', { bubbles: true }));
+    return;
+  }
+  // Retry up to 10 times (Google script may still be loading)
+  if (attempt < 10) {
+    setTimeout(() => _triggerGoogleTranslate(langCode, attempt + 1), 300);
+  } else {
+    // Final fallback: cookie + reload
+    const cv = '/en/' + langCode;
+    document.cookie = 'googtrans=' + cv + ';path=/';
+    document.cookie = 'googtrans=' + cv + ';path=/;domain=.' + location.hostname;
+    location.reload();
+  }
 }
 
 function toggleMapTheme() {
