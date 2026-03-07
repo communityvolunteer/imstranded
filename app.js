@@ -381,6 +381,8 @@ function renderFilteredStranded(map, isMobile, filteredData) {
         ${needsList ? '<div style="font-size:.68rem;color:#e67e22;margin-bottom:.2rem">Needs: '+needsList+'</div>' : ''}
         ${sinceTxt ? '<div style="font-size:.65rem;color:rgba(255,255,255,.35)">'+sinceTxt+'</div>' : ''}
         ${p.details ? '<div style="font-size:.75rem;color:rgba(255,255,255,.5);line-height:1.4;margin-top:.3rem">'+p.details.slice(0,150)+'</div>' : ''}
+        ${buildContactButtons(p.contact, p.xhandle, '')}
+        ${buildSendHelpButton(p.xhandle, !!p.user_id)}
       </div>
     `, { className: 'dark-popup', maxWidth: 280 });
     cluster.addLayer(marker);
@@ -668,47 +670,35 @@ function clearDataPins(map) {
 // CONTACT BUTTONS + TIP TWEET HELPERS
 // ============================================================
 function buildContactButtons(contact, xhandle, name) {
-  if (!contact) return '';
-  const c = contact.trim();
+  if (!contact && !xhandle) return '';
+  const c = (contact || '').trim();
   const btns = [];
-  const btnStyle = 'display:inline-flex;align-items:center;gap:3px;padding:.22rem .55rem;border-radius:5px;font-size:.66rem;font-weight:700;text-decoration:none;font-family:Inter,sans-serif;white-space:nowrap;';
+  const btnStyle = 'display:flex;align-items:center;justify-content:center;gap:4px;flex:1;min-width:0;padding:.3rem .5rem;border-radius:6px;font-size:.65rem;font-weight:600;text-decoration:none;font-family:Inter,sans-serif;white-space:nowrap;background:#2a2a2a;color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.08);';
 
-  // Email
   const emailMatch = c.match(/[\w.-]+@[\w.-]+\.\w+/);
-  if (emailMatch) {
-    btns.push(`<a href="mailto:${emailMatch[0]}" target="_blank" style="${btnStyle}background:#059669;color:#fff" title="Email">✉ Email</a>`);
-  }
+  if (emailMatch) btns.push(`<a href="mailto:${emailMatch[0]}" style="${btnStyle}" title="Email">✉ Email</a>`);
 
-  // Phone / WhatsApp
-  const phoneMatch = c.match(/\+?[\d\s\-().]{7,}/);
-  if (phoneMatch) {
-    const digits = phoneMatch[0].replace(/[\s\-().]/g, '');
-    btns.push(`<a href="tel:${digits}" style="${btnStyle}background:#374151;color:#fff" title="Call">📞 Call</a>`);
-    btns.push(`<a href="https://wa.me/${digits.replace(/^\+/,'')}" target="_blank" style="${btnStyle}background:#25d366;color:#fff" title="WhatsApp">💬 WhatsApp</a>`);
-  }
-
-  // Telegram @handle
   const tgMatch = c.match(/@([A-Za-z0-9_]{3,})/);
-  if (tgMatch) {
-    btns.push(`<a href="https://t.me/${tgMatch[1]}" target="_blank" style="${btnStyle}background:#229ED9;color:#fff" title="Telegram">TG @${tgMatch[1]}</a>`);
-  }
+  if (tgMatch) btns.push(`<a href="https://t.me/${tgMatch[1]}" target="_blank" style="${btnStyle}" title="Telegram">TG</a>`);
 
-  // X/Twitter handle
-  if (xhandle) {
-    btns.push(`<a href="https://x.com/${xhandle}" target="_blank" style="${btnStyle}background:#000;color:#fff;border:1px solid rgba(255,255,255,.2)" title="X / Twitter">𝕏 @${xhandle}</a>`);
-  }
+  if (xhandle) btns.push(`<a href="https://x.com/${xhandle}" target="_blank" style="${btnStyle}" title="X / Twitter">𝕏 @${xhandle}</a>`);
 
-  return btns.length ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:.5rem">${btns.join('')}</div>` : '';
+  if (!btns.length) return '';
+  return `<div style="margin-top:.5rem"><div style="font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.25);margin-bottom:.3rem">Contact</div><div style="display:flex;gap:4px">${btns.join('')}</div></div>`;
 }
 
 function buildTipButton(xhandle, hasUserId) {
-  if (!xhandle) return '';
-  const tipIcon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>';
-  if (!hasUserId) {
-    return `<span style="display:inline-flex;align-items:center;gap:4px;margin-top:.45rem;padding:.28rem .65rem;background:rgba(255,255,255,.08);color:rgba(255,255,255,.3);font-size:.68rem;font-weight:700;border-radius:5px;font-family:Inter,sans-serif;cursor:default" title="Unverified user">${tipIcon} Tip $HELP <span style="font-size:.58rem;opacity:.6">(unverified)</span></span>`;
-  }
+  const tipIcon = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>';
+  if (!xhandle || !hasUserId) return '';
   const tweetText = encodeURIComponent(`@bankrbot Tip 1 $HELP to @${xhandle}`);
-  return `<a href="https://x.com/intent/tweet?text=${tweetText}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;margin-top:.45rem;padding:.28rem .65rem;background:#3498ec;color:#fff;font-size:.68rem;font-weight:700;border-radius:5px;text-decoration:none;font-family:Inter,sans-serif">${tipIcon} Tip $HELP</a>`;
+  return `<a href="https://x.com/intent/tweet?text=${tweetText}" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:4px;margin-top:.4rem;padding:.32rem .65rem;background:#3498ec;color:#fff;font-size:.66rem;font-weight:700;border-radius:6px;text-decoration:none;font-family:Inter,sans-serif">${tipIcon} Tip $HELP</a>`;
+}
+
+function buildSendHelpButton(xhandle, hasUserId) {
+  const tipIcon = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>';
+  if (!xhandle || !hasUserId) return '';
+  const tweetText = encodeURIComponent(`@bankrbot Tip 1 $HELP to @${xhandle}`);
+  return `<a href="https://x.com/intent/tweet?text=${tweetText}" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:4px;margin-top:.4rem;padding:.32rem .65rem;background:#ec3452;color:#fff;font-size:.66rem;font-weight:700;border-radius:6px;text-decoration:none;font-family:Inter,sans-serif">${tipIcon} Send $HELP</a>`;
 }
 
 function buildBadge(verified) {
@@ -1225,7 +1215,7 @@ function updateLinkedFields() {
   const lockSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
 
   // Google → Email
-  ['offer-contact','m-offer-contact'].forEach(id => {
+  ['offer-contact','m-offer-contact','stranded-contact','m-stranded-contact'].forEach(id => {
     const input = document.getElementById(id);
     const wrap = input?.closest('.linked-input');
     if (!input || !wrap) return;
@@ -1247,7 +1237,7 @@ function updateLinkedFields() {
   });
 
   // Telegram → Contact
-  ['offer-tg-contact','m-offer-tg-contact'].forEach(id => {
+  ['offer-tg-contact','m-offer-tg-contact','stranded-tg-contact','m-stranded-tg-contact'].forEach(id => {
     const input = document.getElementById(id);
     const wrap = input?.closest('.linked-input');
     if (!input || !wrap) return;
@@ -1269,7 +1259,7 @@ function updateLinkedFields() {
   });
 
   // X → Handle
-  ['offer-xhandle','m-offer-xhandle'].forEach(id => {
+  ['offer-xhandle','m-offer-xhandle','stranded-xhandle','m-stranded-xhandle'].forEach(id => {
     const input = document.getElementById(id);
     const wrap = input?.closest('.linked-input');
     if (!input || !wrap) return;
@@ -1286,7 +1276,7 @@ function updateLinkedFields() {
       wrap.classList.remove('linked-input--active');
       const lock = wrap.querySelector('.linked-input-lock');
       if (lock) lock.remove();
-      input.placeholder = isLoggedIn() ? 'Link X to add @handle & enable tips' : 'Sign in to link X';
+      input.placeholder = isLoggedIn() ? 'Link X to enable Send $HELP' : 'Sign in to link X';
     }
   });
 }
@@ -1986,6 +1976,7 @@ async function mSubmitStranded() {
   if (!dest) { alert('Please select where you need to get home to.'); return; }
   const email = _currentUser?.email || '';
   const tg = _currentProfile?.tg_handle ? '@' + _currentProfile.tg_handle : '';
+  const xhandle = _currentProfile?.x_handle || document.getElementById('m-stranded-xhandle')?.value?.replace('@','') || '';
   const contact = [email, tg].filter(Boolean).join(' | ');
   const btn = document.getElementById('m-stranded-submit-btn');
   btn.textContent = 'Registering...'; btn.disabled = true;
@@ -1996,7 +1987,7 @@ async function mSubmitStranded() {
       dest_country: destCountry || null, dest_airport: destAirport || null,
       nationality, group_size: groupSize,
       needs: needs.length ? '{' + needs.join(',') + '}' : '{}',
-      stranded_since: since, details, contact,
+      stranded_since: since, details, contact, xhandle: xhandle || null,
     });
     if (error) throw error;
     btn.textContent = "You're on the map!"; btn.style.background = '#27ae60';
@@ -2027,6 +2018,7 @@ async function submitStranded() {
 
   const email = _currentUser?.email || '';
   const tg = _currentProfile?.tg_handle ? '@' + _currentProfile.tg_handle : '';
+  const xhandle = _currentProfile?.x_handle || document.getElementById('stranded-xhandle')?.value?.replace('@','') || '';
   const contact = [email, tg].filter(Boolean).join(' | ');
 
   const btn = document.getElementById('stranded-submit-btn');
@@ -2039,7 +2031,7 @@ async function submitStranded() {
       dest_country: destCountry || null, dest_airport: destAirport || null,
       nationality, group_size: groupSize,
       needs: needs.length ? `{${needs.join(',')}}` : '{}',
-      stranded_since: since, details, contact,
+      stranded_since: since, details, contact, xhandle: xhandle || null,
     });
     if (error) throw error;
     btn.textContent = "You're on the map!"; btn.style.background = '#27ae60';
@@ -2053,7 +2045,7 @@ async function submitStranded() {
 
 async function loadStranded() {
   try {
-    const { data } = await _sb.from('stranded_people').select('id,user_id,current_location,current_lat,current_lng,destination,dest_lat,dest_lng,dest_country,dest_airport,nationality,group_size,needs,stranded_since,details,status,created_at')
+    const { data } = await _sb.from('stranded_people').select('id,user_id,current_location,current_lat,current_lng,destination,dest_lat,dest_lng,dest_country,dest_airport,nationality,group_size,needs,stranded_since,details,contact,xhandle,status,created_at')
       .eq('flagged', false).eq('status', 'active').order('created_at', { ascending: false }).limit(500);
     _strandedPeople = data || [];
 
@@ -2108,6 +2100,8 @@ function renderStrandedOnMap(map, isMobile) {
         ${needsList ? `<div style="font-size:.68rem;color:#e67e22;margin-bottom:.2rem">Needs: ${needsList}</div>` : ''}
         ${sinceTxt ? `<div style="font-size:.65rem;color:rgba(255,255,255,.35)">${sinceTxt}</div>` : ''}
         ${p.details ? `<div style="font-size:.75rem;color:rgba(255,255,255,.5);line-height:1.4;margin-top:.3rem">${p.details.slice(0, 150)}</div>` : ''}
+        ${buildContactButtons(p.contact, p.xhandle, '')}
+        ${buildSendHelpButton(p.xhandle, !!p.user_id)}
       </div>
     `, { className: 'dark-popup', maxWidth: 280 });
     cluster.addLayer(marker);

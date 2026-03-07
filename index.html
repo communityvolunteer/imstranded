@@ -255,6 +255,24 @@
         <div class="form-row"><label class="modal-label">What do you need?</label><div style="display:flex;flex-wrap:wrap;gap:.4rem" id="stranded-needs"><label class="need-chip"><input type="checkbox" value="housing"> Housing</label><label class="need-chip"><input type="checkbox" value="flight"> Flight home</label><label class="need-chip"><input type="checkbox" value="food"> Food / water</label><label class="need-chip"><input type="checkbox" value="medical"> Medical</label><label class="need-chip"><input type="checkbox" value="money"> Financial</label><label class="need-chip"><input type="checkbox" value="translation"> Translation</label></div></div>
         <div class="form-row"><label class="modal-label">Stranded since</label><input type="date" id="stranded-since" class="modal-input"></div>
         <div class="form-row"><label class="modal-label">Details <span style="opacity:.5;font-weight:400;text-transform:none">(optional)</span></label><textarea id="stranded-details" placeholder="Any additional context..." class="modal-input" style="min-height:60px;resize:none"></textarea></div>
+        <div class="form-row"><label class="modal-label">Email</label>
+          <div class="linked-input" id="s-linked-google">
+            <div class="linked-input-icon" style="background:#1a1a1a" onclick="!isLoggedIn()?showView('profile'):void 0" title="Google"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg></div>
+            <input type="text" id="stranded-contact" readonly placeholder="Sign in with Google to add email" class="linked-input-field">
+          </div>
+        </div>
+        <div class="form-row"><label class="modal-label">Telegram</label>
+          <div class="linked-input" id="s-linked-tg">
+            <div class="linked-input-icon" style="background:#229ED9" onclick="isLoggedIn()?linkTelegram():showView('profile')" title="Link Telegram"><svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg></div>
+            <input type="text" id="stranded-tg-contact" readonly placeholder="Link Telegram to add contact" class="linked-input-field">
+          </div>
+        </div>
+        <div class="form-row"><label class="modal-label">X / Twitter</label>
+          <div class="linked-input" id="s-linked-x">
+            <div class="linked-input-icon" style="background:#000;border:1px solid rgba(255,255,255,.15)" onclick="isLoggedIn()?linkX():showView('profile')" title="Link X"><svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></div>
+            <input type="text" id="stranded-xhandle" readonly placeholder="Link X to enable Send $HELP" class="linked-input-field">
+          </div>
+        </div>
         <button onclick="submitStranded()" id="stranded-submit-btn" style="width:100%;background:#ec3452;color:#fff;border:none;border-radius:10px;padding:.75rem;font-family:Inter,sans-serif;font-size:.92rem;font-weight:700;cursor:pointer;margin-top:.3rem">Add Me to the Map</button>
       </div>
     </div>
@@ -612,6 +630,24 @@
         <div class="m-form-row"><label class="m-form-label">What do you need?</label><div style="display:flex;flex-wrap:wrap;gap:.3rem" id="m-stranded-needs"><label class="need-chip"><input type="checkbox" value="housing"> Housing</label><label class="need-chip"><input type="checkbox" value="flight"> Flight</label><label class="need-chip"><input type="checkbox" value="food"> Food</label><label class="need-chip"><input type="checkbox" value="medical"> Medical</label><label class="need-chip"><input type="checkbox" value="money"> Financial</label><label class="need-chip"><input type="checkbox" value="translation"> Translation</label></div></div>
         <div class="m-form-row"><label class="m-form-label">Stranded since</label><input type="date" id="m-stranded-since" style="width:100%;padding:.5rem;background:#1a1c1e;border:1.5px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem"></div>
         <div class="m-form-row"><label class="m-form-label">Details <span style="opacity:.4;font-weight:400">(optional)</span></label><textarea id="m-stranded-details" placeholder="Any additional context..." style="width:100%;min-height:60px;padding:.5rem;background:#1a1c1e;border:1.5px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem;resize:none"></textarea></div>
+        <div class="m-form-row"><label class="m-form-label">Email</label>
+          <div class="linked-input" id="ms-linked-google">
+            <div class="linked-input-icon" style="background:#1a1a1a" onclick="!isLoggedIn()?mTab('profile',null):void 0"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg></div>
+            <input type="text" id="m-stranded-contact" readonly placeholder="Sign in to add email" class="linked-input-field">
+          </div>
+        </div>
+        <div class="m-form-row"><label class="m-form-label">Telegram</label>
+          <div class="linked-input" id="ms-linked-tg">
+            <div class="linked-input-icon" style="background:#229ED9" onclick="isLoggedIn()?linkTelegram():mTab('profile',null)"><svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg></div>
+            <input type="text" id="m-stranded-tg-contact" readonly placeholder="Link Telegram" class="linked-input-field">
+          </div>
+        </div>
+        <div class="m-form-row"><label class="m-form-label">X / Twitter</label>
+          <div class="linked-input" id="ms-linked-x">
+            <div class="linked-input-icon" style="background:#000;border:1px solid rgba(255,255,255,.15)" onclick="isLoggedIn()?linkX():mTab('profile',null)"><svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></div>
+            <input type="text" id="m-stranded-xhandle" readonly placeholder="Link X to enable Send $HELP" class="linked-input-field">
+          </div>
+        </div>
         <button onclick="mSubmitStranded()" id="m-stranded-submit-btn" style="width:100%;background:#ec3452;color:#fff;border:none;border-radius:10px;padding:.75rem;font-family:Inter,sans-serif;font-size:.88rem;font-weight:700;cursor:pointer">Add Me to the Map</button>
       </div>
       <div id="m-offer-content" style="display:none">
