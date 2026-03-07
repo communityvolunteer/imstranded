@@ -375,7 +375,8 @@ function renderFilteredStranded(map, isMobile, filteredData) {
     marker.bindPopup(`
       <div style="min-width:200px;font-family:Inter,sans-serif">
         <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:#ec3452;margin-bottom:.3rem">STRANDED · ${age}</div>
-        <div style="font-size:.82rem;font-weight:700;color:#fff;margin-bottom:.15rem">${p.group_size > 1 ? p.group_size + ' people' : '1 person'}${p.nationality ? ' · ' + p.nationality : ''}</div>
+        ${p.name ? '<div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:.1rem">'+p.name+'</div>' : ''}
+        <div style="font-size:.78rem;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:.15rem">${p.group_size > 1 ? p.group_size + ' people' : '1 person'}${p.nationality ? ' · ' + p.nationality : ''}</div>
         <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">From: ${p.current_location}</div>
         <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.3rem">Need to reach: <strong style="color:#fff">${p.destination}</strong>${p.dest_airport ? ' <span style="background:rgba(255,255,255,.1);padding:.1rem .4rem;border-radius:4px;font-size:.65rem;font-weight:600">✈ '+p.dest_airport+'</span>' : ''}</div>
         ${needsList ? '<div style="font-size:.68rem;color:#e67e22;margin-bottom:.2rem">Needs: '+needsList+'</div>' : ''}
@@ -1589,6 +1590,7 @@ function renderProfileView() {
     updateVerifyStatus('x', _currentProfile?.x_verified);
     updateVerifyStatus('tg', _currentProfile?.tg_verified);
     renderProfilePosts();
+    renderProfileStranded();
   } else {
     loginEl.style.display = 'block';
     mainEl.style.display = 'none';
@@ -1686,7 +1688,7 @@ async function renderProfilePosts() {
 async function profileDeletePost(id) {
   if (!confirm('Delete this post? This cannot be undone.')) return;
   try {
-    const { error } = await _sb.from('help_posts').update({ flagged: true }).eq('id', id).eq('user_id', _currentUser.id);
+    const { error } = await _sb.from('help_posts').delete().eq('id', id).eq('user_id', _currentUser.id);
     if (error) throw error;
     renderProfilePosts();
     loadPosts();
@@ -1705,8 +1707,9 @@ async function profileEditPost(id) {
   document.getElementById('offer-lng').value = data.lng || '';
   document.getElementById('offer-body').value = data.body || '';
   document.getElementById('offer-name').value = data.name || '';
-  // Switch to offer view
-  showView('offer');
+  // Switch to help view, offer panel
+  showView('help');
+  switchHelpMode('helper');
   // Change button
   const btn = document.querySelector('.submit-btn--offer');
   if (btn) { btn.textContent = 'Update Post'; btn.onclick = () => submitEditPost('offer'); }
@@ -1800,7 +1803,7 @@ async function deleteAccount() {
   if (confirmText !== 'DELETE') { alert('Account deletion cancelled.'); return; }
   try {
     // Flag all user's posts
-    await _sb.from('help_posts').update({ flagged: true }).eq('user_id', _currentUser.id);
+    await _sb.from('help_posts').delete().eq('user_id', _currentUser.id);
     // Delete profile
     await _sb.from('profiles').delete().eq('id', _currentUser.id);
     // Sign out
@@ -1829,6 +1832,7 @@ function renderMobileProfileView() {
     updateVerifyStatus('x', _currentProfile?.x_verified);
     updateVerifyStatus('tg', _currentProfile?.tg_verified);
     mRenderProfilePosts();
+    renderProfileStranded();
   } else {
     loginEl.style.display = 'block';
     mainEl.style.display = 'none';
@@ -1866,11 +1870,59 @@ async function mRenderProfilePosts() {
 async function mProfileDeletePost(id) {
   if (!confirm('Delete this post? This cannot be undone.')) return;
   try {
-    const { error } = await _sb.from('help_posts').update({ flagged: true }).eq('id', id).eq('user_id', _currentUser.id);
+    const { error } = await _sb.from('help_posts').delete().eq('id', id).eq('user_id', _currentUser.id);
     if (error) throw error;
     mRenderProfilePosts();
     loadPosts();
   } catch (e) { alert('Failed to delete: ' + e.message); }
+}
+
+// ── Stranded Profile Posts ────────────────────────────────
+async function renderProfileStranded() {
+  const el = document.getElementById('profile-stranded-list');
+  const mel = document.getElementById('m-stranded-posts-list');
+  if (!_currentUser) return;
+  [el, mel].forEach(list => {
+    if (list) list.innerHTML = '<div style="font-size:.82rem;color:rgba(255,255,255,.4);padding:.3rem 0">Loading...</div>';
+  });
+  const { data, error } = await _sb.from('stranded_people').select('id,name,current_location,destination,dest_airport,nationality,group_size,needs,stranded_since,details,status,created_at')
+    .eq('user_id', _currentUser.id).eq('status', 'active').order('created_at', { ascending: false });
+  if (error || !data || !data.length) {
+    [el, mel].forEach(list => {
+      if (list) list.innerHTML = '<div style="font-size:.82rem;color:rgba(255,255,255,.4);padding:.3rem 0">No stranded registration.</div>';
+    });
+    return;
+  }
+  const html = data.map(p => {
+    const t = p.created_at ? new Date(p.created_at).toLocaleString() : '';
+    const needsList = (p.needs || []).join(', ');
+    return `<div class="profile-post-card" style="border-color:rgba(236,52,82,.15)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">
+        <span style="font-size:.82rem;font-weight:700;color:#ec3452">${p.name || 'Anonymous'}</span>
+        <span style="font-size:.63rem;color:rgba(255,255,255,.35)">${t}</span>
+      </div>
+      <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">📍 ${p.current_location}</div>
+      <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">🏠 ${p.destination}${p.dest_airport ? ' ('+p.dest_airport+')' : ''}</div>
+      ${p.group_size > 1 ? '<div style="font-size:.75rem;color:rgba(255,255,255,.5)">Group: '+p.group_size+' people</div>' : ''}
+      ${needsList ? '<div style="font-size:.72rem;color:#e67e22;margin-top:.2rem">Needs: '+needsList+'</div>' : ''}
+      ${p.details ? '<div style="font-size:.78rem;color:rgba(255,255,255,.45);line-height:1.4;margin-top:.2rem">'+p.details.slice(0,120)+'</div>' : ''}
+      <div class="profile-post-actions">
+        <button onclick="deleteStrandedPost('${p.id}')" style="background:#ec3452;color:#fff;border:none;border-radius:6px;padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Remove from Map</button>
+      </div>
+    </div>`;
+  }).join('');
+  if (el) el.innerHTML = html;
+  if (mel) mel.innerHTML = html;
+}
+
+async function deleteStrandedPost(id) {
+  if (!confirm('Remove your stranded registration? You can re-register anytime.')) return;
+  try {
+    const { error } = await _sb.from('stranded_people').delete().eq('id', id).eq('user_id', _currentUser.id);
+    if (error) throw error;
+    renderProfileStranded();
+    loadStranded();
+  } catch (e) { alert('Failed: ' + e.message); }
 }
 
 // ============================================================
@@ -1968,6 +2020,7 @@ function closeStrandedForm() {
 
 async function mSubmitStranded() {
   if (!isLoggedIn()) { alert('Please sign in first.'); mTab('profile', null); return; }
+  const sName = document.getElementById('m-stranded-name')?.value?.trim() || '';
   const loc = document.getElementById('m-stranded-location').value.trim();
   const lat = parseFloat(document.getElementById('m-stranded-lat').value) || null;
   const lng = parseFloat(document.getElementById('m-stranded-lng').value) || null;
@@ -1993,7 +2046,7 @@ async function mSubmitStranded() {
   btn.textContent = 'Registering...'; btn.disabled = true;
   try {
     const { error } = await _sb.from('stranded_people').insert({
-      user_id: _currentUser.id, current_location: loc, current_lat: lat, current_lng: lng,
+      user_id: _currentUser.id, name: sName || null, current_location: loc, current_lat: lat, current_lng: lng,
       destination: dest, dest_lat: destLat, dest_lng: destLng,
       dest_country: destCountry || null, dest_airport: destAirport || null,
       nationality, group_size: groupSize,
@@ -2009,6 +2062,7 @@ async function mSubmitStranded() {
 
 async function submitStranded() {
   if (!isLoggedIn()) { alert('Please sign in first.'); return; }
+  const sName = document.getElementById('stranded-name')?.value?.trim() || '';
   const loc = document.getElementById('stranded-location').value.trim();
   const lat = parseFloat(document.getElementById('stranded-lat').value) || null;
   const lng = parseFloat(document.getElementById('stranded-lng').value) || null;
@@ -2037,7 +2091,7 @@ async function submitStranded() {
   btn.textContent = 'Registering...'; btn.disabled = true;
   try {
     const { error } = await _sb.from('stranded_people').insert({
-      user_id: _currentUser.id,
+      user_id: _currentUser.id, name: sName || null,
       current_location: loc, current_lat: lat, current_lng: lng,
       destination: dest, dest_lat: destLat, dest_lng: destLng,
       dest_country: destCountry || null, dest_airport: destAirport || null,
@@ -2057,7 +2111,7 @@ async function submitStranded() {
 
 async function loadStranded() {
   try {
-    const { data } = await _sb.from('stranded_people').select('id,user_id,current_location,current_lat,current_lng,destination,dest_lat,dest_lng,dest_country,dest_airport,nationality,group_size,needs,stranded_since,details,contact,xhandle,status,created_at')
+    const { data } = await _sb.from('stranded_people').select('id,user_id,name,current_location,current_lat,current_lng,destination,dest_lat,dest_lng,dest_country,dest_airport,nationality,group_size,needs,stranded_since,details,contact,xhandle,status,created_at')
       .eq('flagged', false).eq('status', 'active').order('created_at', { ascending: false }).limit(500);
     _strandedPeople = data || [];
 
@@ -2106,7 +2160,8 @@ function renderStrandedOnMap(map, isMobile) {
     marker.bindPopup(`
       <div style="min-width:200px;font-family:Inter,sans-serif">
         <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:#ec3452;margin-bottom:.3rem">STRANDED · ${age}</div>
-        <div style="font-size:.82rem;font-weight:700;color:#fff;margin-bottom:.15rem">${p.group_size > 1 ? p.group_size + ' people' : '1 person'}${p.nationality ? ' · ' + p.nationality : ''}</div>
+        ${p.name ? '<div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:.1rem">'+p.name+'</div>' : ''}
+        <div style="font-size:.78rem;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:.15rem">${p.group_size > 1 ? p.group_size + ' people' : '1 person'}${p.nationality ? ' · ' + p.nationality : ''}</div>
         <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">From: ${p.current_location}</div>
         <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.3rem">Need to reach: <strong style="color:#fff">${p.destination}</strong>${p.dest_airport ? ' <span style="background:rgba(255,255,255,.1);padding:.1rem .4rem;border-radius:4px;font-size:.65rem;font-weight:600">✈ '+p.dest_airport+'</span>' : ''}</div>
         ${needsList ? `<div style="font-size:.68rem;color:#e67e22;margin-bottom:.2rem">Needs: ${needsList}</div>` : ''}
