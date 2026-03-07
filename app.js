@@ -561,9 +561,19 @@ const TILE_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.p
 
 function toggleTranslate() {
   const overlay = document.getElementById('translate-overlay');
+  const gte = document.getElementById('google_translate_element');
+  const slot = document.getElementById('translate-slot');
   if (!overlay) return;
+  const opening = !overlay.classList.contains('open');
   overlay.classList.toggle('open');
-  if (overlay.classList.contains('open')) {
+  if (opening && gte && slot) {
+    // Move widget into visible panel
+    gte.style.position = 'static';
+    gte.style.top = '';
+    gte.style.left = '';
+    slot.appendChild(gte);
+  }
+  if (opening) {
     setTimeout(() => {
       document.addEventListener('click', function closeTr(e) {
         if (!overlay.contains(e.target) && !e.target.closest('.translate-wrap') && !e.target.closest('.m-map-pill')) {
