@@ -584,11 +584,12 @@ function buildLangGrid() {
   const grid = document.getElementById('lang-grid');
   if (!grid) return;
   grid.innerHTML = LANGUAGES.map(l => 
-    `<button class="lang-btn${l.code === 'en' ? ' active' : ''}" data-lang="${l.code}" onclick="setTranslation('${l.code}')">
+    `<button class="lang-btn" data-lang="${l.code}" onclick="setTranslation('${l.code}')">
       ${l.name} <span class="lang-native">${l.native}</span>
     </button>`
   ).join('');
   _langGridBuilt = true;
+  _syncLangGrid();
 }
 
 function toggleTranslate() {
@@ -609,55 +610,42 @@ function toggleTranslate() {
 }
 
 function setTranslation(langCode) {
-  // Update active state
-  document.querySelectorAll('.lang-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.lang === langCode);
-  });
-  const resetBtn = document.getElementById('lang-reset');
-  if (resetBtn) resetBtn.style.display = langCode === 'en' ? 'none' : 'block';
-
   // Close panel
   const overlay = document.getElementById('translate-overlay');
-  if (overlay) setTimeout(() => overlay.classList.remove('open'), 200);
+  if (overlay) overlay.classList.remove('open');
+
+  // Nuke ALL existing googtrans cookies first
+  const expiry = ';expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  ['', location.hostname, '.' + location.hostname].forEach(d => {
+    const dm = d ? ';domain=' + d : '';
+    document.cookie = 'googtrans=' + expiry + ';path=/' + dm;
+  });
 
   if (langCode === 'en') {
-    // Set combo back to English
-    const combo = document.querySelector('.goog-te-combo');
-    if (combo) {
-      combo.value = 'en';
-      combo.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-    // Nuke all googtrans cookies
-    ['', location.hostname, '.' + location.hostname].forEach(d => {
-      const dm = d ? ';domain=' + d : '';
-      document.cookie = 'googtrans=;path=/' + dm + ';expires=Thu, 01 Jan 1970 00:00:00 GMT';
-    });
-    // Reload after brief delay to clear translation state
-    setTimeout(() => location.reload(), 150);
+    // Just reload with cleared cookies — page comes back in English
+    location.reload();
     return;
   }
 
-  // Try triggering Google Translate combo with retries
-  _triggerGoogleTranslate(langCode, 0);
+  // Set fresh cookie for target language on all domain variations
+  const val = '/en/' + langCode;
+  document.cookie = 'googtrans=' + val + ';path=/';
+  document.cookie = 'googtrans=' + val + ';path=/;domain=' + location.hostname;
+  document.cookie = 'googtrans=' + val + ';path=/;domain=.' + location.hostname;
+
+  // Reload — Google Translate reads the cookie and translates on load
+  location.reload();
 }
 
-function _triggerGoogleTranslate(langCode, attempt) {
-  const combo = document.querySelector('.goog-te-combo');
-  if (combo && combo.options.length > 1) {
-    combo.value = langCode;
-    combo.dispatchEvent(new Event('change', { bubbles: true }));
-    return;
-  }
-  // Retry up to 10 times (Google script may still be loading)
-  if (attempt < 10) {
-    setTimeout(() => _triggerGoogleTranslate(langCode, attempt + 1), 300);
-  } else {
-    // Final fallback: cookie + reload
-    const cv = '/en/' + langCode;
-    document.cookie = 'googtrans=' + cv + ';path=/';
-    document.cookie = 'googtrans=' + cv + ';path=/;domain=.' + location.hostname;
-    location.reload();
-  }
+// On page load, highlight the active language from cookie
+function _syncLangGrid() {
+  const match = document.cookie.match(/googtrans=\/en\/([a-z-]+)/i);
+  const activeLang = match ? match[1] : 'en';
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === activeLang);
+  });
+  const resetBtn = document.getElementById('lang-reset');
+  if (resetBtn) resetBtn.style.display = activeLang === 'en' ? 'none' : 'block';
 }
 
 function toggleMapTheme() {
