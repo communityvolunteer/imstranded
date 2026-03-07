@@ -559,6 +559,22 @@ let _mapDark = true;
 const TILE_DARK = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
 const TILE_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
 
+function toggleTranslate() {
+  const overlay = document.getElementById('translate-overlay');
+  if (!overlay) return;
+  overlay.classList.toggle('open');
+  if (overlay.classList.contains('open')) {
+    setTimeout(() => {
+      document.addEventListener('click', function closeTr(e) {
+        if (!overlay.contains(e.target) && !e.target.closest('.translate-wrap') && !e.target.closest('.m-map-pill')) {
+          overlay.classList.remove('open');
+          document.removeEventListener('click', closeTr);
+        }
+      });
+    }, 10);
+  }
+}
+
 function toggleMapTheme() {
   _mapDark = !_mapDark;
   const url = _mapDark ? TILE_DARK : TILE_LIGHT;
