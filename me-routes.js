@@ -243,6 +243,10 @@ function computeGlobalDisruptions(meAirportStatuses) {
   // meAirportStatuses: { DXB: { status:'CLOSED', cancelRate:0.9 }, ... }
   const globalMap = {}; // destIata → { cancelled, stranded, airlines, meHubs }
 
+  // Transit multiplier: when DXB closes, people at JFK lose not just their DXB flight
+  // but their CONNECTION through DXB to India/Asia/Africa. Major hubs = 1.6x, small = 1.1x
+  const TRANSIT_MULT = { DXB:1.7, DOH:1.6, AUH:1.5, IST:1.4, RUH:1.2, JED:1.2, KWI:1.15, BAH:1.1 };
+
   for (const [airlineKey, airline] of Object.entries(AIRLINE_ROUTES)) {
     for (const hub of airline.hubs) {
       const hubStatus = meAirportStatuses[hub];
@@ -250,12 +254,11 @@ function computeGlobalDisruptions(meAirportStatuses) {
       const meHub = ME_AIRPORTS[hub];
       if (!meHub) continue;
 
-      // Each destination gets a share of the hub's daily flights
       const totalDests = airline.destinations.length || 1;
-      const flightsPerDest = Math.max(1, Math.round((meHub.dailyFlights * 0.7) / totalDests)); // ~70% is airline's share
+      const flightsPerDest = Math.max(1, Math.round((meHub.dailyFlights * 0.7) / totalDests));
+      const transitMult = TRANSIT_MULT[hub] || 1.1;
 
       for (const dest of airline.destinations) {
-        // Skip ME-to-ME routes (already covered by ME airport status)
         if (ME_AIRPORTS[dest]) continue;
 
         if (!globalMap[dest]) {
@@ -263,14 +266,14 @@ function computeGlobalDisruptions(meAirportStatuses) {
         }
         const cancelledFlights = Math.round(flightsPerDest * hubStatus.cancelRate);
         globalMap[dest].cancelled += cancelledFlights;
-        globalMap[dest].stranded += cancelledFlights * (meHub.avgPax || 180);
+        // Stranded includes transit passengers who were connecting THROUGH this hub
+        globalMap[dest].stranded += Math.round(cancelledFlights * (meHub.avgPax || 180) * transitMult);
         globalMap[dest].airlines.add(airline.name);
         globalMap[dest].meHubs.add(hub);
       }
     }
   }
 
-  // Convert sets to arrays and sort by impact
   return Object.entries(globalMap)
     .map(([iata, d]) => ({
       iata,
@@ -284,9 +287,19 @@ function computeGlobalDisruptions(meAirportStatuses) {
 }
 
 // ── COMPUTE REVERSE DISRUPTIONS (Heading To) ─────────────
-// Given a destination IATA, find everyone stuck in ME trying to get there
+// People stuck IN the Middle East trying to get to a specific destination.
+// Different from "Stranded at" because:
+// - Only counts direct passengers (not transit connections)
+// - Weighted by hub's outbound capacity share to this specific destination
+// - Accounts for repatriation flights reducing the stuck count
 function computeReverseDisruptions(destIata, meAirportStatuses) {
-  const results = []; // Each ME hub that serves this destination
+  const results = [];
+
+  // What fraction of passengers on a HUB→DEST flight are actually going to DEST?
+  // (vs connecting through DEST to somewhere else)
+  // Major international airports = lower direct %, small airports = higher direct %
+  const MAJOR_INTL = ['LHR','JFK','LAX','CDG','FRA','SIN','HKG','NRT','ICN','SYD','ORD','YYZ','AMS','IST'];
+  const directPaxRate = MAJOR_INTL.includes(destIata) ? 0.40 : 0.65;
 
   for (const [airlineKey, airline] of Object.entries(AIRLINE_ROUTES)) {
     if (!airline.destinations.includes(destIata)) continue;
@@ -297,12 +310,13 @@ function computeReverseDisruptions(destIata, meAirportStatuses) {
       const meHub = ME_AIRPORTS[hub];
       if (!meHub) continue;
       
+      // Hub's outbound capacity to this destination
       const totalDests = airline.destinations.length || 1;
       const flightsPerDest = Math.max(1, Math.round((meHub.dailyFlights * 0.7) / totalDests));
       const cancelledFlights = Math.round(flightsPerDest * hubStatus.cancelRate);
-      const stranded = cancelledFlights * (meHub.avgPax || 180);
+      // Only direct passengers — people at THIS hub who want to reach THIS destination
+      const stranded = Math.round(cancelledFlights * (meHub.avgPax || 180) * directPaxRate);
       
-      // Check if this hub already in results
       const existing = results.find(r => r.iata === hub);
       if (existing) {
         existing.cancelled += cancelledFlights;
