@@ -125,17 +125,40 @@ let AIRPORT_DATA = [
 // ============================================================
 // LIVE DATA FROM SUPABASE
 // ============================================================
+let _globalDisruptions = [];
+
 async function fetchSitrepFromSupabase() {
   try {
     const { data, error } = await _sb.from('sitrep').select('*').eq('id', 'current').single();
     if (error || !data) return null;
-    const stranded = (data.cancelled_flights || 1847) * (data.avg_passengers_per_flight || 459);
+    
+    // Update AIRPORT_DATA from live airport_status
+    const liveAirports = typeof data.airport_status === 'string' ? JSON.parse(data.airport_status || '[]') : (data.airport_status || []);
+    if (liveAirports.length) {
+      AIRPORT_DATA = liveAirports.map(a => ({
+        city: a.city, code: a.iata, iata: a.iata,
+        coords: [a.lat, a.lng],
+        cancelled: a.cancelled || 0,
+        status: a.status || 'UNKNOWN',
+        stranded: a.stranded || 0,
+        cancelRate: a.cancel_rate || 0,
+        dailyFlights: a.daily_flights || 0,
+        updated: a.updated ? new Date(a.updated).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '--:--',
+      }));
+    }
+    
+    // Store global disruptions for map rendering
+    _globalDisruptions = typeof data.global_disruptions === 'string' ? JSON.parse(data.global_disruptions || '[]') : (data.global_disruptions || []);
+    
+    const stranded = data.est_stranded || AIRPORT_DATA.reduce((s,a) => s + (a.stranded||0), 0);
     return {
       stranded,
       cancelled: data.cancelled_flights,
       airports: data.airports_closed,
       airspace: data.airspace_closed_countries,
       lastUpdated: data.last_updated,
+      methodology: data.methodology,
+      sources: data.sources_used,
     };
   } catch(e) {
     console.warn('Supabase sitrep unavailable, using seeded data');
@@ -153,6 +176,7 @@ let _mHelpCluster = null;
 let _postMarkers = [];
 let posts = [];
 const _dataPins = {airports:[]};
+let _globalPins = [];
 let _activeFilter = 'all';
 
 function timeAgo(dateStr) {
@@ -319,6 +343,14 @@ function applyFilters() {
       });
     });
   }
+  
+  // Global disruption dots follow worldwide toggle
+  _globalPins.forEach(m => {
+    [window._crisisMap, window._mobileMap].forEach(map => {
+      if (!map) return;
+      f.showWorldwide ? m.addTo(map) : map.removeLayer(m);
+    });
+  });
 
   // Country markers always visible
   if (_mk.country) {
@@ -766,6 +798,60 @@ function clearDataPins(map) {
   _dataPins.airports = [];
 }
 
+// ── GLOBAL DISRUPTION DOTS (purple) ──────────────────────
+function renderGlobalDisruptions(map) {
+  if (!map) return;
+  // Clear old
+  _globalPins.forEach(m => { try { map.removeLayer(m); } catch(e) {} });
+  _globalPins = [];
+  
+  if (!_globalDisruptions || !_globalDisruptions.length) return;
+  
+  const maxStranded = Math.max(..._globalDisruptions.map(g => g.stranded || 0), 1);
+  
+  for (const g of _globalDisruptions) {
+    // Look up lat/lng from airports.js
+    const ap = typeof findAirport === 'function' ? findAirport(g.iata) : null;
+    if (!ap) continue;
+    
+    // Radius proportional to impact (min 4, max 18)
+    const ratio = (g.stranded || 0) / maxStranded;
+    const radius = 4 + ratio * 14;
+    
+    const circle = L.circleMarker([ap.lat, ap.lng], {
+      radius,
+      fillColor: '#a855f7',
+      color: 'rgba(168,85,247,.4)',
+      weight: 1.5,
+      fillOpacity: 0.35,
+      className: 'global-disruption-dot',
+    }).addTo(map);
+    
+    const airlines = (g.airlines || []).join(', ');
+    const hubs = (g.me_hubs || []).join(', ');
+    const synopsis = `Flights to/from ${hubs} cancelled. ${airlines} routes affected. ${(g.stranded || 0).toLocaleString()} passengers disrupted at this airport with cancelled or rerouted connections.`;
+    
+    circle.bindPopup(`
+      <div style="min-width:220px;font-family:Inter,sans-serif">
+        <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:#a855f7;margin-bottom:.3rem">GLOBALLY DISRUPTED</div>
+        <div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:.15rem">${ap.city} (${g.iata})</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.5rem">${ap.countryName || ''}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem;margin-bottom:.5rem">
+          <div><div style="font-size:1.1rem;font-weight:800;color:#a855f7;line-height:1">${(g.cancelled || 0).toLocaleString()}</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:.1rem">Flights Cancelled</div></div>
+          <div><div style="font-size:1.1rem;font-weight:800;color:#ec3452;line-height:1">${(g.stranded || 0).toLocaleString()}</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:.1rem">Passengers Affected</div></div>
+        </div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.55);line-height:1.5;margin-bottom:.4rem">${synopsis}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:3px">
+          ${(g.airlines || []).map(a => '<span style="padding:.15rem .4rem;background:rgba(168,85,247,.12);border-radius:4px;font-size:.6rem;color:#a855f7;font-weight:600">'+a+'</span>').join('')}
+        </div>
+        <div style="font-size:.6rem;color:rgba(255,255,255,.25);margin-top:.4rem">Routes via: ${hubs}</div>
+      </div>
+    `, { className: 'dark-popup', maxWidth: 300 });
+    
+    _globalPins.push(circle);
+  }
+}
+
 // ============================================================
 // CONTACT BUTTONS + TIP TWEET HELPERS
 // ============================================================
@@ -1030,7 +1116,10 @@ async function refreshSitrep() {
 
   const now=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
   const lbl=document.getElementById('last-updated-label'); if(lbl)lbl.textContent='Updated: '+now;
-  if(icon) icon.classList.remove('spinning');
+
+  // Render global disruption dots on both maps
+  renderGlobalDisruptions(window._crisisMap);
+  renderGlobalDisruptions(window._mobileMap);
 }
 
 // ============================================================

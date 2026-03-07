@@ -884,3 +884,6 @@ body > .skiptranslate:first-child{height:0 !important;overflow:hidden !important
 #google_translate_element .skiptranslate{display:block !important;}
 body{top:0 !important;position:static !important;}
 html.translated-ltr body,html.translated-rtl body{top:0 !important;}
+/* Global disruption dots */
+.global-disruption-dot{transition:fill-opacity .3s;}
+.global-disruption-dot:hover{fill-opacity:.6 !important;}
