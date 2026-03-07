@@ -789,7 +789,7 @@ transform: translateX(-50%);
 .sitrep-stat--offer-room{background:rgb(0, 0, 0) !important;cursor:pointer;transition:background .15s;}
 .sitrep-stat--offer-room:hover{background:rgba(52,152,236,.2) !important;}
 .sitrep-stat--help-money{background:rgb(0, 0, 0) !important;cursor:pointer;transition:background .15s;}
-.sitrep-stat--help-money:hover{background:rgba(241,196,68,.15) !important;}
+.sitrep-stat--help-money:hover{background:rgba(241,196,68,.15) !important;} 
 
 /* $HELP modal */
 #help-money-modal{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.7);align-items:center;justify-content:center;}
