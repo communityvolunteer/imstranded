@@ -778,7 +778,7 @@ transform: translateX(-50%);
 .sitrep-stat--filter svg{stroke:rgba(255,255,255,.5);transition:stroke .15s;}
 .sitrep-stat--filter:hover svg{stroke:#fff;}
 .sitrep-stat--filter.active-filter{background:rgba(52,152,236,.1);}
-.sitrep-stat--filter.active-filter svg{stroke:#3498ec;}
+.sitrep-stat--filter.active-filter svg{stroke:#3498ec;} 
 
 @media(max-width:768px){
   .filter-panel{display:none !important;}
