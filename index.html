@@ -29,19 +29,23 @@ function googleTranslateInit() {
 </head>
 <body>
 
-<!-- Translate: offscreen holder for Google init, moved into panel on open -->
-<div id="google_translate_element" style="position:fixed;top:-9999px;left:-9999px;"></div>
+<!-- Hidden Google Translate widget (visible to Google's init, invisible to user) -->
+<div id="google_translate_element" style="opacity:0;height:0;overflow:hidden;pointer-events:none;position:absolute;"></div>
 
-<!-- Translate overlay (shared PC+mobile) -->
+<!-- Translate overlay (shared PC+mobile) — custom UI -->
 <div class="translate-overlay" id="translate-overlay">
   <div class="translate-panel">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">
-      <div style="font-size:.72rem;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.06em">Translate</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+      <div style="font-size:.72rem;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.06em">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="vertical-align:-2px;margin-right:5px"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        Translate
+      </div>
       <button onclick="toggleTranslate()" style="background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;padding:2px;line-height:0">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
-    <div id="translate-slot"></div>
+    <div class="lang-grid" id="lang-grid"></div>
+    <button onclick="setTranslation('en')" class="lang-reset" id="lang-reset" style="display:none">Reset to English</button>
   </div>
 </div>
 

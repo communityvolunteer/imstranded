@@ -559,21 +559,44 @@ let _mapDark = true;
 const TILE_DARK = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
 const TILE_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
 
+const LANGUAGES = [
+  {code:'ar',name:'Arabic',native:'العربية'},{code:'bn',name:'Bengali',native:'বাংলা'},
+  {code:'zh-CN',name:'Chinese',native:'中文'},{code:'nl',name:'Dutch',native:'Nederlands'},
+  {code:'en',name:'English',native:'English'},{code:'fa',name:'Farsi',native:'فارسی'},
+  {code:'fil',name:'Filipino',native:'Filipino'},{code:'fr',name:'French',native:'Français'},
+  {code:'de',name:'German',native:'Deutsch'},{code:'el',name:'Greek',native:'Ελληνικά'},
+  {code:'hi',name:'Hindi',native:'हिन्दी'},{code:'id',name:'Indonesian',native:'Bahasa'},
+  {code:'it',name:'Italian',native:'Italiano'},{code:'ja',name:'Japanese',native:'日本語'},
+  {code:'ko',name:'Korean',native:'한국어'},{code:'ms',name:'Malay',native:'Melayu'},
+  {code:'ne',name:'Nepali',native:'नेपाली'},{code:'pl',name:'Polish',native:'Polski'},
+  {code:'pt',name:'Portuguese',native:'Português'},{code:'ro',name:'Romanian',native:'Română'},
+  {code:'ru',name:'Russian',native:'Русский'},{code:'si',name:'Sinhala',native:'සිංහල'},
+  {code:'es',name:'Spanish',native:'Español'},{code:'ta',name:'Tamil',native:'தமிழ்'},
+  {code:'te',name:'Telugu',native:'తెలుగు'},{code:'th',name:'Thai',native:'ไทย'},
+  {code:'tr',name:'Turkish',native:'Türkçe'},{code:'uk',name:'Ukrainian',native:'Українська'},
+  {code:'ur',name:'Urdu',native:'اردو'},{code:'vi',name:'Vietnamese',native:'Tiếng Việt'},
+];
+
+let _langGridBuilt = false;
+
+function buildLangGrid() {
+  if (_langGridBuilt) return;
+  const grid = document.getElementById('lang-grid');
+  if (!grid) return;
+  grid.innerHTML = LANGUAGES.map(l => 
+    `<button class="lang-btn${l.code === 'en' ? ' active' : ''}" data-lang="${l.code}" onclick="setTranslation('${l.code}')">
+      ${l.name} <span class="lang-native">${l.native}</span>
+    </button>`
+  ).join('');
+  _langGridBuilt = true;
+}
+
 function toggleTranslate() {
   const overlay = document.getElementById('translate-overlay');
-  const gte = document.getElementById('google_translate_element');
-  const slot = document.getElementById('translate-slot');
   if (!overlay) return;
-  const opening = !overlay.classList.contains('open');
+  buildLangGrid();
   overlay.classList.toggle('open');
-  if (opening && gte && slot) {
-    // Move widget into visible panel
-    gte.style.position = 'static';
-    gte.style.top = '';
-    gte.style.left = '';
-    slot.appendChild(gte);
-  }
-  if (opening) {
+  if (overlay.classList.contains('open')) {
     setTimeout(() => {
       document.addEventListener('click', function closeTr(e) {
         if (!overlay.contains(e.target) && !e.target.closest('.translate-wrap') && !e.target.closest('.m-map-pill')) {
@@ -583,6 +606,30 @@ function toggleTranslate() {
       });
     }, 10);
   }
+}
+
+function setTranslation(langCode) {
+  // Try triggering Google Translate's hidden combo
+  const combo = document.querySelector('.goog-te-combo');
+  if (combo) {
+    combo.value = langCode;
+    combo.dispatchEvent(new Event('change'));
+  } else {
+    // Fallback: set cookie and reload
+    document.cookie = `googtrans=/en/${langCode};path=/`;
+    document.cookie = `googtrans=/en/${langCode};path=/;domain=${location.hostname}`;
+    location.reload();
+  }
+  // Update active state
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === langCode);
+  });
+  // Show/hide reset button
+  const resetBtn = document.getElementById('lang-reset');
+  if (resetBtn) resetBtn.style.display = langCode === 'en' ? 'none' : 'block';
+  // Close panel
+  const overlay = document.getElementById('translate-overlay');
+  if (overlay) setTimeout(() => overlay.classList.remove('open'), 300);
 }
 
 function toggleMapTheme() {
