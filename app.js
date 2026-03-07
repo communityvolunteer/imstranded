@@ -342,7 +342,9 @@ function getFilterState() {
 
   const destCountry = val('fp-filter-dest-country') || val('mfp-filter-dest-country') || '';
   const destAirport = val('fp-filter-dest-airport') || val('mfp-filter-dest-airport') || '';
-  return { showOffers, offersVerified, offerTypes, showStranded, strandedVerified, nationality, strandedNeeds, groupSize, showWorldwide, destCountry, destAirport };
+  const showArcs = val('fp-worldwide-arcs') ?? val('mfp-worldwide-arcs') ?? false;
+  const globalIata = _globalFilterIata || val('fp-global-iata') || val('mfp-global-iata') || '';
+  return { showOffers, offersVerified, offerTypes, showStranded, strandedVerified, nationality, strandedNeeds, groupSize, showWorldwide, destCountry, destAirport, showArcs, globalIata };
 }
 
 function applyFilters() {
@@ -399,13 +401,38 @@ function applyFilters() {
     });
   }
   
-  // Global disruption dots follow worldwide toggle
+  // ── Global disruption dots — filter by selected airport ──
+  clearGlobalArcs();
+  const filteredGlobal = f.globalIata
+    ? _globalDisruptions.filter(g => g.iata === f.globalIata)
+    : _globalDisruptions;
+  
   _globalPins.forEach(m => {
     [window._crisisMap, window._mobileMap].forEach(map => {
       if (!map) return;
-      f.showWorldwide ? m.addTo(map) : map.removeLayer(m);
+      map.removeLayer(m);
     });
   });
+  
+  if (f.showWorldwide) {
+    // Re-render global dots (filtered or all)
+    [window._crisisMap, window._mobileMap].forEach(map => {
+      if (!map) return;
+      _globalPins.forEach(m => map.removeLayer(m));
+    });
+    _globalPins = [];
+    renderGlobalDisruptions(window._crisisMap, filteredGlobal);
+    renderGlobalDisruptions(window._mobileMap, filteredGlobal);
+    
+    // Route arcs (when toggle is on, or when filtering a specific airport)
+    if (f.showArcs || f.globalIata) {
+      drawGlobalRouteArcs(window._crisisMap, filteredGlobal);
+      drawGlobalRouteArcs(window._mobileMap, filteredGlobal);
+    }
+  }
+  
+  // ── Update Est. Stranded label ──
+  updateStrandedLabel(f.globalIata, filteredGlobal);
 
   // Country markers always visible
   if (_mk.country) {
@@ -486,14 +513,14 @@ function syncFilterPanels() {
   const pairs = [
     ['fp-show-offers','mfp-show-offers'],['fp-offers-verified','mfp-offers-verified'],
     ['fp-show-stranded','mfp-show-stranded'],['fp-stranded-verified','mfp-stranded-verified'],
-    ['fp-show-worldwide','mfp-show-worldwide'],['fp-worldwide-verified','mfp-worldwide-verified'],
+    ['fp-show-worldwide','mfp-show-worldwide'],['fp-worldwide-arcs','mfp-worldwide-arcs'],
   ];
   pairs.forEach(([d,m]) => {
     const src = document.getElementById(isMobile ? m : d);
     const dst = document.getElementById(isMobile ? d : m);
     if (src && dst) dst.checked = src.checked;
   });
-  [['fp-nationality','mfp-nationality'],['fp-group-size','mfp-group-size']].forEach(([d,m]) => {
+  [['fp-nationality','mfp-nationality'],['fp-group-size','mfp-group-size'],['fp-global-search','mfp-global-search'],['fp-global-iata','mfp-global-iata']].forEach(([d,m]) => {
     const src = document.getElementById(isMobile ? m : d);
     const dst = document.getElementById(isMobile ? d : m);
     if (src && dst) dst.value = src.value;
@@ -508,26 +535,73 @@ function syncFilterPanels() {
 
 function clearAllFilters() {
   _mapFilterActive = '';
+  clearGlobalFilter();
   document.querySelectorAll('.fp-chip input').forEach(cb => cb.checked = false);
   document.querySelectorAll('[id$="-show-offers"],[id$="-show-stranded"],[id$="-show-worldwide"]').forEach(cb => cb.checked = true);
-  document.querySelectorAll('[id$="-offers-verified"],[id$="-stranded-verified"],[id$="-worldwide-verified"]').forEach(cb => cb.checked = false);
+  document.querySelectorAll('[id$="-offers-verified"],[id$="-stranded-verified"],[id$="-worldwide-arcs"]').forEach(cb => cb.checked = false);
   document.querySelectorAll('.fp-select').forEach(s => { if (s.tagName === 'SELECT') s.value = ''; else if (s.type === 'text') s.value = ''; });
   document.querySelectorAll('[id$="filter-dest-country"],[id$="filter-dest-airport"]').forEach(h => h.value = '');
   document.querySelectorAll('.sitrep-stat,.m-stat').forEach(s => s.classList.remove('active-filter'));
-  // Clear airport pins on both maps
   [window._crisisMap, window._mobileMap].forEach(map => { if (map) clearDataPins(map); });
   clearArcLines();
+  clearGlobalArcs();
+  updateStrandedLabel('', []);
   applyFilters();
+}
+
+// ── UPDATE EST. STRANDED LABEL ──────────────────────────
+function updateStrandedLabel(globalIata, filteredGlobal) {
+  const pcLabel = document.getElementById('stranded-label');
+  const pcSub = document.getElementById('stranded-sub');
+  const mLabel = document.getElementById('m-stranded-label');
+  
+  if (globalIata && filteredGlobal?.length) {
+    const g = filteredGlobal[0];
+    const ap = typeof findAirport === 'function' ? findAirport(globalIata) : null;
+    const city = ap?.city || globalIata;
+    const num = (g.stranded || 0);
+    
+    ['stat-stranded', 'm-stat-stranded'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = num.toLocaleString();
+    });
+    if (pcLabel) pcLabel.textContent = `Stranded at ${city}`;
+    if (pcSub) pcSub.textContent = `${globalIata} · ${(g.airlines||[]).length} airlines`;
+    if (mLabel) mLabel.innerHTML = `AT ${city.toUpperCase()}<br>${globalIata}`;
+  } else {
+    if (pcLabel) pcLabel.textContent = 'Est. Stranded';
+    if (pcSub) pcSub.textContent = 'tap · see how';
+    if (mLabel) mLabel.innerHTML = 'EST.<br>STRANDED';
+    // Restore full number from last refresh
+    refreshStrandedCount();
+  }
+}
+
+function refreshStrandedCount() {
+  const total = computeTotalStranded();
+  ['stat-stranded', 'm-stat-stranded'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = total.toLocaleString();
+  });
 }
 
 // ── ARC LINES (stranded → destination) ──
 let _arcLines = [];
+let _globalArcLines = [];
+let _globalFilterIata = '';
 
 function clearArcLines() {
   _arcLines.forEach(line => {
     [window._crisisMap, window._mobileMap].forEach(m => { if (m) try { m.removeLayer(line); } catch(e) {} });
   });
   _arcLines = [];
+}
+
+function clearGlobalArcs() {
+  _globalArcLines.forEach(line => {
+    [window._crisisMap, window._mobileMap].forEach(m => { if (m) try { m.removeLayer(line); } catch(e) {} });
+  });
+  _globalArcLines = [];
 }
 
 function drawArcLines(map, strandedData) {
@@ -542,6 +616,101 @@ function drawArcLines(map, strandedData) {
     const dot = L.circleMarker(to, { radius: 3, fillColor: '#ec3452', color: '#fff', weight: 1, fillOpacity: .7, interactive: false }).addTo(map);
     _arcLines.push(dot);
   }
+}
+
+// ── GLOBAL ROUTE ARCS (purple) ─────────────────────────
+// Draws arcs from global airports to their ME hub connections
+function drawGlobalRouteArcs(map, disruptions) {
+  if (!map || !disruptions.length) return;
+  const maxCancelled = Math.max(...disruptions.map(g => g.cancelled || 0), 1);
+  
+  for (const g of disruptions) {
+    const ap = typeof findAirport === 'function' ? findAirport(g.iata) : null;
+    if (!ap) continue;
+    
+    for (const hub of (g.me_hubs || [])) {
+      // Look up ME hub coords from ME_AIRPORTS or AIRPORT_DATA
+      let hubCoords = null;
+      if (typeof ME_AIRPORTS !== 'undefined' && ME_AIRPORTS[hub]) {
+        hubCoords = [ME_AIRPORTS[hub].lat, ME_AIRPORTS[hub].lng];
+      } else {
+        const ad = AIRPORT_DATA.find(a => (a.iata || a.code) === hub);
+        if (ad) hubCoords = ad.coords || [ad.lat, ad.lng];
+      }
+      if (!hubCoords) continue;
+      
+      // Thickness proportional to cancelled flights (min 0.5, max 4)
+      const ratio = (g.cancelled || 0) / maxCancelled;
+      const weight = 0.5 + ratio * 3.5;
+      
+      const arc = generateArc([ap.lat, ap.lng], hubCoords, 30);
+      const line = L.polyline(arc, {
+        color: 'rgba(168,85,247,.25)',
+        weight,
+        interactive: false,
+      }).addTo(map);
+      _globalArcLines.push(line);
+    }
+  }
+}
+
+// ── GLOBAL AIRPORT AUTOCOMPLETE ─────────────────────────
+let _gacTimer = null;
+function globalAirportAutocomplete(input, listId) {
+  clearTimeout(_gacTimer);
+  const list = document.getElementById(listId);
+  const q = input.value.trim().toLowerCase();
+  if (q.length < 2) { list.classList.remove('open'); return; }
+  
+  _gacTimer = setTimeout(() => {
+    // Search within _globalDisruptions
+    const results = _globalDisruptions.filter(g => {
+      const ap = typeof findAirport === 'function' ? findAirport(g.iata) : null;
+      if (!ap) return false;
+      return g.iata.toLowerCase().startsWith(q) || ap.city.toLowerCase().startsWith(q) || (ap.countryName || '').toLowerCase().startsWith(q);
+    }).slice(0, 8);
+    
+    if (!results.length) { list.classList.remove('open'); return; }
+    list.innerHTML = results.map((g, i) => {
+      const ap = findAirport(g.iata);
+      return `<div class="loc-ac-item" onmousedown="pickGlobalAirport(event,'${g.iata}','${listId}')">
+        <strong>${g.iata}</strong> — ${ap?.city || '?'} <small>${(g.stranded||0).toLocaleString()} stranded</small>
+      </div>`;
+    }).join('');
+    list.classList.add('open');
+  }, 150);
+  input.addEventListener('blur', () => setTimeout(() => list.classList.remove('open'), 200), { once: true });
+}
+
+function pickGlobalAirport(e, iata, listId) {
+  e.preventDefault();
+  const list = document.getElementById(listId);
+  list.classList.remove('open');
+  _globalFilterIata = iata;
+  const ap = typeof findAirport === 'function' ? findAirport(iata) : null;
+  const label = ap ? `${iata} — ${ap.city}` : iata;
+  // Update both PC and mobile inputs
+  ['fp-global-search', 'mfp-global-search'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = label;
+  });
+  ['fp-global-iata', 'mfp-global-iata'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = iata;
+  });
+  applyFilters();
+}
+
+function clearGlobalFilter() {
+  _globalFilterIata = '';
+  ['fp-global-search', 'mfp-global-search'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  ['fp-global-iata', 'mfp-global-iata'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
 }
 
 function generateArc(from, to, numPoints) {
@@ -854,17 +1023,14 @@ function clearDataPins(map) {
 }
 
 // ── GLOBAL DISRUPTION DOTS (purple) ──────────────────────
-function renderGlobalDisruptions(map) {
+function renderGlobalDisruptions(map, data) {
   if (!map) return;
-  // Clear old
-  _globalPins.forEach(m => { try { map.removeLayer(m); } catch(e) {} });
-  _globalPins = [];
+  const disruptions = data || _globalDisruptions;
+  if (!disruptions || !disruptions.length) return;
   
-  if (!_globalDisruptions || !_globalDisruptions.length) return;
+  const maxStranded = Math.max(..._globalDisruptions.map(g => g.stranded || 0), 1); // Always scale against full set
   
-  const maxStranded = Math.max(..._globalDisruptions.map(g => g.stranded || 0), 1);
-  
-  for (const g of _globalDisruptions) {
+  for (const g of disruptions) {
     // Look up lat/lng from airports.js
     const ap = typeof findAirport === 'function' ? findAirport(g.iata) : null;
     if (!ap) continue;
@@ -1172,9 +1338,11 @@ async function refreshSitrep() {
   const now=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
   const lbl=document.getElementById('last-updated-label'); if(lbl)lbl.textContent='Updated: '+now;
 
-  // Render global disruption dots on both maps
-  renderGlobalDisruptions(window._crisisMap);
-  renderGlobalDisruptions(window._mobileMap);
+  // Render global disruption dots on both maps (initial full set)
+  _globalPins.forEach(m => { [window._crisisMap, window._mobileMap].forEach(map => { if (map) try { map.removeLayer(m); } catch(e) {} }); });
+  _globalPins = [];
+  renderGlobalDisruptions(window._crisisMap, _globalDisruptions);
+  renderGlobalDisruptions(window._mobileMap, _globalDisruptions);
 }
 
 // ============================================================

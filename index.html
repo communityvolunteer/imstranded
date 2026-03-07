@@ -103,10 +103,10 @@ function googleTranslateInit() {
   <div class="sitrep-stat sitrep-stat--filter" id="ss-filter" onclick="toggleFilterPanel()">
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
   </div>
-  <div class="sitrep-stat" id="ss-stranded" onclick="filterMap('stranded')">
+  <div class="sitrep-stat" id="ss-stranded" onclick="showView('map');toggleMethodology()">
     <span class="sitrep-num" id="stat-stranded">847,773</span>
-    <div class="sitrep-label">Est. Stranded</div>
-    <div class="sitrep-sub">tap · filter map</div>
+    <div class="sitrep-label" id="stranded-label">Est. Stranded</div>
+    <div class="sitrep-sub" id="stranded-sub">tap · see how</div>
   </div>
   <div class="sitrep-stat sitrep-stat--help-money" id="ss-help-money" onclick="toggleHelpPanel()">
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
@@ -209,7 +209,10 @@ function googleTranslateInit() {
       </div>
       <div class="fp-section-body">
         <label class="fp-toggle"><input type="checkbox" id="fp-show-worldwide" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show on map</label>
-        <label class="fp-toggle"><input type="checkbox" id="fp-worldwide-verified" onchange="applyFilters()"><span class="fp-toggle-slider"></span>Verified only</label>
+        <label class="fp-toggle"><input type="checkbox" id="fp-worldwide-arcs" onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show route arcs</label>
+        <div class="fp-label">Where they're stranded</div>
+        <div class="loc-ac-wrap"><input type="text" id="fp-global-search" class="fp-select" style="cursor:text" placeholder="Type city or airport..." oninput="globalAirportAutocomplete(this,'fp-global-ac')" onfocus="this.select()"><div class="loc-ac-list" id="fp-global-ac"></div></div>
+        <input type="hidden" id="fp-global-iata">
       </div>
     </div>
 
@@ -526,9 +529,10 @@ function googleTranslateInit() {
 
   <!-- Stat bar: EST. STRANDED | FLIGHTS CANCELLED | OFFER SPARE ROOM (blue, + icon) -->
   <div id="m-statbar">
-    <div class="m-stat" id="mss-stranded" onclick="mFilterMap('stranded')">
+    <div class="m-stat" id="mss-stranded" onclick="mTab('methodology',this)">
       <span class="m-stat-num" id="m-stat-stranded">847,773</span>
-      <span class="m-stat-label">EST.<br>STRANDED</span>
+      <span class="m-stat-label" id="m-stranded-label">EST.<br>STRANDED</span>
+      <span class="m-stat-sub" id="m-stranded-sub" style="display:none"></span>
     </div>
     <div class="m-stat m-stat--offer" id="mss-offer" onclick="mTab('stranded',this)" style="background:rgba(236,52,82,.15);border-color:rgba(236,52,82,.2)">
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -662,7 +666,10 @@ function googleTranslateInit() {
           </div>
           <div class="fp-section-body">
             <label class="fp-toggle"><input type="checkbox" id="mfp-show-worldwide" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show on map</label>
-            <label class="fp-toggle"><input type="checkbox" id="mfp-worldwide-verified" onchange="applyFilters()"><span class="fp-toggle-slider"></span>Verified only</label>
+            <label class="fp-toggle"><input type="checkbox" id="mfp-worldwide-arcs" onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show route arcs</label>
+            <div class="fp-label">Where they're stranded</div>
+            <div class="loc-ac-wrap"><input type="text" id="mfp-global-search" class="fp-select" style="cursor:text" placeholder="Type city or airport..." oninput="globalAirportAutocomplete(this,'mfp-global-ac')" onfocus="this.select()"><div class="loc-ac-list" id="mfp-global-ac"></div></div>
+            <input type="hidden" id="mfp-global-iata">
           </div>
         </div>
         <button class="fp-clear" onclick="clearAllFilters()" style="width:100%;margin:.75rem 0">
