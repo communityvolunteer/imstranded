@@ -447,7 +447,7 @@ function applyFilters() {
           const circle = L.circleMarker([r.lat, r.lng], {
             radius, fillColor: '#a855f7', color: 'rgba(168,85,247,.4)', weight: 1.5, fillOpacity: 0.45,
           }).addTo(map);
-          circle.bindPopup('<div style="min-width:200px;font-family:Inter,sans-serif"><div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:#a855f7;margin-bottom:.3rem">TRYING TO REACH '+destCity.toUpperCase()+'</div><div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:.15rem">'+r.city+' ('+r.iata+')</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem;margin-bottom:.4rem;margin-top:.4rem"><div><div style="font-size:1.1rem;font-weight:800;color:#a855f7">'+r.cancelled.toLocaleString()+'</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase">Flights Cancelled</div></div><div><div style="font-size:1.1rem;font-weight:800;color:#a855f7">'+r.stranded.toLocaleString()+'</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase">Pax Stranded</div></div></div><div style="display:flex;flex-wrap:wrap;gap:3px">'+r.airlines.map(a => '<span style="padding:.15rem .4rem;background:rgba(168,85,247,.12);border-radius:4px;font-size:.6rem;color:#a855f7;font-weight:600">'+a+'</span>').join('')+'</div>'+(typeof buildEmbassyHTML==='function'?(buildEmbassyHTML(getEmbassiesForAirport(r.iata),4)):'')+'</div>', { className: 'dark-popup', maxWidth: 300 });
+          circle.bindPopup('<div style="min-width:200px;font-family:Inter,sans-serif"><div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:#a855f7;margin-bottom:.3rem">TRYING TO REACH '+destCity.toUpperCase()+'</div><div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:.15rem">'+r.city+' ('+r.iata+')</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem;margin-bottom:.4rem;margin-top:.4rem"><div><div style="font-size:1.1rem;font-weight:800;color:#a855f7">'+r.cancelled.toLocaleString()+'</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase">Flights Cancelled</div></div><div><div style="font-size:1.1rem;font-weight:800;color:#a855f7">'+r.stranded.toLocaleString()+'</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase">Pax Stranded</div></div></div><div style="display:flex;flex-wrap:wrap;gap:3px">'+r.airlines.map(a => '<span style="padding:.15rem .4rem;background:rgba(168,85,247,.12);border-radius:4px;font-size:.6rem;color:#a855f7;font-weight:600">'+a+'</span>').join('')+'</div>'+(typeof buildEmbassyButton==='function'?buildEmbassyButton(r.iata):'')+'</div>', { className: 'dark-popup', maxWidth: 300 });
           _globalPins.push(circle);
         }
 
@@ -456,7 +456,7 @@ function applyFilters() {
           const destDot = L.circleMarker([destAp.lat, destAp.lng], {
             radius: 8, fillColor: '#a855f7', color: '#fff', weight: 2.5, fillOpacity: 0.9,
           }).addTo(map);
-          destDot.bindPopup('<div style="min-width:240px;font-family:Inter,sans-serif"><div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:#a855f7;margin-bottom:.3rem">DESTINATION</div><div style="font-size:.95rem;font-weight:800;color:#fff;margin-bottom:.25rem">'+destCity+' ('+f.toIata+')</div><div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.6rem">'+(destAp.countryName||destAp.country||'')+'</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem;margin-bottom:.6rem"><div><div style="font-size:1.3rem;font-weight:800;color:#a855f7;line-height:1">'+totalRevStranded.toLocaleString()+'</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:.15rem">People Trying to Reach Here</div></div><div><div style="font-size:1.3rem;font-weight:800;color:#a855f7;line-height:1">'+totalRevCancelled.toLocaleString()+'</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:.15rem">Inbound Flights Cancelled</div></div></div><div style="font-size:.72rem;color:rgba(255,255,255,.55);line-height:1.5;margin-bottom:.5rem">'+totalRevStranded.toLocaleString()+' passengers across '+reverseData.length+' Middle East airports are stranded and unable to fly home to '+destCity+'.</div><div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:.3rem">Affected Airlines</div><div style="display:flex;flex-wrap:wrap;gap:3px">'+allAirlines.map(a => '<span style="padding:.15rem .4rem;background:rgba(168,85,247,.12);border-radius:4px;font-size:.6rem;color:#a855f7;font-weight:600">'+a+'</span>').join('')+'</div><div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.25);margin-top:.5rem;margin-bottom:.3rem">They\u2019re stuck at</div>'+reverseData.slice(0,6).map(r => '<div style="display:flex;justify-content:space-between;padding:.2rem 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.68rem"><span style="color:rgba(255,255,255,.6)">'+r.city+' ('+r.iata+')</span><span style="color:#a855f7;font-weight:700">'+r.stranded.toLocaleString()+'</span></div>').join('')+'</div>'+(typeof buildGlobalEmergencyHTML==='function'?buildGlobalEmergencyHTML():'')+'</div>', { className: 'dark-popup', maxWidth: 320 });
+          destDot.bindPopup('<div style="min-width:240px;font-family:Inter,sans-serif"><div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:#a855f7;margin-bottom:.3rem">DESTINATION</div><div style="font-size:.95rem;font-weight:800;color:#fff;margin-bottom:.25rem">'+destCity+' ('+f.toIata+')</div><div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.6rem">'+(destAp.countryName||destAp.country||'')+'</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem;margin-bottom:.6rem"><div><div style="font-size:1.3rem;font-weight:800;color:#a855f7;line-height:1">'+totalRevStranded.toLocaleString()+'</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:.15rem">People Trying to Reach Here</div></div><div><div style="font-size:1.3rem;font-weight:800;color:#a855f7;line-height:1">'+totalRevCancelled.toLocaleString()+'</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:.15rem">Inbound Flights Cancelled</div></div></div><div style="font-size:.72rem;color:rgba(255,255,255,.55);line-height:1.5;margin-bottom:.5rem">'+totalRevStranded.toLocaleString()+' passengers across '+reverseData.length+' Middle East airports are stranded and unable to fly home to '+destCity+'.</div><div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:.3rem">Affected Airlines</div><div style="display:flex;flex-wrap:wrap;gap:3px">'+allAirlines.map(a => '<span style="padding:.15rem .4rem;background:rgba(168,85,247,.12);border-radius:4px;font-size:.6rem;color:#a855f7;font-weight:600">'+a+'</span>').join('')+'</div><div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.25);margin-top:.5rem;margin-bottom:.3rem">They\u2019re stuck at</div>'+reverseData.slice(0,6).map(r => '<div style="display:flex;justify-content:space-between;padding:.2rem 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.68rem"><span style="color:rgba(255,255,255,.6)">'+r.city+' ('+r.iata+')</span><span style="color:#a855f7;font-weight:700">'+r.stranded.toLocaleString()+'</span></div>').join('')+'</div>'+(typeof buildGlobalEmergencyButton==='function'?buildGlobalEmergencyButton():'')+'</div>', { className: 'dark-popup', maxWidth: 320 });
           _globalPins.push(destDot);
         }
       });
@@ -1134,7 +1134,7 @@ function renderAirportPins(map, mode) {
           <span style="font-size:.7rem;font-weight:700;color:${col==='#ef4444'?'#ec3452':col==='#22c55e'?'#22c55e':'#fcd34d'}">Status: ${a.status}</span>
           <span style="font-size:.62rem;color:rgba(255,255,255,.45)">${a.updated !== '--:--' ? 'Updated '+a.updated : 'Seeded data'}</span>
         </div>
-        ${typeof buildEmbassyHTML === 'function' ? buildEmbassyHTML(getEmbassiesForAirport(a.iata || a.code), 4) : ''}
+        ${typeof buildEmbassyButton === 'function' ? buildEmbassyButton(a.iata || a.code) : ''}
       </div>
     `);
     _dataPins.airports.push(m);
@@ -1190,7 +1190,7 @@ function renderGlobalDisruptions(map, data) {
           ${(g.airlines || []).map(a => '<span style="padding:.15rem .4rem;background:rgba(168,85,247,.12);border-radius:4px;font-size:.6rem;color:#a855f7;font-weight:600">'+a+'</span>').join('')}
         </div>
         <div style="font-size:.6rem;color:rgba(255,255,255,.25);margin-top:.4rem">Routes via: ${hubs}</div>
-        ${typeof buildGlobalEmergencyHTML === 'function' ? buildGlobalEmergencyHTML() : ''}
+        ${typeof buildGlobalEmergencyButton === 'function' ? buildGlobalEmergencyButton() : ''}
       </div>
     `, { className: 'dark-popup', maxWidth: 300 });
     
@@ -1327,6 +1327,7 @@ function renderResources() {
   if (!grid) return;
   let html = '';
   if (_resFilter==='all'||_resFilter==='embassy') {
+    // Original country cards
     html += COUNTRIES.map(c => {
       const embs = Object.entries(c.embassy).map(([key,info]) => {
         const M = EMBASSY_META[key]||{flag:'',role:key.toUpperCase()};
@@ -1343,6 +1344,54 @@ function renderResources() {
         ${c.telegram?`<a class="telegram-link" href="${c.telegram}" target="_blank">→ Telegram group</a>`:''}
       </div>`;
     }).join('');
+    
+    // Full embassy directory from embassies.js
+    if (typeof EMBASSIES_BY_HOST !== 'undefined') {
+      html += '<div style="grid-column:1/-1;margin:1.5rem 0 .5rem"><div style="font-size:1.1rem;font-weight:800;color:#a855f7;margin-bottom:.25rem">Full Embassy Directory</div><div style="font-size:.8rem;color:rgba(255,255,255,.4)">Contacts for 25+ nationalities in each Middle East country</div></div>';
+      for (const [cc, host] of Object.entries(EMBASSIES_BY_HOST)) {
+        const entries = Object.entries(host.embassies);
+        html += `<div class="country-card warn" id="emb-${cc}" style="border-color:rgba(168,85,247,.2)">
+          <div class="card-header"><div class="card-name">${host.name}</div><span class="status-badge" style="background:rgba(168,85,247,.15);color:#a855f7">${entries.length} EMBASSIES</span></div>
+          ${host.emergency ? '<div style="font-size:.78rem;color:rgba(255,255,255,.5);margin:.3rem 0">Emergency: <strong style="color:#ec3452">'+host.emergency+'</strong></div>' : ''}
+          ${host.crisis_note ? '<div style="font-size:.72rem;color:rgba(255,255,255,.35);font-style:italic;margin-bottom:.4rem">'+host.crisis_note+'</div>' : ''}
+          <div class="embassy-section">`;
+        for (const [natCC, info] of entries) {
+          const nat = (typeof EMB_NATIONS !== 'undefined' && EMB_NATIONS[natCC]) || {flag:'',name:natCC};
+          const phone = info.phone || null;
+          html += `<div class="embassy-row">
+            <div style="flex:1">
+              <span class="embassy-name">${nat.flag} ${nat.name}</span>
+              ${info.note ? '<div class="embassy-note">'+info.note+'</div>' : ''}
+            </div>
+            <div style="display:flex;gap:.3rem;align-items:center">
+              ${phone ? '<a class="call-btn" href="tel:'+phone.replace(/[\s\-()]/g,'')+'">'+phone+'</a>' : ''}
+              ${info.web ? '<a href="'+info.web+'" target="_blank" style="font-size:.65rem;color:#a855f7;text-decoration:none;white-space:nowrap">[web]</a>' : ''}
+            </div>
+          </div>`;
+        }
+        html += '</div></div>';
+      }
+    }
+    
+    // Global emergency hotlines
+    if (typeof GLOBAL_EMERGENCY !== 'undefined') {
+      html += `<div class="country-card safe" id="emb-global" style="border-color:rgba(52,152,236,.2)">
+        <div class="card-header"><div class="card-name">Global Emergency Hotlines</div><span class="status-badge safe">24/7</span></div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.45);margin-bottom:.5rem">Call your country's crisis line from anywhere</div>
+        <div class="embassy-section">`;
+      for (const [natCC, info] of Object.entries(GLOBAL_EMERGENCY)) {
+        const nat = (typeof EMB_NATIONS !== 'undefined' && EMB_NATIONS[natCC]) || {flag:'',name:natCC};
+        html += `<div class="embassy-row">
+          <div style="flex:1"><span class="embassy-name">${nat.flag} ${nat.name}</span>${info.note ? '<div class="embassy-note">'+info.note+'</div>' : ''}</div>
+          <div style="display:flex;gap:.3rem;align-items:center">
+            <a class="call-btn" href="tel:${info.phone.replace(/[\s\-()]/g,'')}">${info.phone}</a>
+            ${info.web ? '<a href="'+info.web+'" target="_blank" style="font-size:.65rem;color:#a855f7;text-decoration:none">[web]</a>' : ''}
+          </div>
+        </div>`;
+      }
+      html += '</div></div>';
+    }
+
     html += WORLDWIDE.map(r=>`<div class="country-card safe" id="card-${r.id}"><div class="card-name" style="margin-bottom:.5rem">Worldwide: ${r.name}</div><div class="card-advisory">${r.note}</div>${r.contacts.map(c=>`<div class="info-row"><span class="info-label">${c.label}</span><span>${c.value}</span></div>`).join('')}</div>`).join('');
   }
   if (_resFilter==='all'||_resFilter==='ngo'||_resFilter==='info') {

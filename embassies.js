@@ -279,75 +279,55 @@ function getEmbassiesForAirport(iata) {
   return null;
 }
 
-// ── HELPER: build HTML for embassy contacts (collapsible) ──
-function buildEmbassyHTML(hostData, maxShow) {
-  if (!hostData || !hostData.embassies) return '';
-  const max = maxShow || 6;
-  const entries = Object.entries(hostData.embassies);
-  const shown = entries.slice(0, max);
-  const rest = entries.slice(max);
-  
-  let html = '<div style="margin-top:.6rem;border-top:1px solid rgba(255,255,255,.06);padding-top:.5rem">';
-  html += '<div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:.35rem">Embassy Contacts in ' + hostData.name + '</div>';
-  
-  if (hostData.emergency) {
-    html += '<div style="font-size:.65rem;color:rgba(255,255,255,.4);margin-bottom:.3rem">Emergency: <strong style="color:#ec3452">' + hostData.emergency + '</strong></div>';
-  }
-  if (hostData.crisis_note) {
-    html += '<div style="font-size:.62rem;color:rgba(255,255,255,.35);margin-bottom:.3rem;font-style:italic">' + hostData.crisis_note + '</div>';
-  }
-  
-  for (const [cc, info] of shown) {
-    const nat = EMB_NATIONS[cc] || {flag:'',name:cc};
-    html += '<div style="display:flex;align-items:center;gap:.4rem;padding:.2rem 0;border-bottom:1px solid rgba(255,255,255,.03)">';
-    html += '<span style="font-size:.75rem">' + nat.flag + '</span>';
-    html += '<div style="flex:1;min-width:0">';
-    html += '<div style="font-size:.65rem;font-weight:600;color:rgba(255,255,255,.6)">' + nat.name + '</div>';
-    if (info.phone) html += '<a href="tel:' + info.phone.replace(/\s/g,'') + '" style="font-size:.6rem;color:#3498ec;text-decoration:none">' + info.phone + '</a> ';
-    if (info.note) html += '<span style="font-size:.55rem;color:rgba(255,255,255,.3)">' + info.note + '</span>';
-    if (info.web) html += ' <a href="' + info.web + '" target="_blank" style="font-size:.55rem;color:rgba(168,85,247,.6);text-decoration:none">[web]</a>';
-    html += '</div></div>';
-  }
-  
-  if (rest.length) {
-    const uid = 'emb_' + Math.random().toString(36).slice(2,8);
-    html += '<div id="' + uid + '" style="display:none">';
-    for (const [cc, info] of rest) {
-      const nat = EMB_NATIONS[cc] || {flag:'',name:cc};
-      html += '<div style="display:flex;align-items:center;gap:.4rem;padding:.2rem 0;border-bottom:1px solid rgba(255,255,255,.03)">';
-      html += '<span style="font-size:.75rem">' + nat.flag + '</span>';
-      html += '<div style="flex:1">';
-      html += '<div style="font-size:.65rem;font-weight:600;color:rgba(255,255,255,.6)">' + nat.name + '</div>';
-      if (info.phone) html += '<a href="tel:' + info.phone.replace(/\s/g,'') + '" style="font-size:.6rem;color:#3498ec;text-decoration:none">' + info.phone + '</a> ';
-      if (info.note) html += '<span style="font-size:.55rem;color:rgba(255,255,255,.3)">' + info.note + '</span>';
-      if (info.web) html += ' <a href="' + info.web + '" target="_blank" style="font-size:.55rem;color:rgba(168,85,247,.6);text-decoration:none">[web]</a>';
-      html += '</div></div>';
-    }
-    html += '</div>';
-    html += '<div style="text-align:center;margin-top:.3rem"><a onclick="document.getElementById(\'' + uid + '\').style.display=\'block\';this.parentElement.style.display=\'none\'" style="font-size:.6rem;color:#a855f7;cursor:pointer;text-decoration:none">Show ' + rest.length + ' more embassies</a></div>';
-  }
-  
-  html += '</div>';
-  return html;
+// ── HELPER: get host country code for airport ──
+function getHostCountryForAirport(iata) {
+  if (typeof ME_AIRPORTS !== 'undefined' && ME_AIRPORTS[iata]) return ME_AIRPORTS[iata].country;
+  return null;
 }
 
-// ── HELPER: build global emergency HTML (for non-ME popups) ──
-function buildGlobalEmergencyHTML() {
-  let html = '<div style="margin-top:.6rem;border-top:1px solid rgba(255,255,255,.06);padding-top:.5rem">';
-  html += '<div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:.35rem">Emergency Hotlines</div>';
-  for (const [cc, info] of Object.entries(GLOBAL_EMERGENCY)) {
-    const nat = EMB_NATIONS[cc] || {flag:'',name:cc};
-    html += '<div style="display:flex;align-items:center;gap:.4rem;padding:.18rem 0">';
-    html += '<span style="font-size:.7rem">' + nat.flag + '</span>';
-    html += '<span style="font-size:.62rem;color:rgba(255,255,255,.5)">' + nat.name + ':</span> ';
-    html += '<a href="tel:' + info.phone.replace(/\s/g,'') + '" style="font-size:.62rem;color:#3498ec;text-decoration:none">' + info.phone + '</a>';
-    if (info.note) html += ' <span style="font-size:.55rem;color:rgba(255,255,255,.25)">' + info.note + '</span>';
-    html += '</div>';
+// ── HELPER: navigate to embassy section on resources page ──
+function goToEmbassy(cc) {
+  showView('resources');
+  // Click the Embassies filter
+  var btns = document.querySelectorAll('.filter-btn');
+  for (var i = 0; i < btns.length; i++) {
+    if (btns[i].textContent.trim() === 'Embassies') {
+      filterResources('embassy', btns[i]);
+      break;
+    }
   }
-  html += '<div style="margin-top:.3rem;text-align:center"><a href="#" onclick="showView(\'resources\');return false;" style="font-size:.62rem;color:#a855f7;text-decoration:none">View full resources page \u2192</a></div>';
-  html += '</div>';
-  return html;
+  if (cc) {
+    setTimeout(function() {
+      var el = document.getElementById('emb-' + cc);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 250);
+  }
 }
+
+// ── HELPER: build purple button for ME airport popups ──
+function buildEmbassyButton(iata) {
+  var cc = getHostCountryForAirport(iata);
+  var host = cc && EMBASSIES_BY_HOST[cc] ? EMBASSIES_BY_HOST[cc] : null;
+  var label = host ? 'Embassies in ' + host.name : 'Embassy Contacts';
+  var ccStr = cc || '';
+  return '<div style="margin-top:.6rem">' +
+    '<a href="javascript:void(0)" onclick="goToEmbassy(\'' + ccStr + '\')" ' +
+    'style="display:block;text-align:center;padding:.45rem .8rem;background:rgba(168,85,247,.15);' +
+    'border:1px solid rgba(168,85,247,.25);border-radius:8px;color:#a855f7;font-family:Inter,sans-serif;' +
+    'font-size:.7rem;font-weight:700;text-decoration:none;text-transform:uppercase;letter-spacing:.03em">' +
+    '\ud83c\udfdb\ufe0f ' + label + '</a></div>';
+}
+
+// ── HELPER: build purple button for non-ME popups ──
+function buildGlobalEmergencyButton() {
+  return '<div style="margin-top:.6rem">' +
+    '<a href="javascript:void(0)" onclick="goToEmbassy(\'global\')" ' +
+    'style="display:block;text-align:center;padding:.45rem .8rem;background:rgba(168,85,247,.15);' +
+    'border:1px solid rgba(168,85,247,.25);border-radius:8px;color:#a855f7;font-family:Inter,sans-serif;' +
+    'font-size:.7rem;font-weight:700;text-decoration:none;text-transform:uppercase;letter-spacing:.03em">' +
+    '\ud83c\udfdb\ufe0f Embassy Contacts & Resources</a></div>';
+}
+
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { EMB_NATIONS, EMBASSIES_BY_HOST, GLOBAL_EMERGENCY };
