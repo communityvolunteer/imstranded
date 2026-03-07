@@ -44,15 +44,13 @@
 
 <!-- SITREP BAR -->
 <div class="sitrep-bar" id="sitrep-bar">
+  <div class="sitrep-stat sitrep-stat--filter" id="ss-filter" onclick="toggleFilterPanel()">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+  </div>
   <div class="sitrep-stat" id="ss-stranded" onclick="filterMap('stranded')">
     <span class="sitrep-num" id="stat-stranded">847,773</span>
     <div class="sitrep-label">Est. Stranded</div>
     <div class="sitrep-sub">tap · filter map</div>
-  </div>
-  <div class="sitrep-stat sitrep-stat--filter" id="ss-filter" onclick="toggleFilterPanel()">
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
-    <div class="sitrep-label">Map Filters</div>
-    <div class="sitrep-sub">tap · open panel</div>
   </div>
   <div class="sitrep-stat sitrep-stat--help-money" id="ss-help-money" onclick="toggleHelpPanel()">
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
@@ -69,13 +67,6 @@
     <div class="sitrep-label" style="color:#3498ec">Offer Spare Room</div>
     <div class="sitrep-sub">tap · help someone</div>
   </div>
-  <button class="sitrep-refresh" onclick="refreshSitrep()" title="Refresh data">
-    <span id="refresh-icon" style="display:flex;align-items:center">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-      </svg>
-    </span>
-  </button>
 </div>
 
 <!-- MAP VIEW -->

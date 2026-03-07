@@ -782,7 +782,10 @@ transform: translateX(-50%);
 .fp-clear:hover{color:#fff;border-color:rgba(255,255,255,.2);}
 
 /* Sitrep filter stat */
-.sitrep-stat--filter{cursor:pointer;}
+.sitrep-stat--filter{
+  flex:0 0 320px !important;min-width:auto !important;cursor:pointer;
+  border-right:1px solid rgba(255,255,255,.08);
+}
 .sitrep-stat--filter svg{stroke:rgba(255,255,255,.5);transition:stroke .15s;}
 .sitrep-stat--filter:hover{background:rgba(255,255,255,.04);}
 .sitrep-stat--filter:hover svg{stroke:#fff;}
