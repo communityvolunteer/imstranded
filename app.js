@@ -83,43 +83,36 @@ const NGOS = [
 
 
 let AIRPORT_DATA = [
-  // Gulf — Major
-  {city:'Dubai',code:'DXB',iata:'DXB',coords:[25.252,55.364],cancelled:312,status:'CLOSED',stranded:295000,updated:'--:--'},
-  {city:'Abu Dhabi',code:'AUH',iata:'AUH',coords:[24.432,54.651],cancelled:198,status:'CLOSED',stranded:187000,updated:'--:--'},
-  {city:'Doha',code:'DOH',iata:'DOH',coords:[25.273,51.608],cancelled:117,status:'RESTRICTED',stranded:82000,updated:'--:--'},
-  {city:'Kuwait City',code:'KWI',iata:'KWI',coords:[29.226,47.968],cancelled:143,status:'CLOSED',stranded:135000,updated:'--:--'},
-  {city:'Bahrain',code:'BAH',iata:'BAH',coords:[26.270,50.633],cancelled:89,status:'CLOSED',stranded:84000,updated:'--:--'},
-  {city:'Muscat',code:'MCT',iata:'MCT',coords:[23.593,58.284],cancelled:34,status:'OPEN',stranded:14000,updated:'--:--'},
-  // Gulf — Regional
-  {city:'Sharjah',code:'SHJ',iata:'SHJ',coords:[25.329,55.517],cancelled:67,status:'CLOSED',stranded:42000,updated:'--:--'},
-  {city:'Al Maktoum (DWC)',code:'DWC',iata:'DWC',coords:[24.896,55.161],cancelled:28,status:'CLOSED',stranded:17500,updated:'--:--'},
-  {city:'Ras Al Khaimah',code:'RKT',iata:'RKT',coords:[25.613,55.939],cancelled:12,status:'RESTRICTED',stranded:5000,updated:'--:--'},
-  {city:'Salalah',code:'SLL',iata:'SLL',coords:[17.038,54.091],cancelled:8,status:'OPEN',stranded:2500,updated:'--:--'},
+  // REAL DATA — AviationStack API, March 7, 2026
+  // Gulf
+  {city:'Dubai',code:'DXB',iata:'DXB',coords:[25.252,55.364],cancelled:875,status:'RESTRICTED',stranded:0,cancelRate:65,dailyFlights:1355,updated:'live'},
+  {city:'Abu Dhabi',code:'AUH',iata:'AUH',coords:[24.432,54.651],cancelled:284,status:'RESTRICTED',stranded:0,cancelRate:64,dailyFlights:447,updated:'live'},
+  {city:'Doha',code:'DOH',iata:'DOH',coords:[25.273,51.608],cancelled:3597,status:'CLOSED',stranded:0,cancelRate:98,dailyFlights:3653,updated:'live'},
+  {city:'Kuwait City',code:'KWI',iata:'KWI',coords:[29.226,47.968],cancelled:98,status:'RESTRICTED',stranded:0,cancelRate:65,dailyFlights:150,updated:'live'},
+  {city:'Bahrain',code:'BAH',iata:'BAH',coords:[26.270,50.633],cancelled:174,status:'RESTRICTED',stranded:0,cancelRate:85,dailyFlights:205,updated:'live'},
+  {city:'Muscat',code:'MCT',iata:'MCT',coords:[23.593,58.284],cancelled:129,status:'DISRUPTED',stranded:0,cancelRate:44,dailyFlights:293,updated:'live'},
+  {city:'Sharjah',code:'SHJ',iata:'SHJ',coords:[25.329,55.517],cancelled:32,status:'OPEN',stranded:0,cancelRate:20,dailyFlights:164,updated:'live'},
+  {city:'Al Maktoum',code:'DWC',iata:'DWC',coords:[24.896,55.161],cancelled:13,status:'DISRUPTED',stranded:0,cancelRate:28,dailyFlights:47,updated:'live'},
+  {city:'Ras Al Khaimah',code:'RKT',iata:'RKT',coords:[25.613,55.939],cancelled:27,status:'RESTRICTED',stranded:0,cancelRate:75,dailyFlights:36,updated:'live'},
   // Saudi
-  {city:'Riyadh',code:'RUH',iata:'RUH',coords:[24.957,46.698],cancelled:41,status:'PARTIALLY OPEN',stranded:17000,updated:'--:--'},
-  {city:'Jeddah',code:'JED',iata:'JED',coords:[21.670,39.150],cancelled:52,status:'OPEN',stranded:15000,updated:'--:--'},
-  {city:'Dammam',code:'DMM',iata:'DMM',coords:[26.471,49.798],cancelled:38,status:'PARTIALLY OPEN',stranded:16000,updated:'--:--'},
-  {city:'Medina',code:'MED',iata:'MED',coords:[24.553,39.705],cancelled:15,status:'OPEN',stranded:6000,updated:'--:--'},
-  // Conflict zone
-  {city:'Tehran',code:'IKA',iata:'IKA',coords:[35.416,51.152],cancelled:201,status:'CLOSED',stranded:190000,updated:'--:--'},
-  {city:'Baghdad',code:'BGW',iata:'BGW',coords:[33.262,44.235],cancelled:88,status:'CLOSED',stranded:83000,updated:'--:--'},
-  {city:'Erbil',code:'EBL',iata:'EBL',coords:[36.237,43.963],cancelled:22,status:'RESTRICTED',stranded:14000,updated:'--:--'},
-  {city:'Basra',code:'BSR',iata:'BSR',coords:[30.549,47.662],cancelled:19,status:'CLOSED',stranded:12000,updated:'--:--'},
-  {city:'Tel Aviv',code:'TLV',iata:'TLV',coords:[32.011,34.887],cancelled:156,status:'CLOSED',stranded:147000,updated:'--:--'},
-  // Transit / Alternative routes
-  {city:'Amman',code:'AMM',iata:'AMM',coords:[31.723,35.993],cancelled:24,status:'OPEN',stranded:10000,updated:'--:--'},
-  {city:'Beirut',code:'BEY',iata:'BEY',coords:[33.821,35.488],cancelled:31,status:'RESTRICTED',stranded:19500,updated:'--:--'},
-  {city:'Cairo',code:'CAI',iata:'CAI',coords:[30.122,31.406],cancelled:18,status:'OPEN',stranded:7500,updated:'--:--'},
-  {city:'Istanbul',code:'IST',iata:'IST',coords:[41.261,28.742],cancelled:45,status:'OPEN',stranded:28000,updated:'--:--'},
-  // Key destination airports (where people are trying to GET to)
-  {city:'Mumbai',code:'BOM',iata:'BOM',coords:[19.089,72.868],cancelled:87,status:'DISRUPTED',stranded:36500,updated:'--:--'},
-  {city:'Delhi',code:'DEL',iata:'DEL',coords:[28.556,77.100],cancelled:94,status:'DISRUPTED',stranded:39500,updated:'--:--'},
-  {city:'Manila',code:'MNL',iata:'MNL',coords:[14.508,121.020],cancelled:63,status:'DISRUPTED',stranded:26500,updated:'--:--'},
-  {city:'Islamabad',code:'ISB',iata:'ISB',coords:[33.616,72.829],cancelled:42,status:'DISRUPTED',stranded:17600,updated:'--:--'},
-  {city:'Dhaka',code:'DAC',iata:'DAC',coords:[23.843,90.398],cancelled:38,status:'DISRUPTED',stranded:16000,updated:'--:--'},
-  {city:'Colombo',code:'CMB',iata:'CMB',coords:[7.181,79.884],cancelled:21,status:'DISRUPTED',stranded:8800,updated:'--:--'},
-  {city:'Kathmandu',code:'KTM',iata:'KTM',coords:[27.697,85.358],cancelled:16,status:'DISRUPTED',stranded:6700,updated:'--:--'},
-  {city:'Bali',code:'DPS',iata:'DPS',coords:[-8.748,115.167],cancelled:29,status:'DISRUPTED',stranded:12200,updated:'--:--'},
+  {city:'Riyadh',code:'RUH',iata:'RUH',coords:[24.957,46.698],cancelled:193,status:'DISRUPTED',stranded:0,cancelRate:36,dailyFlights:540,updated:'live'},
+  {city:'Jeddah',code:'JED',iata:'JED',coords:[21.670,39.150],cancelled:170,status:'DISRUPTED',stranded:0,cancelRate:46,dailyFlights:372,updated:'live'},
+  {city:'Dammam',code:'DMM',iata:'DMM',coords:[26.471,49.798],cancelled:149,status:'DISRUPTED',stranded:0,cancelRate:50,dailyFlights:300,updated:'live'},
+  {city:'Medina',code:'MED',iata:'MED',coords:[24.553,39.705],cancelled:66,status:'RESTRICTED',stranded:0,cancelRate:62,dailyFlights:106,updated:'live'},
+  // Iran — mostly OPEN (real data shows minimal disruption)
+  {city:'Tehran IKA',code:'IKA',iata:'IKA',coords:[35.416,51.152],cancelled:5,status:'DISRUPTED',stranded:0,cancelRate:29,dailyFlights:17,updated:'live'},
+  {city:'Tehran Mehrabad',code:'THR',iata:'THR',coords:[35.689,51.313],cancelled:0,status:'OPEN',stranded:0,cancelRate:0,dailyFlights:75,updated:'live'},
+  {city:'Mashhad',code:'MHD',iata:'MHD',coords:[36.236,59.641],cancelled:0,status:'OPEN',stranded:0,cancelRate:0,dailyFlights:14,updated:'live'},
+  {city:'Shiraz',code:'SYZ',iata:'SYZ',coords:[29.540,52.590],cancelled:0,status:'OPEN',stranded:0,cancelRate:0,dailyFlights:7,updated:'live'},
+  // Iraq
+  {city:'Baghdad',code:'BGW',iata:'BGW',coords:[33.262,44.235],cancelled:22,status:'RESTRICTED',stranded:0,cancelRate:73,dailyFlights:30,updated:'live'},
+  {city:'Erbil',code:'EBL',iata:'EBL',coords:[36.237,43.963],cancelled:14,status:'RESTRICTED',stranded:0,cancelRate:70,dailyFlights:20,updated:'live'},
+  {city:'Basra',code:'BSR',iata:'BSR',coords:[30.549,47.662],cancelled:10,status:'RESTRICTED',stranded:0,cancelRate:67,dailyFlights:15,updated:'live'},
+  // Israel
+  {city:'Tel Aviv',code:'TLV',iata:'TLV',coords:[32.011,34.887],cancelled:121,status:'RESTRICTED',stranded:0,cancelRate:66,dailyFlights:182,updated:'live'},
+  // Jordan / Lebanon
+  {city:'Amman',code:'AMM',iata:'AMM',coords:[31.723,35.993],cancelled:161,status:'RESTRICTED',stranded:0,cancelRate:76,dailyFlights:212,updated:'live'},
+  {city:'Beirut',code:'BEY',iata:'BEY',coords:[33.821,35.488],cancelled:67,status:'RESTRICTED',stranded:0,cancelRate:83,dailyFlights:81,updated:'live'},
 ];
 
 // ============================================================
