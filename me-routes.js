@@ -239,35 +239,87 @@ const AIRLINE_ROUTES = {
 // ── COMPUTE GLOBAL DISRUPTIONS ───────────────────────────
 // Given ME airport statuses, compute which global airports are affected
 
+// Airport traffic weights — relative daily international flights (approximate)
+// Used to distribute airline capacity proportionally instead of evenly
+var DEST_TRAFFIC = {
+  // Mega hubs (200+ daily intl flights)
+  LHR:400,JFK:300,LAX:250,CDG:350,FRA:350,SIN:300,HKG:300,NRT:250,ICN:250,
+  PEK:280,PVG:260,SYD:180,IST:500,AMS:300,
+  // Major international (100-200)
+  ORD:200,SFO:180,MIA:170,EWR:180,IAD:150,DFW:160,IAH:140,BOS:120,ATL:180,
+  DEL:220,BOM:200,BLR:100,MAA:90,HYD:80,
+  YYZ:180,YVR:120,YUL:100,
+  BCN:150,MAD:160,FCO:180,MXP:150,MUC:200,BER:130,DUS:100,
+  BKK:200,KUL:160,CGK:130,MNL:100,
+  ZRH:130,GVA:90,VIE:110,BRU:100,CPH:110,OSL:80,ARN:80,DUB:100,
+  GRU:150,EZE:80,MEX:120,
+  CAI:120,NBO:70,JNB:100,ADD:80,
+  // Medium (40-100)
+  LGW:120,MAN:80,EDI:40,BHX:30,NCL:15,GLA:25,BRS:20,
+  SEA:100,MCO:80,PHL:90,DTW:80,
+  NCE:50,LYS:30,HAM:50,VCE:40,AGP:30,LIS:60,
+  COK:60,AMD:50,CCU:60,TRV:30,
+  ISB:50,KHI:60,LHE:40,
+  DAC:60,CMB:50,KTM:30,
+  HND:200,KIX:100,TPE:100,
+  CAN:150,
+  DPS:70,HAN:50,SGN:60,
+  CPT:50,DUR:25,LOS:50,ABV:20,ACC:30,DAR:20,CMN:40,TUN:30,
+  AKL:60,MEL:120,BNE:60,PER:40,
+  WAW:70,PRG:60,BUD:50,OTP:40,ATH:70,
+  BOG:50,
+  // Smaller (10-40)
+  KZN:15,LED:40,SVO:120,DME:80,
+  TBS:15,EVN:12,GYD:20,TAS:15,
+  EBB:15,KGL:10,
+  KRK:25,SOF:15,BEG:20,SKG:15,HER:25,
+  SAW:40,
+  MRU:20,SEZ:8,DSS:12,ABJ:15,KAN:10,ALG:25,
+  HEL:50,FI:50,
+  ILO:8,
+  NZ:60,
+};
+
 function computeGlobalDisruptions(meAirportStatuses) {
-  // meAirportStatuses: { DXB: { status:'CLOSED', cancelRate:0.9 }, ... }
-  const globalMap = {}; // destIata → { cancelled, stranded, airlines, meHubs }
+  var globalMap = {};
 
-  // Transit multiplier: when DXB closes, people at JFK lose not just their DXB flight
-  // but their CONNECTION through DXB to India/Asia/Africa. Major hubs = 1.6x, small = 1.1x
-  const TRANSIT_MULT = { DXB:1.7, DOH:1.6, AUH:1.5, IST:1.4, RUH:1.2, JED:1.2, KWI:1.15, BAH:1.1 };
+  var TRANSIT_MULT = { DXB:1.7, DOH:1.6, AUH:1.5, IST:1.4, RUH:1.2, JED:1.2, KWI:1.15, BAH:1.1 };
 
-  for (const [airlineKey, airline] of Object.entries(AIRLINE_ROUTES)) {
-    for (const hub of airline.hubs) {
-      const hubStatus = meAirportStatuses[hub];
+  for (var airlineKey in AIRLINE_ROUTES) {
+    var airline = AIRLINE_ROUTES[airlineKey];
+    for (var h = 0; h < airline.hubs.length; h++) {
+      var hub = airline.hubs[h];
+      var hubStatus = meAirportStatuses[hub];
       if (!hubStatus || hubStatus.cancelRate < 0.05) continue;
-      const meHub = ME_AIRPORTS[hub];
+      var meHub = ME_AIRPORTS[hub];
       if (!meHub) continue;
 
-      const totalDests = airline.destinations.length || 1;
-      const flightsPerDest = Math.max(1, Math.round((meHub.dailyFlights * 0.7) / totalDests));
-      const transitMult = TRANSIT_MULT[hub] || 1.1;
-
-      for (const dest of airline.destinations) {
+      // Calculate total traffic weight for this airline's destinations
+      var totalWeight = 0;
+      var destWeights = [];
+      for (var d = 0; d < airline.destinations.length; d++) {
+        var dest = airline.destinations[d];
         if (ME_AIRPORTS[dest]) continue;
+        var w = DEST_TRAFFIC[dest] || 15; // default small airport
+        totalWeight += w;
+        destWeights.push({ iata: dest, weight: w });
+      }
+      if (totalWeight === 0) continue;
+
+      var hubCapacity = meHub.dailyFlights * 0.7; // airline's share of hub
+      var transitMult = TRANSIT_MULT[hub] || 1.1;
+
+      for (var i = 0; i < destWeights.length; i++) {
+        var dest = destWeights[i].iata;
+        var share = destWeights[i].weight / totalWeight;
+        var flightsForDest = Math.max(0.5, hubCapacity * share);
+        var cancelledFlights = Math.round(flightsForDest * hubStatus.cancelRate * 10) / 10; // keep decimal precision
 
         if (!globalMap[dest]) {
           globalMap[dest] = { cancelled: 0, stranded: 0, airlines: new Set(), meHubs: new Set() };
         }
-        const cancelledFlights = Math.round(flightsPerDest * hubStatus.cancelRate);
         globalMap[dest].cancelled += cancelledFlights;
-        // Stranded includes transit passengers who were connecting THROUGH this hub
-        globalMap[dest].stranded += Math.round(cancelledFlights * (meHub.avgPax || 180) * transitMult);
+        globalMap[dest].stranded += cancelledFlights * (meHub.avgPax || 180) * transitMult;
         globalMap[dest].airlines.add(airline.name);
         globalMap[dest].meHubs.add(hub);
       }
@@ -275,15 +327,17 @@ function computeGlobalDisruptions(meAirportStatuses) {
   }
 
   return Object.entries(globalMap)
-    .map(([iata, d]) => ({
-      iata,
-      cancelled: d.cancelled,
-      stranded: d.stranded,
-      airlines: [...d.airlines],
-      me_hubs: [...d.meHubs],
-    }))
-    .filter(d => d.cancelled > 0)
-    .sort((a, b) => b.stranded - a.stranded);
+    .map(function(e) {
+      return {
+        iata: e[0],
+        cancelled: Math.round(e[1].cancelled),
+        stranded: Math.round(e[1].stranded),
+        airlines: Array.from(e[1].airlines),
+        me_hubs: Array.from(e[1].meHubs),
+      };
+    })
+    .filter(function(d) { return d.cancelled > 0; })
+    .sort(function(a, b) { return b.stranded - a.stranded; });
 }
 
 // ── COMPUTE REVERSE DISRUPTIONS (Heading To) ─────────────
@@ -293,54 +347,58 @@ function computeGlobalDisruptions(meAirportStatuses) {
 // - Weighted by hub's outbound capacity share to this specific destination
 // - Accounts for repatriation flights reducing the stuck count
 function computeReverseDisruptions(destIata, meAirportStatuses) {
-  const results = [];
+  var results = [];
+  var MAJOR_INTL = ['LHR','JFK','LAX','CDG','FRA','SIN','HKG','NRT','ICN','SYD','ORD','YYZ','AMS','IST'];
+  var directPaxRate = MAJOR_INTL.indexOf(destIata) >= 0 ? 0.40 : 0.65;
+  var destWeight = DEST_TRAFFIC[destIata] || 15;
 
-  // What fraction of passengers on a HUB→DEST flight are actually going to DEST?
-  // (vs connecting through DEST to somewhere else)
-  // Major international airports = lower direct %, small airports = higher direct %
-  const MAJOR_INTL = ['LHR','JFK','LAX','CDG','FRA','SIN','HKG','NRT','ICN','SYD','ORD','YYZ','AMS','IST'];
-  const directPaxRate = MAJOR_INTL.includes(destIata) ? 0.40 : 0.65;
-
-  for (const [airlineKey, airline] of Object.entries(AIRLINE_ROUTES)) {
-    if (!airline.destinations.includes(destIata)) continue;
+  for (var airlineKey in AIRLINE_ROUTES) {
+    var airline = AIRLINE_ROUTES[airlineKey];
+    if (airline.destinations.indexOf(destIata) < 0) continue;
     
-    for (const hub of airline.hubs) {
-      const hubStatus = meAirportStatuses[hub];
+    for (var h = 0; h < airline.hubs.length; h++) {
+      var hub = airline.hubs[h];
+      var hubStatus = meAirportStatuses[hub];
       if (!hubStatus || hubStatus.cancelRate < 0.05) continue;
-      const meHub = ME_AIRPORTS[hub];
+      var meHub = ME_AIRPORTS[hub];
       if (!meHub) continue;
       
-      // Hub's outbound capacity to this destination
-      const totalDests = airline.destinations.length || 1;
-      const flightsPerDest = Math.max(1, Math.round((meHub.dailyFlights * 0.7) / totalDests));
-      const cancelledFlights = Math.round(flightsPerDest * hubStatus.cancelRate);
-      // Only direct passengers — people at THIS hub who want to reach THIS destination
-      const stranded = Math.round(cancelledFlights * (meHub.avgPax || 180) * directPaxRate);
+      // Calculate this destination's proportional share of hub flights
+      var totalWeight = 0;
+      for (var d = 0; d < airline.destinations.length; d++) {
+        var dd = airline.destinations[d];
+        if (ME_AIRPORTS[dd]) continue;
+        totalWeight += (DEST_TRAFFIC[dd] || 15);
+      }
+      if (totalWeight === 0) continue;
       
-      const existing = results.find(r => r.iata === hub);
+      var share = destWeight / totalWeight;
+      var flightsForDest = Math.max(0.5, meHub.dailyFlights * 0.7 * share);
+      var cancelledFlights = Math.round(flightsForDest * hubStatus.cancelRate * 10) / 10;
+      var stranded = Math.round(cancelledFlights * (meHub.avgPax || 180) * directPaxRate);
+      
+      var existing = null;
+      for (var r = 0; r < results.length; r++) {
+        if (results[r].iata === hub) { existing = results[r]; break; }
+      }
       if (existing) {
         existing.cancelled += cancelledFlights;
         existing.stranded += stranded;
         existing.airlines.add(airline.name);
       } else {
         results.push({
-          iata: hub,
-          city: meHub.city,
-          lat: meHub.lat,
-          lng: meHub.lng,
-          cancelled: cancelledFlights,
-          stranded,
-          airlines: new Set([airline.name]),
-          dest: destIata,
+          iata: hub, city: meHub.city, lat: meHub.lat, lng: meHub.lng,
+          cancelled: cancelledFlights, stranded: stranded,
+          airlines: new Set([airline.name]), dest: destIata,
         });
       }
     }
   }
   
   return results
-    .map(r => ({ ...r, airlines: [...r.airlines] }))
-    .filter(r => r.cancelled > 0)
-    .sort((a, b) => b.stranded - a.stranded);
+    .map(function(r) { return { iata:r.iata, city:r.city, lat:r.lat, lng:r.lng, cancelled:Math.round(r.cancelled), stranded:Math.round(r.stranded), airlines:Array.from(r.airlines), dest:r.dest }; })
+    .filter(function(r) { return r.cancelled > 0; })
+    .sort(function(a, b) { return b.stranded - a.stranded; });
 }
 
 // Export for both Node (scraper) and browser (frontend)
