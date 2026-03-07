@@ -38,7 +38,7 @@ function googleTranslateInit() {
       skip.style.zIndex = '-999';
     }
     // Undo body top push
-    if (document.body.style.top && document.body.style.top !== '0px') {
+    if (document.body && document.body.style.top && document.body.style.top !== '0px') {
       document.body.style.top = '0px';
     }
   });
