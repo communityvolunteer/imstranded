@@ -17,12 +17,19 @@
 <link rel="stylesheet" href="styles.css">
 <script>
 function googleTranslateInit() {
+  console.log('[Translate] googleTranslateInit fired — cookies:', document.cookie);
   new google.translate.TranslateElement({
     pageLanguage: 'en',
     includedLanguages: 'ar,bn,de,el,en,es,fa,tl,fr,hi,id,it,ja,ko,ms,ne,nl,pl,pt,ro,ru,si,ta,te,th,tr,uk,ur,vi,zh-CN',
     layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
     autoDisplay: false
   }, 'google_translate_element');
+  // Log combo state after init
+  setTimeout(function() {
+    const combo = document.querySelector('.goog-te-combo');
+    console.log('[Translate] Combo exists:', !!combo);
+    if (combo) console.log('[Translate] Combo value:', combo.value, 'options:', combo.options.length);
+  }, 2000);
 }
 // Hide Google Translate banner without killing the translation engine
 (function() {

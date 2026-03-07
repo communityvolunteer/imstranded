@@ -610,37 +610,53 @@ function toggleTranslate() {
 }
 
 function setTranslation(langCode) {
+  console.log('[Translate] Setting language to:', langCode);
+  console.log('[Translate] Cookies BEFORE clear:', document.cookie);
+
   // Close panel
   const overlay = document.getElementById('translate-overlay');
   if (overlay) overlay.classList.remove('open');
 
-  // Nuke ALL existing googtrans cookies first
+  // Nuke ALL existing googtrans cookies — try every possible domain variation
   const expiry = ';expires=Thu, 01 Jan 1970 00:00:00 GMT';
-  ['', location.hostname, '.' + location.hostname].forEach(d => {
-    const dm = d ? ';domain=' + d : '';
-    document.cookie = 'googtrans=' + expiry + ';path=/' + dm;
+  const domains = ['', location.hostname, '.' + location.hostname];
+  const paths = ['/', ''];
+  domains.forEach(d => {
+    paths.forEach(p => {
+      const dm = d ? ';domain=' + d : '';
+      const pm = p ? ';path=' + p : '';
+      document.cookie = 'googtrans=' + expiry + pm + dm;
+      console.log('[Translate] Clearing: googtrans' + pm + dm);
+    });
   });
 
+  console.log('[Translate] Cookies AFTER clear:', document.cookie);
+
   if (langCode === 'en') {
-    // Just reload with cleared cookies — page comes back in English
+    console.log('[Translate] Reloading for English (no cookie)');
     location.reload();
     return;
   }
 
-  // Set fresh cookie for target language on all domain variations
+  // Set fresh cookie for target language
   const val = '/en/' + langCode;
-  document.cookie = 'googtrans=' + val + ';path=/';
-  document.cookie = 'googtrans=' + val + ';path=/;domain=' + location.hostname;
-  document.cookie = 'googtrans=' + val + ';path=/;domain=.' + location.hostname;
+  domains.forEach(d => {
+    const dm = d ? ';domain=' + d : '';
+    document.cookie = 'googtrans=' + val + ';path=/' + dm;
+    console.log('[Translate] Setting: googtrans=' + val + ';path=/' + dm);
+  });
 
-  // Reload — Google Translate reads the cookie and translates on load
+  console.log('[Translate] Cookies AFTER set:', document.cookie);
+  console.log('[Translate] Reloading...');
   location.reload();
 }
 
 // On page load, highlight the active language from cookie
 function _syncLangGrid() {
+  console.log('[Translate] Sync — cookies:', document.cookie);
   const match = document.cookie.match(/googtrans=\/en\/([a-z-]+)/i);
   const activeLang = match ? match[1] : 'en';
+  console.log('[Translate] Active lang:', activeLang);
   document.querySelectorAll('.lang-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.lang === activeLang);
   });
@@ -2390,6 +2406,8 @@ function initStrandedRealtime() {
 
 
 window.addEventListener('DOMContentLoaded',()=>{
+  console.log('[Translate] PAGE LOAD — all cookies:', document.cookie);
+  console.log('[Translate] PAGE LOAD — googtrans match:', document.cookie.match(/googtrans=[^;]*/g));
   if(isMob()){ initMobile(); }
   else { showView('map'); }
   // Init autocomplete on both desktop and mobile location fields
