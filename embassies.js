@@ -247,6 +247,584 @@ var EMBASSIES_BY_HOST = {
       IN:{phone:'+961-5-958-790'},
     }
   },
+  AM: { // Armenia
+    name:'Armenia',
+    emergency:'911',
+    embassies:{
+      US:{phone:'+374-10-464-700'},
+    }
+  },
+  AR: { // Argentina
+    name:'Argentina',
+    emergency:'911',
+    embassies:{
+      US:{phone:'+54-11-5777-4533'},
+    }
+  },
+  AT: { // Austria
+    name:'Austria',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+43-1-31339-0'},
+    }
+  },
+  AU: { // Australia
+    name:'Australia',
+    emergency:'000',
+    embassies:{
+      US:{phone:'+61-2-6214-5600'},
+      UK:{phone:'+61-2-6270-6666'},
+      IN:{phone:'+61-2-6273-3999'},
+      PH:{phone:'+61-2-6273-2535'},
+    }
+  },
+  AZ: { // Azerbaijan
+    name:'Azerbaijan',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+994-12-488-3300'},
+      UK:{phone:'+994-12-437-7878'},
+    }
+  },
+  BD: { // Bangladesh
+    name:'Bangladesh',
+    emergency:'999',
+    embassies:{
+      US:{phone:'+880-2-5566-2000'},
+      UK:{phone:'+880-2-8961-2000'},
+    }
+  },
+  BE: { // Belgium
+    name:'Belgium',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+32-2-811-4000'},
+    }
+  },
+  BG: { // Bulgaria
+    name:'Bulgaria',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+359-2-937-5100'},
+    }
+  },
+  BR: { // Brazil
+    name:'Brazil',
+    emergency:'190',
+    embassies:{
+      US:{phone:'+55-61-3312-7000'},
+      UK:{phone:'+55-61-3329-2300'},
+      IN:{phone:'+55-61-3248-4006'},
+      PH:{phone:'+55-61-3034-2424'},
+    }
+  },
+  CA: { // Canada
+    name:'Canada',
+    emergency:'911',
+    embassies:{
+      US:{phone:'+1-613-238-5335'},
+      UK:{phone:'+1-613-237-1530'},
+      IN:{phone:'+1-613-744-3751'},
+      PH:{phone:'+1-613-233-1121'},
+    }
+  },
+  CH: { // Switzerland
+    name:'Switzerland',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+41-31-357-7011'},
+    }
+  },
+  CN: { // China
+    name:'China',
+    emergency:'110',
+    embassies:{
+      US:{phone:'+86-10-8531-3000'},
+      UK:{phone:'+86-10-5192-4000'},
+      IN:{phone:'+86-10-6532-1908'},
+    }
+  },
+  CO: { // Colombia
+    name:'Colombia',
+    emergency:'123',
+    embassies:{
+      US:{phone:'+57-1-275-2000'},
+    }
+  },
+  CY: { // Cyprus
+    name:'Cyprus',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+357-22-393-939'},
+    }
+  },
+  CZ: { // Czech Republic
+    name:'Czech Republic',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+420-257-022-000'},
+    }
+  },
+  DE: { // Germany
+    name:'Germany',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+49-30-8305-0'},
+      UK:{phone:'+49-30-204-570'},
+      IN:{phone:'+49-30-257-950'},
+      PH:{phone:'+49-30-864-9500'},
+    }
+  },
+  DK: { // Denmark
+    name:'Denmark',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+45-33-41-71-00'},
+    }
+  },
+  DZ: { // Algeria
+    name:'Algeria',
+    emergency:'17',
+    embassies:{
+      US:{phone:'+213-770-08-2000'},
+    }
+  },
+  EG: { // Egypt
+    name:'Egypt',
+    emergency:'122',
+    embassies:{
+      US:{phone:'+20-2-2797-3300'},
+      UK:{phone:'+20-2-2791-6000'},
+    }
+  },
+  ES: { // Spain
+    name:'Spain',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+34-91-587-2200'},
+      UK:{phone:'+34-91-714-6300'},
+      PH:{phone:'+34-91-782-3830'},
+    }
+  },
+  ET: { // Ethiopia
+    name:'Ethiopia',
+    emergency:'911',
+    embassies:{
+      US:{phone:'+251-11-130-6000'},
+      IN:{phone:'+251-11-123-5539'},
+    }
+  },
+  FI: { // Finland
+    name:'Finland',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+358-9-6162-5100'},
+    }
+  },
+  FR: { // France
+    name:'France',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+33-1-4312-2222'},
+      UK:{phone:'+33-1-4451-3100'},
+      IN:{phone:'+33-1-4050-7070'},
+      PH:{phone:'+33-1-4414-5700'},
+    }
+  },
+  GB: { // United Kingdom
+    name:'United Kingdom',
+    emergency:'999',
+    embassies:{
+      US:{phone:'+44-20-7499-9000'},
+      IN:{phone:'+44-20-7632-3149'},
+      PH:{phone:'+44-20-7937-1600'},
+      PK:{phone:'+44-20-7664-9200'},
+      BD:{phone:'+44-20-7584-0081'},
+      AU:{phone:'+44-20-7379-4334'},
+      CA:{phone:'+44-20-7004-6000'},
+      DE:{phone:'+44-20-7824-1300'},
+      FR:{phone:'+44-20-7073-1000'},
+    }
+  },
+  GE: { // Georgia
+    name:'Georgia',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+995-32-227-7000'},
+      UK:{phone:'+995-32-227-4747'},
+    }
+  },
+  GH: { // Ghana
+    name:'Ghana',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+233-30-274-1000'},
+    }
+  },
+  GR: { // Greece
+    name:'Greece',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+30-210-720-2414'},
+      UK:{phone:'+30-210-727-2600'},
+    }
+  },
+  HK: { // Hong Kong
+    name:'Hong Kong',
+    emergency:'999',
+    embassies:{
+      US:{phone:'+852-2523-9011'},
+    }
+  },
+  HU: { // Hungary
+    name:'Hungary',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+36-1-475-4400'},
+    }
+  },
+  ID: { // Indonesia
+    name:'Indonesia',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+62-21-5083-1000'},
+      UK:{phone:'+62-21-2356-5200'},
+      IN:{phone:'+62-21-5204-150'},
+      PH:{phone:'+62-21-315-9036'},
+    }
+  },
+  IE: { // Ireland
+    name:'Ireland',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+353-1-668-8777'},
+    }
+  },
+  IN: { // India
+    name:'India',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+91-11-2419-8000'},
+      UK:{phone:'+91-11-2419-2100'},
+      AU:{phone:'+91-11-4139-9900'},
+      CA:{phone:'+91-11-4178-2000'},
+      PH:{phone:'+63-2-8843-1668',note:'Manila'},
+      BD:{phone:'+91-11-2412-8512'},
+      NP:{phone:'+91-11-2347-6819'},
+      LK:{phone:'+91-11-2301-0201'},
+    }
+  },
+  IT: { // Italy
+    name:'Italy',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+39-06-4674-1'},
+      UK:{phone:'+39-06-4220-0001'},
+      PH:{phone:'+39-06-3608-6401'},
+    }
+  },
+  JP: { // Japan
+    name:'Japan',
+    emergency:'110',
+    embassies:{
+      US:{phone:'+81-3-3224-5000'},
+      UK:{phone:'+81-3-5211-1100'},
+      IN:{phone:'+81-3-3262-2391'},
+      PH:{phone:'+81-3-5562-1600'},
+    }
+  },
+  KE: { // Kenya
+    name:'Kenya',
+    emergency:'999',
+    embassies:{
+      US:{phone:'+254-20-363-6000'},
+      UK:{phone:'+254-20-287-3000'},
+      IN:{phone:'+254-20-222-5563'},
+    }
+  },
+  KR: { // South Korea
+    name:'South Korea',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+82-2-397-4114'},
+      UK:{phone:'+82-2-3210-5500'},
+      IN:{phone:'+82-2-798-4257'},
+      PH:{phone:'+82-2-796-7387'},
+    }
+  },
+  LK: { // Sri Lanka
+    name:'Sri Lanka',
+    emergency:'119',
+    embassies:{
+      US:{phone:'+94-11-249-8500'},
+      UK:{phone:'+94-11-539-0639'},
+    }
+  },
+  MA: { // Morocco
+    name:'Morocco',
+    emergency:'19',
+    embassies:{
+      US:{phone:'+212-522-642-000'},
+    }
+  },
+  MU: { // Mauritius
+    name:'Mauritius',
+    emergency:'999',
+    embassies:{
+      US:{phone:'+230-202-4400'},
+    }
+  },
+  MX: { // Mexico
+    name:'Mexico',
+    emergency:'911',
+    embassies:{
+      US:{phone:'+52-55-5080-2000'},
+    }
+  },
+  MY: { // Malaysia
+    name:'Malaysia',
+    emergency:'999',
+    embassies:{
+      US:{phone:'+60-3-2168-5000'},
+      UK:{phone:'+60-3-2170-2200'},
+      IN:{phone:'+60-3-2093-3510'},
+      PH:{phone:'+60-3-2148-4233'},
+    }
+  },
+  NG: { // Nigeria
+    name:'Nigeria',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+234-9-461-4000'},
+      UK:{phone:'+234-9-462-2200'},
+      IN:{phone:'+234-9-413-1824'},
+    }
+  },
+  NL: { // Netherlands
+    name:'Netherlands',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+31-70-310-2209'},
+      UK:{phone:'+31-70-427-0427'},
+      IN:{phone:'+31-70-346-9771'},
+    }
+  },
+  NO: { // Norway
+    name:'Norway',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+47-21-30-85-40'},
+    }
+  },
+  NP: { // Nepal
+    name:'Nepal',
+    emergency:'100',
+    embassies:{
+      US:{phone:'+977-1-423-4000'},
+      UK:{phone:'+977-1-423-5100'},
+    }
+  },
+  NZ: { // New Zealand
+    name:'New Zealand',
+    emergency:'111',
+    embassies:{
+      US:{phone:'+64-4-462-6000'},
+      UK:{phone:'+64-4-924-2888'},
+      IN:{phone:'+64-4-473-6390'},
+    }
+  },
+  PH: { // Philippines
+    name:'Philippines',
+    emergency:'911',
+    embassies:{
+      US:{phone:'+63-2-5301-2000'},
+      UK:{phone:'+63-2-8858-2200'},
+      IN:{phone:'+63-2-8843-1668'},
+    }
+  },
+  PK: { // Pakistan
+    name:'Pakistan',
+    emergency:'1122',
+    embassies:{
+      US:{phone:'+92-51-201-4000'},
+      UK:{phone:'+92-51-201-2000'},
+    }
+  },
+  PL: { // Poland
+    name:'Poland',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+48-22-504-2000'},
+    }
+  },
+  PT: { // Portugal
+    name:'Portugal',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+351-21-727-3300'},
+    }
+  },
+  RO: { // Romania
+    name:'Romania',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+40-21-200-3300'},
+    }
+  },
+  RS: { // Serbia
+    name:'Serbia',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+381-11-706-4000'},
+    }
+  },
+  RU: { // Russia
+    name:'Russia',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+7-495-728-5000'},
+      UK:{phone:'+7-495-956-7200'},
+      IN:{phone:'+7-495-783-7535'},
+    }
+  },
+  RW: { // Rwanda
+    name:'Rwanda',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+250-252-596-400'},
+    }
+  },
+  SE: { // Sweden
+    name:'Sweden',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+46-8-783-5300'},
+    }
+  },
+  SG: { // Singapore
+    name:'Singapore',
+    emergency:'999',
+    embassies:{
+      US:{phone:'+65-6476-9100'},
+      UK:{phone:'+65-6424-4200'},
+      IN:{phone:'+65-6737-6777'},
+      PH:{phone:'+65-6737-3977'},
+    }
+  },
+  TH: { // Thailand
+    name:'Thailand',
+    emergency:'191',
+    embassies:{
+      US:{phone:'+66-2-205-4000'},
+      UK:{phone:'+66-2-305-8333'},
+      IN:{phone:'+66-2-258-0300'},
+    }
+  },
+  TN: { // Tunisia
+    name:'Tunisia',
+    emergency:'197',
+    embassies:{
+      US:{phone:'+216-71-107-000'},
+    }
+  },
+  TR: { // Turkey
+    name:'Turkey',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+90-312-455-5555'},
+      UK:{phone:'+90-312-455-3344'},
+      IN:{phone:'+90-312-438-2195'},
+    }
+  },
+  TW: { // Taiwan
+    name:'Taiwan',
+    emergency:'110',
+    embassies:{
+      US:{phone:'+886-2-2162-2000'},
+    }
+  },
+  TZ: { // Tanzania
+    name:'Tanzania',
+    emergency:'112',
+    embassies:{
+      US:{phone:'+255-22-229-4000'},
+    }
+  },
+  UG: { // Uganda
+    name:'Uganda',
+    emergency:'999',
+    embassies:{
+      US:{phone:'+256-414-259-791'},
+    }
+  },
+  US: { // United States
+    name:'United States',
+    emergency:'911',
+    embassies:{
+      UK:{phone:'+1-202-588-6500'},
+      IN:{phone:'+1-202-939-7000'},
+      PH:{phone:'+1-202-467-9300'},
+      PK:{phone:'+1-202-243-6500'},
+      BD:{phone:'+1-202-244-0183'},
+      AU:{phone:'+1-202-797-3000'},
+      CA:{phone:'+1-202-682-1740'},
+      DE:{phone:'+1-202-298-4000'},
+      FR:{phone:'+1-202-944-6000'},
+      JP:{phone:'+1-202-238-6700'},
+      KR:{phone:'+1-202-939-5600'},
+      CN:{phone:'+1-202-495-2266'},
+    }
+  },
+  UZ: { // Uzbekistan
+    name:'Uzbekistan',
+    emergency:'101',
+    embassies:{
+      US:{phone:'+998-78-120-5450'},
+    }
+  },
+  VN: { // Vietnam
+    name:'Vietnam',
+    emergency:'113',
+    embassies:{
+      US:{phone:'+84-24-3850-5000'},
+    }
+  },
+  ZA: { // South Africa
+    name:'South Africa',
+    emergency:'10111',
+    embassies:{
+      US:{phone:'+27-12-431-4000'},
+      UK:{phone:'+27-12-421-7500'},
+      IN:{phone:'+27-12-342-5392'},
+    }
+  },
+  SC: { // Seychelles
+    name:'Seychelles',
+    emergency:'999',
+    embassies:{
+      UK:{phone:'+248-428-3666'},
+      FR:{phone:'+248-438-2500'},
+      IN:{phone:'+248-461-0301'},
+    }
+  },
+  SN: { // Senegal
+    name:'Senegal',
+    emergency:'17',
+    embassies:{
+      US:{phone:'+221-33-879-4000'},
+      FR:{phone:'+221-33-839-5100'},
+      IN:{phone:'+221-33-849-3571'},
+    }
+  },
+  CI: { // Ivory Coast
+    name:'Ivory Coast',
+    emergency:'110',
+    embassies:{
+      US:{phone:'+225-27-22-494-000'},
+      FR:{phone:'+225-27-20-200-400'},
+      IN:{phone:'+225-27-22-428-051'},
+    }
+  },
 };
 
 // ── GLOBAL EMERGENCY HOTLINES (for popups on non-ME airports) ──
@@ -281,7 +859,13 @@ function getEmbassiesForAirport(iata) {
 
 // ── HELPER: get host country code for airport ──
 function getHostCountryForAirport(iata) {
+  // Check ME airports first
   if (typeof ME_AIRPORTS !== 'undefined' && ME_AIRPORTS[iata]) return ME_AIRPORTS[iata].country;
+  // Check global airports via airports.js
+  if (typeof findAirport === 'function') {
+    var ap = findAirport(iata);
+    if (ap && ap.countryCode && EMBASSIES_BY_HOST[ap.countryCode]) return ap.countryCode;
+  }
   return null;
 }
 
