@@ -304,14 +304,14 @@ function goToEmbassy(cc) {
   }
 }
 
-// ── HELPER: build purple button for ME airport popups ──
+// ── HELPER: build purple button for popups ──
 function buildEmbassyButton(iata) {
   var cc = getHostCountryForAirport(iata);
   var host = cc && EMBASSIES_BY_HOST[cc] ? EMBASSIES_BY_HOST[cc] : null;
-  var label = host ? 'Embassies in ' + host.name : 'Embassy Contacts';
-  var ccStr = cc || '';
+  if (!host) return buildGlobalEmergencyButton();
+  var label = 'Embassies in ' + host.name;
   return '<div style="margin-top:.6rem">' +
-    '<a href="javascript:void(0)" onclick="goToEmbassy(\'' + ccStr + '\')" ' +
+    '<a href="javascript:void(0)" onclick="goToEmbassy(\'' + cc + '\')" ' +
     'style="display:block;text-align:center;padding:.45rem .8rem;background:rgba(168,85,247,.15);' +
     'border:1px solid rgba(168,85,247,.25);border-radius:8px;color:#a855f7;font-family:Inter,sans-serif;' +
     'font-size:.7rem;font-weight:700;text-decoration:none;text-transform:uppercase;letter-spacing:.03em">' +

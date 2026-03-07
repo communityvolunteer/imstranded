@@ -1326,26 +1326,36 @@ function renderResources() {
   const grid = document.getElementById('resources-grid');
   if (!grid) return;
   let html = '';
+  
+  // Map COUNTRIES.id to embassy host country code
+  const ID_TO_CC = {uae:'AE',bahrain:'BH',kuwait:'KW',qatar:'QA',oman:'OM',saudi:'SA',iran:'IR',iraq:'IQ',israel:'IL'};
+  
   if (_resFilter==='all'||_resFilter==='embassy') {
-    // Original country cards
+    // Country situation cards (advisory, airspace, borders — NO duplicate embassy lists)
     html += COUNTRIES.map(c => {
-      const embs = Object.entries(c.embassy).map(([key,info]) => {
-        const M = EMBASSY_META[key]||{flag:'',role:key.toUpperCase()};
-        const phone = info.phone||info.alt||null;
-        return `<div class="embassy-row"><div style="flex:1"><span class="embassy-name">${M.flag} ${M.role}</span>${info.note?`<div class="embassy-note">${info.note}</div>`:''}</div>${phone?`<a class="call-btn" href="tel:${phone.replace(/[\s\-()]/g,'')}">${phone}</a>`:''}</div>`;
-      }).join('');
+      const embCC = ID_TO_CC[c.id];
+      const hasFullDir = typeof EMBASSIES_BY_HOST !== 'undefined' && embCC && EMBASSIES_BY_HOST[embCC];
+      const embCount = hasFullDir ? Object.keys(EMBASSIES_BY_HOST[embCC].embassies).length : 0;
+      // Show a link to full directory instead of sparse embassy rows
+      const embSection = hasFullDir
+        ? `<div class="embassy-section"><a href="javascript:void(0)" onclick="document.getElementById('emb-${embCC}')?.scrollIntoView({behavior:'smooth',block:'start'})" style="display:block;text-align:center;padding:.45rem;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.18);border-radius:8px;color:#a855f7;font-size:.72rem;font-weight:700;text-decoration:none;text-transform:uppercase;letter-spacing:.03em">\ud83c\udfdb\ufe0f ${embCount} Embassy contacts below \u2193</a></div>`
+        : `<div class="embassy-section"><div class="embassy-title">Emergency Contacts</div>${Object.entries(c.embassy).map(([key,info]) => {
+            const M = EMBASSY_META[key]||{flag:'',role:key.toUpperCase()};
+            const phone = info.phone||info.alt||null;
+            return '<div class="embassy-row"><div style="flex:1"><span class="embassy-name">'+M.flag+' '+M.role+'</span>'+(info.note?'<div class="embassy-note">'+info.note+'</div>':'')+'</div>'+(phone?'<a class="call-btn" href="tel:'+phone.replace(/[\s\-()]/g,'')+'">'+phone+'</a>':'')+'</div>';
+          }).join('')}</div>`;
       return `<div class="country-card ${c.status}" id="card-${c.id}">
         <div class="card-header"><div class="card-name">${c.name}</div><span class="status-badge ${c.status}">${c.status.toUpperCase()}</span></div>
         <div class="card-advisory">${c.advisory}</div>
         <div class="info-row"><span class="info-label">Airspace</span><span style="color:${c.airspace==='CLOSED'?'var(--danger)':c.airspace.includes('OPEN')?'var(--safe)':'var(--warn)'};font-weight:600">${c.airspace}</span></div>
         ${c.borders.map(b=>`<div class="info-row"><span class="info-label">${b.route}</span><span style="color:${b.status==='safe'?'var(--safe)':b.status==='warn'?'var(--warn)':'var(--danger)'};font-weight:600">${b.status.toUpperCase()}</span></div>`).join('')}
-        <div class="embassy-section"><div class="embassy-title">Emergency Contacts</div>${embs||'<div style="font-size:.75rem;color:var(--muted)">Check embassy website</div>'}</div>
+        ${embSection}
         ${c.ngos?.length?`<div class="ngo-tags">${c.ngos.map(n=>`<span class="ngo-tag">${n}</span>`).join('')}</div>`:''}
-        ${c.telegram?`<a class="telegram-link" href="${c.telegram}" target="_blank">→ Telegram group</a>`:''}
+        ${c.telegram?`<a class="telegram-link" href="${c.telegram}" target="_blank">\u2192 Telegram group</a>`:''}
       </div>`;
     }).join('');
     
-    // Full embassy directory from embassies.js
+    // Full embassy directory (single source of truth)
     if (typeof EMBASSIES_BY_HOST !== 'undefined') {
       html += '<div style="grid-column:1/-1;margin:1.5rem 0 .5rem"><div style="font-size:1.1rem;font-weight:800;color:#a855f7;margin-bottom:.25rem">Full Embassy Directory</div><div style="font-size:.8rem;color:rgba(255,255,255,.4)">Contacts for 25+ nationalities in each Middle East country</div></div>';
       for (const [cc, host] of Object.entries(EMBASSIES_BY_HOST)) {
@@ -1396,7 +1406,7 @@ function renderResources() {
   }
   if (_resFilter==='all'||_resFilter==='ngo'||_resFilter==='info') {
     html += NGOS.filter(r=>_resFilter==='all'||(_resFilter==='ngo'&&r.type!=='Info'&&r.type!=='Government')||(_resFilter==='info'&&(r.type==='Info'||r.type==='Government')))
-      .map(r=>`<div class="resource-card"><div class="resource-type">${r.type}</div><div class="resource-name">${r.name}</div><div class="resource-desc">${r.desc}</div><a class="resource-link" href="${r.url}" target="_blank" rel="noopener">Open →</a></div>`).join('');
+      .map(r=>`<div class="resource-card"><div class="resource-type">${r.type}</div><div class="resource-name">${r.name}</div><div class="resource-desc">${r.desc}</div><a class="resource-link" href="${r.url}" target="_blank" rel="noopener">Open \u2192</a></div>`).join('');
   }
   grid.innerHTML = html || '<div class="empty-state">No items match this filter.</div>';
 }
