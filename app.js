@@ -563,7 +563,7 @@ const LANGUAGES = [
   {code:'ar',name:'Arabic',native:'العربية'},{code:'bn',name:'Bengali',native:'বাংলা'},
   {code:'zh-CN',name:'Chinese',native:'中文'},{code:'nl',name:'Dutch',native:'Nederlands'},
   {code:'en',name:'English',native:'English'},{code:'fa',name:'Farsi',native:'فارسی'},
-  {code:'fil',name:'Filipino',native:'Filipino'},{code:'fr',name:'French',native:'Français'},
+  {code:'tl',name:'Filipino',native:'Filipino'},{code:'fr',name:'French',native:'Français'},
   {code:'de',name:'German',native:'Deutsch'},{code:'el',name:'Greek',native:'Ελληνικά'},
   {code:'hi',name:'Hindi',native:'हिन्दी'},{code:'id',name:'Indonesian',native:'Bahasa'},
   {code:'it',name:'Italian',native:'Italiano'},{code:'ja',name:'Japanese',native:'日本語'},
@@ -621,14 +621,29 @@ function setTranslation(langCode) {
   if (overlay) setTimeout(() => overlay.classList.remove('open'), 200);
 
   if (langCode === 'en') {
-    // Reset translation
-    document.cookie = 'googtrans=;path=/;expires=Thu, 01 Jan 1970 00:00:00 GMT';
-    document.cookie = 'googtrans=;path=/;domain=.' + location.hostname + ';expires=Thu, 01 Jan 1970 00:00:00 GMT';
-    const frame = document.querySelector('.goog-te-banner-frame');
-    if (frame) {
-      try { const r = frame.contentDocument.querySelector('.goog-close-link'); if (r) { r.click(); return; } } catch(e) {}
+    // First try the combo - set to English
+    const combo = document.querySelector('.goog-te-combo');
+    if (combo) {
+      combo.value = 'en';
+      combo.dispatchEvent(new Event('change', { bubbles: true }));
     }
-    location.reload();
+    // Clear all googtrans cookies
+    const domains = [location.hostname, '.' + location.hostname, ''];
+    domains.forEach(d => {
+      const domStr = d ? ';domain=' + d : '';
+      document.cookie = 'googtrans=;path=/' + domStr + ';expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      document.cookie = 'googtrans=/en/en;path=/' + domStr;
+    });
+    // Try Google's own restore via the banner iframe
+    try {
+      const frame = document.querySelector('.goog-te-banner-frame, iframe.skiptranslate');
+      if (frame && frame.contentDocument) {
+        const restoreBtn = frame.contentDocument.querySelector('.goog-close-link, [id=":1.close"]');
+        if (restoreBtn) { restoreBtn.click(); return; }
+      }
+    } catch(e) {}
+    // Force reload after short delay to let cookie clear
+    setTimeout(() => location.reload(), 100);
     return;
   }
 
