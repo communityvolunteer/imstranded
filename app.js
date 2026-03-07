@@ -414,23 +414,29 @@ function applyFilters() {
   if (f.globalIata && _globalDir === 'to') {
     // "Heading to" mode — show ME hubs where people are stuck trying to reach this airport
     reverseData = _computeReverseCached(f.globalIata);
+    const destAp = typeof findAirport === 'function' ? findAirport(f.globalIata) : null;
+    const destCity = destAp?.city || f.globalIata;
+    const totalRevStranded = reverseData.reduce((s,r) => s + r.stranded, 0);
+    const totalRevCancelled = reverseData.reduce((s,r) => s + r.cancelled, 0);
+    const allAirlines = [...new Set(reverseData.flatMap(r => r.airlines))];
+
     if (f.showWorldwide) {
-      // Render orange/red dots at ME hubs
+      // Purple dots at ME hubs
       [window._crisisMap, window._mobileMap].forEach(map => {
         if (!map) return;
+        const maxS = Math.max(...reverseData.map(x => x.stranded), 1);
         for (const r of reverseData) {
-          const radius = 4 + Math.min(14, (r.stranded / Math.max(...reverseData.map(x=>x.stranded), 1)) * 14);
+          const radius = 4 + Math.min(14, (r.stranded / maxS) * 14);
           const circle = L.circleMarker([r.lat, r.lng], {
-            radius, fillColor: '#ec3452', color: 'rgba(236,52,82,.4)', weight: 1.5, fillOpacity: 0.45,
+            radius, fillColor: '#a855f7', color: 'rgba(168,85,247,.4)', weight: 1.5, fillOpacity: 0.45,
           }).addTo(map);
-          const ap = typeof findAirport === 'function' ? findAirport(f.globalIata) : null;
           circle.bindPopup(`
             <div style="min-width:200px;font-family:Inter,sans-serif">
-              <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:#ec3452;margin-bottom:.3rem">STRANDED — TRYING TO REACH ${(ap?.city || f.globalIata).toUpperCase()}</div>
+              <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:#a855f7;margin-bottom:.3rem">TRYING TO REACH ${destCity.toUpperCase()}</div>
               <div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:.15rem">${r.city} (${r.iata})</div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem;margin-bottom:.4rem;margin-top:.4rem">
                 <div><div style="font-size:1.1rem;font-weight:800;color:#a855f7">${r.cancelled.toLocaleString()}</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase">Flights Cancelled</div></div>
-                <div><div style="font-size:1.1rem;font-weight:800;color:#ec3452">${r.stranded.toLocaleString()}</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase">Pax Stranded</div></div>
+                <div><div style="font-size:1.1rem;font-weight:800;color:#a855f7">${r.stranded.toLocaleString()}</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase">Pax Stranded</div></div>
               </div>
               <div style="display:flex;flex-wrap:wrap;gap:3px">
                 ${r.airlines.map(a => '<span style="padding:.15rem .4rem;background:rgba(168,85,247,.12);border-radius:4px;font-size:.6rem;color:#a855f7;font-weight:600">'+a+'</span>').join('')}
@@ -439,10 +445,38 @@ function applyFilters() {
           `, { className: 'dark-popup', maxWidth: 280 });
           _globalPins.push(circle);
         }
+
+        // Destination dot WITH popup
+        if (destAp) {
+          const destDot = L.circleMarker([destAp.lat, destAp.lng], {
+            radius: 8, fillColor: '#a855f7', color: '#fff', weight: 2.5, fillOpacity: 0.9,
+          }).addTo(map);
+          destDot.bindPopup(`
+            <div style="min-width:240px;font-family:Inter,sans-serif">
+              <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:#a855f7;margin-bottom:.3rem">DESTINATION</div>
+              <div style="font-size:.95rem;font-weight:800;color:#fff;margin-bottom:.25rem">${destCity} (${f.globalIata})</div>
+              <div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.6rem">${destAp.countryName || destAp.country || ''}</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem;margin-bottom:.6rem">
+                <div><div style="font-size:1.3rem;font-weight:800;color:#a855f7;line-height:1">${totalRevStranded.toLocaleString()}</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:.15rem">People Trying to Reach Here</div></div>
+                <div><div style="font-size:1.3rem;font-weight:800;color:#a855f7;line-height:1">${totalRevCancelled.toLocaleString()}</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:.15rem">Inbound Flights Cancelled</div></div>
+              </div>
+              <div style="font-size:.72rem;color:rgba(255,255,255,.55);line-height:1.5;margin-bottom:.5rem">
+                ${totalRevStranded.toLocaleString()} passengers across ${reverseData.length} Middle East airports are stranded and unable to fly home to ${destCity}. Routes via ${reverseData.map(r=>r.iata).join(', ')} are cancelled or severely disrupted.
+              </div>
+              <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:.3rem">Affected Airlines</div>
+              <div style="display:flex;flex-wrap:wrap;gap:3px">
+                ${allAirlines.map(a => '<span style="padding:.15rem .4rem;background:rgba(168,85,247,.12);border-radius:4px;font-size:.6rem;color:#a855f7;font-weight:600">'+a+'</span>').join('')}
+              </div>
+              <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.25);margin-top:.5rem;margin-bottom:.3rem">They're stuck at</div>
+              ${reverseData.slice(0,6).map(r => '<div style="display:flex;justify-content:space-between;padding:.2rem 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.68rem"><span style="color:rgba(255,255,255,.6)">'+r.city+' ('+r.iata+')</span><span style="color:#a855f7;font-weight:700">'+r.stranded.toLocaleString()+'</span></div>').join('')}
+            </div>
+          `, { className: 'dark-popup', maxWidth: 320 });
+          _globalPins.push(destDot);
+        }
       });
-      // Draw arcs FROM ME hubs TO the destination
+
+      // Purple arcs FROM ME hubs TO destination
       if (f.showArcs || f.globalIata) {
-        const destAp = typeof findAirport === 'function' ? findAirport(f.globalIata) : null;
         if (destAp) {
           const maxC = Math.max(...reverseData.map(r => r.cancelled), 1);
           for (const r of reverseData) {
@@ -450,16 +484,10 @@ function applyFilters() {
             const arc = generateArc([r.lat, r.lng], [destAp.lat, destAp.lng], 30);
             [window._crisisMap, window._mobileMap].forEach(map => {
               if (!map) return;
-              const line = L.polyline(arc, { color: 'rgba(236,52,82,.3)', weight, interactive: false }).addTo(map);
+              const line = L.polyline(arc, { color: 'rgba(168,85,247,.3)', weight, interactive: false }).addTo(map);
               _globalArcLines.push(line);
             });
           }
-          // Destination dot
-          [window._crisisMap, window._mobileMap].forEach(map => {
-            if (!map) return;
-            const dot = L.circleMarker([destAp.lat, destAp.lng], { radius: 6, fillColor: '#22c55e', color: '#fff', weight: 2, fillOpacity: .8, interactive: false }).addTo(map);
-            _globalArcLines.push(dot);
-          });
         }
       }
     }
