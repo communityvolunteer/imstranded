@@ -1737,7 +1737,6 @@ async function submitEditPost(type) {
   const l = document.getElementById(type + '-location')?.value,
     b = document.getElementById(type + '-body')?.value,
     n = document.getElementById(type + '-name')?.value,
-    t = document.getElementById(type + '-type')?.value,
     lat = parseFloat(document.getElementById(type + '-lat')?.value) || null,
     lng = parseFloat(document.getElementById(type + '-lng')?.value) || null;
   if (!l || !b || !n) { alert('Please fill in all required fields.'); return; }
@@ -1745,13 +1744,17 @@ async function submitEditPost(type) {
   const tgContact = document.getElementById(type + '-tg-contact')?.value?.trim() || '';
   const x = (document.getElementById(type + '-xhandle')?.value || '').trim().replace(/^@+/, '');
   const c = [email, tgContact].filter(Boolean).join(' | ') || email || tgContact;
+  const updateObj = { location: l, body: b, name: n, contact: c, xhandle: x || null, lat, lng };
+  const t = document.getElementById(type + '-type')?.value;
+  if (t) updateObj.post_type = t;
   const btn = document.querySelector(`.submit-btn--${type}`);
   if (btn) { btn.textContent = 'Updating...'; btn.disabled = true; }
   try {
-    const { error } = await _sb.from('help_posts').update({ post_type: t, location: l, body: b, name: n, contact: c, xhandle: x || null, lat, lng }).eq('id', _editingPostId).eq('user_id', _currentUser.id);
+    const { error } = await _sb.from('help_posts').update(updateObj).eq('id', _editingPostId).eq('user_id', _currentUser.id);
     if (error) throw error;
     cancelEdit('offer');
     loadPosts();
+    renderProfilePosts();
     showView('profile');
   } catch (e) { alert('Failed to update: ' + e.message); if (btn) { btn.textContent = 'Update Post'; btn.disabled = false; } }
 }
@@ -1907,12 +1910,119 @@ async function renderProfileStranded() {
       ${needsList ? '<div style="font-size:.72rem;color:#e67e22;margin-top:.2rem">Needs: '+needsList+'</div>' : ''}
       ${p.details ? '<div style="font-size:.78rem;color:rgba(255,255,255,.45);line-height:1.4;margin-top:.2rem">'+p.details.slice(0,120)+'</div>' : ''}
       <div class="profile-post-actions">
+        <button onclick="editStrandedPost('${p.id}')" style="background:rgba(52,152,236,.15);color:#3498ec;border:1px solid rgba(52,152,236,.25);border-radius:6px;padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Edit</button>
         <button onclick="deleteStrandedPost('${p.id}')" style="background:#ec3452;color:#fff;border:none;border-radius:6px;padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Remove from Map</button>
       </div>
     </div>`;
   }).join('');
   if (el) el.innerHTML = html;
   if (mel) mel.innerHTML = html;
+}
+
+let _editingStrandedId = null;
+
+async function editStrandedPost(id) {
+  const { data } = await _sb.from('stranded_people').select('*').eq('id', id).eq('user_id', _currentUser.id).single();
+  if (!data) { alert('Registration not found.'); return; }
+  _editingStrandedId = id;
+  const isMobile = window.innerWidth <= 600;
+  const prefix = isMobile ? 'm-stranded' : 'stranded';
+
+  // Populate fields
+  const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
+  setVal(prefix + '-name', data.name);
+  setVal(prefix + '-location', data.current_location);
+  setVal(prefix + '-lat', data.current_lat);
+  setVal(prefix + '-lng', data.current_lng);
+  setVal(prefix + '-dest', data.destination);
+  setVal(prefix + '-dest-lat', data.dest_lat);
+  setVal(prefix + '-dest-lng', data.dest_lng);
+  setVal(prefix + '-dest-country', data.dest_country);
+  setVal(prefix + '-dest-airport', data.dest_airport);
+  setVal(prefix + '-details', data.details);
+  setVal(prefix + '-since', data.stranded_since);
+  setVal(prefix + '-phone', data.contact?.match(/\+?[\d\s\-().]{7,}/)?.[0]?.trim() || '');
+
+  // Group size
+  setVal(prefix + '-group', data.group_size || 1);
+
+  // Nationality
+  const natEl = document.getElementById(prefix + '-nationality');
+  if (natEl && data.nationality) {
+    for (let i = 0; i < natEl.options.length; i++) {
+      if (natEl.options[i].value === data.nationality || natEl.options[i].text === data.nationality) { natEl.selectedIndex = i; break; }
+    }
+  }
+
+  // Needs checkboxes
+  const needsContainer = document.getElementById(prefix + '-needs');
+  if (needsContainer && data.needs) {
+    needsContainer.querySelectorAll('input').forEach(cb => cb.checked = (data.needs || []).includes(cb.value));
+  }
+
+  // Navigate
+  if (isMobile) {
+    mTab('stranded', null);
+  } else {
+    showView('help');
+    switchHelpMode('stranded');
+  }
+
+  // Change submit button
+  const btn = document.getElementById(prefix + '-submit-btn');
+  if (btn) {
+    btn.textContent = 'Update Registration';
+    btn._origOnclick = btn.onclick;
+    btn.onclick = () => submitStrandedEdit(prefix);
+  }
+}
+
+async function submitStrandedEdit(prefix) {
+  if (!_editingStrandedId || !isLoggedIn()) return;
+  const sName = document.getElementById(prefix + '-name')?.value?.trim() || '';
+  const loc = document.getElementById(prefix + '-location')?.value?.trim();
+  const lat = parseFloat(document.getElementById(prefix + '-lat')?.value) || null;
+  const lng = parseFloat(document.getElementById(prefix + '-lng')?.value) || null;
+  const dest = document.getElementById(prefix + '-dest')?.value?.trim();
+  const destLat = parseFloat(document.getElementById(prefix + '-dest-lat')?.value) || null;
+  const destLng = parseFloat(document.getElementById(prefix + '-dest-lng')?.value) || null;
+  const destCountry = document.getElementById(prefix + '-dest-country')?.value || '';
+  const destAirport = document.getElementById(prefix + '-dest-airport')?.value || '';
+  const nationality = document.getElementById(prefix + '-nationality')?.value;
+  const groupSize = parseInt(document.getElementById(prefix + '-group')?.value) || 1;
+  const since = document.getElementById(prefix + '-since')?.value || null;
+  const details = document.getElementById(prefix + '-details')?.value?.trim();
+  const needs = [...document.querySelectorAll('#' + prefix + '-needs input:checked')].map(c => c.value);
+  const phone = document.getElementById(prefix + '-phone')?.value?.trim() || '';
+  const email = _currentUser?.email || '';
+  const tg = _currentProfile?.tg_handle ? '@' + _currentProfile.tg_handle : '';
+  const xhandle = _currentProfile?.x_handle || document.getElementById(prefix + '-xhandle')?.value?.replace('@','') || '';
+  const contact = [email, tg, phone].filter(Boolean).join(' | ');
+
+  if (!loc || !dest) { alert('Please fill in location and destination.'); return; }
+
+  const btn = document.getElementById(prefix + '-submit-btn');
+  if (btn) { btn.textContent = 'Updating...'; btn.disabled = true; }
+  try {
+    const { error } = await _sb.from('stranded_people').update({
+      name: sName || null, current_location: loc, current_lat: lat, current_lng: lng,
+      destination: dest, dest_lat: destLat, dest_lng: destLng,
+      dest_country: destCountry || null, dest_airport: destAirport || null,
+      nationality, group_size: groupSize,
+      needs: needs.length ? `{${needs.join(',')}}` : '{}',
+      stranded_since: since, details, contact, xhandle: xhandle || null,
+    }).eq('id', _editingStrandedId).eq('user_id', _currentUser.id);
+    if (error) throw error;
+    _editingStrandedId = null;
+    if (btn) { btn.textContent = 'Add Me to the Map'; btn.disabled = false; btn.onclick = prefix.startsWith('m-') ? mSubmitStranded : submitStranded; }
+    renderProfileStranded();
+    loadStranded();
+    if (prefix.startsWith('m-')) mTab('profile', null);
+    else showView('profile');
+  } catch (e) {
+    alert('Failed to update: ' + e.message);
+    if (btn) { btn.textContent = 'Update Registration'; btn.disabled = false; }
+  }
 }
 
 async function deleteStrandedPost(id) {
