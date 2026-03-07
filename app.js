@@ -382,7 +382,7 @@ function renderFilteredStranded(map, isMobile, filteredData) {
         ${needsList ? '<div style="font-size:.68rem;color:#e67e22;margin-bottom:.2rem">Needs: '+needsList+'</div>' : ''}
         ${sinceTxt ? '<div style="font-size:.65rem;color:rgba(255,255,255,.35)">'+sinceTxt+'</div>' : ''}
         ${p.details ? '<div style="font-size:.75rem;color:rgba(255,255,255,.5);line-height:1.4;margin-top:.3rem">'+p.details.slice(0,150)+'</div>' : ''}
-        ${buildContactButtons(p.contact, p.xhandle, '')}
+        ${buildContactButtons(p.contact, p.xhandle, p.name)}
         ${buildSendHelpButton(p.xhandle, !!p.user_id)}
       </div>
     `, { className: 'dark-popup', maxWidth: 280 });
@@ -695,7 +695,7 @@ function buildContactButtons(contact, xhandle, name) {
   if (xhandle) btns.push(`<a href="https://x.com/${xhandle}" target="_blank" style="${s}" title="@${xhandle}">${xIco}</a>`);
 
   if (!btns.length) return '';
-  return `<div style="margin-top:.5rem"><div style="font-size:.5rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.2);margin-bottom:.25rem">Contact</div><div style="display:flex;gap:3px">${btns.join('')}</div></div>`;
+  return `<div style="margin-top:.5rem"><div style="font-size:.5rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#fff;margin-bottom:.25rem">${name ? "CONTACT " + name.toUpperCase() : "CONTACT"}</div><div style="display:flex;gap:3px">${btns.join('')}</div></div>`;
 }
 
 function buildTipButton(xhandle, hasUserId) {
@@ -2277,7 +2277,7 @@ function renderStrandedOnMap(map, isMobile) {
         ${needsList ? `<div style="font-size:.68rem;color:#e67e22;margin-bottom:.2rem">Needs: ${needsList}</div>` : ''}
         ${sinceTxt ? `<div style="font-size:.65rem;color:rgba(255,255,255,.35)">${sinceTxt}</div>` : ''}
         ${p.details ? `<div style="font-size:.75rem;color:rgba(255,255,255,.5);line-height:1.4;margin-top:.3rem">${p.details.slice(0, 150)}</div>` : ''}
-        ${buildContactButtons(p.contact, p.xhandle, '')}
+        ${buildContactButtons(p.contact, p.xhandle, p.name)}
         ${buildSendHelpButton(p.xhandle, !!p.user_id)}
       </div>
     `, { className: 'dark-popup', maxWidth: 280 });
