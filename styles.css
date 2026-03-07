@@ -878,9 +878,9 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 .goog-te-gadget .goog-te-combo:focus{border-color:rgba(52,152,236,.5) !important;}
 .goog-te-gadget > span{display:none !important;}
 /* Hide Google Translate banner — force everything offscreen */
-.goog-te-banner-frame{display:none !important;position:fixed !important;top:-9999px !important;left:-9999px !important;height:0 !important;width:0 !important;border:none !important;visibility:hidden !important;overflow:hidden !important;}
-iframe.goog-te-banner-frame{display:none !important;position:fixed !important;top:-9999px !important;}
-body > .skiptranslate:first-child{display:none !important;height:0 !important;overflow:hidden !important;}
-#google_translate_element{display:block !important;visibility:visible !important;}
+/* Hide Google Translate banner — keep iframe alive for translation engine */
+.goog-te-banner-frame{height:0 !important;overflow:hidden !important;border:none !important;}
+body > .skiptranslate:first-child{height:0 !important;overflow:hidden !important;position:fixed !important;top:0 !important;z-index:-999 !important;}
+#google_translate_element .skiptranslate{display:block !important;}
 body{top:0 !important;position:static !important;}
 html.translated-ltr body,html.translated-rtl body{top:0 !important;}
