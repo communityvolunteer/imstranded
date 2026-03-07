@@ -24,6 +24,29 @@ function googleTranslateInit() {
     autoDisplay: false
   }, 'google_translate_element');
 }
+// Kill Google Translate banner the instant it appears
+(function() {
+  const observer = new MutationObserver(function(mutations) {
+    // Kill the banner iframe
+    document.querySelectorAll('.goog-te-banner-frame, iframe.skiptranslate').forEach(el => {
+      el.style.display = 'none';
+      el.style.height = '0';
+      el.style.position = 'fixed';
+      el.style.top = '-9999px';
+    });
+    // Kill body top offset Google injects
+    if (document.body.style.top && document.body.style.top !== '0px') {
+      document.body.style.top = '0px';
+    }
+    // Kill the skiptranslate div wrapper
+    const skip = document.querySelector('body > .skiptranslate:first-child');
+    if (skip && skip.id !== 'google_translate_element') {
+      skip.style.display = 'none';
+      skip.style.height = '0';
+    }
+  });
+  observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
+})();
 </script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateInit"></script>
 </head>

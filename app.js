@@ -621,29 +621,19 @@ function setTranslation(langCode) {
   if (overlay) setTimeout(() => overlay.classList.remove('open'), 200);
 
   if (langCode === 'en') {
-    // First try the combo - set to English
+    // Set combo back to English
     const combo = document.querySelector('.goog-te-combo');
     if (combo) {
       combo.value = 'en';
       combo.dispatchEvent(new Event('change', { bubbles: true }));
     }
-    // Clear all googtrans cookies
-    const domains = [location.hostname, '.' + location.hostname, ''];
-    domains.forEach(d => {
-      const domStr = d ? ';domain=' + d : '';
-      document.cookie = 'googtrans=;path=/' + domStr + ';expires=Thu, 01 Jan 1970 00:00:00 GMT';
-      document.cookie = 'googtrans=/en/en;path=/' + domStr;
+    // Nuke all googtrans cookies
+    ['', location.hostname, '.' + location.hostname].forEach(d => {
+      const dm = d ? ';domain=' + d : '';
+      document.cookie = 'googtrans=;path=/' + dm + ';expires=Thu, 01 Jan 1970 00:00:00 GMT';
     });
-    // Try Google's own restore via the banner iframe
-    try {
-      const frame = document.querySelector('.goog-te-banner-frame, iframe.skiptranslate');
-      if (frame && frame.contentDocument) {
-        const restoreBtn = frame.contentDocument.querySelector('.goog-close-link, [id=":1.close"]');
-        if (restoreBtn) { restoreBtn.click(); return; }
-      }
-    } catch(e) {}
-    // Force reload after short delay to let cookie clear
-    setTimeout(() => location.reload(), 100);
+    // Reload after brief delay to clear translation state
+    setTimeout(() => location.reload(), 150);
     return;
   }
 
