@@ -673,18 +673,28 @@ function buildContactButtons(contact, xhandle, name) {
   if (!contact && !xhandle) return '';
   const c = (contact || '').trim();
   const btns = [];
-  const btnStyle = 'display:flex;align-items:center;justify-content:center;gap:4px;flex:1;min-width:0;padding:.3rem .5rem;border-radius:6px;font-size:.65rem;font-weight:600;text-decoration:none;font-family:Inter,sans-serif;white-space:nowrap;background:#2a2a2a;color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.08);';
+  const s = 'display:flex;align-items:center;justify-content:center;width:32px;height:28px;border-radius:6px;text-decoration:none;background:#222;border:1px solid rgba(255,255,255,.08);';
+  const emailIco = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 7L2 7"/></svg>';
+  const phoneIco = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>';
+  const tgIco = '<svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>';
+  const xIco = '<svg width="13" height="13" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>';
 
   const emailMatch = c.match(/[\w.-]+@[\w.-]+\.\w+/);
-  if (emailMatch) btns.push(`<a href="mailto:${emailMatch[0]}" style="${btnStyle}" title="Email">✉ Email</a>`);
+  if (emailMatch) btns.push(`<a href="mailto:${emailMatch[0]}" style="${s}" title="${emailMatch[0]}">${emailIco}</a>`);
+
+  const phoneMatch = c.match(/\+?[\d\s\-().]{7,}/);
+  if (phoneMatch) {
+    const digits = phoneMatch[0].replace(/[\s\-().]/g, '');
+    btns.push(`<a href="tel:${digits}" style="${s}" title="Call ${digits}">${phoneIco}</a>`);
+  }
 
   const tgMatch = c.match(/@([A-Za-z0-9_]{3,})/);
-  if (tgMatch) btns.push(`<a href="https://t.me/${tgMatch[1]}" target="_blank" style="${btnStyle}" title="Telegram">TG</a>`);
+  if (tgMatch) btns.push(`<a href="https://t.me/${tgMatch[1]}" target="_blank" style="${s}" title="@${tgMatch[1]}">${tgIco}</a>`);
 
-  if (xhandle) btns.push(`<a href="https://x.com/${xhandle}" target="_blank" style="${btnStyle}" title="X / Twitter">𝕏 @${xhandle}</a>`);
+  if (xhandle) btns.push(`<a href="https://x.com/${xhandle}" target="_blank" style="${s}" title="@${xhandle}">${xIco}</a>`);
 
   if (!btns.length) return '';
-  return `<div style="margin-top:.5rem"><div style="font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.25);margin-bottom:.3rem">Contact</div><div style="display:flex;gap:4px">${btns.join('')}</div></div>`;
+  return `<div style="margin-top:.5rem"><div style="font-size:.5rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.2);margin-bottom:.25rem">Contact</div><div style="display:flex;gap:3px">${btns.join('')}</div></div>`;
 }
 
 function buildTipButton(xhandle, hasUserId) {
@@ -1977,7 +1987,8 @@ async function mSubmitStranded() {
   const email = _currentUser?.email || '';
   const tg = _currentProfile?.tg_handle ? '@' + _currentProfile.tg_handle : '';
   const xhandle = _currentProfile?.x_handle || document.getElementById('m-stranded-xhandle')?.value?.replace('@','') || '';
-  const contact = [email, tg].filter(Boolean).join(' | ');
+  const phone = document.getElementById('m-stranded-phone')?.value?.trim() || '';
+  const contact = [email, tg, phone].filter(Boolean).join(' | ');
   const btn = document.getElementById('m-stranded-submit-btn');
   btn.textContent = 'Registering...'; btn.disabled = true;
   try {
@@ -2019,7 +2030,8 @@ async function submitStranded() {
   const email = _currentUser?.email || '';
   const tg = _currentProfile?.tg_handle ? '@' + _currentProfile.tg_handle : '';
   const xhandle = _currentProfile?.x_handle || document.getElementById('stranded-xhandle')?.value?.replace('@','') || '';
-  const contact = [email, tg].filter(Boolean).join(' | ');
+  const phone = document.getElementById('stranded-phone')?.value?.trim() || '';
+  const contact = [email, tg, phone].filter(Boolean).join(' | ');
 
   const btn = document.getElementById('stranded-submit-btn');
   btn.textContent = 'Registering...'; btn.disabled = true;

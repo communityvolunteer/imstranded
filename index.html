@@ -273,6 +273,9 @@
             <input type="text" id="stranded-xhandle" readonly placeholder="Link X to enable Send $HELP" class="linked-input-field">
           </div>
         </div>
+        <div class="form-row"><label class="modal-label">Phone <span style="opacity:.4;font-weight:400;text-transform:none">(optional — for WhatsApp / calls)</span></label>
+          <input type="tel" id="stranded-phone" placeholder="+1 555 123 4567" class="modal-input">
+        </div>
         <button onclick="submitStranded()" id="stranded-submit-btn" style="width:100%;background:#ec3452;color:#fff;border:none;border-radius:10px;padding:.75rem;font-family:Inter,sans-serif;font-size:.92rem;font-weight:700;cursor:pointer;margin-top:.3rem">Add Me to the Map</button>
       </div>
     </div>
@@ -648,6 +651,7 @@
             <input type="text" id="m-stranded-xhandle" readonly placeholder="Link X to enable Send $HELP" class="linked-input-field">
           </div>
         </div>
+        <div class="m-form-row"><label class="m-form-label">Phone <span style="opacity:.4;font-weight:400">(optional)</span></label><input type="tel" id="m-stranded-phone" placeholder="+1 555 123 4567" style="width:100%;padding:.5rem;background:#1a1c1e;border:1.5px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem"></div>
         <button onclick="mSubmitStranded()" id="m-stranded-submit-btn" style="width:100%;background:#ec3452;color:#fff;border:none;border-radius:10px;padding:.75rem;font-family:Inter,sans-serif;font-size:.88rem;font-weight:700;cursor:pointer">Add Me to the Map</button>
       </div>
       <div id="m-offer-content" style="display:none">
