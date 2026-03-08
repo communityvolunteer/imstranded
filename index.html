@@ -538,7 +538,7 @@ function googleTranslateInit() {
 
   <!-- Stat bar: EST. STRANDED | FLIGHTS CANCELLED | OFFER SPARE ROOM (blue, + icon) -->
   <div id="m-statbar">
-    <div class="m-stat" id="mss-stranded" onclick="toggleArcsFromStat()">
+    <div class="m-stat" id="mss-stranded" onclick="toggleImpactSheet()"style="cursor:pointer">
       <span class="m-stat-num" id="m-stat-stranded">7,902,460</span>
       <span class="m-stat-label" id="m-stranded-label">PEOPLE IMPACTED <span style="font-size:.52rem;color:rgba(255,255,255,.3);font-weight:400;letter-spacing:.01em">· since Mar 1</span></span>
       <span class="m-stat-sub" id="m-stranded-sub" style="color:var(--accent);font-size:.6rem;font-weight:700"></span>
@@ -1087,6 +1087,36 @@ function googleTranslateInit() {
 </div>
 
 <!-- Match Picker Modal — stranded person picks which offer they matched with -->
+<!-- Mobile Impact Stats slide-up -->
+<div id="m-impact-backdrop" onclick="closeImpactSheet()" style="display:none;position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,.5);opacity:0;transition:opacity .25s ease"></div>
+<div id="m-impact-sheet" style="position:fixed;bottom:0;left:0;right:0;z-index:9991;background:#0a0a0a;border-radius:20px 20px 0 0;border-top:1px solid rgba(255,255,255,.08);transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);box-shadow:0 -8px 40px rgba(0,0,0,.6);padding:0 0 calc(1.5rem + env(safe-area-inset-bottom))">
+  <div style="display:flex;justify-content:center;padding:.6rem 0 .1rem">
+    <div style="width:36px;height:4px;background:rgba(255,255,255,.25);border-radius:2px"></div>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem 1.1rem .5rem">
+    <div style="font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3)">Crisis Snapshot · Since Mar 1</div>
+    <button onclick="closeImpactSheet()" style="background:rgba(255,255,255,.1);border:none;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div style="display:flex;align-items:stretch;padding:.4rem 1.1rem 1rem;gap:0">
+    <div style="flex:1;padding-right:1rem">
+      <div style="font-size:2rem;font-weight:800;color:#fff;letter-spacing:-.03em;line-height:1" id="m-fp-stat-stranded">—</div>
+      <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.35);margin-top:.25rem">Est. Stranded</div>
+      <div style="font-size:.72rem;font-weight:700;color:var(--accent);margin-top:.2rem;min-height:.9rem" id="m-fp-stat-stranded-today"></div>
+    </div>
+    <div style="width:1px;background:rgba(255,255,255,.07);margin:.1rem 0"></div>
+    <div style="flex:1;padding-left:1rem">
+      <div style="font-size:2rem;font-weight:800;color:#fff;letter-spacing:-.03em;line-height:1" id="m-fp-stat-cancelled">—</div>
+      <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.35);margin-top:.25rem">Flights Cancelled</div>
+      <div style="font-size:.72rem;font-weight:700;color:var(--accent);margin-top:.2rem;min-height:.9rem" id="m-fp-stat-cancelled-today"></div>
+    </div>
+  </div>
+  <div style="margin:.2rem 1.1rem 0;padding:.75rem;background:rgba(255,255,255,.04);border-radius:10px;border:1px solid rgba(255,255,255,.06)">
+    <div style="font-size:.65rem;color:rgba(255,255,255,.35);line-height:1.55">People Impacted is the total passengers affected by cancellations. Est. Stranded = ~20% still unable to leave. Data sourced from AviationStack, updated periodically.</div>
+  </div>
+</div>
+
 <div id="match-modal">
   <div class="match-modal-inner">
     <button onclick="closeMatchModal()" class="help-panel-x" aria-label="Close">

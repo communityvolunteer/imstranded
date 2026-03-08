@@ -1390,6 +1390,31 @@ function setAccent(name) {
   }
 }
 
+function toggleImpactSheet() {
+  const sheet = document.getElementById('m-impact-sheet');
+  const backdrop = document.getElementById('m-impact-backdrop');
+  if (!sheet) return;
+  const isOpen = sheet.style.transform === 'translateY(0px)' || sheet.style.transform === 'translateY(0)';
+  if (isOpen) {
+    closeImpactSheet();
+  } else {
+    backdrop.style.display = 'block';
+    requestAnimationFrame(() => {
+      backdrop.style.opacity = '1';
+      sheet.style.transform = 'translateY(0)';
+    });
+  }
+}
+
+function closeImpactSheet() {
+  const sheet = document.getElementById('m-impact-sheet');
+  const backdrop = document.getElementById('m-impact-backdrop');
+  if (!sheet) return;
+  sheet.style.transform = 'translateY(100%)';
+  backdrop.style.opacity = '0';
+  setTimeout(() => { backdrop.style.display = 'none'; }, 280);
+}
+
 function toggleAccentPicker(e) {
   e.stopPropagation();
   // Close any other open dropdowns first
@@ -2207,6 +2232,16 @@ async function refreshSitrep() {
   if (fpStT) fpStT.textContent = todayEstStranded > 0 ? '+' + todayEstStranded.toLocaleString() + ' today' : '';
   if (fpCa) fpCa.textContent = totalCancelledSinceCrisis.toLocaleString();
   if (fpCaT) fpCaT.textContent = todayCancelled > 0 ? '+' + todayCancelled.toLocaleString() + ' today' : '';
+
+  // Mobile impact sheet (same values, separate IDs)
+  const mFpSt  = document.getElementById('m-fp-stat-stranded');
+  const mFpStT = document.getElementById('m-fp-stat-stranded-today');
+  const mFpCa  = document.getElementById('m-fp-stat-cancelled');
+  const mFpCaT = document.getElementById('m-fp-stat-cancelled-today');
+  if (mFpSt)  mFpSt.textContent  = estStranded.toLocaleString();
+  if (mFpStT) mFpStT.textContent = todayEstStranded > 0 ? '+' + todayEstStranded.toLocaleString() + ' today' : '';
+  if (mFpCa)  mFpCa.textContent  = totalCancelledSinceCrisis.toLocaleString();
+  if (mFpCaT) mFpCaT.textContent = todayCancelled > 0 ? '+' + todayCancelled.toLocaleString() + ' today' : '';
 
   if(SB_ON){
     const[offerRes]=await Promise.all([
