@@ -86,34 +86,34 @@ let AIRPORT_DATA = [
   // REAL DATA — AviationStack API full pull, March 7, 2026 (paid tier)
   // cancelled = today's cancelled, h7 = 7-day cumulative cancelled flights
   // Gulf
-  {city:'Dubai',code:'DXB',iata:'DXB',coords:[25.252,55.364],cancelled:6632,status:'DISRUPTED',cancelRate:39,dailyFlights:17219,h7:5515,updated:'live'},
-  {city:'Abu Dhabi',code:'AUH',iata:'AUH',coords:[24.432,54.651],cancelled:2404,status:'DISRUPTED',cancelRate:34,dailyFlights:6981,h7:2175,updated:'live'},
-  {city:'Doha',code:'DOH',iata:'DOH',coords:[25.273,51.608],cancelled:11949,status:'RESTRICTED',cancelRate:62,dailyFlights:19242,h7:11306,updated:'live'},
-  {city:'Kuwait City',code:'KWI',iata:'KWI',coords:[29.226,47.968],cancelled:469,status:'OPEN',cancelRate:16,dailyFlights:2895,h7:388,updated:'live'},
-  {city:'Bahrain',code:'BAH',iata:'BAH',coords:[26.270,50.633],cancelled:1115,status:'RESTRICTED',cancelRate:53,dailyFlights:2122,h7:897,updated:'live'},
-  {city:'Muscat',code:'MCT',iata:'MCT',coords:[23.593,58.284],cancelled:694,status:'DISRUPTED',cancelRate:22,dailyFlights:3100,h7:599,updated:'live'},
-  {city:'Sharjah',code:'SHJ',iata:'SHJ',coords:[25.329,55.517],cancelled:147,status:'OPEN',cancelRate:4,dailyFlights:3344,h7:0,updated:'live'},
-  {city:'Al Maktoum',code:'DWC',iata:'DWC',coords:[24.896,55.161],cancelled:82,status:'OPEN',cancelRate:5,dailyFlights:1796,h7:0,updated:'live'},
-  {city:'Ras Al Khaimah',code:'RKT',iata:'RKT',coords:[25.613,55.939],cancelled:72,status:'DISRUPTED',cancelRate:34,dailyFlights:210,h7:0,updated:'live'},
+  {city:'Dubai',code:'DXB',iata:'DXB',coords:[25.252,55.364],cancelled:6632,stranded:408110,status:'DISRUPTED',cancelRate:39,dailyFlights:17219,h7:5515,updated:'live'},
+  {city:'Abu Dhabi',code:'AUH',iata:'AUH',coords:[24.432,54.651],cancelled:2404,stranded:160950,status:'DISRUPTED',cancelRate:34,dailyFlights:6981,h7:2175,updated:'live'},
+  {city:'Doha',code:'DOH',iata:'DOH',coords:[25.273,51.608],cancelled:11949,stranded:836644,status:'RESTRICTED',cancelRate:62,dailyFlights:19242,h7:11306,updated:'live'},
+  {city:'Kuwait City',code:'KWI',iata:'KWI',coords:[29.226,47.968],cancelled:469,stranded:28712,status:'OPEN',cancelRate:16,dailyFlights:2895,h7:388,updated:'live'},
+  {city:'Bahrain',code:'BAH',iata:'BAH',coords:[26.270,50.633],cancelled:1115,stranded:66378,status:'RESTRICTED',cancelRate:53,dailyFlights:2122,h7:897,updated:'live'},
+  {city:'Muscat',code:'MCT',iata:'MCT',coords:[23.593,58.284],cancelled:694,stranded:44326,status:'DISRUPTED',cancelRate:22,dailyFlights:3100,h7:599,updated:'live'},
+  {city:'Sharjah',code:'SHJ',iata:'SHJ',coords:[25.329,55.517],cancelled:147,stranded:14957,status:'OPEN',cancelRate:4,dailyFlights:3344,h7:0,updated:'live'},
+  {city:'Al Maktoum',code:'DWC',iata:'DWC',coords:[24.896,55.161],cancelled:82,stranded:8344,status:'OPEN',cancelRate:5,dailyFlights:1796,h7:0,updated:'live'},
+  {city:'Ras Al Khaimah',code:'RKT',iata:'RKT',coords:[25.613,55.939],cancelled:72,stranded:7326,status:'DISRUPTED',cancelRate:34,dailyFlights:210,h7:0,updated:'live'},
   // Saudi
-  {city:'Riyadh',code:'RUH',iata:'RUH',coords:[24.957,46.698],cancelled:1105,status:'OPEN',cancelRate:20,dailyFlights:5555,h7:736,updated:'live'},
-  {city:'Jeddah',code:'JED',iata:'JED',coords:[21.670,39.150],cancelled:1091,status:'OPEN',cancelRate:13,dailyFlights:8375,h7:806,updated:'live'},
-  {city:'Dammam',code:'DMM',iata:'DMM',coords:[26.471,49.798],cancelled:765,status:'DISRUPTED',cancelRate:36,dailyFlights:2149,h7:0,updated:'live'},
-  {city:'Medina',code:'MED',iata:'MED',coords:[24.553,39.705],cancelled:294,status:'OPEN',cancelRate:17,dailyFlights:1683,h7:0,updated:'live'},
+  {city:'Riyadh',code:'RUH',iata:'RUH',coords:[24.957,46.698],cancelled:1105,stranded:54464,status:'OPEN',cancelRate:20,dailyFlights:5555,h7:736,updated:'live'},
+  {city:'Jeddah',code:'JED',iata:'JED',coords:[21.670,39.150],cancelled:1091,stranded:59644,status:'OPEN',cancelRate:13,dailyFlights:8375,h7:806,updated:'live'},
+  {city:'Dammam',code:'DMM',iata:'DMM',coords:[26.471,49.798],cancelled:765,stranded:77839,status:'DISRUPTED',cancelRate:36,dailyFlights:2149,h7:0,updated:'live'},
+  {city:'Medina',code:'MED',iata:'MED',coords:[24.553,39.705],cancelled:294,stranded:29915,status:'OPEN',cancelRate:17,dailyFlights:1683,h7:0,updated:'live'},
   // Iran — mostly OPEN
-  {city:'Tehran IKA',code:'IKA',iata:'IKA',coords:[35.416,51.152],cancelled:212,status:'OPEN',cancelRate:16,dailyFlights:1304,h7:0,updated:'live'},
-  {city:'Tehran Mehrabad',code:'THR',iata:'THR',coords:[35.689,51.313],cancelled:0,status:'OPEN',cancelRate:0,dailyFlights:75,h7:0,updated:'live'},
-  {city:'Mashhad',code:'MHD',iata:'MHD',coords:[36.236,59.641],cancelled:49,status:'OPEN',cancelRate:4,dailyFlights:1365,h7:0,updated:'live'},
-  {city:'Shiraz',code:'SYZ',iata:'SYZ',coords:[29.540,52.590],cancelled:27,status:'OPEN',cancelRate:9,dailyFlights:310,h7:0,updated:'live'},
+  {city:'Tehran IKA',code:'IKA',iata:'IKA',coords:[35.416,51.152],cancelled:212,stranded:21571,status:'OPEN',cancelRate:16,dailyFlights:1304,h7:0,updated:'live'},
+  {city:'Tehran Mehrabad',code:'THR',iata:'THR',coords:[35.689,51.313],cancelled:0,stranded:0,status:'OPEN',cancelRate:0,dailyFlights:75,h7:0,updated:'live'},
+  {city:'Mashhad',code:'MHD',iata:'MHD',coords:[36.236,59.641],cancelled:49,stranded:4986,status:'OPEN',cancelRate:4,dailyFlights:1365,h7:0,updated:'live'},
+  {city:'Shiraz',code:'SYZ',iata:'SYZ',coords:[29.540,52.590],cancelled:27,stranded:2747,status:'OPEN',cancelRate:9,dailyFlights:310,h7:0,updated:'live'},
   // Iraq
-  {city:'Baghdad',code:'BGW',iata:'BGW',coords:[33.262,44.235],cancelled:112,status:'OPEN',cancelRate:18,dailyFlights:606,h7:0,updated:'live'},
-  {city:'Erbil',code:'EBL',iata:'EBL',coords:[36.237,43.963],cancelled:74,status:'DISRUPTED',cancelRate:23,dailyFlights:320,h7:0,updated:'live'},
-  {city:'Basra',code:'BSR',iata:'BSR',coords:[30.549,47.662],cancelled:55,status:'DISRUPTED',cancelRate:33,dailyFlights:168,h7:0,updated:'live'},
+  {city:'Baghdad',code:'BGW',iata:'BGW',coords:[33.262,44.235],cancelled:112,stranded:11396,status:'OPEN',cancelRate:18,dailyFlights:606,h7:0,updated:'live'},
+  {city:'Erbil',code:'EBL',iata:'EBL',coords:[36.237,43.963],cancelled:74,stranded:7530,status:'DISRUPTED',cancelRate:23,dailyFlights:320,h7:0,updated:'live'},
+  {city:'Basra',code:'BSR',iata:'BSR',coords:[30.549,47.662],cancelled:55,stranded:5596,status:'DISRUPTED',cancelRate:33,dailyFlights:168,h7:0,updated:'live'},
   // Israel
-  {city:'Tel Aviv',code:'TLV',iata:'TLV',coords:[32.011,34.887],cancelled:1198,status:'DISRUPTED',cancelRate:31,dailyFlights:3843,h7:969,updated:'live'},
+  {city:'Tel Aviv',code:'TLV',iata:'TLV',coords:[32.011,34.887],cancelled:1198,stranded:71706,status:'DISRUPTED',cancelRate:31,dailyFlights:3843,h7:969,updated:'live'},
   // Jordan / Lebanon
-  {city:'Amman',code:'AMM',iata:'AMM',coords:[31.723,35.993],cancelled:734,status:'DISRUPTED',cancelRate:37,dailyFlights:1965,h7:605,updated:'live'},
-  {city:'Beirut',code:'BEY',iata:'BEY',coords:[33.821,35.488],cancelled:295,status:'DISRUPTED',cancelRate:30,dailyFlights:968,h7:0,updated:'live'},
+  {city:'Amman',code:'AMM',iata:'AMM',coords:[31.723,35.993],cancelled:734,stranded:44770,status:'DISRUPTED',cancelRate:37,dailyFlights:1965,h7:605,updated:'live'},
+  {city:'Beirut',code:'BEY',iata:'BEY',coords:[33.821,35.488],cancelled:295,stranded:30016,status:'DISRUPTED',cancelRate:30,dailyFlights:968,h7:0,updated:'live'},
 ];
 
 // 7-day history for top 10 ME hubs (real AviationStack data)
@@ -361,16 +361,11 @@ function computeGlobalFromAirportData() {
 }
 
 function computeTotalStranded() {
-  // ME stranded: use 7-day cumulative × avg pax where available, else today × pax
-  const AVG_PAX = 185;
-  const meStranded = AIRPORT_DATA.reduce((s, a) => {
-    const h7 = a.h7 || 0;
-    const todayCan = a.cancelled || 0;
-    // If we have 7-day data, use it; otherwise use today's count × 7 (rough)
-    const flights = h7 > 0 ? h7 : todayCan;
-    return s + (flights * AVG_PAX);
-  }, 0);
-  const globalStranded = _globalDisruptions.reduce((s, g) => s + (g.stranded || 0), 0);
+  // ME stranded: already computed with alt-route reduction in AIRPORT_DATA
+  const meStranded = AIRPORT_DATA.reduce((s, a) => s + (a.stranded || 0), 0);
+  // Global stranded: raw cancelled*185, apply 60% alt-route reduction (many rebooked)
+  const globalRaw = _globalDisruptions.reduce((s, g) => s + (g.stranded || 0), 0);
+  const globalStranded = Math.round(globalRaw * 0.40);
   return meStranded + globalStranded;
 }
 
