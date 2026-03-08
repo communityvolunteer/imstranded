@@ -332,18 +332,8 @@ async function fetchSitrepFromSupabase() {
 function computeGlobalFromAirportData() {
   // Prefer REAL global disruption data from AviationStack
   if (typeof REAL_GLOBAL_DISRUPTIONS !== 'undefined' && REAL_GLOBAL_DISRUPTIONS.length) {
-    // Also add ME airports as purple dots so they show on the global view
-    const meAsDots = AIRPORT_DATA.filter(a => (a.cancelled || 0) > 0).map(a => ({
-      iata: a.iata || a.code,
-      cancelled: a.cancelled,
-      stranded: a.stranded || (a.cancelled * 185),
-      airlines: [],
-      me_hubs: [],
-      isME: true,
-    }));
-    const combined = [...meAsDots, ...REAL_GLOBAL_DISRUPTIONS];
-    console.log(`[Global] Using REAL data: ${REAL_GLOBAL_DISRUPTIONS.length} global + ${meAsDots.length} ME airports`);
-    return combined;
+    console.log(`[Global] Using REAL data: ${REAL_GLOBAL_DISRUPTIONS.length} global airports from AviationStack`);
+    return REAL_GLOBAL_DISRUPTIONS;
   }
   // Fallback to modeled data
   if (typeof computeGlobalDisruptions !== 'function' || typeof ME_AIRPORTS === 'undefined') {
@@ -385,7 +375,7 @@ let _helpCluster = null;
 let _mHelpCluster = null;
 let _postMarkers = [];
 let posts = [];
-const _dataPins = {airports:[]};
+const _dataPins = {_pc:[],_mobile:[]};
 let _globalPins = [];
 let _activeFilter = 'all';
 
@@ -643,6 +633,11 @@ function applyFilters() {
       [window._crisisMap, window._mobileMap].forEach(map => { if (map) marker.addTo(map); });
     });
   }
+
+  // Airport pins always visible
+  [window._crisisMap, window._mobileMap].forEach(map => {
+    if (map) renderAirportPins(map, 'stranded');
+  });
 }
 
 function renderFilteredPosts(map, cluster, filteredPosts) {
@@ -1304,13 +1299,16 @@ function renderAirportPins(map, mode) {
         ${typeof buildEmbassyButton === 'function' ? buildEmbassyButton(a.iata || a.code) : ''}
       </div>
     `);
-    _dataPins.airports.push(m);
+    _dataPins[map === window._mobileMap ? '_mobile' : '_pc'].push(m);
   });
 }
 
 function clearDataPins(map) {
-  _dataPins.airports.forEach(m => { try { map.removeLayer(m); } catch(e) {} });
-  _dataPins.airports = [];
+  const key = map === window._mobileMap ? '_mobile' : '_pc';
+  if (_dataPins[key]) {
+    _dataPins[key].forEach(m => { try { map.removeLayer(m); } catch(e) {} });
+  }
+  _dataPins[key] = [];
 }
 
 // ── GLOBAL DISRUPTION DOTS (purple) ──────────────────────
