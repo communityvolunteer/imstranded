@@ -471,7 +471,7 @@ function buildMEOutboundIndex() {
 // ============================================================
 // MAP STATE
 // ============================================================
-const SC = {danger:accentHex(),warn:accentHex(),safe:accentHex()};
+function getSC() { const h = accentHex(); return {danger:h, warn:h, safe:h}; }
 const _mk = {country:[],routes:[],worldwide:[],help:[]};
 let _helpCluster = null;
 let _mHelpCluster = null;
@@ -1386,6 +1386,11 @@ function setAccent(name) {
     renderGlobalDisruptions(window._mobileMap, _globalDisruptions);
     drawSuccessArcs(window._crisisMap);
     drawSuccessArcs(window._mobileMap);
+    // Live-repaint country status dots (rendered once at init, stored in _mk.country)
+    const newCol = accentHex();
+    (_mk.country || []).forEach(({marker}) => {
+      try { marker.setStyle({ fillColor: newCol, color: newCol }); } catch(e) {}
+    });
   }
 }
 
@@ -1461,7 +1466,7 @@ function initMap() {
   map.getPane('countryPane').style.zIndex = 640;
 
   COUNTRIES.forEach(c => {
-    const col = SC[c.status];
+    const col = getSC()[c.status];
     const glow = L.circleMarker(c.coords,{pane:'countryPane',interactive:false,radius:28,fillColor:'#ec3452',color:'#ec3452',weight:0,opacity:0,fillOpacity:.12}).addTo(map);
     const dot  = L.circleMarker(c.coords,{pane:'countryPane',interactive:true,radius:8,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.95}).addTo(map)
       .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:240px">
@@ -2307,7 +2312,7 @@ function initMobile(){
   mmap.getPane('countryPane').style.zIndex = 640;
 
   COUNTRIES.forEach(c => {
-    const col = SC[c.status];
+    const col = getSC()[c.status];
     L.circleMarker(c.coords, {pane:'countryPane',interactive:false,radius:28,fillColor:'#ec3452',color:'#ec3452',weight:0,opacity:0,fillOpacity:.12}).addTo(mmap);
     L.circleMarker(c.coords, {pane:'countryPane',interactive:true,radius:10,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.92}).addTo(mmap)
       .on('click', () => openMCountryPopup(c.id));
@@ -2340,7 +2345,7 @@ const PHONE_SVG=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" str
 
 function openMCountryPopup(id){
   const c=COUNTRIES.find(x=>x.id===id); if(!c)return;
-  const col=SC[c.status];
+  const col=getSC()[c.status];
   const acCol=c.airspace==='CLOSED'?'#dc2626':c.airspace.includes('OPEN')?'#059669':'#d97706';
   const embRows=Object.entries(c.embassy).map(([key,info])=>{
     const M=EMBASSY_META[key]||{flag:'',role:key.toUpperCase()};
@@ -2452,7 +2457,7 @@ function mRenderResources(){
   let html='<div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.4);margin-bottom:.6rem;margin-top:.25rem">Country Embassies</div>';
   html+=COUNTRIES.map(c=>`
     <div class="m-emb-section">
-      <div class="m-emb-country-title" style="color:${SC[c.status]}">${c.name} <span style="font-size:.6rem;font-weight:600;text-transform:uppercase;opacity:.6">${c.status}</span></div>
+      <div class="m-emb-country-title" style="color:${getSC()[c.status]}">${c.name} <span style="font-size:.6rem;font-weight:600;text-transform:uppercase;opacity:.6">${c.status}</span></div>
       ${Object.entries(c.embassy).slice(0,4).map(([key,info])=>{
         const M=EMBASSY_META[key]||{flag:'',role:key.toUpperCase()};
         const phone=info.phone||info.alt||null;
