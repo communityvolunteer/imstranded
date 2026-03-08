@@ -217,12 +217,6 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 }
 .leaflet-popup-tip{background:#000 !important;}
 .leaflet-popup-content{margin:.85rem 1rem !important;}
-.airport-pin-label{
-  border-radius:999px;font-family:'Inter',sans-serif;
-  font-size:11px;font-weight:700;line-height:1.25;
-  white-space:nowrap;width:fit-content !important;max-width:none !important;
-}
-
 /* Marker clusters — blue theme */
 .marker-cluster-small,.marker-cluster-medium,.marker-cluster-large{
   background:rgba(52,152,236,.35);

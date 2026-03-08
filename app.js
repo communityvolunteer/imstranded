@@ -394,7 +394,6 @@ let _helpCluster = null;
 let _mHelpCluster = null;
 let _postMarkers = [];
 let posts = [];
-const _dataPins = {_pc:[],_mobile:[]};
 let _globalPins = [];
 let _activeFilter = 'all';
 
@@ -652,11 +651,6 @@ function applyFilters() {
       [window._crisisMap, window._mobileMap].forEach(map => { if (map) marker.addTo(map); });
     });
   }
-
-  // Airport pins always visible
-  [window._crisisMap, window._mobileMap].forEach(map => {
-    if (map) renderAirportPins(map, 'stranded');
-  });
 }
 
 function renderFilteredPosts(map, cluster, filteredPosts) {
@@ -769,7 +763,6 @@ function clearAllFilters() {
   document.querySelectorAll('.fp-select').forEach(s => { if (s.tagName === 'SELECT') s.value = ''; else if (s.type === 'text') s.value = ''; });
   document.querySelectorAll('[id$="filter-dest-country"],[id$="filter-dest-airport"]').forEach(h => h.value = '');
   document.querySelectorAll('.sitrep-stat,.m-stat').forEach(s => s.classList.remove('active-filter'));
-  [window._crisisMap, window._mobileMap].forEach(map => { if (map) clearDataPins(map); });
   clearArcLines();
   clearGlobalArcs();
   updateStrandedLabel('', []);
@@ -1051,13 +1044,6 @@ function filterMap(type) {
   }
   applyFilters();
 
-  // Airport pins — show when stranded filter is active
-  [window._crisisMap, window._mobileMap].forEach(map => {
-    if (!map) return;
-    clearDataPins(map);
-    if (type === 'stranded') renderAirportPins(map, 'stranded');
-  });
-
   // Highlight active sitrep stat
   document.querySelectorAll('.sitrep-stat').forEach(s => s.classList.remove('active-filter'));
   if (type === 'stranded') document.getElementById('ss-stranded')?.classList.add('active-filter');
@@ -1290,47 +1276,8 @@ function initMap() {
 }
 
 // ============================================================
-// AIRPORT PINS
+// GLOBAL DISRUPTION DOTS (purple)
 // ============================================================
-function renderAirportPins(map, mode) {
-  clearDataPins(map);
-  const showStranded = mode === 'stranded';
-  AIRPORT_DATA.forEach(a => {
-    const col = a.status==='CLOSED'?'#ef4444':a.status==='OPEN'?'#22c55e':'#fcd34d';
-    const pinNum = showStranded ? a.stranded.toLocaleString() : a.cancelled.toLocaleString();
-    const pinSuffix = showStranded ? 'impacted' : 'cancelled';
-    const icon = L.divIcon({
-      className:'airport-pin-label',
-      html:`<div style="background:#000;border-radius:999px;padding:5px 10px;font-family:Inter,sans-serif;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;gap:5px">✈ ${a.code} <span style="opacity:.75;font-size:9.5px">${pinNum} ${pinSuffix}</span></div>`,
-      iconAnchor:[0,0],iconSize:null
-    });
-    const m = L.marker(a.coords,{icon,pane:'airportPane'}).addTo(map).bindPopup(`
-      <div style="font-family:Inter,sans-serif;min-width:230px">
-        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fff;margin-bottom:.45rem">✈ ${a.city} — ${a.code}</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem .85rem;margin-bottom:.55rem">
-          <div><div style="font-size:1.5rem;font-weight:800;color:#ec3452;letter-spacing:-.03em;line-height:1">${a.stranded.toLocaleString()}</div><div style="font-size:.58rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.04em;margin-top:.15rem">People Impacted</div></div>
-          <div><div style="font-size:1.5rem;font-weight:800;color:#FFF;letter-spacing:-.03em;line-height:1">${a.cancelled.toLocaleString()}</div><div style="font-size:.58rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.04em;margin-top:.15rem">Flights Cancelled</div></div>
-        </div>
-        <div style="display:flex;justify-content:space-between;padding:.35rem .55rem;background:rgba(255,255,255,.08);border-radius:6px;align-items:center;border:1px solid rgba(255,255,255,.1)">
-          <span style="font-size:.7rem;font-weight:700;color:${col==='#ef4444'?'#ec3452':col==='#22c55e'?'#22c55e':'#fcd34d'}">Status: ${a.status}</span>
-          <span style="font-size:.62rem;color:rgba(255,255,255,.45)">${a.updated !== '--:--' ? 'Updated '+a.updated : 'Seeded data'}</span>
-        </div>
-        ${typeof buildEmbassyButton === 'function' ? buildEmbassyButton(a.iata || a.code) : ''}
-      </div>
-    `);
-    _dataPins[map === window._mobileMap ? '_mobile' : '_pc'].push(m);
-  });
-}
-
-function clearDataPins(map) {
-  const key = map === window._mobileMap ? '_mobile' : '_pc';
-  if (_dataPins[key]) {
-    _dataPins[key].forEach(m => { try { map.removeLayer(m); } catch(e) {} });
-  }
-  _dataPins[key] = [];
-}
-
-// ── GLOBAL DISRUPTION DOTS (purple) ──────────────────────
 let _activePopupIata = '';
 let _activePopupMode = 'leave';
 let _activePopupCircle = null;
@@ -1887,10 +1834,6 @@ async function refreshSitrep() {
   _globalPins = [];
   renderGlobalDisruptions(window._crisisMap, _globalDisruptions);
   renderGlobalDisruptions(window._mobileMap, _globalDisruptions);
-  
-  // Render ME airport pins on both maps
-  renderAirportPins(window._crisisMap, 'stranded');
-  renderAirportPins(window._mobileMap, 'stranded');
 }
 
 // ============================================================
