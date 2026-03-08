@@ -1303,9 +1303,8 @@ function clearDataPins(map) {
 
 // ── GLOBAL DISRUPTION DOTS (purple) ──────────────────────
 let _activePopupIata = '';
-let _activePopupMode = 'leave'; // 'leave' or 'home'
+let _activePopupMode = 'leave';
 let _activePopupCircle = null;
-let _isTogglingPopup = false;
 
 function buildPopupContent(iata, mode) {
   const ap = typeof findAirport === 'function' ? findAirport(iata) : null;
@@ -1384,19 +1383,20 @@ function buildPopupContent(iata, mode) {
 function switchPopupMode(iata, mode) {
   _activePopupMode = mode;
   _activePopupIata = iata;
-  _isTogglingPopup = true;
   
-  // Update popup content
+  // Update popup content by directly replacing innerHTML — NOT setContent which closes the popup
   const html = buildPopupContent(iata, mode);
   if (_activePopupCircle && _activePopupCircle.getPopup()) {
-    _activePopupCircle.getPopup().setContent(html);
+    var wrapper = _activePopupCircle.getPopup().getElement();
+    if (wrapper) {
+      var content = wrapper.querySelector('.leaflet-popup-content');
+      if (content) content.innerHTML = html;
+    }
   }
   
   // Redraw arcs for this airport only
   clearGlobalArcs();
   drawPopupArcs(iata, mode);
-  
-  setTimeout(function() { _isTogglingPopup = false; }, 50);
 }
 
 function drawPopupArcs(iata, mode) {
@@ -1444,7 +1444,7 @@ function drawPopupArcs(iata, mode) {
         if (!r.lat || !r.lng) continue;
         const weight = 1 + ((r.cancelled || 1) / maxC) * 3;
         const arc = generateArc([r.lat, r.lng], [ap.lat, ap.lng], 30);
-        const line = L.polyline(arc, { color: 'rgba(236,52,82,.35)', weight, interactive: false }).addTo(map);
+        const line = L.polyline(arc, { color: 'rgba(168,85,247,.35)', weight, interactive: false }).addTo(map);
         _globalArcLines.push(line);
       }
     }
@@ -1486,11 +1486,9 @@ function renderGlobalDisruptions(map, data) {
       drawPopupArcs(g.iata, 'leave');
     });
     circle.on('popupclose', function() {
-      if (_isTogglingPopup) return; // Don't redraw everything during toggle
       _activePopupCircle = null;
       _activePopupIata = '';
       clearGlobalArcs();
-      // Redraw default arcs
       drawGlobalRouteArcs(window._crisisMap, _globalDisruptions);
       drawGlobalRouteArcs(window._mobileMap, _globalDisruptions);
     });
