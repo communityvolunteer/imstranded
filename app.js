@@ -1236,12 +1236,12 @@ function initMap() {
   // Custom panes — layered for proper visibility
   map.createPane('worldwidePane');
   map.getPane('worldwidePane').style.zIndex = 580;
-  map.createPane('countryPane');
-  map.getPane('countryPane').style.zIndex = 590;
   map.createPane('airportGlowPane');
   map.getPane('airportGlowPane').style.zIndex = 620;
   map.createPane('airportPane');
   map.getPane('airportPane').style.zIndex = 630;
+  map.createPane('countryPane');
+  map.getPane('countryPane').style.zIndex = 640;
 
   COUNTRIES.forEach(c => {
     const col = SC[c.status];
@@ -1560,18 +1560,6 @@ function renderGlobalDisruptions(map, data) {
       className: 'global-disruption-dot',
     }).addTo(map);
 
-    // Red glow behind the purple dot — sits on airportGlowPane (z 620, below dot at 630)
-    const glowRadius = radius + 5;
-    L.circleMarker([ap.lat, ap.lng], {
-      radius: glowRadius,
-      pane: 'airportGlowPane',
-      fillColor: '#ec3452',
-      color: 'transparent',
-      weight: 0,
-      fillOpacity: Math.min(opacity * 0.45, 0.22),
-      interactive: false,
-    }).addTo(map);
-    
     const popupContent = buildDualPopup(g.iata);
     circle.bindPopup(popupContent, { className: 'dark-popup', maxWidth: 320, closeOnClick: false });
     
@@ -1959,12 +1947,12 @@ function initMobile(){
 
   mmap.createPane('worldwidePane');
   mmap.getPane('worldwidePane').style.zIndex = 580;
-  mmap.createPane('countryPane');
-  mmap.getPane('countryPane').style.zIndex = 590;
   mmap.createPane('airportGlowPane');
   mmap.getPane('airportGlowPane').style.zIndex = 620;
   mmap.createPane('airportPane');
   mmap.getPane('airportPane').style.zIndex = 630;
+  mmap.createPane('countryPane');
+  mmap.getPane('countryPane').style.zIndex = 640;
 
   COUNTRIES.forEach(c => {
     const col = SC[c.status];
