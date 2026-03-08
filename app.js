@@ -6,6 +6,17 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 const SB_ON = !SUPABASE_URL.includes('YOUR_PROJECT_ID');
 
+// ── Accent color system — MUST be at top, called throughout ──
+const ACCENT_THEMES = {
+  purple: { hex: '#a855f7', r: 168, g: 85,  b: 247 },
+  cyan:   { hex: '#00daff', r: 0,   g: 218, b: 255 },
+  orange: { hex: '#ff5600', r: 255, g: 86,  b: 0   },
+  yellow: { hex: '#f5c400', r: 245, g: 196, b: 0   },
+};
+let _currentAccent = 'purple';
+function accentHex() { return ACCENT_THEMES[_currentAccent]?.hex || '#a855f7'; }
+function accentRgba(a) { const t = ACCENT_THEMES[_currentAccent] || ACCENT_THEMES.purple; return `rgba(${t.r},${t.g},${t.b},${a})`; }
+
 const EMBASSY_META = {
   usa:{flag:'🇺🇸',role:'US Embassy'},uk:{flag:'🇬🇧',role:'UK Embassy'},
   aus:{flag:'🇦🇺',role:'Australian Embassy'},can:{flag:'🇨🇦',role:'Canadian Embassy'},
@@ -1341,18 +1352,6 @@ function toggleMapTheme() {
   // Sync zoom button color with theme
   document.querySelector('.leaflet-control-zoom')?.classList.toggle('theme-light', !_mapDark);
 }
-
-// ── Accent color picker ──────────────────────────────────────
-const ACCENT_THEMES = {
-  purple: { hex: accentHex(), r: 168, g: 85,  b: 247 },
-  cyan:   { hex: '#00daff', r: 0,   g: 218, b: 255 },
-  orange: { hex: '#ff5600', r: 255, g: 86,  b: 0   },
-  yellow: { hex: '#f5c400', r: 245, g: 196, b: 0   },
-};
-let _currentAccent = 'purple';
-// Live accent helpers — always read current theme
-function accentHex() { return ACCENT_THEMES[_currentAccent]?.hex || accentHex(); }
-function accentRgba(a) { const t = ACCENT_THEMES[_currentAccent] || ACCENT_THEMES.purple; return `rgba(${t.r},${t.g},${t.b},${a})`; }
 
 function setAccent(name) {
   const t = ACCENT_THEMES[name]; if (!t) return;
