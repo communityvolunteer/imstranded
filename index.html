@@ -26,22 +26,23 @@ function googleTranslateInit() {
 }
 // Hide Google Translate banner without killing the translation engine
 (function() {
-  const observer = new MutationObserver(function() {
-    // Hide the banner wrapper — height:0 + overflow:hidden, NOT display:none
-    // The iframe inside must stay alive for translations to work
+  function suppressGoogleJunk() {
+    // Hide the banner wrapper
     const skip = document.querySelector('body > .skiptranslate:first-child');
     if (skip && skip.id !== 'google_translate_element') {
-      skip.style.height = '0';
-      skip.style.overflow = 'hidden';
-      skip.style.position = 'fixed';
-      skip.style.top = '0';
-      skip.style.zIndex = '-999';
+      skip.style.cssText = 'height:0!important;overflow:hidden!important;position:fixed!important;top:0!important;z-index:-999!important';
     }
     // Undo body top push
     if (document.body && document.body.style.top && document.body.style.top !== '0px') {
       document.body.style.top = '0px';
     }
-  });
+    // Kill the rating/feedback popup and tooltip
+    ['#goog-gt-tt', '.goog-te-balloon-frame', '.goog-te-ftab-float',
+     '.goog-te-balloon-frame', '#goog-gt-votingFrame', '.goog-te-ftab'].forEach(sel => {
+      document.querySelectorAll(sel).forEach(el => el.style.cssText = 'display:none!important');
+    });
+  }
+  const observer = new MutationObserver(suppressGoogleJunk);
   observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
 })();
 </script>

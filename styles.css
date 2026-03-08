@@ -205,7 +205,7 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
   border:1px solid rgba(255,255,255,.08);
 }
 .community-text{
-  font-size:.72rem;font-weight:700;color:rgba(255,255,255,.5);
+  font-size:.72rem;font-weight:700;color:rgb(255 255 255 / 88%);
   letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;
 }
 .community-link{
@@ -1114,6 +1114,13 @@ body > .skiptranslate:first-child{height:0 !important;overflow:hidden !important
 #google_translate_element .skiptranslate{display:block !important;}
 body{top:0 !important;position:static !important;}
 html.translated-ltr body,html.translated-rtl body{top:0 !important;}
+/* Kill Google Translate rating popup, feedback balloon, tooltip */
+#goog-gt-tt,
+.goog-te-balloon-frame,
+.goog-te-ftab-float,
+#goog-gt-votingFrame,
+.goog-te-ftab,
+.goog-te-spinner-pos { display:none !important; }
 /* Global disruption dots */
 .global-disruption-dot{transition:fill-opacity .3s;}
 .global-disruption-dot:hover{fill-opacity:.6 !important;}
