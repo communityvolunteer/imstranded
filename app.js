@@ -297,8 +297,17 @@ async function fetchSitrepFromSupabase() {
     if (data.global_disruptions) {
       const gd = typeof data.global_disruptions === 'string' ? JSON.parse(data.global_disruptions) : data.global_disruptions;
       if (gd.length) {
-        _globalDisruptions = gd;
-        console.log(`[Global] Loaded ${gd.length} REAL disrupted airports from Supabase`);
+        // Add ME airports as purple dots (flagged isME to avoid double-counting)
+        const meAsDots = AIRPORT_DATA.filter(a => (a.cancelled || 0) > 0).map(a => ({
+          iata: a.iata || a.code,
+          cancelled: a.cancelled,
+          stranded: a.stranded || (a.cancelled * 185),
+          airlines: [],
+          me_hubs: [],
+          isME: true,
+        }));
+        _globalDisruptions = [...meAsDots, ...gd];
+        console.log(`[Global] Loaded ${gd.length} global + ${meAsDots.length} ME airports from Supabase`);
       } else {
         _globalDisruptions = computeGlobalFromAirportData();
       }
