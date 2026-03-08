@@ -189,7 +189,10 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 
 /* Dual CTA buttons bottom-right */
 .map-community-bar{
-  position:absolute;bottom:1.2rem;z-index:999;left:50%;transform:translateX(-50%);
+  position:absolute;bottom:1.2rem;z-index:999;
+  left:calc(var(--sidebar-w, 280px) + (100% - var(--sidebar-w, 280px)) / 2);
+  transform:translateX(-50%);
+  transition:left .3s cubic-bezier(.4,0,.2,1);
   background:#000;padding:.6rem 1.2rem;border-radius:8px;
   display:flex;align-items:center;gap:.7rem;
   font-family:'Inter',sans-serif;
@@ -216,6 +219,24 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
   height:calc(100% + 1px) !important;
   image-rendering:-webkit-optimize-contrast;
 }
+/* Zoom controls — transparent, oversized, theme-aware color */
+.leaflet-control-zoom{border:none !important;box-shadow:none !important;background:transparent !important;}
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out{
+  background:transparent !important;border:none !important;
+  width:36px !important;height:36px !important;
+  line-height:36px !important;font-size:35px !important;font-weight:300 !important;
+  display:block !important;text-align:center !important;
+  color:#fff !important;
+  transition:opacity .15s !important;
+}
+.leaflet-control-zoom-in{border-radius:0 !important;}
+.leaflet-control-zoom-out{border-radius:0 !important;}
+.leaflet-control-zoom-in:hover,
+.leaflet-control-zoom-out:hover{background:transparent !important;opacity:.6;}
+/* Light map theme — dark symbols */
+.leaflet-control-zoom.theme-light .leaflet-control-zoom-in,
+.leaflet-control-zoom.theme-light .leaflet-control-zoom-out{color:#000 !important;}
 .leaflet-popup-content-wrapper{
   background:#000 !important;border:1px solid rgba(255,255,255,.12) !important;
   color:#fff !important;border-radius:var(--radius) !important;

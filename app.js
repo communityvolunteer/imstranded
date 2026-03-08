@@ -552,6 +552,7 @@ function toggleFilterPanel() {
   const panel = document.getElementById('filter-panel');
   if (panel) panel.classList.toggle('open', _filterPanelOpen);
   document.getElementById('ss-filter')?.classList.toggle('active-filter', _filterPanelOpen);
+  document.getElementById('map-view')?.style.setProperty('--sidebar-w', _filterPanelOpen ? '280px' : '0px');
 }
 
 function toggleFpSection(head) {
@@ -1303,6 +1304,8 @@ function toggleMapTheme() {
     if (sun) sun.style.display = _mapDark ? 'block' : 'none';
     if (moon) moon.style.display = _mapDark ? 'none' : 'block';
   });
+  // Sync zoom button color with theme
+  document.querySelector('.leaflet-control-zoom')?.classList.toggle('theme-light', !_mapDark);
 }
 
 // ============================================================
@@ -3478,7 +3481,11 @@ function initStrandedRealtime() {
 
 window.addEventListener('DOMContentLoaded',()=>{
   if(isMob()){ initMobile(); }
-  else { showView('map'); }
+  else {
+    showView('map');
+    // Initialize sidebar-aware community bar centering (sidebar starts open)
+    document.getElementById('map-view')?.style.setProperty('--sidebar-w', '280px');
+  }
   // Init autocomplete on both desktop and mobile location fields
   initLocationAutocomplete('offer-location','offer-lat','offer-lng','offer-location-ac');
   initLocationAutocomplete('m-offer-location','m-offer-lat','m-offer-lng','m-offer-location-ac');
