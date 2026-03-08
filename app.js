@@ -3272,5 +3272,5 @@ window.addEventListener('DOMContentLoaded',()=>{
     const el=document.getElementById('offer-posts');
     if(el)el.innerHTML='<div class="empty-state" style="color:var(--warn)">Supabase not configured.</div>';
   }
-}); 
+});
 window.addEventListener('resize',()=>{if(isMob()&&!window._mobileInit)initMobile();});
