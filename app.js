@@ -12,6 +12,7 @@ const ACCENT_THEMES = {
   cyan:   { hex: '#00daff', r: 0,   g: 218, b: 255 },
   orange: { hex: '#ff5600', r: 255, g: 86,  b: 0   },
   yellow: { hex: '#f5c400', r: 245, g: 196, b: 0   },
+  green:  { hex: '#19c204', r: 25,  g: 194, b: 4   },
 };
 let _currentAccent = 'purple';
 function accentHex() { return ACCENT_THEMES[_currentAccent]?.hex || '#a855f7'; }
