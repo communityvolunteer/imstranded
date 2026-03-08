@@ -220,74 +220,6 @@ function googleTranslateInit() {
 
 
 
-  <!-- $HELP Panel — slide-up on mobile, centered modal on PC -->
-  <div id="help-money-modal">
-    <div class="help-panel-inner">
-      <button onclick="toggleHelpPanel()" class="help-panel-x" aria-label="Close">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-
-      <!-- Header -->
-      <div class="help-panel-head">
-        <div class="help-panel-ticker">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          $HELP
-        </div>
-        <div class="help-panel-sub">Community token on X · Send, receive, or get tokens</div>
-      </div>
-
-      <!-- Section 1: SEND -->
-      <div class="help-section">
-        <div class="help-section-label" style="color:#3498ec">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          SEND $HELP
-        </div>
-        <div class="help-section-desc">Find a helper on the map, tap their pin, then tap <strong style="color:#fff">Send $HELP</strong> to tip them via <a href="https://x.com/bankrbot" target="_blank" style="color:#a855f7">@bankrbot</a> on X.</div>
-        <a href="https://x.com/intent/tweet?text=@bankrbot%20Tip%201%20$HELP%20to%20@imstrandedorg" target="_blank" class="help-btn help-btn--blue">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-          Tip via @bankrbot on X
-        </a>
-      </div>
-
-      <!-- Section 2: RECEIVE -->
-      <div class="help-section">
-        <div class="help-section-label" style="color:#22c55e">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
-          RECEIVE $HELP
-        </div>
-        <div class="help-section-desc">Post your spare room or register as stranded, then <strong style="color:#fff">link your X account</strong> in your profile. The community can tip you directly.</div>
-        <a href="#" onclick="toggleHelpPanel();mTab('profile',null);return false;" class="help-btn help-btn--green">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          Link X in Profile
-        </a>
-      </div>
-
-      <!-- Section 3: GET TOKENS -->
-      <div class="help-section">
-        <div class="help-section-label" style="color:#a855f7">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          GET $HELP TOKENS
-        </div>
-        <div class="help-section-desc">Don't have $HELP yet? Buy on Coinbase — new users get a bonus when they sign up.</div>
-        <a href="https://coinbase.com/join/KFWJYRD?src=android-link" target="_blank" class="help-btn help-btn--purple">
-          <svg width="14" height="14" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="14" fill="#0052FF"/><path d="M14 6a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm-1.8 5.2h3.6c.33 0 .6.27.6.6v4.4c0 .33-.27.6-.6.6h-3.6a.6.6 0 0 1-.6-.6v-4.4c0-.33.27-.6.6-.6z" fill="#fff"/></svg>
-          Get $HELP on Coinbase
-        </a>
-        <div class="help-exchanges">
-          <a href="#" class="help-exch-pill">Uniswap</a>
-          <a href="#" class="help-exch-pill">OKX</a>
-          <span class="help-exch-note">0.60% of all $HELP volume funds ImStranded operations</span>
-        </div>
-      </div>
-
-      <!-- Donate to us — tertiary -->
-      <div class="help-donate-row">
-        <span>Support the project directly →</span>
-        <a href="https://x.com/intent/tweet?text=@bankrbot%20Tip%201%20$HELP%20to%20@imstrandedorg" target="_blank">Tip @imstrandedorg</a>
-      </div>
-
-    </div>
-  </div>
 
 </div>
 
@@ -910,6 +842,75 @@ function googleTranslateInit() {
       <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       OFFER SPARE ROOM
     </button>
+  </div>
+</div>
+
+<!-- $HELP Panel — body-level so it works on both PC and mobile -->
+<!-- PC: centered overlay modal. Mobile: slide-up sheet from bottom -->
+<div id="help-money-modal">
+  <div class="help-panel-inner">
+    <button onclick="toggleHelpPanel()" class="help-panel-x" aria-label="Close">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+
+    <div class="help-panel-head">
+      <div class="help-panel-ticker">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        $HELP
+      </div>
+      <div class="help-panel-sub">Community token on X · Send, receive, or get tokens</div>
+    </div>
+
+    <!-- SEND -->
+    <div class="help-section">
+      <div class="help-section-label" style="color:#3498ec">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        SEND $HELP
+      </div>
+      <div class="help-section-desc">Find a helper on the map, tap their pin, then tap <strong style="color:#fff">Send $HELP</strong> to tip them via <a href="https://x.com/bankrbot" target="_blank" style="color:#a855f7">@bankrbot</a> on X.</div>
+      <a href="https://x.com/intent/tweet?text=@bankrbot%20Tip%201%20$HELP%20to%20@imstrandedorg" target="_blank" class="help-btn help-btn--blue">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        Tip via @bankrbot on X
+      </a>
+    </div>
+
+    <!-- RECEIVE -->
+    <div class="help-section">
+      <div class="help-section-label" style="color:#22c55e">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+        RECEIVE $HELP
+      </div>
+      <div class="help-section-desc">Post your spare room or register as stranded, then <strong style="color:#fff">link your X account</strong> in your profile. The community can tip you directly.</div>
+      <a href="#" onclick="toggleHelpPanel();mTab('profile',null);return false;" class="help-btn help-btn--green">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Link X in Profile
+      </a>
+    </div>
+
+    <!-- GET TOKENS -->
+    <div class="help-section">
+      <div class="help-section-label" style="color:#a855f7">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        GET $HELP TOKENS
+      </div>
+      <div class="help-section-desc">Don't have $HELP yet? Buy on Coinbase — new users get a bonus when they sign up.</div>
+      <a href="https://coinbase.com/join/KFWJYRD?src=android-link" target="_blank" class="help-btn help-btn--purple">
+        <svg width="14" height="14" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="14" fill="#0052FF"/><path d="M14 6a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm-1.8 5.2h3.6c.33 0 .6.27.6.6v4.4c0 .33-.27.6-.6.6h-3.6a.6.6 0 0 1-.6-.6v-4.4c0-.33.27-.6.6-.6z" fill="#fff"/></svg>
+        Get $HELP on Coinbase
+      </a>
+      <div class="help-exchanges">
+        <a href="#" class="help-exch-pill">Uniswap</a>
+        <a href="#" class="help-exch-pill">OKX</a>
+        <span class="help-exch-note">0.60% of all $HELP volume funds ImStranded operations</span>
+      </div>
+    </div>
+
+    <!-- Donate — tertiary -->
+    <div class="help-donate-row">
+      <span>Support the project directly →</span>
+      <a href="https://x.com/intent/tweet?text=@bankrbot%20Tip%201%20$HELP%20to%20@imstrandedorg" target="_blank">Tip @imstrandedorg</a>
+    </div>
+
   </div>
 </div>
 
