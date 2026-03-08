@@ -3290,7 +3290,104 @@ let _mStrandedCluster = null;
 
 function toggleHelpPanel() {
   const modal = document.getElementById('help-money-modal');
-  if (modal) modal.classList.toggle('open');
+  if (!modal) return;
+  const opening = !modal.classList.contains('open');
+  modal.classList.toggle('open');
+  if (opening) refreshHelpPanel();
+}
+
+function switchHelpTab(tab) {
+  document.getElementById('htab-send').classList.toggle('active', tab === 'send');
+  document.getElementById('htab-receive').classList.toggle('active', tab === 'receive');
+  document.getElementById('help-send-panel').style.display = tab === 'send' ? '' : 'none';
+  document.getElementById('help-receive-panel').style.display = tab === 'receive' ? '' : 'none';
+}
+
+function refreshHelpPanel() {
+  const p = _currentProfile;
+  const xOk = !!(p?.x_verified && p?.x_handle);
+  const tgOk = !!p?.tg_verified;
+  const gOk  = !!p?.google_verified;
+
+  // ── SEND panel ──────────────────────────────────────────
+  // Step 1: X connect
+  const s1num  = document.getElementById('hs-s1-num');
+  const s1desc = document.getElementById('hs-s1-desc');
+  const s1btn  = document.getElementById('hs-s1-btn');
+  if (xOk) {
+    s1num?.classList.add('done');
+    if (s1desc) s1desc.innerHTML = `Connected as <strong style="color:#fff">@${p.x_handle}</strong> ✓`;
+    if (s1btn) {
+      s1btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> X Connected`;
+      s1btn.className = 'hstep-btn hstep-btn--x done';
+    }
+  } else {
+    s1num?.classList.remove('done');
+    if (s1desc) s1desc.textContent = 'Link your X account so @bankrbot can process your tips.';
+    if (s1btn) {
+      s1btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Connect X in Profile`;
+      s1btn.className = 'hstep-btn hstep-btn--x';
+      s1btn.onclick = () => { toggleHelpPanel(); isMob() ? mTab('profile', null) : showView('profile'); };
+    }
+  }
+
+  // Step 3: tip button — disabled if no X
+  const s3btn    = document.getElementById('hs-s3-btn');
+  const s3locked = document.getElementById('hs-s3-locked');
+  if (s3btn && s3locked) {
+    if (xOk) {
+      s3btn.style.display = '';
+      s3locked.style.display = 'none';
+    } else {
+      s3btn.style.display = 'none';
+      s3locked.style.display = '';
+    }
+  }
+
+  // ── RECEIVE panel ────────────────────────────────────────
+  // Step 1 socials
+  function setDot(id, linked) {
+    const dot = document.getElementById(id);
+    if (dot) dot.classList.toggle('linked', linked);
+  }
+  function setLinkBtn(id, linked) {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.textContent = linked ? '✓ Connected' : 'Connect';
+    btn.classList.toggle('linked', linked);
+  }
+  setDot('hr-dot-x', xOk);  setLinkBtn('hr-btn-x', xOk);
+  setDot('hr-dot-tg', tgOk); setLinkBtn('hr-btn-tg', tgOk);
+  setDot('hr-dot-g', gOk);   setLinkBtn('hr-btn-g', gOk);
+
+  // Step 1 num — green if at least X connected (required for tipping)
+  const r1num = document.getElementById('hr-s1-num');
+  if (r1num) r1num.classList.toggle('done', xOk);
+}
+
+// Filter map to verified stranded + offers only
+function helpFilterVerifiedOnly() {
+  // Turn off embassies, routes; turn on stranded+offers, verified-only
+  const setCheck = (id, val) => {
+    const el = document.getElementById(id) || document.getElementById(id.replace('fp-','mfp-'));
+    if (el) { el.checked = val; }
+  };
+  setCheck('fp-show-offers', true);
+  setCheck('fp-show-stranded', true);
+  setCheck('fp-show-embassies', false);
+  setCheck('fp-show-routes', false);
+  setCheck('fp-offers-verified', true);
+  setCheck('fp-stranded-verified', true);
+  // mirror to mobile checkboxes too
+  ['mfp-show-offers','mfp-show-stranded','mfp-show-embassies','mfp-show-routes',
+   'mfp-offers-verified','mfp-stranded-verified'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.checked = ['mfp-show-offers','mfp-show-stranded','mfp-offers-verified','mfp-stranded-verified'].includes(id);
+  });
+  applyFilters();
+  // Switch to map view
+  if (isMob()) mTab('map', null);
+  else showView('map');
 }
 
 function openStrandedForm() {

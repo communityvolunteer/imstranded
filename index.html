@@ -846,69 +846,161 @@ function googleTranslateInit() {
 </div>
 
 <!-- $HELP Panel — body-level so it works on both PC and mobile -->
-<!-- PC: centered overlay modal. Mobile: slide-up sheet from bottom -->
 <div id="help-money-modal">
   <div class="help-panel-inner">
+
+    <!-- Close -->
     <button onclick="toggleHelpPanel()" class="help-panel-x" aria-label="Close">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
 
+    <!-- Header -->
     <div class="help-panel-head">
       <div class="help-panel-ticker">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
         $HELP
       </div>
-      <div class="help-panel-sub">Community token on X · Send, receive, or get tokens</div>
+      <div class="help-panel-sub">Community tipping on X · powered by @bankrbot</div>
     </div>
 
-    <!-- SEND -->
-    <div class="help-section">
-      <div class="help-section-label" style="color:#3498ec">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        SEND $HELP
-      </div>
-      <div class="help-section-desc">Find a helper on the map, tap their pin, then tap <strong style="color:#fff">Send $HELP</strong> to tip them via <a href="https://x.com/bankrbot" target="_blank" style="color:#a855f7">@bankrbot</a> on X.</div>
-      <a href="https://x.com/intent/tweet?text=@bankrbot%20Tip%201%20$HELP%20to%20@imstrandedorg" target="_blank" class="help-btn help-btn--blue">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-        Tip via @bankrbot on X
-      </a>
+    <!-- Toggle -->
+    <div class="help-toggle-bar">
+      <button class="help-toggle-btn active" id="htab-send" onclick="switchHelpTab('send')">SEND HELP</button>
+      <button class="help-toggle-btn" id="htab-receive" onclick="switchHelpTab('receive')">RECEIVE HELP</button>
     </div>
 
-    <!-- RECEIVE -->
-    <div class="help-section">
-      <div class="help-section-label" style="color:#22c55e">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
-        RECEIVE $HELP
+    <!-- SEND PANEL -->
+    <div id="help-send-panel">
+
+      <!-- Step 1 -->
+      <div class="hstep" id="hs-s1">
+        <div class="hstep-num" id="hs-s1-num">1</div>
+        <div class="hstep-body">
+          <div class="hstep-title">Connect X / Twitter</div>
+          <div class="hstep-desc" id="hs-s1-desc">Link your X account so @bankrbot can process your tips.</div>
+          <button class="hstep-btn hstep-btn--blue" id="hs-s1-btn" onclick="toggleHelpPanel();isMob()?mTab('profile',null):showView('profile')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            Connect X in Profile
+          </button>
+          <div class="hstep-bankr-note">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Also install <a href="https://bankr.bot" target="_blank">Bankr app</a> on your phone to receive tip notifications.
+          </div>
+        </div>
       </div>
-      <div class="help-section-desc">Post your spare room or register as stranded, then <strong style="color:#fff">link your X account</strong> in your profile. The community can tip you directly.</div>
-      <a href="#" onclick="toggleHelpPanel();mTab('profile',null);return false;" class="help-btn help-btn--green">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        Link X in Profile
-      </a>
+
+      <!-- Step 2 -->
+      <div class="hstep" id="hs-s2">
+        <div class="hstep-num">2</div>
+        <div class="hstep-body">
+          <div class="hstep-title">Send $HELP to anyone on the map</div>
+          <div class="hstep-desc">Look for the <strong style="color:#a855f7">Send $HELP</strong> button on
+            <span class="hstep-badge">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="#3498ec"><path d="M12 22c-1.1 0-2-.2-2.7-.6L3.5 18.2c-.4-.3-.7-.7-.9-1.1-.2-.5-.3-1-.3-1.5V8.4c0-.5.1-1 .3-1.5.2-.4.5-.8.9-1.1l5.8-3.2C10 2.2 11 2 12 2s2 .2 2.7.6l5.8 3.2c.4.3.7.7.9 1.1.2.5.3 1 .3 1.5v7.2c0 .5-.1 1-.3 1.5-.2.4-.5.8-.9 1.1l-5.8 3.2c-.7.4-1.6.6-2.7.6z"/><path d="M9 12l2 2 4-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Verified
+            </span>
+            profiles on the map.
+          </div>
+          <button class="hstep-btn hstep-btn--purple" onclick="toggleHelpPanel();helpFilterVerifiedOnly()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+            Try it — Show Verified Profiles
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="hstep" id="hs-s3">
+        <div class="hstep-num">3</div>
+        <div class="hstep-body">
+          <div class="hstep-title">Send $HELP to ImStranded</div>
+          <div class="hstep-desc">Tip our account directly to help keep this crisis tool running for everyone.</div>
+          <a id="hs-s3-btn" href="https://x.com/intent/tweet?text=@bankrbot%20Tip%201%20$HELP%20to%20@imstrandedorg" target="_blank" class="hstep-btn hstep-btn--blue">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            Tip @imstrandedorg on X
+          </a>
+          <div class="hstep-muted" id="hs-s3-locked" style="display:none">Connect X first (step 1) to enable tipping.</div>
+        </div>
+      </div>
+
     </div>
 
-    <!-- GET TOKENS -->
-    <div class="help-section">
-      <div class="help-section-label" style="color:#a855f7">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        GET $HELP TOKENS
+    <!-- RECEIVE PANEL -->
+    <div id="help-receive-panel" style="display:none">
+
+      <!-- Step 1 -->
+      <div class="hstep" id="hr-s1">
+        <div class="hstep-num" id="hr-s1-num">1</div>
+        <div class="hstep-body">
+          <div class="hstep-title">Get a Verified Badge</div>
+          <div class="hstep-desc">Connect your socials to get the
+            <span class="hstep-badge">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="#3498ec"><path d="M12 22c-1.1 0-2-.2-2.7-.6L3.5 18.2c-.4-.3-.7-.7-.9-1.1-.2-.5-.3-1-.3-1.5V8.4c0-.5.1-1 .3-1.5.2-.4.5-.8.9-1.1l5.8-3.2C10 2.2 11 2 12 2s2 .2 2.7.6l5.8 3.2c.4.3.7.7.9 1.1.2.5.3 1 .3 1.5v7.2c0 .5-.1 1-.3 1.5-.2.4-.5.8-.9 1.1l-5.8 3.2c-.7.4-1.6.6-2.7.6z"/><path d="M9 12l2 2 4-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Verified
+            </span>
+            badge on your posts — required to receive $HELP tips.
+          </div>
+          <div class="hstep-social-checks" id="hr-social-checks">
+            <div class="hstep-social-row" id="hr-check-x">
+              <span class="hstep-social-dot" id="hr-dot-x"></span>
+              <span>X / Twitter</span>
+              <button class="hstep-link-btn" id="hr-btn-x" onclick="toggleHelpPanel();isMob()?mTab('profile',null):showView('profile')">Connect</button>
+            </div>
+            <div class="hstep-social-row" id="hr-check-tg">
+              <span class="hstep-social-dot" id="hr-dot-tg"></span>
+              <span>Telegram</span>
+              <button class="hstep-link-btn" id="hr-btn-tg" onclick="toggleHelpPanel();isMob()?mTab('profile',null):showView('profile')">Connect</button>
+            </div>
+            <div class="hstep-social-row" id="hr-check-g">
+              <span class="hstep-social-dot" id="hr-dot-g"></span>
+              <span>Google</span>
+              <button class="hstep-link-btn" id="hr-btn-g" onclick="toggleHelpPanel();isMob()?mTab('profile',null):showView('profile')">Connect</button>
+            </div>
+          </div>
+          <div class="hstep-bankr-note">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Install <a href="https://bankr.bot" target="_blank">Bankr app</a> on your phone — you'll be notified there when tips arrive.
+          </div>
+        </div>
       </div>
-      <div class="help-section-desc">Don't have $HELP yet? Buy on Coinbase — new users get a bonus when they sign up.</div>
-      <a href="https://coinbase.com/join/KFWJYRD?src=android-link" target="_blank" class="help-btn help-btn--purple">
-        <svg width="14" height="14" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="14" fill="#0052FF"/><path d="M14 6a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm-1.8 5.2h3.6c.33 0 .6.27.6.6v4.4c0 .33-.27.6-.6.6h-3.6a.6.6 0 0 1-.6-.6v-4.4c0-.33.27-.6.6-.6z" fill="#fff"/></svg>
-        Get $HELP on Coinbase
-      </a>
-      <div class="help-exchanges">
-        <a href="#" class="help-exch-pill">Uniswap</a>
-        <a href="#" class="help-exch-pill">OKX</a>
-        <span class="help-exch-note">0.60% of all $HELP volume funds ImStranded operations</span>
+
+      <!-- Step 2 -->
+      <div class="hstep" id="hr-s2">
+        <div class="hstep-num">2</div>
+        <div class="hstep-body">
+          <div class="hstep-title">Get on the map</div>
+          <div class="hstep-desc">Offer a spare room to someone in need — even just a couch for a week helps. Or, if you're stranded, add yourself to the map.</div>
+          <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+            <button class="hstep-btn hstep-btn--blue" onclick="toggleHelpPanel();isMob()?mTab('offer',null):showView('help')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              Offer a Room
+            </button>
+            <button class="hstep-btn hstep-btn--red" onclick="toggleHelpPanel();isMob()?mTab('stranded',null):openStrandedForm()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              I'm Stranded
+            </button>
+          </div>
+        </div>
       </div>
+
+      <!-- Step 3 -->
+      <div class="hstep">
+        <div class="hstep-num">3</div>
+        <div class="hstep-body">
+          <div class="hstep-title">Check X — you'll be tagged when help arrives</div>
+          <div class="hstep-desc">When someone taps <strong style="color:#a855f7">Send $HELP</strong> on your post, @bankrbot tags you in a tweet. The tip lands in your Bankr wallet instantly.</div>
+          <a href="https://x.com/notifications" target="_blank" class="hstep-btn hstep-btn--ghost">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            Open X Notifications
+          </a>
+        </div>
+      </div>
+
     </div>
 
-    <!-- Donate — tertiary -->
+    <!-- Coinbase -->
     <div class="help-donate-row">
-      <span>Support the project directly →</span>
-      <a href="https://x.com/intent/tweet?text=@bankrbot%20Tip%201%20$HELP%20to%20@imstrandedorg" target="_blank">Tip @imstrandedorg</a>
+      <span>Don't have $HELP?</span>
+      <a href="https://coinbase.com/join/KFWJYRD?src=android-link" target="_blank">Get it on Coinbase →</a>
     </div>
 
   </div>
