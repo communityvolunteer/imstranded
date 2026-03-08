@@ -1306,75 +1306,96 @@ let _activePopupIata = '';
 let _activePopupMode = 'leave';
 let _activePopupCircle = null;
 
-function buildPopupContent(iata, mode) {
+function buildDualPopup(iata) {
   const ap = typeof findAirport === 'function' ? findAirport(iata) : null;
   if (!ap) return '';
-  
+  const city = ap.city;
+  const country = ap.countryName || '';
   const gData = _globalDisruptions.find(g => g.iata === iata);
-  const leaveActive = mode === 'leave';
-  const homeActive = mode === 'home';
   
   // Toggle styles
   const tWrap = 'display:flex;background:rgba(255,255,255,.06);border-radius:8px;padding:2px;margin-bottom:.6rem;border:1px solid rgba(255,255,255,.08)';
-  const tBase = 'flex:1;padding:.35rem .4rem;border:none;border-radius:6px;font-family:Inter,sans-serif;font-size:.62rem;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.03em;transition:all .15s;text-align:center;';
-  const tActive = 'background:rgba(168,85,247,.15);color:#a855f7;border:1px solid rgba(168,85,247,.2);';
-  const tInactive = 'background:transparent;color:rgba(255,255,255,.3);border:1px solid transparent;';
+  const tBase = 'flex:1;padding:.35rem .4rem;border:none;border-radius:6px;font-family:Inter,sans-serif;font-size:.58rem;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.02em;text-align:center;';
+  const tOn = 'background:rgba(168,85,247,.15);color:#a855f7;border:1px solid rgba(168,85,247,.2);';
+  const tOff = 'background:transparent;color:rgba(255,255,255,.3);border:1px solid transparent;';
   
-  let cancelled = 0, stranded = 0, routes = [], airlines = [];
+  // ── LEAVE data ──
+  let lCancelled = 0, lStranded = 0, lRoutes = [], lAirlines = [];
+  if (gData) {
+    lCancelled = gData.cancelled || 0;
+    lStranded = gData.stranded || 0;
+    lRoutes = gData.routes || (gData.me_hubs || []).map(h => ({ hub: h, cancelled: Math.round(lCancelled / (gData.me_hubs||[]).length) }));
+    lAirlines = gData.airlines || [];
+  }
+  var lHubCities = lRoutes.slice(0, 4).map(function(r) {
+    var h = typeof findAirport === 'function' ? findAirport(r.hub) : null;
+    return h ? h.city : r.hub;
+  });
   
-  if (mode === 'leave' && gData) {
-    cancelled = gData.cancelled || 0;
-    stranded = gData.stranded || 0;
-    routes = gData.routes || (gData.me_hubs || []).map(h => ({ hub: h, cancelled: Math.round(cancelled / (gData.me_hubs||[]).length) }));
-    airlines = gData.airlines || [];
-  } else if (mode === 'home') {
-    const rev = _computeReverseCached(iata);
-    cancelled = rev.reduce((s, r) => s + (r.cancelled || 0), 0);
-    stranded = rev.reduce((s, r) => s + (r.stranded || 0), 0);
-    routes = rev.map(r => ({ hub: r.iata, cancelled: r.cancelled, city: r.city, airlines: r.airlines || [] }));
-    airlines = [...new Set(rev.flatMap(r => r.airlines || []))];
+  // ── HOME data ──
+  var rev = _computeReverseCached(iata);
+  var hCancelled = rev.reduce(function(s, r) { return s + (r.cancelled || 0); }, 0);
+  var hStranded = rev.reduce(function(s, r) { return s + (r.stranded || 0); }, 0);
+  var hRoutes = rev.map(function(r) { return { hub: r.iata, cancelled: r.cancelled, city: r.city, airlines: r.airlines || [] }; });
+  var hAirlines = [];
+  var seen = {};
+  rev.forEach(function(r) { (r.airlines || []).forEach(function(a) { if (!seen[a]) { seen[a] = 1; hAirlines.push(a); } }); });
+  var hHubCities = hRoutes.slice(0, 4).map(function(r) { return r.city || r.hub; });
+  
+  function buildRouteRows(routes) {
+    return routes.slice(0, 6).map(function(r) {
+      var hubAp = typeof findAirport === 'function' ? findAirport(r.hub) : null;
+      var hubName = r.city || (hubAp ? hubAp.city : r.hub);
+      return '<div style="display:flex;justify-content:space-between;padding:.2rem 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.68rem"><span style="color:rgba(255,255,255,.6)">' + hubName + ' (' + r.hub + ')</span><span style="color:#a855f7;font-weight:700">' + (r.cancelled || 0).toLocaleString() + '</span></div>';
+    }).join('');
   }
   
-  const modeLabel = mode === 'leave' 
-    ? 'People here trying to reach the Middle East'
-    : 'People in the Middle East trying to get here';
+  function buildPills(airlines) {
+    return airlines.slice(0, 6).map(function(a) {
+      return '<span style="padding:.15rem .4rem;background:rgba(168,85,247,.12);border-radius:4px;font-size:.6rem;color:#a855f7;font-weight:600">' + a + '</span>';
+    }).join('');
+  }
   
-  const routeRows = routes.slice(0, 6).map(r => {
-    const hubAp = typeof findAirport === 'function' ? findAirport(r.hub) : null;
-    const hubName = r.city || (hubAp ? hubAp.city : r.hub);
-    return '<div style="display:flex;justify-content:space-between;padding:.2rem 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.68rem"><span style="color:rgba(255,255,255,.6)">' + hubName + ' (' + r.hub + ')</span><span style="color:#a855f7;font-weight:700">' + (r.cancelled || 0).toLocaleString() + '</span></div>';
-  }).join('');
+  var embBtn = typeof buildEmbassyButton === 'function' ? buildEmbassyButton(iata) : (typeof buildGlobalEmergencyButton === 'function' ? buildGlobalEmergencyButton() : '');
   
-  const airlinePills = airlines.slice(0, 6).map(a => 
-    '<span style="padding:.15rem .4rem;background:rgba(168,85,247,.12);border-radius:4px;font-size:.6rem;color:#a855f7;font-weight:600">' + a + '</span>'
-  ).join('');
-  
-  const embBtn = typeof buildEmbassyButton === 'function' ? buildEmbassyButton(iata) : (typeof buildGlobalEmergencyButton === 'function' ? buildGlobalEmergencyButton() : '');
-  
-  return '<div style="min-width:240px;font-family:Inter,sans-serif">' +
-    '<div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:.1rem">' + ap.city + ' (' + iata + ')</div>' +
-    '<div style="font-size:.68rem;color:rgba(255,255,255,.35);margin-bottom:.5rem">' + (ap.countryName || '') + '</div>' +
+  // Build panel HTML
+  function buildPanel(cancelled, stranded, routes, airlines, mode, hubCities) {
+    var desc = '';
+    var routeLabel = '';
+    if (mode === 'leave') {
+      desc = stranded.toLocaleString() + ' people here in ' + city + ', ' + country + ' trying to reach ' + (hubCities.length ? hubCities.join(', ') : 'the Middle East');
+      routeLabel = 'Cancelled routes to';
+    } else {
+      desc = stranded.toLocaleString() + ' people stranded in ' + (hubCities.length ? hubCities.join(', ') : 'the Middle East') + ' trying to get home to ' + city + ', ' + country;
+      routeLabel = 'Stranded at';
+    }
     
-    // Toggle
-    '<div style="' + tWrap + '">' +
-      '<button onclick="switchPopupMode(\'' + iata + '\',\'leave\')" style="' + tBase + (leaveActive ? tActive : tInactive) + '">Trying to Leave ' + ap.city + '</button>' +
-      '<button onclick="switchPopupMode(\'' + iata + '\',\'home\')" style="' + tBase + (homeActive ? tActive : tInactive) + '">Trying to Get Home to ' + ap.city + '</button>' +
-    '</div>' +
-    
-    // Stats
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem;margin-bottom:.4rem">' +
+    return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem;margin-bottom:.4rem">' +
       '<div><div style="font-size:1.1rem;font-weight:800;color:#a855f7;line-height:1">' + cancelled.toLocaleString() + '</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:.1rem">Flights Cancelled</div></div>' +
       '<div><div style="font-size:1.1rem;font-weight:800;color:#ec3452;line-height:1">' + stranded.toLocaleString() + '</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:.1rem">Passengers Affected</div></div>' +
     '</div>' +
+    '<div style="font-size:.68rem;color:rgba(255,255,255,.45);margin-bottom:.5rem;line-height:1.4">' + desc + '</div>' +
+    (routes.length ? '<div style="font-size:.58rem;font-weight:700;text-transform:uppercase;color:#fff;margin-bottom:.25rem">' + routeLabel + '</div>' + buildRouteRows(routes) : '') +
+    (airlines.length ? '<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:.4rem">' + buildPills(airlines) + '</div>' : '');
+  }
+  
+  var uid = iata.replace(/[^A-Z0-9]/g, '');
+  
+  return '<div style="min-width:250px;max-width:300px;font-family:Inter,sans-serif" id="gpop-' + uid + '">' +
+    '<div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:.1rem">' + city + ' (' + iata + ')</div>' +
+    '<div style="font-size:.68rem;color:#fff;margin-bottom:.5rem">' + country + '</div>' +
     
-    // Description
-    '<div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-bottom:.4rem;line-height:1.4">' + modeLabel + '</div>' +
+    // Toggle — both buttons always present
+    '<div style="' + tWrap + '">' +
+      '<div id="gtl-' + uid + '" onclick="event.stopPropagation();switchPopupMode(\'' + iata + '\',\'leave\')" style="' + tBase + tOn + '">Trying to Leave ' + city + '</div>' +
+      '<div id="gth-' + uid + '" onclick="event.stopPropagation();switchPopupMode(\'' + iata + '\',\'home\')" style="' + tBase + tOff + '">Trying to Get Home to ' + city + '</div>' +
+    '</div>' +
     
-    // Route breakdown
-    (routeRows ? '<div style="font-size:.58rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.2);margin-bottom:.2rem">' + (mode === 'leave' ? 'Cancelled routes to' : 'Stuck at') + '</div>' + routeRows : '') +
+    // LEAVE panel (visible by default)
+    '<div id="gpl-' + uid + '">' + buildPanel(lCancelled, lStranded, lRoutes, lAirlines, 'leave', lHubCities) + '</div>' +
     
-    // Airlines
-    (airlinePills ? '<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:.4rem">' + airlinePills + '</div>' : '') +
+    // HOME panel (hidden by default)
+    '<div id="gph-' + uid + '" style="display:none">' + buildPanel(hCancelled, hStranded, hRoutes, hAirlines, 'home', hHubCities) + '</div>' +
     
     embBtn +
   '</div>';
@@ -1383,15 +1404,25 @@ function buildPopupContent(iata, mode) {
 function switchPopupMode(iata, mode) {
   _activePopupMode = mode;
   _activePopupIata = iata;
+  var uid = iata.replace(/[^A-Z0-9]/g, '');
   
-  // Update popup content by directly replacing innerHTML — NOT setContent which closes the popup
-  const html = buildPopupContent(iata, mode);
-  if (_activePopupCircle && _activePopupCircle.getPopup()) {
-    var wrapper = _activePopupCircle.getPopup().getElement();
-    if (wrapper) {
-      var content = wrapper.querySelector('.leaflet-popup-content');
-      if (content) content.innerHTML = html;
-    }
+  // Toggle panel visibility
+  var leavePanel = document.getElementById('gpl-' + uid);
+  var homePanel = document.getElementById('gph-' + uid);
+  var leaveBtn = document.getElementById('gtl-' + uid);
+  var homeBtn = document.getElementById('gth-' + uid);
+  
+  if (leavePanel && homePanel) {
+    leavePanel.style.display = mode === 'leave' ? 'block' : 'none';
+    homePanel.style.display = mode === 'home' ? 'block' : 'none';
+  }
+  
+  // Swap button active styles
+  var tOn = 'background:rgba(168,85,247,.15);color:#a855f7;border:1px solid rgba(168,85,247,.2);';
+  var tOff = 'background:transparent;color:rgba(255,255,255,.3);border:1px solid transparent;';
+  if (leaveBtn && homeBtn) {
+    leaveBtn.style.cssText += (mode === 'leave' ? tOn : tOff);
+    homeBtn.style.cssText += (mode === 'home' ? tOn : tOff);
   }
   
   // Redraw arcs for this airport only
@@ -1474,8 +1505,8 @@ function renderGlobalDisruptions(map, data) {
       className: 'global-disruption-dot',
     }).addTo(map);
     
-    const popupContent = buildPopupContent(g.iata, 'leave');
-    circle.bindPopup(popupContent, { className: 'dark-popup', maxWidth: 320 });
+    const popupContent = buildDualPopup(g.iata);
+    circle.bindPopup(popupContent, { className: 'dark-popup', maxWidth: 320, closeOnClick: false });
     
     // Track which circle is active for content updates
     circle.on('popupopen', function() {
