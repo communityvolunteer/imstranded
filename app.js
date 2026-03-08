@@ -874,7 +874,12 @@ function drawArcLines(map, strandedData) {
 // Draws arcs from global airports to their ME hub connections
 function drawGlobalRouteArcs(map, disruptions) {
   if (!map || !disruptions.length) return;
-  const maxCancelled = Math.max(...disruptions.map(g => g.cancelled || 0), 1);
+  
+  // Log scale for dramatic thickness variation
+  const cancelledVals = disruptions.map(g => g.cancelled || 0).filter(v => v > 0);
+  const maxLog = Math.log(Math.max(...cancelledVals, 1) + 1);
+  const minLog = Math.log(Math.min(...cancelledVals, 1) + 1);
+  const logRange = maxLog - minLog || 1;
   
   for (const g of disruptions) {
     const ap = typeof findAirport === 'function' ? findAirport(g.iata) : null;
@@ -891,13 +896,14 @@ function drawGlobalRouteArcs(map, disruptions) {
       }
       if (!hubCoords) continue;
       
-      // Thickness proportional to cancelled flights (min 0.5, max 4)
-      const ratio = (g.cancelled || 0) / maxCancelled;
-      const weight = 0.5 + ratio * 3.5;
+      const logVal = Math.log((g.cancelled || 0) + 1);
+      const ratio = (logVal - minLog) / logRange;
+      const weight = 0.4 + ratio * 4;
+      const opacity = 0.12 + ratio * 0.25;
       
       const arc = generateArc([ap.lat, ap.lng], hubCoords, 30);
       const line = L.polyline(arc, {
-        color: 'rgba(168,85,247,.25)',
+        color: `rgba(168,85,247,${opacity})`,
         weight,
         interactive: false,
       }).addTo(map);
@@ -1434,9 +1440,10 @@ function drawPopupArcs(iata, mode) {
         }
         if (!hubCoords) continue;
         
-        const weight = 1 + (routeC / maxC) * 3;
+        const weight = 1 + (routeC / maxC) * 4;
+        const opacity = 0.2 + (routeC / maxC) * 0.35;
         const arc = generateArc([ap.lat, ap.lng], hubCoords, 30);
-        const line = L.polyline(arc, { color: 'rgba(168,85,247,.35)', weight, interactive: false }).addTo(map);
+        const line = L.polyline(arc, { color: `rgba(168,85,247,${opacity})`, weight, interactive: false }).addTo(map);
         _globalArcLines.push(line);
       }
     }
@@ -1449,9 +1456,10 @@ function drawPopupArcs(iata, mode) {
     for (const map of maps) {
       for (const r of rev) {
         if (!r.lat || !r.lng) continue;
-        const weight = 1 + ((r.cancelled || 1) / maxC) * 3;
+        const weight = 1 + ((r.cancelled || 1) / maxC) * 4;
+        const opacity = 0.2 + ((r.cancelled || 1) / maxC) * 0.35;
         const arc = generateArc([r.lat, r.lng], [ap.lat, ap.lng], 30);
-        const line = L.polyline(arc, { color: 'rgba(168,85,247,.35)', weight, interactive: false }).addTo(map);
+        const line = L.polyline(arc, { color: `rgba(168,85,247,${opacity})`, weight, interactive: false }).addTo(map);
         _globalArcLines.push(line);
       }
     }
@@ -1463,22 +1471,28 @@ function renderGlobalDisruptions(map, data) {
   const disruptions = data || _globalDisruptions;
   if (!disruptions || !disruptions.length) return;
   
-  const maxStranded = Math.max(..._globalDisruptions.map(g => g.stranded || 0), 1);
+  // Log scale for dramatic size variation
+  const strandedVals = disruptions.map(g => g.stranded || 0).filter(v => v > 0);
+  const maxLog = Math.log(Math.max(...strandedVals, 1) + 1);
+  const minLog = Math.log(Math.min(...strandedVals, 1) + 1);
+  const logRange = maxLog - minLog || 1;
   
   for (const g of disruptions) {
     const ap = typeof findAirport === 'function' ? findAirport(g.iata) : null;
     if (!ap) continue;
     
-    const ratio = (g.stranded || 0) / maxStranded;
-    const radius = 4 + ratio * 14;
+    const logVal = Math.log((g.stranded || 0) + 1);
+    const ratio = (logVal - minLog) / logRange;
+    const radius = 4 + ratio * 18;
+    const opacity = 0.25 + ratio * 0.35;
     
     const circle = L.circleMarker([ap.lat, ap.lng], {
       radius,
       pane: 'airportPane',
       fillColor: '#a855f7',
-      color: 'rgba(168,85,247,.4)',
-      weight: 1.5,
-      fillOpacity: 0.35,
+      color: 'rgba(168,85,247,.5)',
+      weight: 1 + ratio * 2,
+      fillOpacity: opacity,
       className: 'global-disruption-dot',
     }).addTo(map);
     
