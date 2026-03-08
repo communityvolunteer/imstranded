@@ -201,13 +201,26 @@ function googleTranslateInit() {
       </div>
     </div>
 
+    <!-- Section: SUCCESS STORIES -->
+    <div class="fp-section">
+      <div class="fp-section-head" onclick="toggleFpSection(this)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <span style="font-size:1rem">SUCCESS STORIES</span>
+        <svg class="fp-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="fp-section-body open">
+        <label class="fp-toggle"><input type="checkbox" id="fp-show-success" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show matched pins</label>
+        <label class="fp-toggle"><input type="checkbox" id="fp-show-success-arcs" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show connection arcs</label>
+        <label class="fp-toggle"><input type="checkbox" id="fp-show-home" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show "made it home" pins</label>
+      </div>
+    </div>
+
     <button class="fp-clear" onclick="clearAllFilters()">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       Clear all filters
     </button>
-  </div>
 
-  <!-- Community bar -->
+  </div>
   <div class="map-community-bar">
     <span class="community-text">DON'T GO IT ALONE &mdash; JOIN OUR COMMUNITIES ON</span>
     <a href="https://t.me/imstrandedorg" target="_blank" class="community-link" title="Telegram">
@@ -638,6 +651,18 @@ function googleTranslateInit() {
             <input type="hidden" id="mfp-filter-dest-country"><input type="hidden" id="mfp-filter-dest-airport">
           </div>
         </div>
+        <!-- SUCCESS STORIES -->
+        <div class="fp-section">
+          <div class="fp-section-head" onclick="toggleFpSection(this)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span style="font-size:1rem">SUCCESS STORIES</span>
+            <svg class="fp-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="fp-section-body open">
+            <label class="fp-toggle"><input type="checkbox" id="mfp-show-success" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show matched pins</label>
+            <label class="fp-toggle"><input type="checkbox" id="mfp-show-success-arcs" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show connection arcs</label>
+            <label class="fp-toggle"><input type="checkbox" id="mfp-show-home" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show "made it home" pins</label>
+          </div>
+        </div>
         <button class="fp-clear" onclick="clearAllFilters()" style="width:100%;margin:.75rem 0">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           Clear all filters
@@ -1023,6 +1048,16 @@ function googleTranslateInit() {
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
     <div id="story-modal-body"></div>
+  </div>
+</div>
+
+<!-- Got Home modal -->
+<div id="gohome-modal">
+  <div class="match-modal-inner">
+    <button onclick="closeGoHomeModal()" class="help-panel-x" aria-label="Close">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div id="gohome-modal-body"></div>
   </div>
 </div>
 

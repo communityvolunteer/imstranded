@@ -581,7 +581,10 @@ function getFilterState() {
   const showArcs = val('fp-worldwide-arcs') ?? val('mfp-worldwide-arcs') ?? false;
   const atIata = _filterAtIata || val('fp-at-iata') || val('mfp-at-iata') || '';
   const toIata = _filterToIata || val('fp-to-iata') || val('mfp-to-iata') || '';
-  return { showOffers, offersVerified, offerTypes, showStranded, strandedVerified, nationality, strandedNeeds, groupSize, showWorldwide, destCountry, destAirport, showArcs, atIata, toIata };
+  const showSuccess = val('fp-show-success') ?? val('mfp-show-success') ?? true;
+  const showSuccessArcs = val('fp-show-success-arcs') ?? val('mfp-show-success-arcs') ?? true;
+  const showHome = val('fp-show-home') ?? val('mfp-show-home') ?? true;
+  return { showOffers, offersVerified, offerTypes, showStranded, strandedVerified, nationality, strandedNeeds, groupSize, showWorldwide, destCountry, destAirport, showArcs, atIata, toIata, showSuccess, showSuccessArcs, showHome };
 }
 
 function applyFilters() {
@@ -626,6 +629,24 @@ function applyFilters() {
   if (f.destCountry || f.destAirport) {
     drawArcLines(window._crisisMap, filteredStranded);
     drawArcLines(window._mobileMap, filteredStranded);
+  }
+
+  // ── Success stories — pins, arcs, home pins ──
+  [
+    { layer: '_successLayer',  map: window._crisisMap,  show: f.showSuccess },
+    { layer: '_mSuccessLayer', map: window._mobileMap,  show: f.showSuccess },
+    { layer: '_arcLayer',      map: window._crisisMap,  show: f.showSuccessArcs },
+    { layer: '_mArcLayer',     map: window._mobileMap,  show: f.showSuccessArcs },
+  ].forEach(({ layer, map, show }) => {
+    if (!map || !window[layer]) return;
+    show ? window[layer].addTo(map) : map.removeLayer(window[layer]);
+  });
+  // "Made it home" pins are part of _successLayer — filter them at render time
+  // by re-rendering when showHome changes
+  if (!f.showHome || !f.showSuccess) {
+    // Re-render success layer with home pins toggled
+    renderSuccessOnMap(window._crisisMap, f.showHome && f.showSuccess);
+    renderSuccessOnMap(window._mobileMap, f.showHome && f.showSuccess);
   }
 
   // ── Worldwide markers ──
@@ -1809,13 +1830,26 @@ async function renderPostsOnMap(map) {
       iconSize:[14,14],iconAnchor:[7,7]
     });
     const isMobileM = (map === window._mobileMap);
-    const popHtml = `<div style="font-family:Inter,sans-serif">
+    const story = _successByOffer[p.id];
+    const uid = p.id.slice(0,8);
+    const toggleBar = story ? `
+      <div class="success-popup-toggle spt-wrap-${uid}" style="margin-bottom:.5rem">
+        <button class="spt-btn active" onclick="showSuccessTab(this,'story','${uid}')">✓ Success Story</button>
+        <button class="spt-btn" onclick="showSuccessTab(this,'original','${uid}')">Original Post</button>
+      </div>` : '';
+    const storyTab = story ? buildSuccessTab(story, uid) : '';
+    const originalStyle = story ? 'display:none' : '';
+    const popHtml = `<div class="spt-wrap-${uid}" style="font-family:Inter,sans-serif">
+        ${toggleBar}
+        ${storyTab}
+        <div data-sptab="original" style="${originalStyle}">
         <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#93c5fd;margin-bottom:.25rem">SPARE ROOM</div>
         <div style="font-weight:600;font-size:.95rem;margin-bottom:.2rem;color:#fff">${p.name} ${buildBadge(!!p.user_id)}</div>
         <div style="font-size:.82rem;color:rgba(255,255,255,.75);line-height:1.55;margin-bottom:.4rem">${p.body||''}</div>
         <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:.4rem">📍 ${p.location}</div>
         ${buildContactButtons(p.contact, p.xhandle, p.name)}
         ${buildTipButton(p.xhandle, !!p.user_id)}
+        </div>
       </div>`;
     const m = L.marker([geo.lat,geo.lng],{icon:helpIcon});
     if (isMobileM) {
@@ -1978,6 +2012,10 @@ function renderPosts() {
 
 async function submitPost(type) {
   if (!isLoggedIn()) { alert('Please sign in first to post.'); showView('profile'); return; }
+  if (type === 'offer') {
+    const roleErr = await checkUserRole('offer');
+    if (roleErr) { alert(roleErr); return; }
+  }
   const t=document.getElementById(type+'-type')?.value,
     l=document.getElementById(type+'-location')?.value,
     b=document.getElementById(type+'-body')?.value,
@@ -2271,6 +2309,8 @@ function mRenderResources(){
 
 async function mSubmitOffer(){
   if (!isLoggedIn()) { alert('Please sign in first to post.'); mTab('profile',document.getElementById('mtab-help')); return; }
+  const roleErr = await checkUserRole('offer');
+  if (roleErr) { alert(roleErr); return; }
   const l=document.getElementById('m-offer-location')?.value,b=document.getElementById('m-offer-body')?.value,
     n=document.getElementById('m-offer-name')?.value,
     email=document.getElementById('m-offer-contact')?.value?.trim()||'',
@@ -3086,8 +3126,11 @@ async function renderProfileStranded() {
       ${needsList ? '<div style="font-size:.72rem;color:#e67e22;margin-top:.2rem">Needs: '+needsList+'</div>' : ''}
       ${p.details ? '<div style="font-size:.78rem;color:rgba(255,255,255,.45);line-height:1.4;margin-top:.2rem">'+p.details.slice(0,120)+'</div>' : ''}
       <div class="profile-post-actions">
-        <button class="found-place-btn" onclick="openMatchPicker('${p.id}','${p.current_lat||0}','${p.current_lng||0}','${(p.name||'').replace(/'/g,"\\'")}')">
+        <button class="found-place-btn" onclick="openMatchPicker('${p.id}','${p.current_lat||0}','${p.current_lng||0}','${(p.name||'').replace(/'/g,"\\'")}','${(p.current_location||'').replace(/'/g,"\\'")}')">
           🏠 Found a place?
+        </button>
+        <button class="found-place-btn" style="border-color:rgba(34,197,94,.25);color:rgba(34,197,94,.6)" onclick="checkAndOpenGoHome('${p.id}')">
+          🛫 Got home?
         </button>
         <button onclick="editStrandedPost('${p.id}')" style="background:rgba(52,152,236,.15);color:#3498ec;border:1px solid rgba(52,152,236,.25);border-radius:6px;padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Edit</button>
         <button onclick="deleteStrandedPost('${p.id}')" style="background:#ec3452;color:#fff;border:none;border-radius:6px;padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Remove from Map</button>
@@ -3406,6 +3449,8 @@ function closeStrandedForm() {
 
 async function mSubmitStranded() {
   if (!isLoggedIn()) { alert('Please sign in first.'); mTab('profile', null); return; }
+  const roleErr = await checkUserRole('stranded');
+  if (roleErr) { alert(roleErr); return; }
   const sName = document.getElementById('m-stranded-name')?.value?.trim() || '';
   const loc = document.getElementById('m-stranded-location').value.trim();
   const lat = parseFloat(document.getElementById('m-stranded-lat').value) || null;
@@ -3448,6 +3493,8 @@ async function mSubmitStranded() {
 
 async function submitStranded() {
   if (!isLoggedIn()) { alert('Please sign in first.'); return; }
+  const roleErr = await checkUserRole('stranded');
+  if (roleErr) { alert(roleErr); return; }
   const sName = document.getElementById('stranded-name')?.value?.trim() || '';
   const loc = document.getElementById('stranded-location').value.trim();
   const lat = parseFloat(document.getElementById('stranded-lat').value) || null;
@@ -3543,8 +3590,20 @@ function renderStrandedOnMap(map, isMobile) {
     const sinceTxt = p.stranded_since ? 'Since ' + new Date(p.stranded_since).toLocaleDateString() : '';
     const icon = L.divIcon({ className: '', html: '<div class="stranded-pin"></div>', iconSize: [10, 10], iconAnchor: [5, 5] });
     const marker = L.marker([p.current_lat, p.current_lng], { icon, groupSize: p.group_size || 1 });
+    const story = _successByStranded[p.id];
+    const uid = p.id.slice(0,8);
+    const toggleBar = story ? `
+      <div class="success-popup-toggle spt-wrap-${uid}" style="margin-bottom:.5rem">
+        <button class="spt-btn active" onclick="showSuccessTab(this,'story','${uid}')">✓ Success Story</button>
+        <button class="spt-btn" onclick="showSuccessTab(this,'original','${uid}')">Original Post</button>
+      </div>` : '';
+    const storyTab = story ? buildSuccessTab(story, uid) : '';
+    const originalStyle = story ? 'display:none' : '';
     const popHtml = `
-      <div style="font-family:Inter,sans-serif">
+      <div class="spt-wrap-${uid}" style="font-family:Inter,sans-serif">
+        ${toggleBar}
+        ${storyTab}
+        <div data-sptab="original" style="${originalStyle}">
         <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:#ec3452;margin-bottom:.3rem">STRANDED · ${age}</div>
         ${p.name ? '<div style="font-size:.95rem;font-weight:800;color:#fff;margin-bottom:.15rem">'+p.name+'</div>' : ''}
         <div style="font-size:.82rem;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:.2rem">${p.group_size > 1 ? p.group_size + ' people' : '1 person'}${p.nationality ? ' · ' + p.nationality : ''}</div>
@@ -3555,6 +3614,7 @@ function renderStrandedOnMap(map, isMobile) {
         ${p.details ? `<div style="font-size:.78rem;color:rgba(255,255,255,.5);line-height:1.45;margin-top:.35rem">${p.details}</div>` : ''}
         ${buildContactButtons(p.contact, p.xhandle, p.name)}
         ${buildSendHelpButton(p.xhandle, !!p.user_id)}
+        </div>
       </div>
     `;
     if (isMobile) {
@@ -3598,12 +3658,22 @@ function initStrandedRealtime() {
     stranded_confirmed boolean default true,
     offer_confirmed boolean default false,
     confirmed_at timestamptz,
+    -- Stranded person's location at time of match
+    stranded_lat double precision,
+    stranded_lng double precision,
+    stranded_location text,
+    stranded_name text,
+    -- Spare room location
     lat double precision,
     lng double precision,
     offer_location text,
     offer_xhandle text,
-    stranded_name text,
     offer_name text,
+    -- "Got home" follow-up
+    home_lat double precision,
+    home_lng double precision,
+    home_location text,
+    home_story text,
     created_at timestamptz default now()
   );
   alter table public.success_stories enable row level security;
@@ -3618,8 +3688,12 @@ function initStrandedRealtime() {
 */
 
 let _successStories = [];
+let _successByOffer = {};    // offer_post_id → story (for popup toggles)
+let _successByStranded = {}; // stranded_post_id → story
 let _successLayer = null;
 let _mSuccessLayer = null;
+let _arcLayer = null;
+let _mArcLayer = null;
 
 // ── Haversine distance (km) ──────────────────────────────────
 function haversineKm(lat1, lng1, lat2, lng2) {
@@ -3629,65 +3703,160 @@ function haversineKm(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-// ── Load confirmed stories and render green pins ─────────────
+// ── Quadratic bezier arc between two lat/lng points ──────────
+function arcPoints(p1, p2, n = 40) {
+  const midLat = (p1[0]+p2[0])/2, midLng = (p1[1]+p2[1])/2;
+  const dLat = p2[0]-p1[0], dLng = p2[1]-p1[1];
+  const dist = Math.sqrt(dLat*dLat + dLng*dLng);
+  if (dist < 0.001) return [p1, p2];
+  const bend = Math.min(dist * 0.38, 8); // cap bend for very long arcs
+  const ctrlLat = midLat - (dLng/dist) * bend;
+  const ctrlLng = midLng + (dLat/dist) * bend;
+  const pts = [];
+  for (let i=0; i<=n; i++) {
+    const t = i/n;
+    pts.push([
+      (1-t)*(1-t)*p1[0] + 2*(1-t)*t*ctrlLat + t*t*p2[0],
+      (1-t)*(1-t)*p1[1] + 2*(1-t)*t*ctrlLng + t*t*p2[1]
+    ]);
+  }
+  return pts;
+}
+
+// ── Build lookup maps for popup toggles ─────────────────────
+function buildSuccessLookups() {
+  _successByOffer = {};
+  _successByStranded = {};
+  for (const s of _successStories) {
+    if (s.offer_post_id) _successByOffer[s.offer_post_id] = s;
+    if (s.stranded_post_id) _successByStranded[s.stranded_post_id] = s;
+  }
+}
+
+// ── Success popup toggle (called inline from popup HTML) ─────
+function showSuccessTab(btn, tab, uid) {
+  const wrap = document.querySelector(`.spt-wrap-${uid}`);
+  if (!wrap) return;
+  wrap.querySelectorAll('.spt-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  wrap.querySelectorAll('[data-sptab]').forEach(el => {
+    el.style.display = el.dataset.sptab === tab ? '' : 'none';
+  });
+}
+
+// ── Build success story tab HTML for a popup ─────────────────
+function buildSuccessTab(s, uid) {
+  const sStory = s.stranded_story ? `<div style="font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.5;margin:.3rem 0;padding-left:.5rem;border-left:2px solid rgba(236,52,82,.4)">"${s.stranded_story}"<div style="font-size:.63rem;color:rgba(255,255,255,.25);margin-top:.15rem">— ${s.stranded_name||'Stranded person'}</div></div>` : '';
+  const oStory = s.offer_story ? `<div style="font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.5;margin:.3rem 0;padding-left:.5rem;border-left:2px solid rgba(52,152,236,.4)">"${s.offer_story}"<div style="font-size:.63rem;color:rgba(255,255,255,.25);margin-top:.15rem">— ${s.offer_name||'Host'}</div></div>` : '';
+  const homeNote = s.home_location ? `<div style="font-size:.68rem;color:#22c55e;margin-top:.35rem">🏠 Made it home to ${s.home_location}</div>` : '';
+  const date = s.confirmed_at ? new Date(s.confirmed_at).toLocaleDateString() : '';
+  return `<div data-sptab="story">
+    <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#22c55e;margin-bottom:.3rem">✓ Matched · ${date}</div>
+    <div style="font-size:.88rem;font-weight:700;color:#fff;margin-bottom:.2rem">${s.offer_name||'A helper'} welcomed ${s.stranded_name||'someone stranded'}</div>
+    ${sStory}${oStory}
+    ${!sStory&&!oStory ? '<div style="font-size:.72rem;color:rgba(255,255,255,.22);font-style:italic;margin-bottom:.2rem">No story shared yet.</div>' : ''}
+    ${homeNote}
+  </div>`;
+}
+
+// ── Load confirmed stories, build lookups, render everything ─
 async function loadSuccessStories() {
   if (!SB_ON) return;
   const { data } = await _sb.from('success_stories')
-    .select('id,lat,lng,offer_location,offer_xhandle,stranded_name,offer_name,stranded_story,offer_story,confirmed_at')
+    .select('id,stranded_post_id,offer_post_id,stranded_lat,stranded_lng,stranded_location,stranded_name,lat,lng,offer_location,offer_xhandle,offer_name,stranded_story,offer_story,home_lat,home_lng,home_location,home_story,confirmed_at')
     .eq('offer_confirmed', true)
     .order('confirmed_at', { ascending: false })
     .limit(500);
   _successStories = data || [];
-  renderSuccessOnMap(window._crisisMap);
-  renderSuccessOnMap(window._mobileMap);
+  buildSuccessLookups();
+  renderSuccessOnMap(window._crisisMap, true);
+  renderSuccessOnMap(window._mobileMap, true);
+  drawSuccessArcs(window._crisisMap);
+  drawSuccessArcs(window._mobileMap);
+  // Refresh stranded + offer markers so toggles appear
+  if (window._crisisMap) { renderPostsOnMap(window._crisisMap); renderStrandedOnMap(window._crisisMap, false); }
+  if (window._mobileMap) { renderPostsOnMap(window._mobileMap); renderStrandedOnMap(window._mobileMap, true); }
 }
 
-function renderSuccessOnMap(map) {
+function renderSuccessOnMap(map, showHome = true) {
   if (!map) return;
   const isMobileM = map === window._mobileMap;
   const key = isMobileM ? '_mSuccessLayer' : '_successLayer';
   if (window[key]) map.removeLayer(window[key]);
   window[key] = L.layerGroup();
-
   for (const s of _successStories) {
-    if (!s.lat || !s.lng) continue;
-    const icon = L.divIcon({ className: '', html: '<div class="success-pin"></div>', iconSize: [16,16], iconAnchor: [8,8] });
-    const date = s.confirmed_at ? new Date(s.confirmed_at).toLocaleDateString() : '';
-    const sStory = s.stranded_story ? `<div style="font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.5;margin:.35rem 0;padding-left:.55rem;border-left:2px solid rgba(236,52,82,.4)">"${s.stranded_story}"</div>` : '';
-    const oStory = s.offer_story   ? `<div style="font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.5;margin:.35rem 0;padding-left:.55rem;border-left:2px solid rgba(52,152,236,.4)">"${s.offer_story}"</div>` : '';
-    const popHtml = `<div style="font-family:Inter,sans-serif">
-      <div style="font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:#22c55e;margin-bottom:.35rem">✓ Matched · ${date}</div>
-      <div style="font-size:.9rem;font-weight:700;color:#fff;margin-bottom:.08rem">${s.offer_name||'A Helper'} welcomed ${s.stranded_name||'Someone Stranded'}</div>
-      <div style="font-size:.7rem;color:rgba(255,255,255,.35);margin-bottom:.45rem">📍 ${s.offer_location||''}</div>
-      ${sStory}${oStory}
-      ${!sStory&&!oStory ? '<div style="font-size:.73rem;color:rgba(255,255,255,.25);font-style:italic">No story shared.</div>' : ''}
-    </div>`;
-    const marker = L.marker([s.lat, s.lng], { icon });
-    if (isMobileM) marker.on('click', e => { L.DomEvent.stopPropagation(e); openMPinSheet(popHtml); });
-    else marker.bindPopup(popHtml, { className: 'dark-popup', maxWidth: 280 });
-    window[key].addLayer(marker);
+    // Green pin at room location
+    if (s.lat && s.lng) {
+      const uid = s.id.slice(0,8);
+      const icon = L.divIcon({ className: '', html: '<div class="success-pin"></div>', iconSize: [16,16], iconAnchor: [8,8] });
+      const popHtml = `<div class="spt-wrap-${uid}" style="font-family:Inter,sans-serif">${buildSuccessTab(s, uid)}</div>`;
+      const marker = L.marker([s.lat, s.lng], { icon });
+      if (isMobileM) marker.on('click', e => { L.DomEvent.stopPropagation(e); openMPinSheet(popHtml); });
+      else marker.bindPopup(popHtml, { className: 'dark-popup', maxWidth: 290 });
+      window[key].addLayer(marker);
+    }
+    // Extra pin at home location if they made it
+    if (showHome && s.home_lat && s.home_lng) {
+      const homeIcon = L.divIcon({ className: '', html: '<div style="width:14px;height:14px;background:#22c55e;border:2.5px solid #fff;border-radius:50%;font-size:8px;display:flex;align-items:center;justify-content:center;">🏠</div>', iconSize:[14,14], iconAnchor:[7,7] });
+      const homePop = `<div style="font-family:Inter,sans-serif"><div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">🏠 Made it home</div><div style="font-size:.82rem;font-weight:700;color:#fff;margin-bottom:.15rem">${s.stranded_name||'Stranded person'}</div><div style="font-size:.73rem;color:rgba(255,255,255,.45)">${s.home_location||''}</div>${s.home_story?`<div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:.35rem;line-height:1.5;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.4)">"${s.home_story}"</div>`:''}</div>`;
+      const hm = L.marker([s.home_lat, s.home_lng], { icon: homeIcon });
+      if (isMobileM) hm.on('click', e => { L.DomEvent.stopPropagation(e); openMPinSheet(homePop); });
+      else hm.bindPopup(homePop, { className: 'dark-popup', maxWidth: 260 });
+      window[key].addLayer(hm);
+    }
   }
   map.addLayer(window[key]);
+}
+
+// ── Draw green arcs between matched pairs ────────────────────
+function drawSuccessArcs(map) {
+  if (!map) return;
+  const isMobileM = map === window._mobileMap;
+  const key = isMobileM ? '_mArcLayer' : '_arcLayer';
+  if (window[key]) map.removeLayer(window[key]);
+  window[key] = L.layerGroup();
+  for (const s of _successStories) {
+    // Arc 1: stranded location → offer/room location
+    if (s.stranded_lat && s.stranded_lng && s.lat && s.lng) {
+      const pts = arcPoints([s.stranded_lat, s.stranded_lng], [s.lat, s.lng]);
+      L.polyline(pts, { color:'#22c55e', weight:1.8, opacity:.45, dashArray:'5,5', className:'success-arc', interactive:false }).addTo(window[key]);
+    }
+    // Arc 2: room → home (if they made it)
+    if (s.lat && s.lng && s.home_lat && s.home_lng) {
+      const pts2 = arcPoints([s.lat, s.lng], [s.home_lat, s.home_lng]);
+      L.polyline(pts2, { color:'#22c55e', weight:2.2, opacity:.6, className:'success-arc', interactive:false }).addTo(window[key]);
+    }
+  }
+  map.addLayer(window[key]);
+}
+
+// ── Role enforcement — one account, one role ─────────────────
+async function checkUserRole(attemptingType) {
+  // attemptingType: 'offer' or 'stranded'
+  if (!isLoggedIn() || !SB_ON) return null;
+  if (attemptingType === 'offer') {
+    const { data } = await _sb.from('stranded_people').select('id').eq('user_id', _currentUser.id).eq('status','active').limit(1);
+    if (data?.length) return "You're currently registered as stranded. Remove yourself from the stranded map before posting a spare room offer.";
+  }
+  if (attemptingType === 'stranded') {
+    const { data } = await _sb.from('help_posts').select('id').eq('user_id', _currentUser.id).eq('type','offer').eq('flagged',false).limit(1);
+    if (data?.length) return "You already have an active spare room offer. Remove it before registering as stranded — one account, one role.";
+  }
+  return null;
 }
 
 // ── "Found a place?" — open match picker from stranded card ──
 let _matchPickerStrandedId = null;
 
-async function openMatchPicker(strandedPostId, strandedLat, strandedLng, strandedName) {
+async function openMatchPicker(strandedPostId, strandedLat, strandedLng, strandedName, strandedLocation) {
   if (!isLoggedIn()) { alert('Please sign in first.'); return; }
   _matchPickerStrandedId = strandedPostId;
 
-  // Check if already submitted
   const { data: existing } = await _sb.from('success_stories')
     .select('id,offer_confirmed').eq('stranded_post_id', strandedPostId).eq('stranded_user_id', _currentUser.id).maybeSingle();
-  if (existing?.offer_confirmed) {
-    openStoryPrompt(existing.id, 'stranded'); return;
-  }
-  if (existing && !existing.offer_confirmed) {
-    alert('Your match request is waiting for the room-offerer to approve. We\'ll notify them!'); return;
-  }
+  if (existing?.offer_confirmed) { openStoryPrompt(existing.id, 'stranded'); return; }
+  if (existing && !existing.offer_confirmed) { alert("Your match request is waiting for the host to approve — they'll see it in their profile."); return; }
 
-  // Sort available offers by distance
   const lat = parseFloat(strandedLat), lng = parseFloat(strandedLng);
   let offerList = posts.filter(p => p.lat && p.lng && p.user_id);
   if (lat && lng) {
@@ -3698,23 +3867,22 @@ async function openMatchPicker(strandedPostId, strandedLat, strandedLng, strande
   const body = document.getElementById('match-modal-body');
   body.innerHTML = `
     <div class="match-modal-title">🏠 Who gave you a place?</div>
-    <div class="match-modal-sub">Select the spare room post that helped you. The host will get a notification to confirm — and enter the weekly $HELP pool.</div>
+    <div class="match-modal-sub">Select the spare room post that helped you. The host gets notified and approves — which enters them into the weekly $HELP pool.</div>
     <div id="match-offer-list">
       ${offerList.length === 0
-        ? '<div style="color:rgba(255,255,255,.35);font-size:.8rem;padding:1rem 0 .5rem">No spare room posts found near you yet.</div>'
+        ? '<div style="color:rgba(255,255,255,.35);font-size:.8rem;padding:1rem 0 .5rem">No spare room posts found near you.</div>'
         : offerList.slice(0, 15).map(p => `
-        <div class="match-offer-card" onclick="selectMatchOffer(this,'${p.id}','${(p.user_id||'')}','${(p.location||'').replace(/'/g,"\\'")}','${(p.xhandle||'')}','${(p.lat||0)}','${(p.lng||0)}','${(p.name||'').replace(/'/g,"\\'")}')">
+        <div class="match-offer-card" onclick="selectMatchOffer(this,'${p.id}','${p.user_id||''}','${(p.location||'').replace(/'/g,"\\'")}','${p.xhandle||''}','${p.lat||0}','${p.lng||0}','${(p.name||'').replace(/'/g,"\\'")}')">
           <div class="match-offer-name">${p.name||'Anonymous'}</div>
           <div class="match-offer-loc">📍 ${p.location||'Unknown'}</div>
           ${p._dist != null ? `<div class="match-offer-dist">${p._dist < 1 ? '<1' : Math.round(p._dist)} km away</div>` : ''}
-          ${p.body ? `<div class="match-offer-body">${(p.body).slice(0,100)}${p.body.length>100?'…':''}</div>` : ''}
+          ${p.body ? `<div class="match-offer-body">${p.body.slice(0,100)}${p.body.length>100?'…':''}</div>` : ''}
         </div>`).join('')}
     </div>
     <div style="display:flex;gap:.5rem;margin-top:.9rem">
       <button onclick="closeMatchModal()" style="flex:1;padding:.5rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:rgba(255,255,255,.4);font-family:Inter,sans-serif;font-size:.75rem;font-weight:700;cursor:pointer">Cancel</button>
-      <button id="match-confirm-btn" onclick="submitMatchRequest('${strandedPostId}','${strandedName}')" disabled style="flex:2;padding:.5rem;background:#22c55e;border:none;border-radius:9px;color:#000;font-family:Inter,sans-serif;font-size:.75rem;font-weight:800;cursor:pointer;opacity:.3">Confirm Match →</button>
+      <button id="match-confirm-btn" onclick="submitMatchRequest('${strandedPostId}','${(strandedName||'').replace(/'/g,"\\'")}','${(strandedLocation||'').replace(/'/g,"\\'")}','${lat||0}','${lng||0}')" disabled style="flex:2;padding:.5rem;background:#22c55e;border:none;border-radius:9px;color:#000;font-family:Inter,sans-serif;font-size:.75rem;font-weight:800;cursor:pointer;opacity:.3">Confirm Match →</button>
     </div>`;
-
   document.getElementById('match-modal').classList.add('open');
 }
 
@@ -3728,11 +3896,10 @@ function selectMatchOffer(el, offerId, offerUserId, offerLocation, offerXhandle,
   if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
 }
 
-async function submitMatchRequest(strandedPostId, strandedName) {
+async function submitMatchRequest(strandedPostId, strandedName, strandedLocation, sLat, sLng) {
   if (!_selectedOffer || !isLoggedIn()) return;
   const btn = document.getElementById('match-confirm-btn');
   if (btn) { btn.textContent = 'Sending…'; btn.disabled = true; }
-
   try {
     const { error } = await _sb.from('success_stories').insert({
       stranded_post_id: strandedPostId,
@@ -3741,19 +3908,22 @@ async function submitMatchRequest(strandedPostId, strandedName) {
       offer_user_id: _selectedOffer.offerUserId,
       stranded_confirmed: true,
       offer_confirmed: false,
+      stranded_lat: parseFloat(sLat) || null,
+      stranded_lng: parseFloat(sLng) || null,
+      stranded_location: strandedLocation || null,
+      stranded_name: strandedName || _currentProfile?.display_name || null,
       lat: _selectedOffer.lat || null,
       lng: _selectedOffer.lng || null,
       offer_location: _selectedOffer.offerLocation || null,
       offer_xhandle: _selectedOffer.offerXhandle || null,
-      stranded_name: strandedName || _currentProfile?.display_name || null,
       offer_name: _selectedOffer.offerName || null,
     });
     if (error) throw error;
     closeMatchModal();
     renderProfileStranded();
-    alert('✅ Match request sent! The host will see a notification and approve it — which enters them into the weekly $HELP pool.');
+    alert('✅ Match request sent! The host will see it in their profile and approve — entering them into the weekly $HELP pool.');
   } catch(e) {
-    alert('Error submitting match: ' + e.message);
+    alert('Error: ' + e.message);
     if (btn) { btn.textContent = 'Confirm Match →'; btn.disabled = false; btn.style.opacity = '1'; }
   }
 }
@@ -3768,23 +3938,18 @@ function closeMatchModal() {
 async function injectMatchNotifications(listElId) {
   if (!isLoggedIn() || !SB_ON) return;
   const { data: pending } = await _sb.from('success_stories')
-    .select('id,offer_post_id,stranded_name,stranded_story,offer_confirmed')
+    .select('id,offer_post_id,stranded_name,offer_confirmed')
     .eq('offer_user_id', _currentUser.id)
     .eq('offer_confirmed', false);
-  if (!pending || !pending.length) return;
-
+  if (!pending?.length) return;
   const list = document.getElementById(listElId);
   if (!list) return;
-
   for (const s of pending) {
     const card = list.querySelector(`[data-post-id="${s.offer_post_id}"]`);
-    if (!card) continue;
-    // Don't inject twice
-    if (card.querySelector('.match-notif-banner')) continue;
+    if (!card || card.querySelector('.match-notif-banner')) continue;
     const banner = document.createElement('div');
     banner.className = 'match-notif-banner';
-    banner.innerHTML = `
-      <div class="match-notif-dot"></div>
+    banner.innerHTML = `<div class="match-notif-dot"></div>
       <div class="match-notif-text"><strong style="color:#22c55e">${s.stranded_name||'Someone'}</strong> says you helped them. Approve to enter the weekly $HELP pool!</div>
       <button class="match-notif-btn" onclick="approveMatch('${s.id}')">Approve ✓</button>`;
     card.appendChild(banner);
@@ -3796,8 +3961,7 @@ async function approveMatch(storyId) {
   if (!isLoggedIn()) return;
   try {
     const { error } = await _sb.from('success_stories').update({
-      offer_confirmed: true,
-      confirmed_at: new Date().toISOString()
+      offer_confirmed: true, confirmed_at: new Date().toISOString()
     }).eq('id', storyId).eq('offer_user_id', _currentUser.id);
     if (error) throw error;
     await loadSuccessStories();
@@ -3807,48 +3971,100 @@ async function approveMatch(storyId) {
   } catch(e) { alert('Error approving match: ' + e.message); }
 }
 
-// ── Story Prompt ─────────────────────────────────────────────
+// ── Story prompt ─────────────────────────────────────────────
 async function openStoryPrompt(storyId, side) {
   const { data: s } = await _sb.from('success_stories')
     .select('stranded_story,offer_story,stranded_name,offer_name').eq('id', storyId).single();
   if (!s) return;
-
-  const existingText = side === 'stranded' ? (s.stranded_story||'') : (s.offer_story||'');
-  const otherName = side === 'stranded' ? (s.offer_name||'your host') : (s.stranded_name||'the person you helped');
+  const existing = side === 'stranded' ? (s.stranded_story||'') : (s.offer_story||'');
+  const other = side === 'stranded' ? (s.offer_name||'your host') : (s.stranded_name||'the person you helped');
   const maxLen = 200;
-
   const body = document.getElementById('story-modal-body');
   body.innerHTML = `
     <div class="match-modal-title" style="color:#22c55e">🎉 You're matched!</div>
-    <div class="match-modal-sub">Want to share what happened with ${otherName}? It'll appear on the map as a green pin — a little proof this works. (Optional, max ${maxLen} chars)</div>
-    <textarea class="story-textarea" id="story-text" maxlength="${maxLen}" placeholder="In my own words, what happened…" oninput="document.getElementById('story-char-count').textContent=(${maxLen}-this.value.length)+' left'">${existingText}</textarea>
-    <div class="story-char-count" id="story-char-count">${maxLen - existingText.length} left</div>
+    <div class="match-modal-sub">Want to share what happened with ${other}? It'll appear on the map as a green pin. (Optional, ${maxLen} chars max)</div>
+    <textarea class="story-textarea" id="story-text" maxlength="${maxLen}" placeholder="In a few words, what happened…" oninput="document.getElementById('story-char-count').textContent=(${maxLen}-this.value.length)+' left'">${existing}</textarea>
+    <div class="story-char-count" id="story-char-count">${maxLen - existing.length} left</div>
     <div style="display:flex;gap:.5rem">
       <button onclick="closeStoryModal()" style="flex:1;padding:.5rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:rgba(255,255,255,.4);font-family:Inter,sans-serif;font-size:.75rem;font-weight:700;cursor:pointer">Skip</button>
       <button onclick="submitStory('${storyId}','${side}')" style="flex:2;padding:.5rem;background:#22c55e;border:none;border-radius:9px;color:#000;font-family:Inter,sans-serif;font-size:.75rem;font-weight:800;cursor:pointer">Share Story →</button>
     </div>`;
-
   document.getElementById('story-modal').classList.add('open');
 }
 
 async function submitStory(storyId, side) {
   const text = (document.getElementById('story-text')?.value || '').trim();
-  if (!text) { closeStoryModal(); return; }
   const field = side === 'stranded' ? 'stranded_story' : 'offer_story';
   try {
-    const { error } = await _sb.from('success_stories').update({ [field]: text }).eq('id', storyId);
-    if (error) throw error;
+    if (text) await _sb.from('success_stories').update({ [field]: text }).eq('id', storyId);
     await loadSuccessStories();
     closeStoryModal();
   } catch(e) { alert('Error saving story: ' + e.message); }
 }
 
-function closeStoryModal() {
-  document.getElementById('story-modal').classList.remove('open');
+function closeStoryModal() { document.getElementById('story-modal').classList.remove('open'); }
+
+// ── "Got home?" flow ─────────────────────────────────────────
+let _goHomeStoryId = null;
+
+async function checkAndOpenGoHome(strandedPostId) {
+  if (!isLoggedIn()) { alert('Please sign in first.'); return; }
+  const { data } = await _sb.from('success_stories')
+    .select('id,offer_confirmed,home_lat')
+    .eq('stranded_post_id', strandedPostId)
+    .eq('stranded_user_id', _currentUser.id)
+    .eq('offer_confirmed', true)
+    .maybeSingle();
+  if (!data) { alert('You need a confirmed match first before marking yourself as home.'); return; }
+  openGoHomePrompt(data.id);
 }
 
-// ── Weekly $HELP pool download (admin) ──────────────────────
-// Open your browser console and run: downloadPoolCSV()
+async function openGoHomePrompt(storyId) {
+  _goHomeStoryId = storyId;
+  const body = document.getElementById('gohome-modal-body');
+  body.innerHTML = `
+    <div class="match-modal-title">🏠 Made it home?</div>
+    <div class="match-modal-sub">Add your home location and the arc on the map will extend all the way there. (Optional story, ${180} chars max)</div>
+    <div class="gohome-loc-wrap">
+      <input class="gohome-loc-input" id="gohome-loc" placeholder="City or country you made it to…" autocomplete="off">
+      <input type="hidden" id="gohome-lat"><input type="hidden" id="gohome-lng">
+      <div id="gohome-ac" class="ac-list"></div>
+    </div>
+    <textarea class="story-textarea" id="gohome-story" maxlength="180" placeholder="What's the first thing you did when you got home?" style="min-height:70px" oninput="document.getElementById('gohome-char').textContent=(180-this.value.length)+' left'"></textarea>
+    <div class="story-char-count" id="gohome-char">180 left</div>
+    <div style="display:flex;gap:.5rem">
+      <button onclick="closeGoHomeModal()" style="flex:1;padding:.5rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:rgba(255,255,255,.4);font-family:Inter,sans-serif;font-size:.75rem;font-weight:700;cursor:pointer">Cancel</button>
+      <button onclick="submitGoHome()" style="flex:2;padding:.5rem;background:#22c55e;border:none;border-radius:9px;color:#000;font-family:Inter,sans-serif;font-size:.75rem;font-weight:800;cursor:pointer">I'm home! →</button>
+    </div>`;
+  document.getElementById('gohome-modal').classList.add('open');
+  initLocationAutocomplete('gohome-loc','gohome-lat','gohome-lng','gohome-ac');
+}
+
+async function submitGoHome() {
+  if (!_goHomeStoryId) return;
+  const loc = document.getElementById('gohome-loc')?.value?.trim();
+  const lat = parseFloat(document.getElementById('gohome-lat')?.value) || null;
+  const lng = parseFloat(document.getElementById('gohome-lng')?.value) || null;
+  const story = document.getElementById('gohome-story')?.value?.trim() || null;
+  if (!loc || !lat || !lng) { alert('Please select a location from the dropdown.'); return; }
+  try {
+    const { error } = await _sb.from('success_stories').update({
+      home_lat: lat, home_lng: lng, home_location: loc, home_story: story || null
+    }).eq('id', _goHomeStoryId).eq('stranded_user_id', _currentUser.id);
+    if (error) throw error;
+    await loadSuccessStories();
+    renderProfileStranded();
+    closeGoHomeModal();
+    alert('🏠 Welcome home! Your journey is now on the map.');
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+function closeGoHomeModal() {
+  document.getElementById('gohome-modal').classList.remove('open');
+  _goHomeStoryId = null;
+}
+
+// ── Weekly $HELP pool CSV download (admin/console) ──────────
 async function downloadPoolCSV() {
   const weekAgo = new Date(Date.now() - 7*24*60*60*1000).toISOString();
   const { data } = await _sb.from('success_stories')
