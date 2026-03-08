@@ -3386,7 +3386,7 @@ function initStrandedRealtime() {
       renderStrandedOnMap(window._mobileMap, true);
     }
   }).subscribe();
-}
+}  
 
 
 window.addEventListener('DOMContentLoaded',()=>{
