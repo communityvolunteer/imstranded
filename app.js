@@ -1310,7 +1310,7 @@ function toggleMapTheme() {
 // ============================================================
 function initMap() {
   window._mapInit = true;
-  const map = L.map('crisis-map',{zoomControl:false}).setView([28,45],5);
+  const map = L.map('crisis-map',{zoomControl:false,attributionControl:false}).setView([28,45],5);
   L.control.zoom({position:'bottomright'}).addTo(map);
   window._dtTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
     attribution:'(c)OpenStreetMap (c)CARTO',maxZoom:19
