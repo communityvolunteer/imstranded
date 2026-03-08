@@ -1238,9 +1238,10 @@ function initMap() {
   map.getPane('worldwidePane').style.zIndex = 580;
   map.createPane('countryPane');
   map.getPane('countryPane').style.zIndex = 590;
+  map.createPane('airportGlowPane');
+  map.getPane('airportGlowPane').style.zIndex = 620;
   map.createPane('airportPane');
-  map.getPane('airportPane').style.zIndex = 610;
-  map.getPane('worldwidePane').style.zIndex = 580;
+  map.getPane('airportPane').style.zIndex = 630;
 
   COUNTRIES.forEach(c => {
     const col = SC[c.status];
@@ -1314,15 +1315,34 @@ function buildDualPopup(iata) {
     return h ? h.city : r.hub;
   });
   
-  // ── HOME data ──
-  var rev = _computeReverseCached(iata);
-  var hCancelled = rev.reduce(function(s, r) { return s + (r.cancelled || 0); }, 0);
-  var hStranded = rev.reduce(function(s, r) { return s + (r.stranded || 0); }, 0);
-  var hRoutes = rev.map(function(r) { return { hub: r.iata, cancelled: r.cancelled, city: r.city, airlines: r.airlines || [] }; });
-  var hAirlines = [];
-  var seen = {};
-  rev.forEach(function(r) { (r.airlines || []).forEach(function(a) { if (!seen[a]) { seen[a] = 1; hAirlines.push(a); } }); });
-  var hHubCities = hRoutes.slice(0, 4).map(function(r) { return r.city || r.hub; });
+  // ── HOME / FLYING-IN data ──
+  // For ME airports: "flying in" = global airports whose routes pass through this hub
+  // For global airports: "home" = ME hubs where their passengers are stranded
+  var isMEAirport = AIRPORT_DATA.some(function(a) { return (a.iata || a.code) === iata; });
+  var hCancelled, hStranded, hRoutes, hAirlines, hHubCities;
+  if (isMEAirport) {
+    var inbound = (typeof REAL_GLOBAL_DISRUPTIONS !== 'undefined' ? REAL_GLOBAL_DISRUPTIONS : [])
+      .filter(function(g) { return (g.me_hubs || []).includes(iata); });
+    hCancelled = inbound.reduce(function(s, g) { return s + (g.cancelled || 0); }, 0);
+    hStranded  = inbound.reduce(function(s, g) { return s + (g.stranded || 0); }, 0);
+    hRoutes = inbound.slice(0, 6).map(function(g) {
+      var ap2 = typeof findAirport === 'function' ? findAirport(g.iata) : null;
+      return { hub: g.iata, cancelled: g.cancelled || 0, city: ap2 ? ap2.city : g.iata, airlines: g.airlines || [] };
+    });
+    var seenH = {};
+    hAirlines = [];
+    inbound.forEach(function(g) { (g.airlines || []).forEach(function(a) { if (!seenH[a]) { seenH[a] = 1; hAirlines.push(a); } }); });
+    hHubCities = hRoutes.slice(0, 4).map(function(r) { return r.city || r.hub; });
+  } else {
+    var rev = _computeReverseCached(iata);
+    hCancelled = rev.reduce(function(s, r) { return s + (r.cancelled || 0); }, 0);
+    hStranded  = rev.reduce(function(s, r) { return s + (r.stranded || 0); }, 0);
+    hRoutes = rev.map(function(r) { return { hub: r.iata, cancelled: r.cancelled, city: r.city, airlines: r.airlines || [] }; });
+    var seen = {};
+    hAirlines = [];
+    rev.forEach(function(r) { (r.airlines || []).forEach(function(a) { if (!seen[a]) { seen[a] = 1; hAirlines.push(a); } }); });
+    hHubCities = hRoutes.slice(0, 4).map(function(r) { return r.city || r.hub; });
+  }
   
   function buildRouteRows(routes) {
     return routes.slice(0, 6).map(function(r) {
@@ -1347,6 +1367,9 @@ function buildDualPopup(iata) {
     if (mode === 'leave') {
       desc = stranded.toLocaleString() + ' people here in ' + city + ', ' + country + ' trying to reach ' + (hubCities.length ? hubCities.join(', ') : 'the Middle East');
       routeLabel = 'Cancelled routes to';
+    } else if (mode === 'flyin') {
+      desc = stranded.toLocaleString() + ' passengers from ' + (hubCities.length ? hubCities.join(', ') : 'global airports') + ' with cancelled flights to or via ' + city + ', ' + country;
+      routeLabel = 'Cancelled inbound routes from';
     } else {
       desc = stranded.toLocaleString() + ' people stranded in ' + (hubCities.length ? hubCities.join(', ') : 'the Middle East') + ' trying to get home to ' + city + ', ' + country;
       routeLabel = 'Stranded at';
@@ -1362,6 +1385,8 @@ function buildDualPopup(iata) {
   }
   
   var uid = iata.replace(/[^A-Z0-9]/g, '');
+  var homeLabel = isMEAirport ? ('Trying to Fly In to ' + city) : ('Trying to Get Home to ' + city);
+  var homeMode  = isMEAirport ? 'flyin' : 'home';
   
   return '<div style="min-width:250px;max-width:300px;font-family:Inter,sans-serif" id="gpop-' + uid + '">' +
     '<div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:.1rem">' + city + ' (' + iata + ')</div>' +
@@ -1370,14 +1395,14 @@ function buildDualPopup(iata) {
     // Toggle — both buttons always present
     '<div style="' + tWrap + '">' +
       '<div id="gtl-' + uid + '" onclick="event.stopPropagation();switchPopupMode(\'' + iata + '\',\'leave\')" style="' + tBase + tOn + '">Trying to Leave ' + city + '</div>' +
-      '<div id="gth-' + uid + '" onclick="event.stopPropagation();switchPopupMode(\'' + iata + '\',\'home\')" style="' + tBase + tOff + '">Trying to Get Home to ' + city + '</div>' +
+      '<div id="gth-' + uid + '" onclick="event.stopPropagation();switchPopupMode(\'' + iata + '\',\'' + homeMode + '\')" style="' + tBase + tOff + '">' + homeLabel + '</div>' +
     '</div>' +
     
     // LEAVE panel (visible by default)
     '<div id="gpl-' + uid + '">' + buildPanel(lCancelled, lStranded, lRoutes, lAirlines, 'leave', lHubCities) + '</div>' +
     
-    // HOME panel (hidden by default)
-    '<div id="gph-' + uid + '" style="display:none">' + buildPanel(hCancelled, hStranded, hRoutes, hAirlines, 'home', hHubCities) + '</div>' +
+    // HOME / FLYING-IN panel (hidden by default)
+    '<div id="gph-' + uid + '" style="display:none">' + buildPanel(hCancelled, hStranded, hRoutes, hAirlines, homeMode, hHubCities) + '</div>' +
     
     embBtn +
   '</div>';
@@ -1388,23 +1413,24 @@ function switchPopupMode(iata, mode) {
   _activePopupIata = iata;
   var uid = iata.replace(/[^A-Z0-9]/g, '');
   
-  // Toggle panel visibility
+  // Toggle panel visibility — 'leave' shows leave panel, anything else shows home panel
   var leavePanel = document.getElementById('gpl-' + uid);
   var homePanel = document.getElementById('gph-' + uid);
   var leaveBtn = document.getElementById('gtl-' + uid);
   var homeBtn = document.getElementById('gth-' + uid);
+  var isLeave = (mode === 'leave');
   
   if (leavePanel && homePanel) {
-    leavePanel.style.display = mode === 'leave' ? 'block' : 'none';
-    homePanel.style.display = mode === 'home' ? 'block' : 'none';
+    leavePanel.style.display = isLeave ? 'block' : 'none';
+    homePanel.style.display = isLeave ? 'none' : 'block';
   }
   
   // Swap button active styles
   var tOn = 'background:rgba(168,85,247,.15);color:#a855f7;border:1px solid rgba(168,85,247,.2);';
   var tOff = 'background:transparent;color:rgba(255,255,255,.3);border:1px solid transparent;';
   if (leaveBtn && homeBtn) {
-    leaveBtn.style.cssText += (mode === 'leave' ? tOn : tOff);
-    homeBtn.style.cssText += (mode === 'home' ? tOn : tOff);
+    leaveBtn.style.cssText += (isLeave ? tOn : tOff);
+    homeBtn.style.cssText += (isLeave ? tOff : tOn);
   }
   
   // Redraw arcs for this airport only
@@ -1417,50 +1443,89 @@ function drawPopupArcs(iata, mode) {
   if (!ap) return;
   
   const maps = [window._crisisMap, window._mobileMap].filter(Boolean);
+  const isMEAirport = AIRPORT_DATA.some(a => (a.iata || a.code) === iata);
   
   if (mode === 'leave') {
-    // Arcs FROM this airport TO ME hubs
-    const gData = _globalDisruptions.find(g => g.iata === iata);
-    if (!gData) return;
-    const routes = gData.routes || [];
-    const hubs = routes.length ? routes.map(r => r.hub) : (gData.me_hubs || []);
-    const maxC = Math.max(...(routes.length ? routes.map(r => r.cancelled || 1) : [1]), 1);
-    
-    for (const map of maps) {
-      for (let i = 0; i < hubs.length; i++) {
-        const hub = typeof hubs[i] === 'object' ? hubs[i] : hubs[i];
-        const hubIata = routes[i] ? routes[i].hub : hub;
-        const routeC = routes[i] ? (routes[i].cancelled || 1) : 1;
-        let hubCoords = null;
-        if (typeof ME_AIRPORTS !== 'undefined' && ME_AIRPORTS[hubIata]) {
-          hubCoords = [ME_AIRPORTS[hubIata].lat, ME_AIRPORTS[hubIata].lng];
-        } else {
-          const ad = AIRPORT_DATA.find(a => (a.iata || a.code) === hubIata);
-          if (ad) hubCoords = ad.coords;
+    if (isMEAirport) {
+      // ME airport: draw arcs FROM this hub TO affected global destinations
+      const globalDests = (typeof REAL_GLOBAL_DISRUPTIONS !== 'undefined' ? REAL_GLOBAL_DISRUPTIONS : [])
+        .filter(g => (g.me_hubs || []).includes(iata));
+      if (!globalDests.length) return;
+      const maxC = Math.max(...globalDests.map(g => g.cancelled || 1), 1);
+      for (const map of maps) {
+        for (const g of globalDests) {
+          const destAp = typeof findAirport === 'function' ? findAirport(g.iata) : null;
+          if (!destAp) continue;
+          const weight = 1 + ((g.cancelled || 1) / maxC) * 4;
+          const opacity = 0.2 + ((g.cancelled || 1) / maxC) * 0.35;
+          const arc = generateArc([ap.lat, ap.lng], [destAp.lat, destAp.lng], 30);
+          const line = L.polyline(arc, { color: `rgba(168,85,247,${opacity})`, weight, interactive: false }).addTo(map);
+          _globalArcLines.push(line);
         }
-        if (!hubCoords) continue;
-        
-        const weight = 1 + (routeC / maxC) * 4;
-        const opacity = 0.2 + (routeC / maxC) * 0.35;
-        const arc = generateArc([ap.lat, ap.lng], hubCoords, 30);
-        const line = L.polyline(arc, { color: `rgba(168,85,247,${opacity})`, weight, interactive: false }).addTo(map);
-        _globalArcLines.push(line);
+      }
+    } else {
+      // Global airport: draw arcs FROM this airport TO ME hubs
+      const gData = _globalDisruptions.find(g => g.iata === iata);
+      if (!gData) return;
+      const routes = gData.routes || [];
+      const hubs = routes.length ? routes.map(r => r.hub) : (gData.me_hubs || []);
+      const maxC = Math.max(...(routes.length ? routes.map(r => r.cancelled || 1) : [1]), 1);
+      
+      for (const map of maps) {
+        for (let i = 0; i < hubs.length; i++) {
+          const hubIata = routes[i] ? routes[i].hub : hubs[i];
+          const routeC = routes[i] ? (routes[i].cancelled || 1) : 1;
+          let hubCoords = null;
+          if (typeof ME_AIRPORTS !== 'undefined' && ME_AIRPORTS[hubIata]) {
+            hubCoords = [ME_AIRPORTS[hubIata].lat, ME_AIRPORTS[hubIata].lng];
+          } else {
+            const ad = AIRPORT_DATA.find(a => (a.iata || a.code) === hubIata);
+            if (ad) hubCoords = ad.coords;
+          }
+          if (!hubCoords) continue;
+          
+          const weight = 1 + (routeC / maxC) * 4;
+          const opacity = 0.2 + (routeC / maxC) * 0.35;
+          const arc = generateArc([ap.lat, ap.lng], hubCoords, 30);
+          const line = L.polyline(arc, { color: `rgba(168,85,247,${opacity})`, weight, interactive: false }).addTo(map);
+          _globalArcLines.push(line);
+        }
       }
     }
   } else {
-    // Arcs FROM ME hubs TO this airport
-    const rev = _computeReverseCached(iata);
-    if (!rev.length) return;
-    const maxC = Math.max(...rev.map(r => r.cancelled || 1), 1);
-    
-    for (const map of maps) {
-      for (const r of rev) {
-        if (!r.lat || !r.lng) continue;
-        const weight = 1 + ((r.cancelled || 1) / maxC) * 4;
-        const opacity = 0.2 + ((r.cancelled || 1) / maxC) * 0.35;
-        const arc = generateArc([r.lat, r.lng], [ap.lat, ap.lng], 30);
-        const line = L.polyline(arc, { color: `rgba(168,85,247,${opacity})`, weight, interactive: false }).addTo(map);
-        _globalArcLines.push(line);
+    // 'home' or 'flyin'
+    if (isMEAirport) {
+      // ME airport "flying in": draw arcs FROM global origins TO this hub
+      const inbound = (typeof REAL_GLOBAL_DISRUPTIONS !== 'undefined' ? REAL_GLOBAL_DISRUPTIONS : [])
+        .filter(g => (g.me_hubs || []).includes(iata));
+      if (!inbound.length) return;
+      const maxC = Math.max(...inbound.map(g => g.cancelled || 1), 1);
+      for (const map of maps) {
+        for (const g of inbound) {
+          const origAp = typeof findAirport === 'function' ? findAirport(g.iata) : null;
+          if (!origAp) continue;
+          const weight = 1 + ((g.cancelled || 1) / maxC) * 4;
+          const opacity = 0.2 + ((g.cancelled || 1) / maxC) * 0.35;
+          const arc = generateArc([origAp.lat, origAp.lng], [ap.lat, ap.lng], 30);
+          const line = L.polyline(arc, { color: `rgba(168,85,247,${opacity})`, weight, interactive: false }).addTo(map);
+          _globalArcLines.push(line);
+        }
+      }
+    } else {
+      // Global airport "home": draw arcs FROM ME hubs TO this airport
+      const rev = _computeReverseCached(iata);
+      if (!rev.length) return;
+      const maxC = Math.max(...rev.map(r => r.cancelled || 1), 1);
+      
+      for (const map of maps) {
+        for (const r of rev) {
+          if (!r.lat || !r.lng) continue;
+          const weight = 1 + ((r.cancelled || 1) / maxC) * 4;
+          const opacity = 0.2 + ((r.cancelled || 1) / maxC) * 0.35;
+          const arc = generateArc([r.lat, r.lng], [ap.lat, ap.lng], 30);
+          const line = L.polyline(arc, { color: `rgba(168,85,247,${opacity})`, weight, interactive: false }).addTo(map);
+          _globalArcLines.push(line);
+        }
       }
     }
   }
@@ -1493,6 +1558,18 @@ function renderGlobalDisruptions(map, data) {
       weight: borderW,
       fillOpacity: opacity,
       className: 'global-disruption-dot',
+    }).addTo(map);
+
+    // Red glow behind the purple dot — sits on airportGlowPane (z 620, below dot at 630)
+    const glowRadius = radius + 5;
+    L.circleMarker([ap.lat, ap.lng], {
+      radius: glowRadius,
+      pane: 'airportGlowPane',
+      fillColor: '#ec3452',
+      color: 'transparent',
+      weight: 0,
+      fillOpacity: Math.min(opacity * 0.45, 0.22),
+      interactive: false,
     }).addTo(map);
     
     const popupContent = buildDualPopup(g.iata);
@@ -1884,8 +1961,10 @@ function initMobile(){
   mmap.getPane('worldwidePane').style.zIndex = 580;
   mmap.createPane('countryPane');
   mmap.getPane('countryPane').style.zIndex = 590;
+  mmap.createPane('airportGlowPane');
+  mmap.getPane('airportGlowPane').style.zIndex = 620;
   mmap.createPane('airportPane');
-  mmap.getPane('airportPane').style.zIndex = 610;
+  mmap.getPane('airportPane').style.zIndex = 630;
 
   COUNTRIES.forEach(c => {
     const col = SC[c.status];
