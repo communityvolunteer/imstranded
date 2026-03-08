@@ -285,7 +285,7 @@ async function fetchSitrepFromSupabase() {
         coords: [a.lat, a.lng],
         cancelled: a.cancelled || 0,
         status: a.status || 'UNKNOWN',
-        stranded: a.stranded || 0,
+        stranded: a.stranded || ((a.cancelled || 0) * 185),
         cancelRate: a.cancel_rate || 0,
         dailyFlights: a.daily_flights || 0,
         h7: a.h7 || 0,
@@ -1243,7 +1243,8 @@ function initMap() {
 
   COUNTRIES.forEach(c => {
     const col = SC[c.status];
-    const glow = L.circleMarker(c.coords,{pane:'countryPane',interactive:true,radius:28,fillColor:'#ec3452',color:'#ec3452',weight:0,opacity:0,fillOpacity:.12}).addTo(map)
+    const glow = L.circleMarker(c.coords,{pane:'countryPane',interactive:false,radius:28,fillColor:'#ec3452',color:'#ec3452',weight:0,opacity:0,fillOpacity:.12}).addTo(map);
+    const dot  = L.circleMarker(c.coords,{pane:'countryPane',interactive:true,radius:8,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.95}).addTo(map)
       .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:240px">
         <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#fcd34d;margin-bottom:.4rem">${c.name}</div>
         <div style="font-size:.82rem;color:rgba(255,255,255,.85);line-height:1.55;margin-bottom:.6rem">${c.advisory}</div>
@@ -1251,7 +1252,6 @@ function initMap() {
         ${c.telegram?`<a href="${c.telegram}" style="color:#3498ec;font-size:.76rem;font-weight:500;display:block;margin-bottom:.6rem" target="_blank">→ Telegram group</a>`:''}
         <button onclick="window.showCountryDetail('${c.id}')" style="background:#3498ec;border:none;color:#fff;font-family:Inter,sans-serif;font-size:.82rem;font-weight:700;padding:.55rem 1rem;cursor:pointer;border-radius:8px;width:100%">Full info &amp; embassies →</button>
       </div>`);
-    const dot  = L.circleMarker(c.coords,{pane:'countryPane',interactive:false,radius:8,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.95}).addTo(map);
     _mk.country.push({marker:glow,status:c.status});
     _mk.country.push({marker:dot,status:c.status});
   });
@@ -1924,9 +1924,9 @@ function initMobile(){
 
   COUNTRIES.forEach(c => {
     const col = SC[c.status];
-    L.circleMarker(c.coords, {pane:'countryPane',interactive:true,radius:28,fillColor:'#ec3452',color:'#ec3452',weight:0,opacity:0,fillOpacity:.12}).addTo(mmap)
+    L.circleMarker(c.coords, {pane:'countryPane',interactive:false,radius:28,fillColor:'#ec3452',color:'#ec3452',weight:0,opacity:0,fillOpacity:.12}).addTo(mmap);
+    L.circleMarker(c.coords, {pane:'countryPane',interactive:true,radius:10,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.92}).addTo(mmap)
       .on('click', () => openMCountryPopup(c.id));
-    L.circleMarker(c.coords, {pane:'countryPane',interactive:false,radius:10,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.92}).addTo(mmap);
   });
   WORLDWIDE.forEach(r=>{
     L.circleMarker(r.coords,{pane:'worldwidePane',interactive:true,radius:7,fillColor:'#a855f7',color:'#fff',weight:1.5,opacity:.9,fillOpacity:.5}).addTo(mmap)
