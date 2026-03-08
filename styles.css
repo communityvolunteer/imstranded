@@ -658,6 +658,7 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
     font-weight:700;letter-spacing:.06em;text-transform:uppercase;
   }
   .m-tab svg{width:25px;height:25px;stroke:rgb(255, 255, 255);}
+  .m-tab#mtab-help svg{stroke:#a855f7;}
   .m-tab.active{color:#fff;border-top-color:#3498ec;}
   .m-tab.active svg{stroke:#fff;}
   .m-tab:hover:not(.active){color:rgb(255, 255, 255);}
