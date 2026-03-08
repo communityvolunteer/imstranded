@@ -1341,7 +1341,7 @@ html.translated-ltr body,html.translated-rtl body{top:0 !important;}
   display: none; position: absolute; top: calc(100% + 8px); right: 0;
   background: #1a1a2e; border: 1px solid rgba(255,255,255,.1);
   border-radius: 12px; padding: .65rem .75rem; z-index: 99999;
-  box-shadow: 0 8px 32px rgba(0,0,0,.5); min-width: 130px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.5); min-width: 200px;
   backdrop-filter: blur(8px);
 }
 .accent-dropdown.open { display: block; }

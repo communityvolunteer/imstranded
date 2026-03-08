@@ -9,10 +9,12 @@ const SB_ON = !SUPABASE_URL.includes('YOUR_PROJECT_ID');
 // ── Accent color system — MUST be at top, called throughout ──
 const ACCENT_THEMES = {
   purple: { hex: '#a855f7', r: 168, g: 85,  b: 247 },
-  cyan:   { hex: '#00daff', r: 0,   g: 218, b: 255 },
-  orange: { hex: '#ff5600', r: 255, g: 86,  b: 0   },
   yellow: { hex: '#f5c400', r: 245, g: 196, b: 0   },
-  green:  { hex: '#19c204', r: 25,  g: 194, b: 4   },
+  blue:   { hex: '#3498ec', r: 52,  g: 152, b: 236 },
+  red:    { hex: '#ec3452', r: 236, g: 52,  b: 82  },
+  amber:  { hex: '#ff9f1c', r: 255, g: 159, b: 28  },
+  teal:   { hex: '#2ec4b6', r: 46,  g: 196, b: 182 },
+  pink:   { hex: '#ec4899', r: 236, g: 72,  b: 153 },
 };
 let _currentAccent = 'purple';
 function accentHex() { return ACCENT_THEMES[_currentAccent]?.hex || '#a855f7'; }
