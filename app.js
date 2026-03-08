@@ -604,11 +604,12 @@ function applyFilters() {
 
       [window._crisisMap, window._mobileMap].forEach(map => {
         if (!map) return;
-        const maxS = Math.max(...reverseData.map(x => x.stranded), 1);
         for (const r of reverseData) {
-          const radius = 4 + Math.min(14, (r.stranded / maxS) * 14);
+          const rc = r.cancelled || 0;
+          let rdot;
+          if (rc >= 5000) rdot = 18; else if (rc >= 1000) rdot = 14; else if (rc >= 500) rdot = 11; else if (rc >= 200) rdot = 8; else rdot = 5;
           const circle = L.circleMarker([r.lat, r.lng], {
-            radius, fillColor: '#a855f7', color: 'rgba(168,85,247,.4)', weight: 1.5, fillOpacity: 0.45,
+            radius: rdot, fillColor: '#a855f7', color: 'rgba(168,85,247,.4)', weight: 1.5, fillOpacity: 0.45,
           }).addTo(map);
           circle.bindPopup('<div style="min-width:200px;font-family:Inter,sans-serif"><div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:#a855f7;margin-bottom:.3rem">TRYING TO REACH '+destCity.toUpperCase()+'</div><div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:.15rem">'+r.city+' ('+r.iata+')</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem;margin-bottom:.4rem;margin-top:.4rem"><div><div style="font-size:1.1rem;font-weight:800;color:#a855f7">'+r.cancelled.toLocaleString()+'</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase">Flights Cancelled</div></div><div><div style="font-size:1.1rem;font-weight:800;color:#a855f7">'+r.stranded.toLocaleString()+'</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase">Pax Stranded</div></div></div><div style="display:flex;flex-wrap:wrap;gap:3px">'+r.airlines.map(a => '<span style="padding:.15rem .4rem;background:rgba(168,85,247,.12);border-radius:4px;font-size:.6rem;color:#a855f7;font-weight:600">'+a+'</span>').join('')+'</div>'+(typeof buildEmbassyButton==='function'?buildEmbassyButton(r.iata):'')+'</div>', { className: 'dark-popup', maxWidth: 300 });
           _globalPins.push(circle);
@@ -627,13 +628,14 @@ function applyFilters() {
       // Arcs from ME hubs to destination
       if (f.showArcs || hasTo) {
         if (destAp) {
-          const maxC = Math.max(...reverseData.map(r => r.cancelled), 1);
           for (const r of reverseData) {
-            const weight = 0.5 + (r.cancelled / maxC) * 3.5;
+            const rc = r.cancelled || 0;
+            let wt, op;
+            if (rc >= 5000) { wt = 4; op = 0.35; } else if (rc >= 1000) { wt = 3; op = 0.28; } else if (rc >= 500) { wt = 2.2; op = 0.22; } else if (rc >= 200) { wt = 1.5; op = 0.18; } else { wt = 0.7; op = 0.12; }
             const arc = generateArc([r.lat, r.lng], [destAp.lat, destAp.lng], 30);
             [window._crisisMap, window._mobileMap].forEach(map => {
               if (!map) return;
-              const line = L.polyline(arc, { color: 'rgba(168,85,247,.3)', weight, interactive: false }).addTo(map);
+              const line = L.polyline(arc, { color: `rgba(168,85,247,${op})`, weight: wt, interactive: false }).addTo(map);
               _globalArcLines.push(line);
             });
           }
@@ -875,18 +877,11 @@ function drawArcLines(map, strandedData) {
 function drawGlobalRouteArcs(map, disruptions) {
   if (!map || !disruptions.length) return;
   
-  // Log scale for dramatic thickness variation
-  const cancelledVals = disruptions.map(g => g.cancelled || 0).filter(v => v > 0);
-  const maxLog = Math.log(Math.max(...cancelledVals, 1) + 1);
-  const minLog = Math.log(Math.min(...cancelledVals, 1) + 1);
-  const logRange = maxLog - minLog || 1;
-  
   for (const g of disruptions) {
     const ap = typeof findAirport === 'function' ? findAirport(g.iata) : null;
     if (!ap) continue;
     
     for (const hub of (g.me_hubs || [])) {
-      // Look up ME hub coords from ME_AIRPORTS or AIRPORT_DATA
       let hubCoords = null;
       if (typeof ME_AIRPORTS !== 'undefined' && ME_AIRPORTS[hub]) {
         hubCoords = [ME_AIRPORTS[hub].lat, ME_AIRPORTS[hub].lng];
@@ -896,10 +891,15 @@ function drawGlobalRouteArcs(map, disruptions) {
       }
       if (!hubCoords) continue;
       
-      const logVal = Math.log((g.cancelled || 0) + 1);
-      const ratio = (logVal - minLog) / logRange;
-      const weight = 0.4 + ratio * 4;
-      const opacity = 0.12 + ratio * 0.25;
+      // Tiered arc thickness based on cancelled flights
+      const c = g.cancelled || 0;
+      let weight, opacity;
+      if (c >= 5000)      { weight = 4.5; opacity = 0.4; }
+      else if (c >= 1000) { weight = 3.5; opacity = 0.32; }
+      else if (c >= 500)  { weight = 2.5; opacity = 0.25; }
+      else if (c >= 200)  { weight = 1.8; opacity = 0.2; }
+      else if (c >= 50)   { weight = 1.0; opacity = 0.15; }
+      else                { weight = 0.5; opacity = 0.1; }
       
       const arc = generateArc([ap.lat, ap.lng], hubCoords, 30);
       const line = L.polyline(arc, {
@@ -1471,27 +1471,26 @@ function renderGlobalDisruptions(map, data) {
   const disruptions = data || _globalDisruptions;
   if (!disruptions || !disruptions.length) return;
   
-  // Log scale for dramatic size variation
-  const strandedVals = disruptions.map(g => g.stranded || 0).filter(v => v > 0);
-  const maxLog = Math.log(Math.max(...strandedVals, 1) + 1);
-  const minLog = Math.log(Math.min(...strandedVals, 1) + 1);
-  const logRange = maxLog - minLog || 1;
-  
   for (const g of disruptions) {
     const ap = typeof findAirport === 'function' ? findAirport(g.iata) : null;
     if (!ap) continue;
     
-    const logVal = Math.log((g.stranded || 0) + 1);
-    const ratio = (logVal - minLog) / logRange;
-    const radius = 4 + ratio * 18;
-    const opacity = 0.25 + ratio * 0.35;
+    // Tiered sizing based on cancelled flights — hard-coded, always dramatic
+    const c = g.cancelled || 0;
+    let radius, opacity, borderW;
+    if (c >= 5000)      { radius = 22; opacity = 0.55; borderW = 3; }    // DOH, DXB
+    else if (c >= 1000) { radius = 16; opacity = 0.45; borderW = 2.5; }  // AUH, BAH, TLV, RUH, JED
+    else if (c >= 500)  { radius = 13; opacity = 0.4;  borderW = 2; }    // DMM, AMM, MCT, CMB, BKK, LHR
+    else if (c >= 200)  { radius = 10; opacity = 0.35; borderW = 1.5; }  // JFK, SIN, AMS, CDG
+    else if (c >= 50)   { radius = 7;  opacity = 0.3;  borderW = 1.5; }  // mid-tier airports
+    else                { radius = 5;  opacity = 0.25; borderW = 1; }    // small airports
     
     const circle = L.circleMarker([ap.lat, ap.lng], {
       radius,
       pane: 'airportPane',
       fillColor: '#a855f7',
       color: 'rgba(168,85,247,.5)',
-      weight: 1 + ratio * 2,
+      weight: borderW,
       fillOpacity: opacity,
       className: 'global-disruption-dot',
     }).addTo(map);
