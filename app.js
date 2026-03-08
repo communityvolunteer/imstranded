@@ -928,9 +928,16 @@ function updateStrandedLabel(atIata, toIata, filteredGlobal, reverseData) {
     if (pcSub) pcSub.textContent = atIata + ' \u00b7 ' + (g.airlines||[]).length + ' airlines';
     if (mLabel) mLabel.innerHTML = 'AT ' + city.toUpperCase() + '<br>' + atIata;
   } else {
-    if (pcLabel) pcLabel.textContent = 'People Impacted';
-    if (pcSub) pcSub.textContent = 'tap \u00b7 see how';
-    if (mLabel) mLabel.innerHTML = 'PEOPLE<br>IMPACTED';
+    if (pcLabel) pcLabel.innerHTML = 'People Impacted <span style="font-size:.55rem;color:rgba(255,255,255,.3);font-weight:500;letter-spacing:.01em">since Mar 1</span>';
+    // Restore +today into the sub — read cached value from the today span if present
+    if (pcSub) {
+      const todayEl = document.getElementById('stat-stranded-today');
+      const todayVal = todayEl ? todayEl.textContent : '';
+      pcSub.innerHTML = todayVal
+        ? `<span id="stat-stranded-today" style="color:#a855f7;font-weight:700">${todayVal}</span><span id="stat-stranded-today-label">\u00a0today</span>`
+        : `<span id="stat-stranded-today" style="color:#a855f7;font-weight:700"></span><span id="stat-stranded-today-label">tap \u00b7 see how</span>`;
+    }
+    if (mLabel) mLabel.innerHTML = 'PEOPLE IMPACTED <span style="font-size:.52rem;color:rgba(255,255,255,.3);font-weight:400;letter-spacing:.01em">· since Mar 1</span>';
     refreshStrandedCount();
   }
 }
