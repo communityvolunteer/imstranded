@@ -1282,3 +1282,35 @@ html.translated-ltr body,html.translated-rtl body{top:0 !important;}
     max-height: 90dvh;
   }
 }
+
+/* ── Filter panel crisis snapshot ─────────────────────────── */
+.fp-crisis-stats {
+  padding: .85rem 1.1rem .7rem;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  background: rgba(168,85,247,.04);
+}
+.fp-crisis-row {
+  display: flex; align-items: stretch; gap: 0;
+}
+.fp-crisis-item {
+  flex: 1; padding: 0 .4rem;
+}
+.fp-crisis-item:first-child { padding-left: 0; }
+.fp-crisis-item:last-child  { padding-right: 0; }
+.fp-crisis-divider {
+  width: 1px; background: rgba(255,255,255,.07); margin: .1rem 0;
+  flex-shrink: 0;
+}
+.fp-crisis-val {
+  font-size: 1.15rem; font-weight: 800; color: #fff;
+  letter-spacing: -.02em; line-height: 1.1;
+}
+.fp-crisis-label {
+  font-size: .58rem; font-weight: 600; color: rgba(255,255,255,.35);
+  text-transform: uppercase; letter-spacing: .06em; margin-top: .15rem;
+  line-height: 1.3;
+}
+.fp-crisis-today {
+  font-size: .65rem; font-weight: 700; color: #a855f7;
+  margin-top: .2rem; min-height: .8rem;
+}

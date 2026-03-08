@@ -106,8 +106,8 @@ function googleTranslateInit() {
   </div>
   <div class="sitrep-stat" id="ss-stranded" onclick="toggleArcsFromStat()">
     <span class="sitrep-num" id="stat-stranded">7,902,460</span>
-    <div class="sitrep-label" id="stranded-label">People Impacted</div>
-    <div class="sitrep-sub" id="stranded-sub">tap · see how</div>
+    <div class="sitrep-label" id="stranded-label">People Impacted <span style="font-size:.55rem;color:rgba(255,255,255,.3);font-weight:500;letter-spacing:.01em">since Mar 1</span></div>
+    <div class="sitrep-sub" id="stranded-sub"><span id="stat-stranded-today" style="color:#a855f7;font-weight:700"></span><span id="stat-stranded-today-label"></span></div>
   </div>
   <div class="sitrep-stat sitrep-stat--offer-room" id="ss-offer-room" onclick="showView('help');switchHelpTab('offer')">
     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -132,6 +132,23 @@ function googleTranslateInit() {
 
   <!-- Filter Panel (fly-in from right) -->
   <div class="filter-panel open" id="filter-panel">
+
+    <!-- Crisis snapshot stats -->
+    <div class="fp-crisis-stats">
+      <div class="fp-crisis-row">
+        <div class="fp-crisis-item">
+          <div class="fp-crisis-val" id="fp-stat-stranded">—</div>
+          <div class="fp-crisis-label">Est. Stranded</div>
+          <div class="fp-crisis-today" id="fp-stat-stranded-today"></div>
+        </div>
+        <div class="fp-crisis-divider"></div>
+        <div class="fp-crisis-item">
+          <div class="fp-crisis-val" id="fp-stat-cancelled">—</div>
+          <div class="fp-crisis-label">Flights Cancelled <span style="font-size:.52rem;opacity:.5">since Mar 1</span></div>
+          <div class="fp-crisis-today" id="fp-stat-cancelled-today"></div>
+        </div>
+      </div>
+    </div>
 
     <!-- Section 1: DISRUPTED GLOBALLY -->
     <div class="fp-section">
@@ -500,12 +517,12 @@ function googleTranslateInit() {
   <div id="m-statbar">
     <div class="m-stat" id="mss-stranded" onclick="toggleArcsFromStat()">
       <span class="m-stat-num" id="m-stat-stranded">7,902,460</span>
-      <span class="m-stat-label" id="m-stranded-label">PEOPLE<br>IMPACTED</span>
-      <span class="m-stat-sub" id="m-stranded-sub" style="display:none"></span>
+      <span class="m-stat-label" id="m-stranded-label">PEOPLE IMPACTED <span style="font-size:.52rem;color:rgba(255,255,255,.3);font-weight:400;display:block;letter-spacing:.01em">since Mar 1</span></span>
+      <span class="m-stat-sub" id="m-stranded-sub" style="color:#a855f7;font-size:.6rem;font-weight:700"></span>
     </div>
     <div class="m-stat m-stat--offer" id="mss-offer" onclick="mTab('stranded',this)" style="background:rgba(236,52,82,.15);border-color:rgba(236,52,82,.2)">
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      <span class="m-stat-label" style="color:#ec3452">I'M<br>STRANDED</span>
+      <span class="m-stat-label" style="color:#ec3452">HELP<br>I'M STRANDED</span>
     </div>
   </div>
 
@@ -865,7 +882,7 @@ function googleTranslateInit() {
     </button>
     <button class="m-tab-spare" id="mtab-spare" onclick="mTab('offer',this)">
       <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      OFFER SPARE ROOM
+      OFFER A SPARE ROOM
     </button>
   </div>
 </div>

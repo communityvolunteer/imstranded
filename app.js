@@ -2071,6 +2071,20 @@ async function refreshSitrep() {
   const airportsClosed = AIRPORT_DATA.filter(a=>a.status==='CLOSED').length;
   const vals = liveStats || {stranded:totalStranded,cancelled:totalCancelled,airports:airportsClosed,airspace:4};
 
+  // ── Compute today vs. since-crisis totals ──────────────────
+  // cancelled = today's (Mar 7), h7 = 7-day cumulative per airport
+  const todayCancelled = AIRPORT_DATA.reduce((s,a)=>s+(a.cancelled||0),0);
+  const totalH7Cancelled = AIRPORT_DATA.reduce((s,a)=>s+(a.h7||0),0);
+  // For airports without h7 data, today's cancelled IS the only figure we have —
+  // add those in so the total isn't artificially low
+  const totalCancelledSinceCrisis = totalH7Cancelled +
+    AIRPORT_DATA.filter(a=>!a.h7).reduce((s,a)=>s+(a.cancelled||0),0);
+  // Today's newly stranded ≈ today's cancelled × avg 185 pax/flight
+  const todayStranded = Math.round(todayCancelled * 185);
+  // Est. stranded = 20% of total people impacted
+  const estStranded = Math.round(vals.stranded * 0.20);
+  const todayEstStranded = Math.round(todayStranded * 0.20);
+
   setStatNow('stat-stranded',vals.stranded);
   setStatNow('stat-cancelled',vals.cancelled);
   setStatNow('stat-airports-closed',vals.airports);
@@ -2084,6 +2098,29 @@ async function refreshSitrep() {
   animCount('stat-airspace',vals.airspace,500);
   animCount('m-stat-stranded',vals.stranded,1200);
   animCount('m-stat-cancelled',vals.cancelled,800);
+
+  // ── Inject +Today labels ────────────────────────────────────
+  function setToday(id, n, prefix='+') {
+    const el = document.getElementById(id);
+    if (el) el.textContent = n > 0 ? prefix + n.toLocaleString() + ' today' : '';
+  }
+  // Sitrep bar
+  const sitrepTodayEl = document.getElementById('stat-stranded-today');
+  const sitrepTodayLbl = document.getElementById('stat-stranded-today-label');
+  if (sitrepTodayEl) sitrepTodayEl.textContent = todayStranded > 0 ? '+' + todayStranded.toLocaleString() : '';
+  if (sitrepTodayLbl) sitrepTodayLbl.textContent = todayStranded > 0 ? '\u00a0today' : 'tap · see how';
+  // Mobile stat bar
+  const mTodayEl = document.getElementById('m-stranded-sub');
+  if (mTodayEl) mTodayEl.textContent = todayStranded > 0 ? '+' + todayStranded.toLocaleString() + ' today' : '';
+  // Filter sidebar
+  const fpSt = document.getElementById('fp-stat-stranded');
+  const fpStT = document.getElementById('fp-stat-stranded-today');
+  const fpCa = document.getElementById('fp-stat-cancelled');
+  const fpCaT = document.getElementById('fp-stat-cancelled-today');
+  if (fpSt) fpSt.textContent = estStranded.toLocaleString();
+  if (fpStT) fpStT.textContent = todayEstStranded > 0 ? '+' + todayEstStranded.toLocaleString() + ' today' : '';
+  if (fpCa) fpCa.textContent = totalCancelledSinceCrisis.toLocaleString();
+  if (fpCaT) fpCaT.textContent = todayCancelled > 0 ? '+' + todayCancelled.toLocaleString() + ' today' : '';
 
   if(SB_ON){
     const[offerRes]=await Promise.all([
