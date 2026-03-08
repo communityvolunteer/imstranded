@@ -411,55 +411,61 @@ let _meOutbound = null;
 
 function buildMEOutboundIndex() {
   if (typeof AIRLINE_ROUTES === 'undefined' || typeof ME_AIRPORTS === 'undefined') return;
-
-  // Build a lookup of actual cancelled totals from live AIRPORT_DATA
-  const meActual = {};
+  const meStatuses = {};
   for (const a of AIRPORT_DATA) {
     const iata = a.iata || a.code;
-    meActual[iata] = { cancelled: a.cancelled || 0, avgPax: a.avgPax || 180 };
+    const cr = (a.cancelRate && a.cancelRate > 1) ? a.cancelRate / 100
+      : a.status === 'CLOSED' ? 0.93
+      : a.status === 'RESTRICTED' || a.status === 'LIMITED' ? 0.6
+      : a.status === 'DISRUPTED' ? 0.15
+      : 0.05;
+    meStatuses[iata] = { cancelRate: cr };
   }
 
-  const raw = {}; // { hubIata: { destIata: { weight, airlines: Set } } }
-  const hubTotalWeight = {}; // total traffic weight per hub (for proportional distribution)
+  const raw = {}; // { hubIata: { destIata: { cancelled, stranded, airlines: Set } } }
 
   for (const airlineKey in AIRLINE_ROUTES) {
     const airline = AIRLINE_ROUTES[airlineKey];
     for (const hub of airline.hubs) {
+      const hubStatus = meStatuses[hub];
+      if (!hubStatus || hubStatus.cancelRate < 0.03) continue;
       const meHub = ME_AIRPORTS[hub];
       if (!meHub) continue;
-      // Only process hubs with actual cancellations
-      if (!meActual[hub] || meActual[hub].cancelled < 1) continue;
 
+      let totalWeight = 0;
+      const destWeights = [];
       for (const dest of airline.destinations) {
-        if (ME_AIRPORTS[dest]) continue; // skip intra-ME routes
+        if (ME_AIRPORTS[dest]) continue; // skip intra-ME
         const w = (typeof DEST_TRAFFIC !== 'undefined' && DEST_TRAFFIC[dest]) || 15;
+        totalWeight += w;
+        destWeights.push({ iata: dest, weight: w });
+      }
+      if (totalWeight === 0) continue;
+
+      const hubCapacity = meHub.dailyFlights * 0.7;
+      for (const dw of destWeights) {
+        const share = dw.weight / totalWeight;
+        const cancelled = Math.round(hubCapacity * share * hubStatus.cancelRate);
+        if (cancelled < 1) continue;
+        const stranded = Math.round(cancelled * (meHub.avgPax || 180));
         if (!raw[hub]) raw[hub] = {};
-        if (!raw[hub][dest]) { raw[hub][dest] = { weight: 0, airlines: new Set() }; }
-        raw[hub][dest].weight += w;
-        raw[hub][dest].airlines.add(airline.name);
-        hubTotalWeight[hub] = (hubTotalWeight[hub] || 0) + w;
+        if (!raw[hub][dw.iata]) raw[hub][dw.iata] = { cancelled: 0, stranded: 0, airlines: new Set() };
+        raw[hub][dw.iata].cancelled += cancelled;
+        raw[hub][dw.iata].stranded  += stranded;
+        raw[hub][dw.iata].airlines.add(airline.name);
       }
     }
   }
 
   _meOutbound = {};
   for (const hub of Object.keys(raw)) {
-    const totalCancelled = meActual[hub]?.cancelled || 0;
-    const totalW = hubTotalWeight[hub] || 1;
-    const avgPax = ME_AIRPORTS[hub]?.avgPax || meActual[hub]?.avgPax || 180;
-
     _meOutbound[hub] = Object.entries(raw[hub])
-      .map(([destIata, d]) => {
-        const share = d.weight / totalW;
-        const cancelled = Math.max(1, Math.round(totalCancelled * share));
-        return {
-          iata: destIata,
-          cancelled,
-          stranded: Math.round(cancelled * avgPax),
-          airlines: Array.from(d.airlines),
-        };
-      })
-      .filter(d => d.cancelled >= 1)
+      .map(([destIata, d]) => ({
+        iata: destIata,
+        cancelled: d.cancelled,
+        stranded:  d.stranded,
+        airlines:  Array.from(d.airlines),
+      }))
       .sort((a, b) => b.cancelled - a.cancelled);
   }
   console.log(`[MEOutbound] Built index for ${Object.keys(_meOutbound).length} ME airports`);
@@ -1644,7 +1650,7 @@ function buildDualPopup(iata) {
   var homeLabel = isMEAirport ? ('Trying to Fly In to ' + city) : ('Trying to Get Home to ' + city);
   var homeMode  = isMEAirport ? 'flyin' : 'home';
   
-  return '<div style="width:100%;font-family:Inter,sans-serif" id="gpop-' + uid + '">' +
+  return '<div style="min-width:250px;max-width:300px;font-family:Inter,sans-serif" id="gpop-' + uid + '">' +
     '<div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:.1rem">' + city + ' (' + iata + ')</div>' +
     '<div style="font-size:.68rem;color:#fff;margin-bottom:.5rem">' + country + '</div>' +
     
