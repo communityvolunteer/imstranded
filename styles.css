@@ -802,7 +802,7 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 }
 .fp-section-head:hover{background:rgba(255,255,255,.04);}
 .fp-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-.fp-chevron{margin-left:auto;transition:transform .2s;color:rgba(255,255,255,.3);}
+.fp-chevron{margin-left:auto;transition:transform .2s;color:#fff;width:20px !important;height:20px !important;}
 .fp-section-head:has(+ .fp-section-body.open) .fp-chevron{transform:rotate(180deg);}
 .fp-section-body{display:none;padding:0 1.1rem .85rem;}
 .fp-section-body.open{display:block;}
