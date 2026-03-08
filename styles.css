@@ -947,7 +947,7 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
     padding:1rem 1rem calc(1.5rem + env(safe-area-inset-bottom));
     box-sizing:border-box;
   }
-  .lang-grid{grid-template-columns:1fr 1fr 1fr;max-height:40vh;}
+  .lang-grid{grid-template-columns:1fr 1fr;max-height:45vh;}
 }
 
 /* Restyle Google Translate widget to dark */
