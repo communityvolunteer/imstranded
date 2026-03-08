@@ -460,7 +460,7 @@ function buildMEOutboundIndex() {
 // ============================================================
 // MAP STATE
 // ============================================================
-const SC = {danger:'#a855f7',warn:'#a855f7',safe:'#a855f7'};
+const SC = {danger:accentHex(),warn:accentHex(),safe:accentHex()};
 const _mk = {country:[],routes:[],worldwide:[],help:[]};
 let _helpCluster = null;
 let _mHelpCluster = null;
@@ -578,7 +578,7 @@ function getFilterState() {
 
   const destCountry = val('fp-filter-dest-country') || val('mfp-filter-dest-country') || '';
   const destAirport = val('fp-filter-dest-airport') || val('mfp-filter-dest-airport') || '';
-  const showArcs = val('fp-worldwide-arcs') ?? val('mfp-worldwide-arcs') ?? false;
+  const showArcs = val('fp-worldwide-arcs') ?? val('mfp-worldwide-arcs') ?? true;
   const atIata = _filterAtIata || val('fp-at-iata') || val('mfp-at-iata') || '';
   const toIata = _filterToIata || val('fp-to-iata') || val('mfp-to-iata') || '';
   const showSuccess = val('fp-show-success') ?? val('mfp-show-success') ?? true;
@@ -703,18 +703,18 @@ function applyFilters() {
           let rdot;
           if (rc >= 5000) rdot = 18; else if (rc >= 1000) rdot = 14; else if (rc >= 500) rdot = 11; else if (rc >= 200) rdot = 8; else rdot = 5;
           const circle = L.circleMarker([r.lat, r.lng], {
-            radius: rdot, fillColor: '#a855f7', color: 'rgba(168,85,247,.4)', weight: 1.5, fillOpacity: 0.45,
+            radius: rdot, fillColor: accentHex(), color: ''+accentRgba(.4)+'', weight: 1.5, fillOpacity: 0.45,
           }).addTo(map);
-          circle.bindPopup('<div style="min-width:200px;font-family:Inter,sans-serif"><div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:#a855f7;margin-bottom:.3rem">TRYING TO REACH '+destCity.toUpperCase()+'</div><div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:.15rem">'+r.city+' ('+r.iata+')</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem;margin-bottom:.4rem;margin-top:.4rem"><div><div style="font-size:1.1rem;font-weight:800;color:#a855f7">'+r.cancelled.toLocaleString()+'</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase">Flights Cancelled</div></div><div><div style="font-size:1.1rem;font-weight:800;color:#a855f7">'+r.stranded.toLocaleString()+'</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase">Pax Stranded</div></div></div><div style="display:flex;flex-wrap:wrap;gap:3px">'+r.airlines.map(a => '<span style="padding:.15rem .4rem;background:rgba(168,85,247,.12);border-radius:4px;font-size:.6rem;color:#a855f7;font-weight:600">'+a+'</span>').join('')+'</div>'+(typeof buildEmbassyButton==='function'?buildEmbassyButton(r.iata):'')+'</div>', { className: 'dark-popup', maxWidth: 300 });
+          circle.bindPopup('<div style="min-width:200px;font-family:Inter,sans-serif"><div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:'+accentHex()+';margin-bottom:.3rem">TRYING TO REACH '+destCity.toUpperCase()+'</div><div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:.15rem">'+r.city+' ('+r.iata+')</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem;margin-bottom:.4rem;margin-top:.4rem"><div><div style="font-size:1.1rem;font-weight:800;color:'+accentHex()+'">'+r.cancelled.toLocaleString()+'</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase">Flights Cancelled</div></div><div><div style="font-size:1.1rem;font-weight:800;color:'+accentHex()+'">'+r.stranded.toLocaleString()+'</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase">Pax Stranded</div></div></div><div style="display:flex;flex-wrap:wrap;gap:3px">'+r.airlines.map(a => '<span style="padding:.15rem .4rem;background:'+accentRgba(.12)+';border-radius:4px;font-size:.6rem;color:'+accentHex()+';font-weight:600">'+a+'</span>').join('')+'</div>'+(typeof buildEmbassyButton==='function'?buildEmbassyButton(r.iata):'')+'</div>', { className: 'dark-popup', maxWidth: 300 });
           _globalPins.push(circle);
         }
 
         // Destination dot with popup
         if (destAp) {
           const destDot = L.circleMarker([destAp.lat, destAp.lng], {
-            radius: 8, fillColor: '#a855f7', color: '#fff', weight: 2.5, fillOpacity: 0.9,
+            radius: 8, fillColor: accentHex(), color: '#fff', weight: 2.5, fillOpacity: 0.9,
           }).addTo(map);
-          destDot.bindPopup('<div style="min-width:240px;font-family:Inter,sans-serif"><div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:#a855f7;margin-bottom:.3rem">DESTINATION</div><div style="font-size:.95rem;font-weight:800;color:#fff;margin-bottom:.25rem">'+destCity+' ('+f.toIata+')</div><div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.6rem">'+(destAp.countryName||destAp.country||'')+'</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem;margin-bottom:.6rem"><div><div style="font-size:1.3rem;font-weight:800;color:#a855f7;line-height:1">'+totalRevStranded.toLocaleString()+'</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:.15rem">People Trying to Reach Here</div></div><div><div style="font-size:1.3rem;font-weight:800;color:#a855f7;line-height:1">'+totalRevCancelled.toLocaleString()+'</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:.15rem">Inbound Flights Cancelled</div></div></div><div style="font-size:.72rem;color:rgba(255,255,255,.55);line-height:1.5;margin-bottom:.5rem">'+totalRevStranded.toLocaleString()+' passengers across '+reverseData.length+' Middle East airports are stranded and unable to fly home to '+destCity+'.</div><div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:.3rem">Affected Airlines</div><div style="display:flex;flex-wrap:wrap;gap:3px">'+allAirlines.map(a => '<span style="padding:.15rem .4rem;background:rgba(168,85,247,.12);border-radius:4px;font-size:.6rem;color:#a855f7;font-weight:600">'+a+'</span>').join('')+'</div><div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.25);margin-top:.5rem;margin-bottom:.3rem">They\u2019re stuck at</div>'+reverseData.slice(0,6).map(r => '<div style="display:flex;justify-content:space-between;padding:.2rem 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.68rem"><span style="color:rgba(255,255,255,.6)">'+r.city+' ('+r.iata+')</span><span style="color:#a855f7;font-weight:700">'+r.stranded.toLocaleString()+'</span></div>').join('')+'</div>'+(typeof buildGlobalEmergencyButton==='function'?buildGlobalEmergencyButton():'')+'</div>', { className: 'dark-popup', maxWidth: 320 });
+          destDot.bindPopup('<div style="min-width:240px;font-family:Inter,sans-serif"><div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:'+accentHex()+';margin-bottom:.3rem">DESTINATION</div><div style="font-size:.95rem;font-weight:800;color:#fff;margin-bottom:.25rem">'+destCity+' ('+f.toIata+')</div><div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.6rem">'+(destAp.countryName||destAp.country||'')+'</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem;margin-bottom:.6rem"><div><div style="font-size:1.3rem;font-weight:800;color:'+accentHex()+';line-height:1">'+totalRevStranded.toLocaleString()+'</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:.15rem">People Trying to Reach Here</div></div><div><div style="font-size:1.3rem;font-weight:800;color:'+accentHex()+';line-height:1">'+totalRevCancelled.toLocaleString()+'</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:.15rem">Inbound Flights Cancelled</div></div></div><div style="font-size:.72rem;color:rgba(255,255,255,.55);line-height:1.5;margin-bottom:.5rem">'+totalRevStranded.toLocaleString()+' passengers across '+reverseData.length+' Middle East airports are stranded and unable to fly home to '+destCity+'.</div><div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:.3rem">Affected Airlines</div><div style="display:flex;flex-wrap:wrap;gap:3px">'+allAirlines.map(a => '<span style="padding:.15rem .4rem;background:'+accentRgba(.12)+';border-radius:4px;font-size:.6rem;color:'+accentHex()+';font-weight:600">'+a+'</span>').join('')+'</div><div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.25);margin-top:.5rem;margin-bottom:.3rem">They\u2019re stuck at</div>'+reverseData.slice(0,6).map(r => '<div style="display:flex;justify-content:space-between;padding:.2rem 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.68rem"><span style="color:rgba(255,255,255,.6)">'+r.city+' ('+r.iata+')</span><span style="color:'+accentHex()+';font-weight:700">'+r.stranded.toLocaleString()+'</span></div>').join('')+'</div>'+(typeof buildGlobalEmergencyButton==='function'?buildGlobalEmergencyButton():'')+'</div>', { className: 'dark-popup', maxWidth: 320 });
           _globalPins.push(destDot);
         }
       });
@@ -729,7 +729,7 @@ function applyFilters() {
             const arc = generateArc([r.lat, r.lng], [destAp.lat, destAp.lng], 30);
             [window._crisisMap, window._mobileMap].forEach(map => {
               if (!map) return;
-              const line = L.polyline(arc, { color: `rgba(168,85,247,${op})`, weight: wt, interactive: false }).addTo(map);
+              const line = L.polyline(arc, { color: accentRgba(op), weight: wt, interactive: false }).addTo(map);
               _globalArcLines.push(line);
             });
           }
@@ -853,11 +853,16 @@ function syncFilterPanels() {
 
 function toggleArcsFromStat() {
   showView('map');
-  var pcArc = document.getElementById('fp-worldwide-arcs');
-  var mArc = document.getElementById('mfp-worldwide-arcs');
-  var newState = pcArc ? !pcArc.checked : true;
+  // Toggle the entire DISRUPTED GLOBALLY set — dots + arcs together
+  const pcWW  = document.getElementById('fp-show-worldwide');
+  const mWW   = document.getElementById('mfp-show-worldwide');
+  const pcArc = document.getElementById('fp-worldwide-arcs');
+  const mArc  = document.getElementById('mfp-worldwide-arcs');
+  const newState = pcWW ? !pcWW.checked : true;
+  if (pcWW)  pcWW.checked  = newState;
+  if (mWW)   mWW.checked   = newState;
   if (pcArc) pcArc.checked = newState;
-  if (mArc) mArc.checked = newState;
+  if (mArc)  mArc.checked  = newState;
   applyFilters();
 }
 
@@ -866,7 +871,8 @@ function clearAllFilters() {
   clearGlobalFilter();
   document.querySelectorAll('.fp-chip input').forEach(cb => cb.checked = false);
   document.querySelectorAll('[id$="-show-offers"],[id$="-show-stranded"],[id$="-show-worldwide"]').forEach(cb => cb.checked = true);
-  document.querySelectorAll('[id$="-offers-verified"],[id$="-stranded-verified"],[id$="-worldwide-arcs"]').forEach(cb => cb.checked = false);
+  document.querySelectorAll('[id$="-offers-verified"],[id$="-stranded-verified"]').forEach(cb => cb.checked = false);
+  document.querySelectorAll('[id$="-worldwide-arcs"]').forEach(cb => cb.checked = true);
   document.querySelectorAll('.fp-select').forEach(s => { if (s.tagName === 'SELECT') s.value = ''; else if (s.type === 'text') s.value = ''; });
   document.querySelectorAll('[id$="filter-dest-country"],[id$="filter-dest-airport"]').forEach(h => h.value = '');
   document.querySelectorAll('.sitrep-stat,.m-stat').forEach(s => s.classList.remove('active-filter'));
@@ -934,8 +940,8 @@ function updateStrandedLabel(atIata, toIata, filteredGlobal, reverseData) {
       const todayEl = document.getElementById('stat-stranded-today');
       const todayVal = todayEl ? todayEl.textContent : '';
       pcSub.innerHTML = todayVal
-        ? `<span id="stat-stranded-today" style="color:#a855f7;font-weight:700">${todayVal}</span><span id="stat-stranded-today-label">\u00a0today</span>`
-        : `<span id="stat-stranded-today" style="color:#a855f7;font-weight:700"></span><span id="stat-stranded-today-label">tap \u00b7 see how</span>`;
+        ? `<span id="stat-stranded-today" style="color:'+accentHex()+';font-weight:700">${todayVal}</span><span id="stat-stranded-today-label">\u00a0today</span>`
+        : `<span id="stat-stranded-today" style="color:'+accentHex()+';font-weight:700"></span><span id="stat-stranded-today-label">tap \u00b7 see how</span>`;
     }
     if (mLabel) mLabel.innerHTML = 'PEOPLE IMPACTED <span style="font-size:.52rem;color:rgba(255,255,255,.3);font-weight:400;letter-spacing:.01em">· since Mar 1</span>';
     refreshStrandedCount();
@@ -1015,7 +1021,7 @@ function drawGlobalRouteArcs(map, disruptions) {
       
       const arc = generateArc([ap.lat, ap.lng], hubCoords, 30);
       const line = L.polyline(arc, {
-        color: `rgba(168,85,247,${opacity})`,
+        color: accentRgba(opacity),
         weight,
         interactive: false,
       }).addTo(map);
@@ -1336,6 +1342,79 @@ function toggleMapTheme() {
   document.querySelector('.leaflet-control-zoom')?.classList.toggle('theme-light', !_mapDark);
 }
 
+// ── Accent color picker ──────────────────────────────────────
+const ACCENT_THEMES = {
+  purple: { hex: accentHex(), r: 168, g: 85,  b: 247 },
+  cyan:   { hex: '#00daff', r: 0,   g: 218, b: 255 },
+  orange: { hex: '#ff5600', r: 255, g: 86,  b: 0   },
+  yellow: { hex: '#f5c400', r: 245, g: 196, b: 0   },
+};
+let _currentAccent = 'purple';
+// Live accent helpers — always read current theme
+function accentHex() { return ACCENT_THEMES[_currentAccent]?.hex || accentHex(); }
+function accentRgba(a) { const t = ACCENT_THEMES[_currentAccent] || ACCENT_THEMES.purple; return `rgba(${t.r},${t.g},${t.b},${a})`; }
+
+function setAccent(name) {
+  const t = ACCENT_THEMES[name]; if (!t) return;
+  _currentAccent = name;
+  const root = document.documentElement;
+  root.style.setProperty('--accent', t.hex);
+  root.style.setProperty('--accent-r', t.r);
+  root.style.setProperty('--accent-g', t.g);
+  root.style.setProperty('--accent-b', t.b);
+
+  // Update swatch dots
+  document.querySelectorAll('.accent-swatch-dot').forEach(d => d.style.background = t.hex);
+  document.querySelectorAll('.accent-opt').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset?.accent === name || btn.querySelector('.accent-opt-dot')?.style.background === t.hex);
+  });
+
+  // Persist
+  try { localStorage.setItem('imstranded_accent', name); } catch(e) {}
+
+  // Close dropdowns
+  document.querySelectorAll('.accent-dropdown').forEach(d => d.classList.remove('open'));
+
+  // Re-render map layers that use hardcoded '+accentRgba(...)+' in JS
+  // These live in renderGlobalDisruptions — trigger a repaint if map is ready
+  if (window._crisisMap || window._mobileMap) {
+    clearGlobalArcs();
+    _globalPins.forEach(m => {
+      [window._crisisMap, window._mobileMap].forEach(map => { if (map) try { map.removeLayer(m); } catch(e){} });
+    });
+    _globalPins = [];
+    renderGlobalDisruptions(window._crisisMap, _globalDisruptions);
+    renderGlobalDisruptions(window._mobileMap, _globalDisruptions);
+    drawSuccessArcs(window._crisisMap);
+    drawSuccessArcs(window._mobileMap);
+  }
+}
+
+function toggleAccentPicker(e) {
+  e.stopPropagation();
+  // Close any other open dropdowns first
+  document.querySelectorAll('.accent-dropdown').forEach(d => {
+    if (!d.parentElement.contains(e.currentTarget)) d.classList.remove('open');
+  });
+  // Toggle the nearest dropdown
+  const wrap = e.currentTarget.closest('.accent-picker-wrap');
+  const dd = wrap?.querySelector('.accent-dropdown');
+  if (dd) dd.classList.toggle('open');
+}
+
+// Close picker when clicking outside
+document.addEventListener('click', e => {
+  if (!e.target.closest('.accent-picker-wrap')) {
+    document.querySelectorAll('.accent-dropdown').forEach(d => d.classList.remove('open'));
+  }
+});
+
+function initAccent() {
+  let saved = 'purple';
+  try { saved = localStorage.getItem('imstranded_accent') || 'purple'; } catch(e) {}
+  setAccent(saved);
+}
+
 // ============================================================
 // INIT MAP
 // ============================================================
@@ -1373,7 +1452,7 @@ function initMap() {
   });
 
   WORLDWIDE.forEach(r => {
-    const m = L.circleMarker(r.coords,{pane:'worldwidePane',interactive:true,radius:7,fillColor:'#a855f7',color:'#fff',weight:2,opacity:.9,fillOpacity:.55}).addTo(map)
+    const m = L.circleMarker(r.coords,{pane:'worldwidePane',interactive:true,radius:7,fillColor:accentHex(),color:'#fff',weight:2,opacity:.9,fillOpacity:.55}).addTo(map)
       .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:200px">
         <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#d8b4fe;margin-bottom:.3rem">Worldwide: ${r.name}</div>
         <div style="font-size:.78rem;color:rgba(255,255,255,.8);line-height:1.5;margin-bottom:.4rem">${r.note}</div>
@@ -1413,7 +1492,7 @@ function buildDualPopup(iata) {
   // Toggle styles
   const tWrap = 'display:flex;background:rgba(255,255,255,.06);border-radius:8px;padding:2px;margin-bottom:.6rem;border:1px solid rgba(255,255,255,.08)';
   const tBase = 'flex:1;padding:.35rem .4rem;border:none;border-radius:6px;font-family:Inter,sans-serif;font-size:.58rem;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.02em;text-align:center;';
-  const tOn = 'background:rgba(168,85,247,.15);color:#a855f7;border:1px solid rgba(168,85,247,.2);';
+  const tOn = 'background:'+accentRgba(.15)+';color:'+accentHex()+';border:1px solid '+accentRgba(.2)+';';
   const tOff = 'background:transparent;color:rgba(255,255,255,.3);border:1px solid transparent;';
   
   // Determine whether this is a ME hub or a global destination airport
@@ -1490,13 +1569,13 @@ function buildDualPopup(iata) {
     return routes.map(function(r) {
       var hubAp = typeof findAirport === 'function' ? findAirport(r.hub) : null;
       var hubName = r.city || (hubAp ? hubAp.city : r.hub);
-      return '<div style="display:flex;justify-content:space-between;padding:.2rem 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.68rem"><span style="color:rgba(255,255,255,.6)">' + hubName + ' (' + r.hub + ')</span><span style="color:#a855f7;font-weight:700">' + (r.cancelled || 0).toLocaleString() + '</span></div>';
+      return '<div style="display:flex;justify-content:space-between;padding:.2rem 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.68rem"><span style="color:rgba(255,255,255,.6)">' + hubName + ' (' + r.hub + ')</span><span style="color:'+accentHex()+';font-weight:700">' + (r.cancelled || 0).toLocaleString() + '</span></div>';
     }).join('');
   }
   
   function buildPills(airlines) {
     return airlines.map(function(a) {
-      return '<span style="padding:.15rem .4rem;background:rgba(168,85,247,.12);border-radius:4px;font-size:.6rem;color:#a855f7;font-weight:600">' + a + '</span>';
+      return '<span style="padding:.15rem .4rem;background:'+accentRgba(.12)+';border-radius:4px;font-size:.6rem;color:'+accentHex()+';font-weight:600">' + a + '</span>';
     }).join('');
   }
   
@@ -1519,7 +1598,7 @@ function buildDualPopup(iata) {
     }
     
     return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem;margin-bottom:.4rem">' +
-      '<div><div style="font-size:1.1rem;font-weight:800;color:#a855f7;line-height:1">' + cancelled.toLocaleString() + '</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:.1rem">Flights Cancelled</div></div>' +
+      '<div><div style="font-size:1.1rem;font-weight:800;color:'+accentHex()+';line-height:1">' + cancelled.toLocaleString() + '</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:.1rem">Flights Cancelled</div></div>' +
       '<div><div style="font-size:1.1rem;font-weight:800;color:#ec3452;line-height:1">' + stranded.toLocaleString() + '</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:.1rem">People Affected</div></div>' +
     '</div>' +
     '<div style="font-size:.68rem;color:rgba(255,255,255,.45);margin-bottom:.5rem;line-height:1.4">' + desc + '</div>' +
@@ -1569,7 +1648,7 @@ function switchPopupMode(iata, mode) {
     const leaveBtn   = document.getElementById('gtl-' + uid);
     const homeBtn    = document.getElementById('gth-' + uid);
     const isLeave    = (mode === 'leave');
-    const tOn  = 'background:rgba(168,85,247,.15);color:#a855f7;border:1px solid rgba(168,85,247,.2);';
+    const tOn  = 'background:'+accentRgba(.15)+';color:'+accentHex()+';border:1px solid '+accentRgba(.2)+';';
     const tOff = 'background:transparent;color:rgba(255,255,255,.3);border:1px solid transparent;';
     if (leavePanel && homePanel) {
       leavePanel.style.display = isLeave ? 'block' : 'none';
@@ -1586,7 +1665,7 @@ function switchPopupMode(iata, mode) {
     const leaveBtn   = document.getElementById('gtl-' + uid);
     const homeBtn    = document.getElementById('gth-' + uid);
     const isLeave    = (mode === 'leave');
-    const tOn  = 'background:rgba(168,85,247,.15);color:#a855f7;border:1px solid rgba(168,85,247,.2);';
+    const tOn  = 'background:'+accentRgba(.15)+';color:'+accentHex()+';border:1px solid '+accentRgba(.2)+';';
     const tOff = 'background:transparent;color:rgba(255,255,255,.3);border:1px solid transparent;';
     if (leavePanel && homePanel) {
       leavePanel.style.display = isLeave ? 'block' : 'none';
@@ -1622,7 +1701,7 @@ function drawPopupArcs(iata, mode) {
           const weight = 1 + ((d.cancelled || 1) / maxC) * 4;
           const opacity = 0.2 + ((d.cancelled || 1) / maxC) * 0.35;
           const arc = generateArc([ap.lat, ap.lng], [destAp.lat, destAp.lng], 30);
-          const line = L.polyline(arc, { color: `rgba(168,85,247,${opacity})`, weight, interactive: false }).addTo(map);
+          const line = L.polyline(arc, { color: accentRgba(opacity), weight, interactive: false }).addTo(map);
           _globalArcLines.push(line);
         }
       }
@@ -1650,7 +1729,7 @@ function drawPopupArcs(iata, mode) {
           const weight = 1 + (routeC / maxC) * 4;
           const opacity = 0.2 + (routeC / maxC) * 0.35;
           const arc = generateArc([ap.lat, ap.lng], hubCoords, 30);
-          const line = L.polyline(arc, { color: `rgba(168,85,247,${opacity})`, weight, interactive: false }).addTo(map);
+          const line = L.polyline(arc, { color: accentRgba(opacity), weight, interactive: false }).addTo(map);
           _globalArcLines.push(line);
         }
       }
@@ -1674,7 +1753,7 @@ function drawPopupArcs(iata, mode) {
           const weight = 1 + ((g.cancelled || 1) / maxC) * 4;
           const opacity = 0.2 + ((g.cancelled || 1) / maxC) * 0.35;
           const arc = generateArc([origAp.lat, origAp.lng], [ap.lat, ap.lng], 30);
-          const line = L.polyline(arc, { color: `rgba(168,85,247,${opacity})`, weight, interactive: false }).addTo(map);
+          const line = L.polyline(arc, { color: accentRgba(opacity), weight, interactive: false }).addTo(map);
           _globalArcLines.push(line);
         }
       }
@@ -1690,7 +1769,7 @@ function drawPopupArcs(iata, mode) {
           const weight = 1 + ((r.cancelled || 1) / maxC) * 4;
           const opacity = 0.2 + ((r.cancelled || 1) / maxC) * 0.35;
           const arc = generateArc([r.lat, r.lng], [ap.lat, ap.lng], 30);
-          const line = L.polyline(arc, { color: `rgba(168,85,247,${opacity})`, weight, interactive: false }).addTo(map);
+          const line = L.polyline(arc, { color: accentRgba(opacity), weight, interactive: false }).addTo(map);
           _globalArcLines.push(line);
         }
       }
@@ -1720,8 +1799,8 @@ function renderGlobalDisruptions(map, data) {
     const circle = L.circleMarker([ap.lat, ap.lng], {
       radius,
       pane: 'airportPane',
-      fillColor: '#a855f7',
-      color: 'rgba(168,85,247,.5)',
+      fillColor: accentHex(),
+      color: ''+accentRgba(.5)+'',
       weight: borderW,
       fillOpacity: opacity,
       className: 'global-disruption-dot',
@@ -1921,7 +2000,7 @@ function renderResources() {
       const embCount = hasFullDir ? Object.keys(EMBASSIES_BY_HOST[embCC].embassies).length : 0;
       // Show a link to full directory instead of sparse embassy rows
       const embSection = hasFullDir
-        ? `<div class="embassy-section"><a href="javascript:void(0)" onclick="document.getElementById('emb-${embCC}')?.scrollIntoView({behavior:'smooth',block:'start'})" style="display:block;text-align:center;padding:.45rem;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.18);border-radius:8px;color:#a855f7;font-size:.72rem;font-weight:700;text-decoration:none;text-transform:uppercase;letter-spacing:.03em">\ud83c\udfdb\ufe0f ${embCount} Embassy contacts below \u2193</a></div>`
+        ? `<div class="embassy-section"><a href="javascript:void(0)" onclick="document.getElementById('emb-${embCC}')?.scrollIntoView({behavior:'smooth',block:'start'})" style="display:block;text-align:center;padding:.45rem;background:'+accentRgba(.1)+';border:1px solid '+accentRgba(.18)+';border-radius:8px;color:'+accentHex()+';font-size:.72rem;font-weight:700;text-decoration:none;text-transform:uppercase;letter-spacing:.03em">\ud83c\udfdb\ufe0f ${embCount} Embassy contacts below \u2193</a></div>`
         : `<div class="embassy-section"><div class="embassy-title">Emergency Contacts</div>${Object.entries(c.embassy).map(([key,info]) => {
             const M = EMBASSY_META[key]||{flag:'',role:key.toUpperCase()};
             const phone = info.phone||info.alt||null;
@@ -1940,11 +2019,11 @@ function renderResources() {
     
     // Full embassy directory (single source of truth)
     if (typeof EMBASSIES_BY_HOST !== 'undefined') {
-      html += '<div style="grid-column:1/-1;margin:1.5rem 0 .5rem"><div style="font-size:1.1rem;font-weight:800;color:#a855f7;margin-bottom:.25rem">Full Embassy Directory</div><div style="font-size:.8rem;color:rgba(255,255,255,.4)">Contacts for 25+ nationalities in each Middle East country</div></div>';
+      html += '<div style="grid-column:1/-1;margin:1.5rem 0 .5rem"><div style="font-size:1.1rem;font-weight:800;color:'+accentHex()+';margin-bottom:.25rem">Full Embassy Directory</div><div style="font-size:.8rem;color:rgba(255,255,255,.4)">Contacts for 25+ nationalities in each Middle East country</div></div>';
       for (const [cc, host] of Object.entries(EMBASSIES_BY_HOST)) {
         const entries = Object.entries(host.embassies);
-        html += `<div class="country-card warn" id="emb-${cc}" style="border-color:rgba(168,85,247,.2)">
-          <div class="card-header"><div class="card-name">${host.name}</div><span class="status-badge" style="background:rgba(168,85,247,.15);color:#a855f7">${entries.length} EMBASSIES</span></div>
+        html += `<div class="country-card warn" id="emb-${cc}" style="border-color:'+accentRgba(.2)+'">
+          <div class="card-header"><div class="card-name">${host.name}</div><span class="status-badge" style="background:'+accentRgba(.15)+';color:'+accentHex()+'">${entries.length} EMBASSIES</span></div>
           ${host.emergency ? '<div style="font-size:.78rem;color:rgba(255,255,255,.5);margin:.3rem 0">Emergency: <strong style="color:#ec3452">'+host.emergency+'</strong></div>' : ''}
           ${host.crisis_note ? '<div style="font-size:.72rem;color:rgba(255,255,255,.35);font-style:italic;margin-bottom:.4rem">'+host.crisis_note+'</div>' : ''}
           <div class="embassy-section">`;
@@ -1958,7 +2037,7 @@ function renderResources() {
             </div>
             <div style="display:flex;gap:.3rem;align-items:center">
               ${phone ? '<a class="call-btn" href="tel:'+phone.replace(/[\s\-()]/g,'')+'">'+phone+'</a>' : ''}
-              ${info.web ? '<a href="'+info.web+'" target="_blank" style="font-size:.65rem;color:#a855f7;text-decoration:none;white-space:nowrap">[web]</a>' : ''}
+              ${info.web ? '<a href="'+info.web+'" target="_blank" style="font-size:.65rem;color:'+accentHex()+';text-decoration:none;white-space:nowrap">[web]</a>' : ''}
             </div>
           </div>`;
         }
@@ -1978,7 +2057,7 @@ function renderResources() {
           <div style="flex:1"><span class="embassy-name">${nat.flag} ${nat.name}</span>${info.note ? '<div class="embassy-note">'+info.note+'</div>' : ''}</div>
           <div style="display:flex;gap:.3rem;align-items:center">
             <a class="call-btn" href="tel:${info.phone.replace(/[\s\-()]/g,'')}">${info.phone}</a>
-            ${info.web ? '<a href="'+info.web+'" target="_blank" style="font-size:.65rem;color:#a855f7;text-decoration:none">[web]</a>' : ''}
+            ${info.web ? '<a href="'+info.web+'" target="_blank" style="font-size:.65rem;color:'+accentHex()+';text-decoration:none">[web]</a>' : ''}
           </div>
         </div>`;
       }
@@ -2200,7 +2279,7 @@ function initMobile(){
       .on('click', () => openMCountryPopup(c.id));
   });
   WORLDWIDE.forEach(r=>{
-    L.circleMarker(r.coords,{pane:'worldwidePane',interactive:true,radius:7,fillColor:'#a855f7',color:'#fff',weight:1.5,opacity:.9,fillOpacity:.5}).addTo(mmap)
+    L.circleMarker(r.coords,{pane:'worldwidePane',interactive:true,radius:7,fillColor:accentHex(),color:'#fff',weight:1.5,opacity:.9,fillOpacity:.5}).addTo(mmap)
       .on('click',()=>openMWorldwidePopup(r.id));
   });
   window._mobileMap=mmap;
@@ -4128,6 +4207,7 @@ async function downloadPoolCSV() {
 window.downloadPoolCSV = downloadPoolCSV;
 
 window.addEventListener('DOMContentLoaded',()=>{
+  initAccent();
   if(isMob()){ initMobile(); }
   else {
     showView('map');

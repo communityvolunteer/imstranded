@@ -91,6 +91,29 @@ function googleTranslateInit() {
       <svg id="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       <svg id="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </button>
+    <!-- Accent color picker -->
+    <div class="accent-picker-wrap" id="accent-picker-wrap">
+      <button class="accent-swatch-btn" id="accent-swatch-btn" onclick="toggleAccentPicker(event)" title="Change accent color">
+        <span class="accent-swatch-dot" id="accent-swatch-dot"></span>
+      </button>
+      <div class="accent-dropdown" id="accent-dropdown">
+        <div class="accent-dropdown-label">Accent Color</div>
+        <div class="accent-swatches">
+          <button class="accent-opt" data-accent="purple" onclick="setAccent('purple')" title="Purple">
+            <span class="accent-opt-dot" style="background:#a855f7"></span>
+          </button>
+          <button class="accent-opt" data-accent="cyan" onclick="setAccent('cyan')" title="Cyan">
+            <span class="accent-opt-dot" style="background:#00daff"></span>
+          </button>
+          <button class="accent-opt" data-accent="orange" onclick="setAccent('orange')" title="Orange">
+            <span class="accent-opt-dot" style="background:#ff5600"></span>
+          </button>
+          <button class="accent-opt" data-accent="yellow" onclick="setAccent('yellow')" title="Yellow">
+            <span class="accent-opt-dot" style="background:#f5c400"></span>
+          </button>
+        </div>
+      </div>
+    </div>
     <button class="profile-btn" id="profile-avatar-btn" onclick="showView('profile')" title="My Profile">
       <svg id="profile-avatar-default" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <img id="profile-avatar-img" style="display:none;width:28px;height:28px;border-radius:50%;object-fit:cover" alt="">
@@ -107,7 +130,7 @@ function googleTranslateInit() {
   <div class="sitrep-stat" id="ss-stranded" onclick="toggleArcsFromStat()">
     <span class="sitrep-num" id="stat-stranded">7,902,460</span>
     <div class="sitrep-label" id="stranded-label">People Impacted <span style="font-size:.55rem;color:rgba(255,255,255,.3);font-weight:500;letter-spacing:.01em">since Mar 1</span></div>
-    <div class="sitrep-sub" id="stranded-sub"><span id="stat-stranded-today" style="color:#a855f7;font-weight:700"></span><span id="stat-stranded-today-label"></span></div>
+    <div class="sitrep-sub" id="stranded-sub"><span id="stat-stranded-today" style="color:var(--accent);font-weight:700"></span><span id="stat-stranded-today-label"></span></div>
   </div>
   <div class="sitrep-stat sitrep-stat--offer-room" id="ss-offer-room" onclick="showView('help');switchHelpTab('offer')">
     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -120,7 +143,7 @@ function googleTranslateInit() {
     <div class="sitrep-sub">tap · register</div>
   </div>
   <div class="sitrep-stat sitrep-stat--help-money" id="ss-help-money" onclick="toggleHelpPanel()">
-    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
     <div class="sitrep-label">$HELP</div>
     <div class="sitrep-sub">tap · donate</div>
   </div>
@@ -153,7 +176,7 @@ function googleTranslateInit() {
     <!-- Section 1: DISRUPTED GLOBALLY -->
     <div class="fp-section">
       <div class="fp-section-head" onclick="toggleFpSection(this)">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
         <span style="font-size:1rem">DISRUPTED GLOBALLY</span>
         <svg class="fp-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
@@ -518,7 +541,7 @@ function googleTranslateInit() {
     <div class="m-stat" id="mss-stranded" onclick="toggleArcsFromStat()">
       <span class="m-stat-num" id="m-stat-stranded">7,902,460</span>
       <span class="m-stat-label" id="m-stranded-label">PEOPLE IMPACTED <span style="font-size:.52rem;color:rgba(255,255,255,.3);font-weight:400;letter-spacing:.01em">· since Mar 1</span></span>
-      <span class="m-stat-sub" id="m-stranded-sub" style="color:#a855f7;font-size:.6rem;font-weight:700"></span>
+      <span class="m-stat-sub" id="m-stranded-sub" style="color:var(--accent);font-size:.6rem;font-weight:700"></span>
     </div>
     <div class="m-stat m-stat--offer" id="mss-offer" onclick="mTab('stranded',this)" style="background:rgba(236,52,82,.15);border-color:rgba(236,52,82,.2)">
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -550,6 +573,21 @@ function googleTranslateInit() {
           <svg id="m-theme-icon-sun" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
           <svg id="m-theme-icon-moon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         </button>
+        <!-- Mobile accent picker -->
+        <div class="accent-picker-wrap" style="position:static">
+          <button class="m-map-pill accent-swatch-btn" style="position:static;padding:.4rem .65rem" onclick="toggleAccentPicker(event)" title="Accent color">
+            <span class="accent-swatch-dot" id="m-accent-swatch-dot"></span>
+          </button>
+          <div class="accent-dropdown accent-dropdown--mobile" id="m-accent-dropdown">
+            <div class="accent-dropdown-label">Accent Color</div>
+            <div class="accent-swatches">
+              <button class="accent-opt" onclick="setAccent('purple')" title="Purple"><span class="accent-opt-dot" style="background:#a855f7"></span></button>
+              <button class="accent-opt" onclick="setAccent('cyan')" title="Cyan"><span class="accent-opt-dot" style="background:#00daff"></span></button>
+              <button class="accent-opt" onclick="setAccent('orange')" title="Orange"><span class="accent-opt-dot" style="background:#ff5600"></span></button>
+              <button class="accent-opt" onclick="setAccent('yellow')" title="Yellow"><span class="accent-opt-dot" style="background:#f5c400"></span></button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -609,7 +647,7 @@ function googleTranslateInit() {
         <!-- DISRUPTED GLOBALLY -->
         <div class="fp-section">
           <div class="fp-section-head" onclick="toggleFpSection(this)">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><span style="font-size:1rem">DISRUPTED GLOBALLY</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><span style="font-size:1rem">DISRUPTED GLOBALLY</span>
             <svg class="fp-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
           <div class="fp-section-body">
@@ -877,7 +915,7 @@ function googleTranslateInit() {
   <!-- Tab bar -->
   <div id="m-tabbar">
     <button class="m-tab" id="mtab-help" onclick="toggleHelpPanel()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
       $HELP
     </button>
     <button class="m-tab-spare" id="mtab-spare" onclick="mTab('offer',this)">
@@ -899,7 +937,7 @@ function googleTranslateInit() {
     <!-- Header -->
     <div class="help-panel-head">
       <div class="help-panel-ticker">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
         $HELP
       </div>
       <div class="help-panel-sub">Community tipping on X · powered by @bankrbot</div>
@@ -936,7 +974,7 @@ function googleTranslateInit() {
         <div class="hstep-num">2</div>
         <div class="hstep-body">
           <div class="hstep-title">Send $HELP to anyone on the map</div>
-          <div class="hstep-desc">Look for the <strong style="color:#a855f7">Send $HELP</strong> button on
+          <div class="hstep-desc">Look for the <strong style="color:var(--accent)">Send $HELP</strong> button on
             <span class="hstep-badge">
               <svg width="10" height="10" viewBox="0 0 24 24" fill="#3498ec"><path d="M12 22c-1.1 0-2-.2-2.7-.6L3.5 18.2c-.4-.3-.7-.7-.9-1.1-.2-.5-.3-1-.3-1.5V8.4c0-.5.1-1 .3-1.5.2-.4.5-.8.9-1.1l5.8-3.2C10 2.2 11 2 12 2s2 .2 2.7.6l5.8 3.2c.4.3.7.7.9 1.1.2.5.3 1 .3 1.5v7.2c0 .5-.1 1-.3 1.5-.2.4-.5.8-.9 1.1l-5.8 3.2c-.7.4-1.6.6-2.7.6z"/><path d="M9 12l2 2 4-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
               Verified
@@ -1029,7 +1067,7 @@ function googleTranslateInit() {
         <div class="hstep-num">3</div>
         <div class="hstep-body">
           <div class="hstep-title">Check X — you'll be tagged when help arrives</div>
-          <div class="hstep-desc">When someone taps <strong style="color:#a855f7">Send $HELP</strong> on your post, @bankrbot tags you in a tweet. The tip lands in your Bankr wallet instantly.</div>
+          <div class="hstep-desc">When someone taps <strong style="color:var(--accent)">Send $HELP</strong> on your post, @bankrbot tags you in a tweet. The tip lands in your Bankr wallet instantly.</div>
           <a href="https://x.com/notifications" target="_blank" class="hstep-btn hstep-btn--ghost">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
             Open X Notifications
