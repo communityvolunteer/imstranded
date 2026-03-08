@@ -707,7 +707,7 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 
 /* ═══ Filter Panel ═══ */
 .filter-panel{
-  position:absolute;top:0;left:0;bottom:0;width:320px;z-index:900;
+  position:absolute;top:0;left:0;bottom:0;width:280px;z-index:900;
   background:rgba(10,10,10,.95);backdrop-filter:blur(12px);
   border-right:1px solid rgba(255,255,255,.08);
   transform:translateX(-100%);transition:transform .3s ease;
@@ -779,7 +779,7 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 
 /* Sitrep filter stat */
 .sitrep-stat--filter{
-  flex:0 0 320px !important;min-width:auto !important;cursor:pointer;
+  flex:0 0 280px !important;min-width:auto !important;cursor:pointer;
   border-right:1px solid rgba(255,255,255,.08);
 }
 .sitrep-stat--filter svg{stroke:rgba(255,255,255,.5);transition:stroke .15s;}

@@ -133,30 +133,44 @@ function googleTranslateInit() {
   <!-- Filter Panel (fly-in from right) -->
   <div class="filter-panel open" id="filter-panel">
 
-    <!-- Section 1: SPARE ROOMS -->
+    <!-- Section 1: DISRUPTED GLOBALLY -->
     <div class="fp-section">
       <div class="fp-section-head" onclick="toggleFpSection(this)">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        <span style="font-size:1em">SPARE ROOMS</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <span style="font-size:1rem">DISRUPTED GLOBALLY</span>
         <svg class="fp-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
       <div class="fp-section-body open">
-        <label class="fp-toggle"><input type="checkbox" id="fp-show-offers" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show on map</label>
-        <label class="fp-toggle"><input type="checkbox" id="fp-offers-verified" onchange="applyFilters()"><span class="fp-toggle-slider"></span>Verified only</label>
+        <label class="fp-toggle"><input type="checkbox" id="fp-show-worldwide" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show on map</label>
+        <label class="fp-toggle"><input type="checkbox" id="fp-worldwide-arcs" onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show route arcs</label>
 
       </div>
     </div>
 
-    <!-- Section 2: PEOPLE STRANDED -->
+    <!-- Section 2: SPARE ROOMS -->
+    <div class="fp-section">
+      <div class="fp-section-head" onclick="toggleFpSection(this)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span style="font-size:1rem">SPARE ROOMS</span>
+        <svg class="fp-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="fp-section-body open">
+        <label class="fp-toggle"><input type="checkbox" id="fp-show-offers" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show on map</label>
+        <label class="fp-toggle"><input type="checkbox" id="fp-offers-verified" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Verified only</label>
+
+      </div>
+    </div>
+
+    <!-- Section 3: PEOPLE STRANDED -->
     <div class="fp-section">
       <div class="fp-section-head" onclick="toggleFpSection(this)">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        <span style="font-size:1em">PEOPLE STRANDED</span>
+        <span style="font-size:1rem">PEOPLE STRANDED</span>
         <svg class="fp-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
-      <div class="fp-section-body">
+      <div class="fp-section-body open">
         <label class="fp-toggle"><input type="checkbox" id="fp-show-stranded" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show on map</label>
-        <label class="fp-toggle"><input type="checkbox" id="fp-stranded-verified" onchange="applyFilters()"><span class="fp-toggle-slider"></span>Verified only</label>
+        <label class="fp-toggle"><input type="checkbox" id="fp-stranded-verified" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Verified only</label>
         <div class="fp-label">Nationality</div>
         <select id="fp-nationality" class="fp-select" onchange="applyFilters()">
           <option value="">All nationalities</option>
@@ -184,20 +198,6 @@ function googleTranslateInit() {
         <div class="fp-label">Heading home to</div>
         <div class="loc-ac-wrap"><input type="text" id="fp-dest-search" class="fp-select" style="cursor:text" placeholder="Type city or airport..." oninput="airportAutocomplete(this,'fp-dest-ac','fp-filter')" onfocus="this.select()"><div class="loc-ac-list" id="fp-dest-ac"></div></div>
         <input type="hidden" id="fp-filter-dest-country"><input type="hidden" id="fp-filter-dest-airport">
-      </div>
-    </div>
-
-    <!-- Section 3: DISRUPTED GLOBALLY -->
-    <div class="fp-section">
-      <div class="fp-section-head" onclick="toggleFpSection(this)">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-        <span style="font-size:1em">DISRUPTED GLOBALLY</span>
-        <svg class="fp-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="fp-section-body">
-        <label class="fp-toggle"><input type="checkbox" id="fp-show-worldwide" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show on map</label>
-        <label class="fp-toggle"><input type="checkbox" id="fp-worldwide-arcs" onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show route arcs</label>
-
       </div>
     </div>
 
@@ -578,27 +578,39 @@ function googleTranslateInit() {
     <div id="m-sheet-body">
       <div id="m-resources-content" style="display:none"></div>
       <div id="m-filters-content" style="display:none">
+        <!-- DISRUPTED GLOBALLY -->
+        <div class="fp-section">
+          <div class="fp-section-head" onclick="toggleFpSection(this)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><span style="font-size:1rem">DISRUPTED GLOBALLY</span>
+            <svg class="fp-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="fp-section-body open">
+            <label class="fp-toggle"><input type="checkbox" id="mfp-show-worldwide" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show on map</label>
+            <label class="fp-toggle"><input type="checkbox" id="mfp-worldwide-arcs" onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show route arcs</label>
+
+          </div>
+        </div>
         <!-- SPARE ROOMS -->
         <div class="fp-section">
           <div class="fp-section-head" onclick="toggleFpSection(this)">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span style="font-size:1em">SPARE ROOMS</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span style="font-size:1rem">SPARE ROOMS</span>
             <svg class="fp-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
           <div class="fp-section-body open">
             <label class="fp-toggle"><input type="checkbox" id="mfp-show-offers" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show on map</label>
-            <label class="fp-toggle"><input type="checkbox" id="mfp-offers-verified" onchange="applyFilters()"><span class="fp-toggle-slider"></span>Verified only</label>
+            <label class="fp-toggle"><input type="checkbox" id="mfp-offers-verified" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Verified only</label>
 
           </div>
         </div>
         <!-- PEOPLE STRANDED -->
         <div class="fp-section">
           <div class="fp-section-head" onclick="toggleFpSection(this)">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span style="font-size:1em">PEOPLE STRANDED</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span style="font-size:1rem">PEOPLE STRANDED</span>
             <svg class="fp-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
-          <div class="fp-section-body">
+          <div class="fp-section-body open">
             <label class="fp-toggle"><input type="checkbox" id="mfp-show-stranded" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show on map</label>
-            <label class="fp-toggle"><input type="checkbox" id="mfp-stranded-verified" onchange="applyFilters()"><span class="fp-toggle-slider"></span>Verified only</label>
+            <label class="fp-toggle"><input type="checkbox" id="mfp-stranded-verified" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Verified only</label>
             <div class="fp-label">Nationality</div>
             <select id="mfp-nationality" class="fp-select" onchange="applyFilters()">
               <option value="">All nationalities</option>
@@ -626,18 +638,6 @@ function googleTranslateInit() {
             <div class="fp-label">Heading home to</div>
             <div class="loc-ac-wrap"><input type="text" id="mfp-dest-search" class="fp-select" style="cursor:text" placeholder="Type city or airport..." oninput="airportAutocomplete(this,'mfp-dest-ac','mfp-filter')" onfocus="this.select()"><div class="loc-ac-list" id="mfp-dest-ac"></div></div>
             <input type="hidden" id="mfp-filter-dest-country"><input type="hidden" id="mfp-filter-dest-airport">
-          </div>
-        </div>
-        <!-- DISRUPTED GLOBALLY -->
-        <div class="fp-section">
-          <div class="fp-section-head" onclick="toggleFpSection(this)">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><span style="font-size:1em">DISRUPTED GLOBALLY</span>
-            <svg class="fp-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-          </div>
-          <div class="fp-section-body">
-            <label class="fp-toggle"><input type="checkbox" id="mfp-show-worldwide" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show on map</label>
-            <label class="fp-toggle"><input type="checkbox" id="mfp-worldwide-arcs" onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show route arcs</label>
-
           </div>
         </div>
         <button class="fp-clear" onclick="clearAllFilters()" style="width:100%;margin:.75rem 0">
