@@ -104,9 +104,9 @@ function googleTranslateInit() {
   <div class="sitrep-stat sitrep-stat--filter" id="ss-filter" onclick="toggleFilterPanel()">
     <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
   </div>
-  <div class="sitrep-stat" id="ss-stranded" onclick="showView('map');toggleMethodology()">
-    <span class="sitrep-num" id="stat-stranded">847,773</span>
-    <div class="sitrep-label" id="stranded-label">Est. Stranded</div>
+  <div class="sitrep-stat" id="ss-stranded" onclick="toggleArcsFromStat()">
+    <span class="sitrep-num" id="stat-stranded">7,902,460</span>
+    <div class="sitrep-label" id="stranded-label">People Impacted</div>
     <div class="sitrep-sub" id="stranded-sub">tap · see how</div>
   </div>
   <div class="sitrep-stat sitrep-stat--offer-room" id="ss-offer-room" onclick="showView('help');switchHelpTab('offer')">
@@ -508,8 +508,8 @@ function googleTranslateInit() {
   <!-- Stat bar: EST. STRANDED | FLIGHTS CANCELLED | OFFER SPARE ROOM (blue, + icon) -->
   <div id="m-statbar">
     <div class="m-stat" id="mss-stranded" onclick="mTab('methodology',this)">
-      <span class="m-stat-num" id="m-stat-stranded">847,773</span>
-      <span class="m-stat-label" id="m-stranded-label">EST.<br>STRANDED</span>
+      <span class="m-stat-num" id="m-stat-stranded">7,902,460</span>
+      <span class="m-stat-label" id="m-stranded-label">PEOPLE<br>IMPACTED</span>
       <span class="m-stat-sub" id="m-stranded-sub" style="display:none"></span>
     </div>
     <div class="m-stat m-stat--offer" id="mss-offer" onclick="mTab('stranded',this)" style="background:rgba(236,52,82,.15);border-color:rgba(236,52,82,.2)">

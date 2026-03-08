@@ -736,6 +736,16 @@ function syncFilterPanels() {
   });
 }
 
+function toggleArcsFromStat() {
+  showView('map');
+  var pcArc = document.getElementById('fp-worldwide-arcs');
+  var mArc = document.getElementById('mfp-worldwide-arcs');
+  var newState = pcArc ? !pcArc.checked : true;
+  if (pcArc) pcArc.checked = newState;
+  if (mArc) mArc.checked = newState;
+  applyFilters();
+}
+
 function clearAllFilters() {
   _mapFilterActive = '';
   clearGlobalFilter();
@@ -804,9 +814,9 @@ function updateStrandedLabel(atIata, toIata, filteredGlobal, reverseData) {
     if (pcSub) pcSub.textContent = atIata + ' \u00b7 ' + (g.airlines||[]).length + ' airlines';
     if (mLabel) mLabel.innerHTML = 'AT ' + city.toUpperCase() + '<br>' + atIata;
   } else {
-    if (pcLabel) pcLabel.textContent = 'Est. Stranded';
+    if (pcLabel) pcLabel.textContent = 'People Impacted';
     if (pcSub) pcSub.textContent = 'tap \u00b7 see how';
-    if (mLabel) mLabel.innerHTML = 'EST.<br>STRANDED';
+    if (mLabel) mLabel.innerHTML = 'PEOPLE<br>IMPACTED';
     refreshStrandedCount();
   }
 }
@@ -1217,11 +1227,13 @@ function initMap() {
     attribution:'(c)OpenStreetMap (c)CARTO',maxZoom:19
   }).addTo(map);
 
-  // Custom panes — BELOW markerPane (600) so unclustered blue pins sit on top
-  // Country glow radius is wide enough to click from outside blue pin area
+  // Custom panes — layered for proper visibility
+  map.createPane('worldwidePane');
+  map.getPane('worldwidePane').style.zIndex = 580;
   map.createPane('countryPane');
   map.getPane('countryPane').style.zIndex = 590;
-  map.createPane('worldwidePane');
+  map.createPane('airportPane');
+  map.getPane('airportPane').style.zIndex = 610;
   map.getPane('worldwidePane').style.zIndex = 580;
 
   COUNTRIES.forEach(c => {
@@ -1272,17 +1284,17 @@ function renderAirportPins(map, mode) {
   AIRPORT_DATA.forEach(a => {
     const col = a.status==='CLOSED'?'#ef4444':a.status==='OPEN'?'#22c55e':'#fcd34d';
     const pinNum = showStranded ? a.stranded.toLocaleString() : a.cancelled.toLocaleString();
-    const pinSuffix = showStranded ? 'est. stranded' : 'cancelled';
+    const pinSuffix = showStranded ? 'impacted' : 'cancelled';
     const icon = L.divIcon({
       className:'airport-pin-label',
       html:`<div style="background:#000;border-radius:999px;padding:5px 10px;font-family:Inter,sans-serif;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;gap:5px">✈ ${a.code} <span style="opacity:.75;font-size:9.5px">${pinNum} ${pinSuffix}</span></div>`,
       iconAnchor:[0,0],iconSize:null
     });
-    const m = L.marker(a.coords,{icon}).addTo(map).bindPopup(`
+    const m = L.marker(a.coords,{icon,pane:'airportPane'}).addTo(map).bindPopup(`
       <div style="font-family:Inter,sans-serif;min-width:230px">
         <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fff;margin-bottom:.45rem">✈ ${a.city} — ${a.code}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem .85rem;margin-bottom:.55rem">
-          <div><div style="font-size:1.5rem;font-weight:800;color:#ec3452;letter-spacing:-.03em;line-height:1">${a.stranded.toLocaleString()}</div><div style="font-size:.58rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.04em;margin-top:.15rem">Est. Stranded</div></div>
+          <div><div style="font-size:1.5rem;font-weight:800;color:#ec3452;letter-spacing:-.03em;line-height:1">${a.stranded.toLocaleString()}</div><div style="font-size:.58rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.04em;margin-top:.15rem">People Impacted</div></div>
           <div><div style="font-size:1.5rem;font-weight:800;color:#FFF;letter-spacing:-.03em;line-height:1">${a.cancelled.toLocaleString()}</div><div style="font-size:.58rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.04em;margin-top:.15rem">Flights Cancelled</div></div>
         </div>
         <div style="display:flex;justify-content:space-between;padding:.35rem .55rem;background:rgba(255,255,255,.08);border-radius:6px;align-items:center;border:1px solid rgba(255,255,255,.1)">
@@ -1372,7 +1384,7 @@ function buildDualPopup(iata) {
     
     return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem;margin-bottom:.4rem">' +
       '<div><div style="font-size:1.1rem;font-weight:800;color:#a855f7;line-height:1">' + cancelled.toLocaleString() + '</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:.1rem">Flights Cancelled</div></div>' +
-      '<div><div style="font-size:1.1rem;font-weight:800;color:#ec3452;line-height:1">' + stranded.toLocaleString() + '</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:.1rem">Passengers Affected</div></div>' +
+      '<div><div style="font-size:1.1rem;font-weight:800;color:#ec3452;line-height:1">' + stranded.toLocaleString() + '</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:.1rem">People Affected</div></div>' +
     '</div>' +
     '<div style="font-size:.68rem;color:rgba(255,255,255,.45);margin-bottom:.5rem;line-height:1.4">' + desc + '</div>' +
     (routes.length ? '<div style="font-size:.58rem;font-weight:700;text-transform:uppercase;color:#fff;margin-bottom:.25rem">' + routeLabel + '</div>' + buildRouteRows(routes) : '') +
@@ -1498,6 +1510,7 @@ function renderGlobalDisruptions(map, data) {
     
     const circle = L.circleMarker([ap.lat, ap.lng], {
       radius,
+      pane: 'airportPane',
       fillColor: '#a855f7',
       color: 'rgba(168,85,247,.4)',
       weight: 1.5,
@@ -1857,6 +1870,10 @@ async function refreshSitrep() {
   _globalPins = [];
   renderGlobalDisruptions(window._crisisMap, _globalDisruptions);
   renderGlobalDisruptions(window._mobileMap, _globalDisruptions);
+  
+  // Render ME airport pins on both maps
+  renderAirportPins(window._crisisMap, 'stranded');
+  renderAirportPins(window._mobileMap, 'stranded');
 }
 
 // ============================================================
@@ -1890,10 +1907,12 @@ function initMobile(){
   const mmap=L.map('m-crisis-map',{zoomControl:false,attributionControl:false}).setView([28,45],4);
   window._mTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mmap);
 
-  mmap.createPane('countryPane');
-  mmap.getPane('countryPane').style.zIndex = 590;
   mmap.createPane('worldwidePane');
   mmap.getPane('worldwidePane').style.zIndex = 580;
+  mmap.createPane('countryPane');
+  mmap.getPane('countryPane').style.zIndex = 590;
+  mmap.createPane('airportPane');
+  mmap.getPane('airportPane').style.zIndex = 610;
 
   COUNTRIES.forEach(c => {
     const col = SC[c.status];
