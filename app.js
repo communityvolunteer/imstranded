@@ -1305,6 +1305,7 @@ function clearDataPins(map) {
 let _activePopupIata = '';
 let _activePopupMode = 'leave'; // 'leave' or 'home'
 let _activePopupCircle = null;
+let _isTogglingPopup = false;
 
 function buildPopupContent(iata, mode) {
   const ap = typeof findAirport === 'function' ? findAirport(iata) : null;
@@ -1357,8 +1358,8 @@ function buildPopupContent(iata, mode) {
     
     // Toggle
     '<div style="' + tWrap + '">' +
-      '<button onclick="switchPopupMode(\'' + iata + '\',\'leave\')" style="' + tBase + (leaveActive ? tActive : tInactive) + '">✈ Trying to Leave</button>' +
-      '<button onclick="switchPopupMode(\'' + iata + '\',\'home\')" style="' + tBase + (homeActive ? tActive : tInactive) + '">🏠 Trying to Get Home</button>' +
+      '<button onclick="switchPopupMode(\'' + iata + '\',\'leave\')" style="' + tBase + (leaveActive ? tActive : tInactive) + '">Trying to Leave ' + ap.city + '</button>' +
+      '<button onclick="switchPopupMode(\'' + iata + '\',\'home\')" style="' + tBase + (homeActive ? tActive : tInactive) + '">Trying to Get Home to ' + ap.city + '</button>' +
     '</div>' +
     
     // Stats
@@ -1383,6 +1384,7 @@ function buildPopupContent(iata, mode) {
 function switchPopupMode(iata, mode) {
   _activePopupMode = mode;
   _activePopupIata = iata;
+  _isTogglingPopup = true;
   
   // Update popup content
   const html = buildPopupContent(iata, mode);
@@ -1390,9 +1392,11 @@ function switchPopupMode(iata, mode) {
     _activePopupCircle.getPopup().setContent(html);
   }
   
-  // Redraw arcs for this airport
+  // Redraw arcs for this airport only
   clearGlobalArcs();
   drawPopupArcs(iata, mode);
+  
+  setTimeout(function() { _isTogglingPopup = false; }, 50);
 }
 
 function drawPopupArcs(iata, mode) {
@@ -1482,6 +1486,7 @@ function renderGlobalDisruptions(map, data) {
       drawPopupArcs(g.iata, 'leave');
     });
     circle.on('popupclose', function() {
+      if (_isTogglingPopup) return; // Don't redraw everything during toggle
       _activePopupCircle = null;
       _activePopupIata = '';
       clearGlobalArcs();
