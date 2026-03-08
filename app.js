@@ -1302,13 +1302,37 @@ function buildDualPopup(iata) {
   const tOn = 'background:rgba(168,85,247,.15);color:#a855f7;border:1px solid rgba(168,85,247,.2);';
   const tOff = 'background:transparent;color:rgba(255,255,255,.3);border:1px solid transparent;';
   
+  // Determine whether this is a ME hub or a global destination airport
+  var isMEAirport = AIRPORT_DATA.some(function(a) { return (a.iata || a.code) === iata; });
+
   // ── LEAVE data ──
-  let lCancelled = 0, lStranded = 0, lRoutes = [], lAirlines = [];
-  if (gData) {
-    lCancelled = gData.cancelled || 0;
-    lStranded = gData.stranded || 0;
-    lRoutes = gData.routes || (gData.me_hubs || []).map(h => ({ hub: h, cancelled: Math.round(lCancelled / (gData.me_hubs||[]).length) }));
-    lAirlines = gData.airlines || [];
+  // ME airport: people at this hub trying to fly out to global destinations
+  // Global airport: people there trying to fly to/through ME hubs
+  var lCancelled = 0, lStranded = 0, lRoutes = [], lAirlines = [];
+  if (isMEAirport) {
+    // Use AIRPORT_DATA totals for the headline numbers
+    var apRow = AIRPORT_DATA.find(function(a) { return (a.iata || a.code) === iata; });
+    lCancelled = apRow ? (apRow.cancelled || 0) : 0;
+    lStranded  = apRow ? (apRow.stranded  || 0) : 0;
+    // Outbound destinations = global airports that route through this hub, sorted by cancelled desc
+    var outbound = (typeof REAL_GLOBAL_DISRUPTIONS !== 'undefined' ? REAL_GLOBAL_DISRUPTIONS : [])
+      .filter(function(g) { return (g.me_hubs || []).includes(iata); })
+      .sort(function(a, b) { return (b.cancelled || 0) - (a.cancelled || 0); });
+    lRoutes = outbound.slice(0, 6).map(function(g) {
+      var ap2 = typeof findAirport === 'function' ? findAirport(g.iata) : null;
+      return { hub: g.iata, cancelled: g.cancelled || 0, city: ap2 ? ap2.city : g.iata };
+    });
+    var seenL = {};
+    outbound.forEach(function(g) { (g.airlines || []).forEach(function(a) { if (!seenL[a]) { seenL[a] = 1; lAirlines.push(a); } }); });
+  } else {
+    if (gData) {
+      lCancelled = gData.cancelled || 0;
+      lStranded  = gData.stranded  || 0;
+      lRoutes = gData.routes || (gData.me_hubs || []).map(function(h) {
+        return { hub: h, cancelled: Math.round(lCancelled / (gData.me_hubs||[]).length) };
+      });
+      lAirlines = gData.airlines || [];
+    }
   }
   var lHubCities = lRoutes.slice(0, 4).map(function(r) {
     var h = typeof findAirport === 'function' ? findAirport(r.hub) : null;
@@ -1316,9 +1340,8 @@ function buildDualPopup(iata) {
   });
   
   // ── HOME / FLYING-IN data ──
-  // For ME airports: "flying in" = global airports whose routes pass through this hub
-  // For global airports: "home" = ME hubs where their passengers are stranded
-  var isMEAirport = AIRPORT_DATA.some(function(a) { return (a.iata || a.code) === iata; });
+  // For ME airports: people at global airports trying to fly in to this hub
+  // For global airports: people stranded at ME hubs trying to get home here
   var hCancelled, hStranded, hRoutes, hAirlines, hHubCities;
   if (isMEAirport) {
     var inbound = (typeof REAL_GLOBAL_DISRUPTIONS !== 'undefined' ? REAL_GLOBAL_DISRUPTIONS : [])
@@ -1365,7 +1388,8 @@ function buildDualPopup(iata) {
     var desc = '';
     var routeLabel = '';
     if (mode === 'leave') {
-      desc = stranded.toLocaleString() + ' people here in ' + city + ', ' + country + ' trying to reach ' + (hubCities.length ? hubCities.join(', ') : 'the Middle East');
+      var dest = hubCities.length ? hubCities.join(', ') : (isMEAirport ? 'worldwide destinations' : 'the Middle East');
+      desc = stranded.toLocaleString() + ' people here in ' + city + ', ' + country + ' trying to reach ' + dest;
       routeLabel = 'Cancelled routes to';
     } else if (mode === 'flyin') {
       desc = stranded.toLocaleString() + ' passengers from ' + (hubCities.length ? hubCities.join(', ') : 'global airports') + ' with cancelled flights to or via ' + city + ', ' + country;
