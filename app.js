@@ -741,7 +741,7 @@ function renderFilteredPosts(map, cluster, filteredPosts) {
     const popupHtml = `<div style="font-family:Inter,sans-serif">
         <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#93c5fd;margin-bottom:.25rem">SPARE ROOM</div>
         <div style="font-weight:600;font-size:.95rem;margin-bottom:.2rem;color:#fff">${p.name} ${buildBadge(!!p.user_id)}</div>
-        <div style="font-size:.82rem;color:rgba(255,255,255,.75);line-height:1.55;margin-bottom:.4rem">${(p.body||'').slice(0,200)}${(p.body||'').length>200?'...':''}</div>
+        <div style="font-size:.82rem;color:rgba(255,255,255,.75);line-height:1.55;margin-bottom:.4rem">${p.body||''}</div>
         <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:.4rem">📍 ${p.location}</div>
         ${buildContactButtons(p.contact, p.xhandle, p.name)}
         ${buildTipButton(p.xhandle, !!p.user_id)}
@@ -786,7 +786,7 @@ function renderFilteredStranded(map, isMobile, filteredData) {
         <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.35rem">Need to reach: <strong style="color:#fff">${p.destination}</strong>${p.dest_airport ? ' <span style="background:rgba(255,255,255,.1);padding:.1rem .4rem;border-radius:4px;font-size:.65rem;font-weight:600">✈ '+p.dest_airport+'</span>' : ''}</div>
         ${needsList ? '<div style="font-size:.72rem;color:#e67e22;margin-bottom:.25rem">Needs: '+needsList+'</div>' : ''}
         ${sinceTxt ? '<div style="font-size:.68rem;color:rgba(255,255,255,.35);margin-bottom:.25rem">'+sinceTxt+'</div>' : ''}
-        ${p.details ? '<div style="font-size:.78rem;color:rgba(255,255,255,.5);line-height:1.45;margin-top:.35rem">'+p.details.slice(0,200)+'</div>' : ''}
+        ${p.details ? '<div style="font-size:.78rem;color:rgba(255,255,255,.5);line-height:1.45;margin-top:.35rem">'+p.details+'</div>' : ''}
         ${buildContactButtons(p.contact, p.xhandle, p.name)}
         ${buildSendHelpButton(p.xhandle, !!p.user_id)}
       </div>
@@ -1398,7 +1398,7 @@ function buildDualPopup(iata) {
     lCancelled = apRow ? (apRow.cancelled || 0) : 0;
     lStranded  = apRow ? (apRow.stranded  || 0) : 0;
     var outboundDests = (_meOutbound && _meOutbound[iata]) || [];
-    lRoutes = outboundDests.slice(0, 6).map(function(d) {
+    lRoutes = outboundDests.map(function(d) {
       var ap2 = typeof findAirport === 'function' ? findAirport(d.iata) : null;
       return { hub: d.iata, cancelled: d.cancelled, city: ap2 ? ap2.city : d.iata };
     });
@@ -1430,13 +1430,13 @@ function buildDualPopup(iata) {
       .filter(function(g) { return (g.me_hubs || []).includes(iata); });
     // For minor ME hubs not covered by REAL_GLOBAL_DISRUPTIONS, use _meOutbound as a symmetric proxy
     if (!inbound.length && _meOutbound && _meOutbound[iata]) {
-      inbound = _meOutbound[iata].slice(0, 20).map(function(d) {
+      inbound = _meOutbound[iata].map(function(d) {
         return { iata: d.iata, cancelled: d.cancelled, stranded: d.stranded, airlines: d.airlines };
       });
     }
     hCancelled = inbound.reduce(function(s, g) { return s + (g.cancelled || 0); }, 0);
     hStranded  = inbound.reduce(function(s, g) { return s + (g.stranded || 0); }, 0);
-    hRoutes = inbound.slice(0, 6).map(function(g) {
+    hRoutes = inbound.map(function(g) {
       var ap2 = typeof findAirport === 'function' ? findAirport(g.iata) : null;
       return { hub: g.iata, cancelled: g.cancelled || 0, city: ap2 ? ap2.city : g.iata, airlines: g.airlines || [] };
     });
@@ -1456,7 +1456,7 @@ function buildDualPopup(iata) {
   }
   
   function buildRouteRows(routes) {
-    return routes.slice(0, 6).map(function(r) {
+    return routes.map(function(r) {
       var hubAp = typeof findAirport === 'function' ? findAirport(r.hub) : null;
       var hubName = r.city || (hubAp ? hubAp.city : r.hub);
       return '<div style="display:flex;justify-content:space-between;padding:.2rem 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.68rem"><span style="color:rgba(255,255,255,.6)">' + hubName + ' (' + r.hub + ')</span><span style="color:#a855f7;font-weight:700">' + (r.cancelled || 0).toLocaleString() + '</span></div>';
@@ -1464,7 +1464,7 @@ function buildDualPopup(iata) {
   }
   
   function buildPills(airlines) {
-    return airlines.slice(0, 6).map(function(a) {
+    return airlines.map(function(a) {
       return '<span style="padding:.15rem .4rem;background:rgba(168,85,247,.12);border-radius:4px;font-size:.6rem;color:#a855f7;font-weight:600">' + a + '</span>';
     }).join('');
   }
@@ -1632,7 +1632,7 @@ function drawPopupArcs(iata, mode) {
         .filter(g => (g.me_hubs || []).includes(iata));
       // Fall back to _meOutbound for minor hubs not in REAL_GLOBAL_DISRUPTIONS me_hubs
       if (!inbound.length && _meOutbound && _meOutbound[iata]) {
-        inbound = _meOutbound[iata].slice(0, 20).map(d => ({ iata: d.iata, cancelled: d.cancelled, stranded: d.stranded }));
+        inbound = _meOutbound[iata].map(d => ({ iata: d.iata, cancelled: d.cancelled, stranded: d.stranded }));
       }
       if (!inbound.length) return;
       const maxC = Math.max(...inbound.map(g => g.cancelled || 1), 1);
@@ -1809,7 +1809,7 @@ async function renderPostsOnMap(map) {
     const popHtml = `<div style="font-family:Inter,sans-serif">
         <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#93c5fd;margin-bottom:.25rem">SPARE ROOM</div>
         <div style="font-weight:600;font-size:.95rem;margin-bottom:.2rem;color:#fff">${p.name} ${buildBadge(!!p.user_id)}</div>
-        <div style="font-size:.82rem;color:rgba(255,255,255,.75);line-height:1.55;margin-bottom:.4rem">${(p.body||'').slice(0,200)}${(p.body||'').length>200?'...':''}</div>
+        <div style="font-size:.82rem;color:rgba(255,255,255,.75);line-height:1.55;margin-bottom:.4rem">${p.body||''}</div>
         <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:.4rem">📍 ${p.location}</div>
         ${buildContactButtons(p.contact, p.xhandle, p.name)}
         ${buildTipButton(p.xhandle, !!p.user_id)}
@@ -3447,7 +3447,7 @@ function renderStrandedOnMap(map, isMobile) {
         <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.35rem">Need to reach: <strong style="color:#fff">${p.destination}</strong>${p.dest_airport ? ' <span style="background:rgba(255,255,255,.1);padding:.1rem .4rem;border-radius:4px;font-size:.65rem;font-weight:600">✈ '+p.dest_airport+'</span>' : ''}</div>
         ${needsList ? `<div style="font-size:.72rem;color:#e67e22;margin-bottom:.25rem">Needs: ${needsList}</div>` : ''}
         ${sinceTxt ? `<div style="font-size:.68rem;color:rgba(255,255,255,.35);margin-bottom:.25rem">${sinceTxt}</div>` : ''}
-        ${p.details ? `<div style="font-size:.78rem;color:rgba(255,255,255,.5);line-height:1.45;margin-top:.35rem">${p.details.slice(0, 200)}</div>` : ''}
+        ${p.details ? `<div style="font-size:.78rem;color:rgba(255,255,255,.5);line-height:1.45;margin-top:.35rem">${p.details}</div>` : ''}
         ${buildContactButtons(p.contact, p.xhandle, p.name)}
         ${buildSendHelpButton(p.xhandle, !!p.user_id)}
       </div>
