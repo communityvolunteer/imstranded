@@ -353,8 +353,7 @@ function computeGlobalFromAirportData() {
     }));
     console.log(`[Global] Using REAL data: ${REAL_GLOBAL_DISRUPTIONS.length} global + ${meAsDots.length} ME airports`);
     const result = [...meAsDots, ...REAL_GLOBAL_DISRUPTIONS];
-    // Build outbound index after disruptions are set
-    setTimeout(buildMEOutboundIndex, 0);
+    buildMEOutboundIndex();
     return result;
   }
   // Fallback to modeled data
@@ -730,6 +729,7 @@ function applyFilters() {
 
 function renderFilteredPosts(map, cluster, filteredPosts) {
   if (!map || !cluster) return;
+  const isMobile = (map === window._mobileMap);
   cluster.clearLayers();
   for (const p of filteredPosts) {
     if (!p.lat || !p.lng) continue;
@@ -738,15 +738,20 @@ function renderFilteredPosts(map, cluster, filteredPosts) {
       html:'<div style="width:14px;height:14px;background:#3b82f6;border:2px solid #fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.3)"></div>',
       iconSize:[14,14],iconAnchor:[7,7]
     });
-    const m = L.marker([p.lat, p.lng], {icon: helpIcon})
-      .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:220px;max-width:280px">
+    const popupHtml = `<div style="font-family:Inter,sans-serif">
         <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#93c5fd;margin-bottom:.25rem">SPARE ROOM</div>
-        <div style="font-weight:600;font-size:.84rem;margin-bottom:.2rem;color:#fff">${p.name} ${buildBadge(!!p.user_id)}</div>
-        <div style="font-size:.77rem;color:rgba(255,255,255,.75);line-height:1.5;margin-bottom:.3rem">${(p.body||'').slice(0,120)}${(p.body||'').length>120?'...':''}</div>
-        <div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-bottom:.15rem">📍 ${p.location}</div>
+        <div style="font-weight:600;font-size:.95rem;margin-bottom:.2rem;color:#fff">${p.name} ${buildBadge(!!p.user_id)}</div>
+        <div style="font-size:.82rem;color:rgba(255,255,255,.75);line-height:1.55;margin-bottom:.4rem">${(p.body||'').slice(0,200)}${(p.body||'').length>200?'...':''}</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:.4rem">📍 ${p.location}</div>
         ${buildContactButtons(p.contact, p.xhandle, p.name)}
         ${buildTipButton(p.xhandle, !!p.user_id)}
-      </div>`);
+      </div>`;
+    const m = L.marker([p.lat, p.lng], {icon: helpIcon});
+    if (isMobile) {
+      m.on('click', function(e) { L.DomEvent.stopPropagation(e); openMPinSheet(popupHtml); });
+    } else {
+      m.bindPopup(popupHtml, { className: 'dark-popup', maxWidth: 280 });
+    }
     cluster.addLayer(m);
   }
 }
@@ -772,20 +777,25 @@ function renderFilteredStranded(map, isMobile, filteredData) {
     const sinceTxt = p.stranded_since ? 'Since ' + new Date(p.stranded_since).toLocaleDateString() : '';
     const icon = L.divIcon({ className: '', html: '<div class="stranded-pin"></div>', iconSize: [10, 10], iconAnchor: [5, 5] });
     const marker = L.marker([p.current_lat, p.current_lng], { icon, groupSize: p.group_size || 1 });
-    marker.bindPopup(`
-      <div style="min-width:200px;font-family:Inter,sans-serif">
+    const popupHtml = `
+      <div style="font-family:Inter,sans-serif">
         <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:#ec3452;margin-bottom:.3rem">STRANDED · ${age}</div>
-        ${p.name ? '<div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:.1rem">'+p.name+'</div>' : ''}
-        <div style="font-size:.78rem;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:.15rem">${p.group_size > 1 ? p.group_size + ' people' : '1 person'}${p.nationality ? ' · ' + p.nationality : ''}</div>
-        <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">From: ${p.current_location}</div>
-        <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.3rem">Need to reach: <strong style="color:#fff">${p.destination}</strong>${p.dest_airport ? ' <span style="background:rgba(255,255,255,.1);padding:.1rem .4rem;border-radius:4px;font-size:.65rem;font-weight:600">✈ '+p.dest_airport+'</span>' : ''}</div>
-        ${needsList ? '<div style="font-size:.68rem;color:#e67e22;margin-bottom:.2rem">Needs: '+needsList+'</div>' : ''}
-        ${sinceTxt ? '<div style="font-size:.65rem;color:rgba(255,255,255,.35)">'+sinceTxt+'</div>' : ''}
-        ${p.details ? '<div style="font-size:.75rem;color:rgba(255,255,255,.5);line-height:1.4;margin-top:.3rem">'+p.details.slice(0,150)+'</div>' : ''}
+        ${p.name ? '<div style="font-size:.95rem;font-weight:800;color:#fff;margin-bottom:.15rem">'+p.name+'</div>' : ''}
+        <div style="font-size:.82rem;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:.2rem">${p.group_size > 1 ? p.group_size + ' people' : '1 person'}${p.nationality ? ' · ' + p.nationality : ''}</div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">From: ${p.current_location}</div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.35rem">Need to reach: <strong style="color:#fff">${p.destination}</strong>${p.dest_airport ? ' <span style="background:rgba(255,255,255,.1);padding:.1rem .4rem;border-radius:4px;font-size:.65rem;font-weight:600">✈ '+p.dest_airport+'</span>' : ''}</div>
+        ${needsList ? '<div style="font-size:.72rem;color:#e67e22;margin-bottom:.25rem">Needs: '+needsList+'</div>' : ''}
+        ${sinceTxt ? '<div style="font-size:.68rem;color:rgba(255,255,255,.35);margin-bottom:.25rem">'+sinceTxt+'</div>' : ''}
+        ${p.details ? '<div style="font-size:.78rem;color:rgba(255,255,255,.5);line-height:1.45;margin-top:.35rem">'+p.details.slice(0,200)+'</div>' : ''}
         ${buildContactButtons(p.contact, p.xhandle, p.name)}
         ${buildSendHelpButton(p.xhandle, !!p.user_id)}
       </div>
-    `, { className: 'dark-popup', maxWidth: 280 });
+    `;
+    if (isMobile) {
+      marker.on('click', function(e) { L.DomEvent.stopPropagation(e); openMPinSheet(popupHtml); });
+    } else {
+      marker.bindPopup(popupHtml, { className: 'dark-popup', maxWidth: 280 });
+    }
     cluster.addLayer(marker);
   }
 
@@ -1513,29 +1523,50 @@ function buildDualPopup(iata) {
 function switchPopupMode(iata, mode) {
   _activePopupMode = mode;
   _activePopupIata = iata;
-  var uid = iata.replace(/[^A-Z0-9]/g, '');
-  
-  // Toggle panel visibility — 'leave' shows leave panel, anything else shows home panel
-  var leavePanel = document.getElementById('gpl-' + uid);
-  var homePanel = document.getElementById('gph-' + uid);
-  var leaveBtn = document.getElementById('gtl-' + uid);
-  var homeBtn = document.getElementById('gth-' + uid);
-  var isLeave = (mode === 'leave');
-  
-  if (leavePanel && homePanel) {
-    leavePanel.style.display = isLeave ? 'block' : 'none';
-    homePanel.style.display = isLeave ? 'none' : 'block';
+
+  const isMobile = window.innerWidth <= 600;
+
+  if (isMobile) {
+    // On mobile, rebuild and refresh the pin sheet content
+    const html = buildDualPopup(iata);
+    // After insert, immediately switch panel visibility via the uid
+    refreshMPinSheet(html);
+    // Now flip the panels — the HTML is fresh so query directly
+    const uid = iata.replace(/[^A-Z0-9]/g, '');
+    const leavePanel = document.getElementById('gpl-' + uid);
+    const homePanel  = document.getElementById('gph-' + uid);
+    const leaveBtn   = document.getElementById('gtl-' + uid);
+    const homeBtn    = document.getElementById('gth-' + uid);
+    const isLeave    = (mode === 'leave');
+    const tOn  = 'background:rgba(168,85,247,.15);color:#a855f7;border:1px solid rgba(168,85,247,.2);';
+    const tOff = 'background:transparent;color:rgba(255,255,255,.3);border:1px solid transparent;';
+    if (leavePanel && homePanel) {
+      leavePanel.style.display = isLeave ? 'block' : 'none';
+      homePanel.style.display  = isLeave ? 'none' : 'block';
+    }
+    if (leaveBtn && homeBtn) {
+      leaveBtn.style.cssText += isLeave ? tOn : tOff;
+      homeBtn.style.cssText  += isLeave ? tOff : tOn;
+    }
+  } else {
+    const uid = iata.replace(/[^A-Z0-9]/g, '');
+    const leavePanel = document.getElementById('gpl-' + uid);
+    const homePanel  = document.getElementById('gph-' + uid);
+    const leaveBtn   = document.getElementById('gtl-' + uid);
+    const homeBtn    = document.getElementById('gth-' + uid);
+    const isLeave    = (mode === 'leave');
+    const tOn  = 'background:rgba(168,85,247,.15);color:#a855f7;border:1px solid rgba(168,85,247,.2);';
+    const tOff = 'background:transparent;color:rgba(255,255,255,.3);border:1px solid transparent;';
+    if (leavePanel && homePanel) {
+      leavePanel.style.display = isLeave ? 'block' : 'none';
+      homePanel.style.display  = isLeave ? 'none' : 'block';
+    }
+    if (leaveBtn && homeBtn) {
+      leaveBtn.style.cssText += isLeave ? tOn : tOff;
+      homeBtn.style.cssText  += isLeave ? tOff : tOn;
+    }
   }
-  
-  // Swap button active styles
-  var tOn = 'background:rgba(168,85,247,.15);color:#a855f7;border:1px solid rgba(168,85,247,.2);';
-  var tOff = 'background:transparent;color:rgba(255,255,255,.3);border:1px solid transparent;';
-  if (leaveBtn && homeBtn) {
-    leaveBtn.style.cssText += (isLeave ? tOn : tOff);
-    homeBtn.style.cssText += (isLeave ? tOff : tOn);
-  }
-  
-  // Redraw arcs for this airport only
+
   clearGlobalArcs();
   drawPopupArcs(iata, mode);
 }
@@ -1665,24 +1696,36 @@ function renderGlobalDisruptions(map, data) {
       className: 'global-disruption-dot',
     }).addTo(map);
 
-    const popupContent = buildDualPopup(g.iata);
-    circle.bindPopup(popupContent, { className: 'dark-popup', maxWidth: 320, closeOnClick: false });
-    
-    // Track which circle is active for content updates
-    circle.on('popupopen', function() {
-      _activePopupCircle = circle;
-      _activePopupIata = g.iata;
-      _activePopupMode = 'leave';
-      clearGlobalArcs();
-      drawPopupArcs(g.iata, 'leave');
-    });
-    circle.on('popupclose', function() {
-      _activePopupCircle = null;
-      _activePopupIata = '';
-      clearGlobalArcs();
-      drawGlobalRouteArcs(window._crisisMap, _globalDisruptions);
-      drawGlobalRouteArcs(window._mobileMap, _globalDisruptions);
-    });
+    const isMobileMap = (map === window._mobileMap);
+
+    if (isMobileMap) {
+      // Mobile: skip Leaflet popup, open pin sheet on click
+      circle.on('click', function() {
+        _activePopupCircle = circle;
+        _activePopupIata = g.iata;
+        _activePopupMode = 'leave';
+        clearGlobalArcs();
+        openMPinSheet(buildDualPopup(g.iata));
+        drawPopupArcs(g.iata, 'leave');
+      });
+    } else {
+      circle.bindPopup('', { className: 'dark-popup', maxWidth: 320, closeOnClick: false });
+      circle.on('popupopen', function() {
+        circle.setPopupContent(buildDualPopup(g.iata));
+        _activePopupCircle = circle;
+        _activePopupIata = g.iata;
+        _activePopupMode = 'leave';
+        clearGlobalArcs();
+        drawPopupArcs(g.iata, 'leave');
+      });
+      circle.on('popupclose', function() {
+        _activePopupCircle = null;
+        _activePopupIata = '';
+        clearGlobalArcs();
+        drawGlobalRouteArcs(window._crisisMap, _globalDisruptions);
+        drawGlobalRouteArcs(window._mobileMap, _globalDisruptions);
+      });
+    }
     
     _globalPins.push(circle);
   }
@@ -1762,15 +1805,21 @@ async function renderPostsOnMap(map) {
       html:'<div style="width:14px;height:14px;background:#3b82f6;border:2px solid #fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.3)"></div>',
       iconSize:[14,14],iconAnchor:[7,7]
     });
-    const m = L.marker([geo.lat,geo.lng],{icon:helpIcon})
-      .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:220px;max-width:280px">
+    const isMobileM = (map === window._mobileMap);
+    const popHtml = `<div style="font-family:Inter,sans-serif">
         <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#93c5fd;margin-bottom:.25rem">SPARE ROOM</div>
-        <div style="font-weight:600;font-size:.84rem;margin-bottom:.2rem;color:#fff">${p.name} ${buildBadge(!!p.user_id)}</div>
-        <div style="font-size:.77rem;color:rgba(255,255,255,.75);line-height:1.5;margin-bottom:.3rem">${(p.body||'').slice(0,120)}${(p.body||'').length>120?'...':''}</div>
-        <div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-bottom:.15rem">📍 ${p.location}</div>
+        <div style="font-weight:600;font-size:.95rem;margin-bottom:.2rem;color:#fff">${p.name} ${buildBadge(!!p.user_id)}</div>
+        <div style="font-size:.82rem;color:rgba(255,255,255,.75);line-height:1.55;margin-bottom:.4rem">${(p.body||'').slice(0,200)}${(p.body||'').length>200?'...':''}</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:.4rem">📍 ${p.location}</div>
         ${buildContactButtons(p.contact, p.xhandle, p.name)}
         ${buildTipButton(p.xhandle, !!p.user_id)}
-      </div>`);
+      </div>`;
+    const m = L.marker([geo.lat,geo.lng],{icon:helpIcon});
+    if (isMobileM) {
+      m.on('click', function(e) { L.DomEvent.stopPropagation(e); openMPinSheet(popHtml); });
+    } else {
+      m.bindPopup(popHtml, { className: 'dark-popup', maxWidth: 280 });
+    }
     if (cluster) cluster.addLayer(m);
     _mk.help.push(m);
     _postMarkers.push(m);
@@ -2130,6 +2179,39 @@ function openMWorldwidePopup(id){
 }
 
 function closeMPopup(){document.getElementById('m-country-popup').classList.remove('open');}
+
+// ── Mobile pin bottom sheet ─────────────────────────────
+function openMPinSheet(html) {
+  const sheet    = document.getElementById('m-pin-sheet');
+  const inner    = document.getElementById('m-pin-sheet-inner');
+  const backdrop = document.getElementById('m-pin-sheet-backdrop');
+  if (!sheet || !inner) return;
+  inner.innerHTML = html;
+  sheet.classList.add('open');
+  if (backdrop) backdrop.classList.add('open');
+}
+
+function closeMPinSheet() {
+  const sheet    = document.getElementById('m-pin-sheet');
+  const backdrop = document.getElementById('m-pin-sheet-backdrop');
+  if (sheet) sheet.classList.remove('open');
+  if (backdrop) backdrop.classList.remove('open');
+  // Clean up any active airport popup state
+  if (_activePopupIata) {
+    _activePopupIata = '';
+    _activePopupMode = 'leave';
+    clearGlobalArcs();
+    drawGlobalRouteArcs(window._mobileMap, _globalDisruptions);
+  }
+}
+
+// Used by switchPopupMode on mobile — refreshes pin sheet content without reopening
+function refreshMPinSheet(html) {
+  const inner = document.getElementById('m-pin-sheet-inner');
+  if (inner && document.getElementById('m-pin-sheet').classList.contains('open')) {
+    inner.innerHTML = html;
+  }
+}
 
 function mTab(tab,btn){
   const sheet=document.getElementById('m-sheet');
@@ -3356,20 +3438,25 @@ function renderStrandedOnMap(map, isMobile) {
     const sinceTxt = p.stranded_since ? 'Since ' + new Date(p.stranded_since).toLocaleDateString() : '';
     const icon = L.divIcon({ className: '', html: '<div class="stranded-pin"></div>', iconSize: [10, 10], iconAnchor: [5, 5] });
     const marker = L.marker([p.current_lat, p.current_lng], { icon, groupSize: p.group_size || 1 });
-    marker.bindPopup(`
-      <div style="min-width:200px;font-family:Inter,sans-serif">
+    const popHtml = `
+      <div style="font-family:Inter,sans-serif">
         <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:#ec3452;margin-bottom:.3rem">STRANDED · ${age}</div>
-        ${p.name ? '<div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:.1rem">'+p.name+'</div>' : ''}
-        <div style="font-size:.78rem;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:.15rem">${p.group_size > 1 ? p.group_size + ' people' : '1 person'}${p.nationality ? ' · ' + p.nationality : ''}</div>
-        <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">From: ${p.current_location}</div>
-        <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.3rem">Need to reach: <strong style="color:#fff">${p.destination}</strong>${p.dest_airport ? ' <span style="background:rgba(255,255,255,.1);padding:.1rem .4rem;border-radius:4px;font-size:.65rem;font-weight:600">✈ '+p.dest_airport+'</span>' : ''}</div>
-        ${needsList ? `<div style="font-size:.68rem;color:#e67e22;margin-bottom:.2rem">Needs: ${needsList}</div>` : ''}
-        ${sinceTxt ? `<div style="font-size:.65rem;color:rgba(255,255,255,.35)">${sinceTxt}</div>` : ''}
-        ${p.details ? `<div style="font-size:.75rem;color:rgba(255,255,255,.5);line-height:1.4;margin-top:.3rem">${p.details.slice(0, 150)}</div>` : ''}
+        ${p.name ? '<div style="font-size:.95rem;font-weight:800;color:#fff;margin-bottom:.15rem">'+p.name+'</div>' : ''}
+        <div style="font-size:.82rem;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:.2rem">${p.group_size > 1 ? p.group_size + ' people' : '1 person'}${p.nationality ? ' · ' + p.nationality : ''}</div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">From: ${p.current_location}</div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.35rem">Need to reach: <strong style="color:#fff">${p.destination}</strong>${p.dest_airport ? ' <span style="background:rgba(255,255,255,.1);padding:.1rem .4rem;border-radius:4px;font-size:.65rem;font-weight:600">✈ '+p.dest_airport+'</span>' : ''}</div>
+        ${needsList ? `<div style="font-size:.72rem;color:#e67e22;margin-bottom:.25rem">Needs: ${needsList}</div>` : ''}
+        ${sinceTxt ? `<div style="font-size:.68rem;color:rgba(255,255,255,.35);margin-bottom:.25rem">${sinceTxt}</div>` : ''}
+        ${p.details ? `<div style="font-size:.78rem;color:rgba(255,255,255,.5);line-height:1.45;margin-top:.35rem">${p.details.slice(0, 200)}</div>` : ''}
         ${buildContactButtons(p.contact, p.xhandle, p.name)}
         ${buildSendHelpButton(p.xhandle, !!p.user_id)}
       </div>
-    `, { className: 'dark-popup', maxWidth: 280 });
+    `;
+    if (isMobile) {
+      marker.on('click', function(e) { L.DomEvent.stopPropagation(e); openMPinSheet(popHtml); });
+    } else {
+      marker.bindPopup(popHtml, { className: 'dark-popup', maxWidth: 280 });
+    }
     cluster.addLayer(marker);
   }
 
@@ -3386,7 +3473,7 @@ function initStrandedRealtime() {
       renderStrandedOnMap(window._mobileMap, true);
     }
   }).subscribe();
-}  
+}
 
 
 window.addEventListener('DOMContentLoaded',()=>{

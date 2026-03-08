@@ -548,6 +548,15 @@ function googleTranslateInit() {
       <div class="m-popup-body" id="m-popup-body"></div>
     </div>
 
+    <!-- Pin detail bottom sheet (airport / spare room / stranded) -->
+    <div id="m-pin-sheet">
+      <div class="m-pin-sheet-handle" onclick="closeMPinSheet()">
+        <div class="m-handle-bar"></div>
+      </div>
+      <div id="m-pin-sheet-inner"></div>
+    </div>
+    <div id="m-pin-sheet-backdrop" onclick="closeMPinSheet()"></div>
+
     <!-- (Mobile filters moved to bottom sheet) -->
 
     <!-- Back Home pill (left) -->
@@ -852,4 +861,4 @@ function googleTranslateInit() {
 <script src="embassies.js"></script>
 <script src="app.js"></script>
 </body>
-</html> 
+</html>
