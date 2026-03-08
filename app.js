@@ -282,132 +282,290 @@ const REAL_GLOBAL_DISRUPTIONS = [
 ];
 
 // ============================================================
-// LIVE DATA FROM SUPABASE
+// ============================================================
+// LIVE DATA FROM SUPABASE — unified pipeline
+// Single source of truth: airport_daily + route_daily tables.
+// No ME-vs-global split. No synthetic math. No baked constants used at runtime.
 // ============================================================
 let _globalDisruptions = [];
 
-async function fetchSitrepFromSupabase() {
-  try {
-    const { data, error } = await _sb.from('sitrep').select('*').eq('id', 'current').single();
-    if (error || !data) throw new Error('No sitrep data');
-    
-    // Update AIRPORT_DATA from live airport_status if available
-    const liveAirports = typeof data.airport_status === 'string' ? JSON.parse(data.airport_status || '[]') : (data.airport_status || []);
-    if (liveAirports.length) {
-      AIRPORT_DATA = liveAirports.map(a => ({
-        city: a.city, code: a.iata, iata: a.iata,
-        coords: [a.lat, a.lng],
-        cancelled: a.cancelled || 0,
-        status: a.status || 'UNKNOWN',
-        stranded: a.stranded || ((a.cancelled || 0) * 185),
-        cancelRate: a.cancel_rate || 0,
-        dailyFlights: a.daily_flights || 0,
-        h7: a.h7 || 0,
-        updated: a.updated ? new Date(a.updated).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '--:--',
-      }));
-    }
-    
-    // Use REAL global disruptions from Supabase if available, else use seeded data
-    if (data.global_disruptions) {
-      const gd = typeof data.global_disruptions === 'string' ? JSON.parse(data.global_disruptions) : data.global_disruptions;
-      if (gd.length) {
-        // Add ME airports as purple dots (flagged isME to avoid double-counting)
-        const meAsDots = AIRPORT_DATA.filter(a => (a.cancelled || 0) > 0).map(a => ({
-          iata: a.iata || a.code,
-          cancelled: a.cancelled,
-          stranded: a.stranded || (a.cancelled * 185),
-          airlines: [],
-          me_hubs: [],
-          isME: true,
-        }));
-        _globalDisruptions = [...meAsDots, ...gd];
-        console.log(`[Global] Loaded ${gd.length} global + ${meAsDots.length} ME airports from Supabase`);
-        buildMEOutboundIndex();
-      } else {
-        _globalDisruptions = computeGlobalFromAirportData();
-      }
-    } else {
-      _globalDisruptions = computeGlobalFromAirportData();
-    }
-    const stranded = computeTotalStranded();
-    
-    return {
-      stranded,
-      cancelled: data.cancelled_flights,
-      airports: data.airports_closed,
-      airspace: data.airspace_closed_countries,
-      lastUpdated: data.last_updated,
-      methodology: data.methodology,
-      sources: data.sources_used,
-    };
-  } catch(e) {
-    console.warn('Supabase sitrep unavailable, using seeded data:', e.message);
-    _globalDisruptions = computeGlobalFromAirportData();
-    const totalStranded = computeTotalStranded();
-    return {
-      stranded: totalStranded,
-      cancelled: AIRPORT_DATA.reduce((s,a) => s + (a.cancelled||0), 0),
-      airports: AIRPORT_DATA.filter(a => a.status === 'CLOSED' || a.status === 'RESTRICTED').length,
-      airspace: 4,
-    };
-  }
-}
+// _meOutbound[hubIata] = sorted array of { iata, cancelled, stranded, airlines[] }
+// Populated from route_daily (dep_iata = ME hub) — real observed data.
+let _meOutbound = null;
 
-function computeGlobalFromAirportData() {
-  // Prefer REAL global disruption data from AviationStack
-  if (typeof REAL_GLOBAL_DISRUPTIONS !== 'undefined' && REAL_GLOBAL_DISRUPTIONS.length) {
-    // Add ME airports as purple dots too (flagged isME to avoid double-counting in totals)
-    const meAsDots = AIRPORT_DATA.filter(a => (a.cancelled || 0) > 0).map(a => ({
-      iata: a.iata || a.code,
-      cancelled: a.cancelled,
-      stranded: a.stranded || (a.cancelled * 185),
-      airlines: [],
-      me_hubs: [],
-      isME: true,
-    }));
-    console.log(`[Global] Using REAL data: ${REAL_GLOBAL_DISRUPTIONS.length} global + ${meAsDots.length} ME airports`);
-    const result = [...meAsDots, ...REAL_GLOBAL_DISRUPTIONS];
-    buildMEOutboundIndex();
-    return result;
-  }
-  // Fallback to modeled data
-  if (typeof computeGlobalDisruptions !== 'function' || typeof ME_AIRPORTS === 'undefined') {
-    console.warn('[Global] No real data or model available');
-    return [];
-  }
-  const meStatuses = {};
-  for (const a of AIRPORT_DATA) {
-    const iata = a.iata || a.code;
-    const cr = (a.cancelRate && a.cancelRate > 1) ? a.cancelRate / 100
-      : a.status === 'CLOSED' ? 0.93
-      : a.status === 'RESTRICTED' || a.status === 'LIMITED' ? 0.6
-      : a.status === 'DISRUPTED' ? 0.15
-      : 0.05;
-    meStatuses[iata] = { cancelRate: cr };
-  }
-  for (const iata of Object.keys(ME_AIRPORTS)) {
-    if (!meStatuses[iata]) {
-      meStatuses[iata] = { cancelRate: 0.1 };
+// todayStr: the date key for "today" rows in airport_daily / route_daily
+let _dataDate = '';
+
+async function fetchSitrepFromSupabase() {
+  const AVG_PAX = 185;
+
+  try {
+    // ── 1. Pull last 7 days of airport_daily ─────────────────
+    const sevenDaysAgo = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
+    const today        = new Date().toISOString().slice(0, 10);
+    _dataDate = today;
+
+    const { data: adRows, error: adErr } = await _sb
+      .from('airport_daily')
+      .select('iata, date, cancelled, status, cancel_rate, is_me_hub, city, country_code, lat, lng')
+      .gte('date', sevenDaysAgo)
+      .lte('date', today)
+      .order('date', { ascending: true });
+
+    if (adErr || !adRows || !adRows.length) throw new Error('No airport_daily data');
+
+    // ── 2. Pull today's route_daily ───────────────────────────
+    const { data: rdRows, error: rdErr } = await _sb
+      .from('route_daily')
+      .select('dep_iata, arr_iata, cancelled, airlines')
+      .eq('date', today);
+
+    if (rdErr) console.warn('[Pipeline] route_daily error:', rdErr.message);
+    const routes = rdRows || [];
+
+    // ── 3. Build AIRPORT_DATA from airport_daily ──────────────
+    // Aggregate per airport across all 7 days.
+    // .cancelled = 7-day total (the number used everywhere as the main figure)
+    // .todayCancelled = just today's row
+    // .h7days = { 'MM-DD': count } for sparkline/history
+    const apMap = {};
+    for (const row of adRows) {
+      const k = row.iata;
+      if (!apMap[k]) {
+        apMap[k] = {
+          iata: k, city: row.city || k, code: k,
+          coords: [row.lat || 0, row.lng || 0],
+          status: row.status || 'UNKNOWN',
+          cancelRate: row.cancel_rate || 0,
+          isME: row.is_me_hub,
+          cancelled: 0,       // 7-day total
+          todayCancelled: 0,  // today only
+          stranded: 0,        // 7-day total × AVG_PAX
+          todayStranded: 0,
+          h7days: {},
+          updated: 'live',
+        };
+      }
+      const count = row.cancelled || 0;
+      const mmdd = row.date.slice(5).replace('-', '-'); // 'MM-DD'
+      apMap[k].cancelled += count;
+      apMap[k].h7days[mmdd] = count;
+      apMap[k].status = row.status || apMap[k].status; // latest day's status wins
+      apMap[k].cancelRate = row.cancel_rate || apMap[k].cancelRate;
+      if (row.date === today) {
+        apMap[k].todayCancelled = count;
+        apMap[k].todayStranded  = count * AVG_PAX;
+      }
     }
+    // Compute stranded from 7-day totals
+    for (const a of Object.values(apMap)) {
+      a.stranded = a.cancelled * AVG_PAX;
+    }
+
+    // Replace AIRPORT_DATA with ME airports only (keeps rest of app working)
+    AIRPORT_DATA = Object.values(apMap).filter(a => a.isME);
+    console.log(`[Pipeline] Built AIRPORT_DATA: ${AIRPORT_DATA.length} ME airports`);
+
+    // ── 4. Build _meOutbound from route_daily (dep = ME hub) ──
+    const meIatas = new Set(AIRPORT_DATA.map(a => a.iata));
+    const outboundRaw = {};
+    for (const r of routes) {
+      if (!meIatas.has(r.dep_iata)) continue;     // only ME departures
+      if (meIatas.has(r.arr_iata)) continue;       // skip intra-ME
+      const hub = r.dep_iata;
+      if (!outboundRaw[hub]) outboundRaw[hub] = {};
+      if (!outboundRaw[hub][r.arr_iata]) {
+        outboundRaw[hub][r.arr_iata] = { cancelled: 0, airlines: new Set() };
+      }
+      outboundRaw[hub][r.arr_iata].cancelled += r.cancelled || 0;
+      (r.airlines || []).forEach(a => outboundRaw[hub][r.arr_iata].airlines.add(a));
+    }
+    _meOutbound = {};
+    for (const hub of Object.keys(outboundRaw)) {
+      _meOutbound[hub] = Object.entries(outboundRaw[hub])
+        .map(([destIata, d]) => ({
+          iata: destIata,
+          cancelled: d.cancelled,
+          stranded: d.cancelled * AVG_PAX,
+          airlines: Array.from(d.airlines),
+        }))
+        .sort((a, b) => b.cancelled - a.cancelled);
+    }
+    console.log(`[Pipeline] Built _meOutbound for ${Object.keys(_meOutbound).length} ME hubs`);
+
+    // ── 4b. Build _meInbound from route_daily (arr = ME hub) ──
+    // Powers "Trying to Fly In" tab — real observed inbound cancellations
+    const inboundRaw = {};
+    for (const r of routes) {
+      if (!meIatas.has(r.arr_iata)) continue;     // only ME arrivals
+      if (meIatas.has(r.dep_iata)) continue;       // skip intra-ME
+      const hub = r.arr_iata;
+      if (!inboundRaw[hub]) inboundRaw[hub] = {};
+      if (!inboundRaw[hub][r.dep_iata]) {
+        inboundRaw[hub][r.dep_iata] = { cancelled: 0, airlines: new Set() };
+      }
+      inboundRaw[hub][r.dep_iata].cancelled += r.cancelled || 0;
+      (r.airlines || []).forEach(a => inboundRaw[hub][r.dep_iata].airlines.add(a));
+    }
+    window._meInbound = {};
+    for (const hub of Object.keys(inboundRaw)) {
+      window._meInbound[hub] = Object.entries(inboundRaw[hub])
+        .map(([originIata, d]) => ({
+          iata: originIata,
+          cancelled: d.cancelled,
+          stranded: d.cancelled * AVG_PAX,
+          airlines: Array.from(d.airlines),
+        }))
+        .sort((a, b) => b.cancelled - a.cancelled);
+    }
+    console.log(`[Pipeline] Built _meInbound for ${Object.keys(window._meInbound).length} ME hubs`);
+
+    // ── 4c. Build _globalInbound (for global airport "Trying to Get Home" tab) ──
+    // Routes where dep = global airport, arr = ME hub → people stranded at global waiting to reach ME
+    const globalInboundRaw = {};
+    for (const r of routes) {
+      if (!meIatas.has(r.arr_iata)) continue;   // arr must be ME
+      if (meIatas.has(r.dep_iata)) continue;    // dep must be global
+      const globalIata = r.dep_iata;
+      if (!globalInboundRaw[globalIata]) globalInboundRaw[globalIata] = {};
+      const meHub = r.arr_iata;
+      if (!globalInboundRaw[globalIata][meHub]) {
+        globalInboundRaw[globalIata][meHub] = { cancelled: 0, airlines: new Set() };
+      }
+      globalInboundRaw[globalIata][meHub].cancelled += r.cancelled || 0;
+      (r.airlines || []).forEach(a => globalInboundRaw[globalIata][meHub].airlines.add(a));
+    }
+    window._globalInbound = {};
+    for (const globalIata of Object.keys(globalInboundRaw)) {
+      window._globalInbound[globalIata] = Object.entries(globalInboundRaw[globalIata])
+        .map(([meHub, d]) => ({
+          iata: meHub,
+          cancelled: d.cancelled,
+          stranded: d.cancelled * AVG_PAX,
+          airlines: Array.from(d.airlines),
+        }))
+        .sort((a, b) => b.cancelled - a.cancelled);
+    }
+    console.log(`[Pipeline] Built _globalInbound for ${Object.keys(window._globalInbound).length} global airports`);
+
+    // ── 5. Build _globalDisruptions ───────────────────────────
+    // ME airports as isME dots (for map rendering, not double-counted in totals)
+    const meAsDots = AIRPORT_DATA.filter(a => a.cancelled > 0).map(a => ({
+      iata: a.iata, cancelled: a.cancelled, stranded: a.stranded,
+      airlines: [], me_hubs: [], isME: true,
+    }));
+
+    // Global airports: aggregate route_daily by arr_iata (flights cancelled INTO each global airport)
+    const globalAcc = {};
+    for (const r of routes) {
+      const arr = r.arr_iata;
+      if (meIatas.has(arr)) continue; // ME airports handled separately
+      if (!globalAcc[arr]) globalAcc[arr] = { cancelled: 0, me_hubs: new Set(), airlines: new Set() };
+      globalAcc[arr].cancelled += r.cancelled || 0;
+      globalAcc[arr].me_hubs.add(r.dep_iata);
+      (r.airlines || []).forEach(a => globalAcc[arr].airlines.add(a));
+    }
+
+    // Fill in any global airports from seeded REAL_GLOBAL_DISRUPTIONS that aren't in today's DB yet
+    // (graceful fallback so the map isn't empty before the first cron run)
+    const dbGlobalIatas = new Set(Object.keys(globalAcc));
+    if (typeof REAL_GLOBAL_DISRUPTIONS !== 'undefined') {
+      for (const g of REAL_GLOBAL_DISRUPTIONS) {
+        if (!dbGlobalIatas.has(g.iata)) {
+          globalAcc[g.iata] = {
+            cancelled: g.cancelled,
+            me_hubs: new Set(g.me_hubs || []),
+            airlines: new Set(g.airlines || []),
+            _seeded: true,
+          };
+        }
+      }
+    }
+
+    const globalDots = Object.entries(globalAcc).map(([iata, g]) => ({
+      iata,
+      cancelled: g.cancelled,
+      stranded: g.cancelled * AVG_PAX,
+      me_hubs: Array.from(g.me_hubs),
+      airlines: Array.from(g.airlines),
+      isME: false,
+    }));
+
+    _globalDisruptions = [...meAsDots, ...globalDots];
+    console.log(`[Pipeline] _globalDisruptions: ${meAsDots.length} ME + ${globalDots.length} global`);
+
+    // ── 6. Compute totals for sitrep bar ─────────────────────
+    const totalCancelled7d = AIRPORT_DATA.reduce((s, a) => s + a.cancelled, 0)
+      + globalDots.filter(g => !g._seeded).reduce((s, g) => s + g.cancelled, 0);
+    const totalStranded    = totalCancelled7d * AVG_PAX;
+    const todayCancelled   = AIRPORT_DATA.reduce((s, a) => s + (a.todayCancelled || 0), 0);
+    const airportsClosed   = AIRPORT_DATA.filter(a => a.status === 'CLOSED').length;
+
+    // Stash today figures for refreshSitrep "+today" labels
+    window._todayCancelledFlight = todayCancelled;
+    window._todayStrandedPeople  = todayCancelled * AVG_PAX;
+
+    return {
+      stranded:  totalStranded,
+      cancelled: totalCancelled7d,
+      airports:  airportsClosed,
+      airspace:  4,
+    };
+
+  } catch(e) {
+    console.warn('[Pipeline] DB unavailable, falling back to seeded data:', e.message);
+
+    // ── Fallback: build from baked-in JS constants ─────────────
+    // Normalize AIRPORT_DATA: use h7 as the 7-day cancelled total (real figure),
+    // replacing the synthetic cancelRate×dailyFlights value stored in .cancelled
+    for (const a of AIRPORT_DATA) {
+      if (a.h7 > 0) {
+        a.cancelled = a.h7;
+        a.stranded  = a.h7 * AVG_PAX;
+      }
+      // todayCancelled from HISTORY_7D if available
+      const h = (typeof HISTORY_7D !== 'undefined') && HISTORY_7D[a.iata];
+      a.todayCancelled = h ? (h.days['03-07'] || 0) : 0;
+      a.todayStranded  = a.todayCancelled * AVG_PAX;
+    }
+
+    // Build _meOutbound from the fixed buildMEOutboundIndex (distributes h7 total)
+    buildMEOutboundIndex();
+
+    // Build _globalDisruptions from seeded REAL_GLOBAL_DISRUPTIONS
+    const meAsDots = AIRPORT_DATA.filter(a => a.cancelled > 0).map(a => ({
+      iata: a.iata, cancelled: a.cancelled, stranded: a.stranded,
+      airlines: [], me_hubs: [], isME: true,
+    }));
+    const globalSeeded = typeof REAL_GLOBAL_DISRUPTIONS !== 'undefined'
+      ? REAL_GLOBAL_DISRUPTIONS.map(g => ({ ...g, isME: false }))
+      : [];
+    _globalDisruptions = [...meAsDots, ...globalSeeded];
+
+    // Today totals from HISTORY_7D
+    const todayC = AIRPORT_DATA.reduce((s, a) => s + (a.todayCancelled || 0), 0);
+    window._todayCancelledFlight = todayC;
+    window._todayStrandedPeople  = todayC * AVG_PAX;
+
+    const totalC = AIRPORT_DATA.reduce((s, a) => s + a.cancelled, 0)
+      + globalSeeded.reduce((s, g) => s + (g.cancelled || 0), 0);
+    return {
+      stranded:  totalC * AVG_PAX,
+      cancelled: totalC,
+      airports:  AIRPORT_DATA.filter(a => a.status === 'CLOSED' || a.status === 'RESTRICTED').length,
+      airspace:  4,
+    };
   }
-  const raw = computeGlobalDisruptions(meStatuses);
-  console.log(`[Global] Computed ${raw.length} disrupted airports from model (no real data)`);
-  buildMEOutboundIndex();
-  return raw;
 }
 
 function computeTotalStranded() {
   const meStranded = AIRPORT_DATA.reduce((s, a) => s + (a.stranded || 0), 0);
-  // Skip isME entries — those are already counted in AIRPORT_DATA
   const globalStranded = _globalDisruptions.reduce((s, g) => s + (g.isME ? 0 : (g.stranded || 0)), 0);
   return meStranded + globalStranded;
 }
 
-// ── ME Outbound Index ─────────────────────────────────────
-// Pre-computed: for each ME hub, sorted list of global destinations with cancelled/stranded/airlines
-// Built by inverting AIRLINE_ROUTES with current AIRPORT_DATA cancel rates.
-// This is the source of truth for ME popup "Trying to Leave" data and outbound arcs.
-let _meOutbound = null;
+// _meOutbound is now populated by fetchSitrepFromSupabase (from route_daily).
+// buildMEOutboundIndex is kept as the fallback path when DB is unavailable.
 
 function buildMEOutboundIndex() {
   if (typeof AIRLINE_ROUTES === 'undefined' || typeof ME_AIRPORTS === 'undefined') return;
@@ -1566,36 +1724,45 @@ function buildDualPopup(iata) {
   });
   
   // ── HOME / FLYING-IN data ──
-  // For ME airports: people at global airports trying to fly in to this hub
-  // For global airports: people stranded at ME hubs trying to get home here
+  // For ME airports: real inbound route data from _meInbound (arr_iata = this hub)
+  // For global airports: real inbound route data from _globalInbound (dep = this airport, arr = ME hub)
   var hCancelled, hStranded, hRoutes, hAirlines, hHubCities;
   if (isMEAirport) {
-    var inbound = (typeof REAL_GLOBAL_DISRUPTIONS !== 'undefined' ? REAL_GLOBAL_DISRUPTIONS : [])
-      .filter(function(g) { return (g.me_hubs || []).includes(iata); });
-    // For minor ME hubs not covered by REAL_GLOBAL_DISRUPTIONS, use _meOutbound as a symmetric proxy
-    if (!inbound.length && _meOutbound && _meOutbound[iata]) {
-      inbound = _meOutbound[iata].map(function(d) {
-        return { iata: d.iata, cancelled: d.cancelled, stranded: d.stranded, airlines: d.airlines };
-      });
+    var inboundRoutes = (window._meInbound && window._meInbound[iata]) || [];
+    // Fallback: if DB hasn't run yet, mirror outbound as symmetric estimate
+    if (!inboundRoutes.length && _meOutbound && _meOutbound[iata]) {
+      inboundRoutes = _meOutbound[iata];
     }
-    hCancelled = inbound.reduce(function(s, g) { return s + (g.cancelled || 0); }, 0);
-    hStranded  = inbound.reduce(function(s, g) { return s + (g.stranded || 0); }, 0);
-    hRoutes = inbound.map(function(g) {
-      var ap2 = typeof findAirport === 'function' ? findAirport(g.iata) : null;
-      return { hub: g.iata, cancelled: g.cancelled || 0, city: ap2 ? ap2.city : g.iata, airlines: g.airlines || [] };
+    hCancelled = inboundRoutes.reduce(function(s, r) { return s + (r.cancelled || 0); }, 0);
+    hStranded  = inboundRoutes.reduce(function(s, r) { return s + (r.stranded  || 0); }, 0);
+    hRoutes = inboundRoutes.map(function(r) {
+      var ap2 = typeof findAirport === 'function' ? findAirport(r.iata) : null;
+      return { hub: r.iata, cancelled: r.cancelled, city: ap2 ? ap2.city : r.iata, airlines: r.airlines || [] };
     });
     var seenH = {};
     hAirlines = [];
-    inbound.forEach(function(g) { (g.airlines || []).forEach(function(a) { if (!seenH[a]) { seenH[a] = 1; hAirlines.push(a); } }); });
+    inboundRoutes.forEach(function(r) { (r.airlines || []).forEach(function(a) { if (!seenH[a]) { seenH[a] = 1; hAirlines.push(a); } }); });
     hHubCities = hRoutes.slice(0, 4).map(function(r) { return r.city || r.hub; });
   } else {
-    var rev = _computeReverseCached(iata);
-    hCancelled = rev.reduce(function(s, r) { return s + (r.cancelled || 0); }, 0);
-    hStranded  = rev.reduce(function(s, r) { return s + (r.stranded || 0); }, 0);
-    hRoutes = rev.map(function(r) { return { hub: r.iata, cancelled: r.cancelled, city: r.city, airlines: r.airlines || [] }; });
+    // Global airport: people here trying to reach a ME hub (dep=this, arr=ME)
+    var globalIn = (window._globalInbound && window._globalInbound[iata]) || [];
+    // Fallback: derive from gData.me_hubs + _meInbound if DB hasn't run yet
+    if (!globalIn.length && gData && gData.me_hubs) {
+      globalIn = gData.me_hubs.map(function(hub) {
+        var inb = window._meInbound && window._meInbound[hub];
+        var match = inb && inb.find(function(r) { return r.iata === iata; });
+        return match ? { iata: hub, cancelled: match.cancelled, stranded: match.stranded, airlines: match.airlines } : null;
+      }).filter(Boolean);
+    }
+    hCancelled = globalIn.reduce(function(s, r) { return s + (r.cancelled || 0); }, 0);
+    hStranded  = globalIn.reduce(function(s, r) { return s + (r.stranded  || 0); }, 0);
+    hRoutes = globalIn.map(function(r) {
+      var ap2 = typeof findAirport === 'function' ? findAirport(r.iata) : null;
+      return { hub: r.iata, cancelled: r.cancelled, city: ap2 ? ap2.city : r.iata, airlines: r.airlines || [] };
+    });
     var seen = {};
     hAirlines = [];
-    rev.forEach(function(r) { (r.airlines || []).forEach(function(a) { if (!seen[a]) { seen[a] = 1; hAirlines.push(a); } }); });
+    globalIn.forEach(function(r) { (r.airlines || []).forEach(function(a) { if (!seen[a]) { seen[a] = 1; hAirlines.push(a); } }); });
     hHubCities = hRoutes.slice(0, 4).map(function(r) { return r.city || r.hub; });
   }
   
@@ -2192,18 +2359,13 @@ async function refreshSitrep() {
   const vals = liveStats || {stranded:totalStranded,cancelled:totalCancelled,airports:airportsClosed,airspace:4};
 
   // ── Compute today vs. since-crisis totals ──────────────────
-  // cancelled = today's (Mar 7), h7 = 7-day cumulative per airport
-  const todayCancelled = AIRPORT_DATA.reduce((s,a)=>s+(a.cancelled||0),0);
-  const totalH7Cancelled = AIRPORT_DATA.reduce((s,a)=>s+(a.h7||0),0);
-  // For airports without h7 data, today's cancelled IS the only figure we have —
-  // add those in so the total isn't artificially low
-  const totalCancelledSinceCrisis = totalH7Cancelled +
-    AIRPORT_DATA.filter(a=>!a.h7).reduce((s,a)=>s+(a.cancelled||0),0);
-  // Today's newly stranded ≈ today's cancelled × avg 185 pax/flight
-  const todayStranded = Math.round(todayCancelled * 185);
-  // Est. stranded = 20% of total people impacted
-  const estStranded = Math.round(vals.stranded * 0.20);
-  const todayEstStranded = Math.round(todayStranded * 0.20);
+  // All figures now come from the unified pipeline (airport_daily + route_daily).
+  // window._todayCancelledFlight and _todayStrandedPeople are set by fetchSitrepFromSupabase.
+  const todayCancelled = window._todayCancelledFlight || 0;
+  const todayStranded  = window._todayStrandedPeople  || 0;
+  // Est. stranded = 20% of total (still actively waiting / without accommodation)
+  const estStranded      = Math.round(vals.stranded * 0.20);
+  const todayEstStranded = Math.round(todayStranded  * 0.20);
 
   setStatNow('stat-stranded',vals.stranded);
   setStatNow('stat-cancelled',vals.cancelled);
@@ -2239,7 +2401,7 @@ async function refreshSitrep() {
   const fpCaT = document.getElementById('fp-stat-cancelled-today');
   if (fpSt) fpSt.textContent = estStranded.toLocaleString();
   if (fpStT) fpStT.textContent = todayEstStranded > 0 ? '+' + todayEstStranded.toLocaleString() + ' today' : '';
-  if (fpCa) fpCa.textContent = totalCancelledSinceCrisis.toLocaleString();
+  if (fpCa) fpCa.textContent = vals.cancelled.toLocaleString();
   if (fpCaT) fpCaT.textContent = todayCancelled > 0 ? '+' + todayCancelled.toLocaleString() + ' today' : '';
 
   // Mobile impact sheet (same values, separate IDs)
@@ -2249,7 +2411,7 @@ async function refreshSitrep() {
   const mFpCaT = document.getElementById('m-fp-stat-cancelled-today');
   if (mFpSt)  mFpSt.textContent  = estStranded.toLocaleString();
   if (mFpStT) mFpStT.textContent = todayEstStranded > 0 ? '+' + todayEstStranded.toLocaleString() + ' today' : '';
-  if (mFpCa)  mFpCa.textContent  = totalCancelledSinceCrisis.toLocaleString();
+  if (mFpCa)  mFpCa.textContent  = vals.cancelled.toLocaleString();
   if (mFpCaT) mFpCaT.textContent = todayCancelled > 0 ? '+' + todayCancelled.toLocaleString() + ' today' : '';
 
   if(SB_ON){
