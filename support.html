@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Support ImStranded — Keep This Crisis Tool Running</title>
+<link rel="icon" type="image/webp" href="https://imstranded.org/wp-content/uploads/2026/03/icon12.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<meta property="og:title" content="Support ImStranded — Crisis Response Tool">
+<meta property="og:description" content="Help keep this volunteer-built crisis tool running for millions of stranded travelers.">
+<meta property="og:type" content="website">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html{background:#000;}
+body{background:#000;color:#fff;font-family:'Inter',sans-serif;line-height:1.6;min-height:100vh;min-height:100dvh;overflow-x:hidden;}
+a{color:#a855f7;text-decoration:none;}
+a:hover{text-decoration:underline;}
+
+/* Back link */
+.back-link{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  background:rgba(0,0,0,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(255,255,255,.06);
+  padding:.6rem 1.2rem;
+  display:flex;align-items:center;gap:.5rem;
+  font-size:.8rem;font-weight:600;color:rgba(255,255,255,.5);
+}
+.back-link a{color:rgba(255,255,255,.7);font-weight:700;text-decoration:none;}
+.back-link a:hover{color:#fff;}
+
+/* Hero */
+.hero{
+  padding:5rem 1.5rem 2.5rem;text-align:center;
+  background:radial-gradient(ellipse at 50% 0%, rgba(168,85,247,.08) 0%, transparent 60%);
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:.4rem;
+  padding:.3rem .8rem;border-radius:999px;
+  background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.2);
+  font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  color:#a855f7;margin-bottom:1rem;
+}
+.hero-badge .pulse{width:6px;height:6px;border-radius:50%;background:#a855f7;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+.hero h1{font-size:clamp(1.8rem,5vw,2.8rem);font-weight:900;letter-spacing:-.03em;line-height:1.1;margin-bottom:.6rem;}
+.hero h1 span{background:linear-gradient(135deg,#a855f7,#ec3452);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero p{font-size:clamp(.85rem,2vw,1rem);color:rgba(255,255,255,.45);max-width:520px;margin:0 auto;line-height:1.6;}
+
+/* Main grid */
+.support-grid{
+  max-width:880px;margin:0 auto;padding:0 1.2rem 3rem;
+  display:grid;grid-template-columns:1fr;gap:1.2rem;
+}
+@media(min-width:640px){.support-grid{grid-template-columns:1fr 1fr;}}
+
+/* Cards */
+.card{
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
+  border-radius:16px;padding:1.5rem;
+  transition:border-color .2s;
+}
+.card:hover{border-color:rgba(255,255,255,.12);}
+.card-featured{
+  grid-column:1/-1;
+  background:linear-gradient(135deg,rgba(168,85,247,.06),rgba(236,52,82,.04));
+  border:1px solid rgba(168,85,247,.15);
+}
+.card-label{
+  font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;
+  color:rgba(255,255,255,.3);margin-bottom:.8rem;
+}
+.card-title{font-size:1.15rem;font-weight:800;margin-bottom:.3rem;}
+.card-desc{font-size:.82rem;color:rgba(255,255,255,.45);line-height:1.6;margin-bottom:1rem;}
+
+/* $HELP feature card */
+.help-coin{display:flex;align-items:flex-start;gap:1.2rem;flex-wrap:wrap;}
+.help-coin-left{flex:1;min-width:250px;}
+.help-coin-ticker{
+  display:inline-flex;align-items:center;gap:.35rem;
+  font-size:1.6rem;font-weight:900;letter-spacing:-.02em;
+  background:linear-gradient(135deg,#a855f7,#c084fc);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.help-coin-sub{font-size:.82rem;color:rgba(255,255,255,.45);margin:.3rem 0 .8rem;line-height:1.5;}
+.exchanges{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.8rem;}
+.exchange-pill{
+  display:inline-flex;align-items:center;gap:.35rem;
+  padding:.4rem .75rem;border-radius:8px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
+  font-size:.72rem;font-weight:700;color:rgba(255,255,255,.65);
+  transition:all .2s;cursor:pointer;text-decoration:none;
+}
+.exchange-pill:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.15);color:#fff;text-decoration:none;}
+.exchange-pill img{width:16px;height:16px;border-radius:4px;}
+.help-volume-note{
+  margin-top:.8rem;padding:.5rem .7rem;border-radius:8px;
+  background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.1);
+  font-size:.7rem;color:rgba(255,255,255,.4);line-height:1.5;
+}
+.help-volume-note strong{color:#a855f7;font-weight:700;}
+
+/* Wallet addresses */
+.wallet-section{margin-top:.2rem;}
+.wallet-row{
+  display:flex;align-items:center;gap:.6rem;
+  padding:.6rem .7rem;border-radius:10px;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
+  margin-bottom:.5rem;transition:border-color .15s;cursor:pointer;
+}
+.wallet-row:hover{border-color:rgba(255,255,255,.12);}
+.wallet-icon{
+  width:32px;height:32px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.85rem;flex-shrink:0;
+}
+.wallet-icon.eth{background:rgba(98,126,234,.15);}
+.wallet-icon.btc{background:rgba(247,147,26,.15);}
+.wallet-icon.usdc{background:rgba(39,117,202,.15);}
+.wallet-chain{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.5);}
+.wallet-addr{
+  font-size:.7rem;color:rgba(255,255,255,.3);
+  font-family:'SF Mono','Fira Code',monospace;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;
+}
+.wallet-copy{
+  font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  color:#a855f7;flex-shrink:0;opacity:0;transition:opacity .15s;
+}
+.wallet-row:hover .wallet-copy{opacity:1;}
+.copied-toast{color:#22c55e !important;}
+
+/* Transparency section */
+.transparency{
+  grid-column:1/-1;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.8rem;
+  margin-top:.4rem;
+}
+.cost-item{
+  padding:.8rem;border-radius:10px;
+  background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);
+  text-align:center;
+}
+.cost-amount{font-size:1.1rem;font-weight:800;color:#ec3452;margin-bottom:.15rem;}
+.cost-label{font-size:.65rem;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
+
+/* Footer */
+.support-footer{
+  text-align:center;padding:2rem 1.2rem 3rem;
+  border-top:1px solid rgba(255,255,255,.05);
+  max-width:880px;margin:0 auto;
+}
+.support-footer p{font-size:.78rem;color:rgba(255,255,255,.25);line-height:1.7;}
+.support-footer a{color:rgba(255,255,255,.4);}
+
+/* Mobile tap hint */
+@media(max-width:639px){
+  .wallet-copy{opacity:1;}
+  .hero{padding:4.5rem 1.2rem 2rem;}
+}
+</style>
+</head>
+<body>
+
+<div class="back-link">
+  <a href="/">← Back to Dashboard</a>
+  <span style="flex:1"></span>
+  <span>help.imstranded.org</span>
+</div>
+
+<div class="hero">
+  <div class="hero-badge"><span class="pulse"></span> Active Crisis — Gulf Region</div>
+  <h1>Keep This <span>Running</span></h1>
+  <p>ImStranded is volunteer-built, open-source, and free for everyone. Every dollar goes directly to keeping this crisis tool live for stranded travelers.</p>
+</div>
+
+<div class="support-grid">
+
+  <!-- $HELP COIN — Featured -->
+  <div class="card card-featured">
+    <div class="card-label">Featured</div>
+    <div class="help-coin">
+      <div class="help-coin-left">
+        <div class="help-coin-ticker">$HELP</div>
+        <div class="help-coin-sub">Buy and trade $HELP to support stranded travelers worldwide. A portion of every transaction directly funds crisis response infrastructure.</div>
+        <div class="exchanges">
+          <a href="#" class="exchange-pill" title="Trade on Coinbase">
+            <svg width="16" height="16" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="14" fill="#0052FF"/><path d="M14 6a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm-1.8 5.2h3.6c.33 0 .6.27.6.6v4.4c0 .33-.27.6-.6.6h-3.6a.6.6 0 0 1-.6-.6v-4.4c0-.33.27-.6.6-.6z" fill="#fff"/></svg>
+            Coinbase
+          </a>
+          <a href="#" class="exchange-pill" title="Trade on Uniswap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#FF007A"/><path d="M8.5 7c1.5-.5 3 .5 3 2s-1 2.5-2 3.5c-.7.7-1.2 1.5-1 2.5.5-1 1.2-1.5 2-2 1.5-1 3-2 3-4.5S11.5 5 8.5 7zm5 1c.3 0 .5.2.5.5s-.2.5-.5.5-.5-.2-.5-.5.2-.5.5-.5z" fill="#fff"/></svg>
+            Uniswap
+          </a>
+          <a href="#" class="exchange-pill" title="Trade on OKX">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="#fff"/><rect x="4" y="4" width="6" height="6" rx="1" fill="#000"/><rect x="14" y="4" width="6" height="6" rx="1" fill="#000"/><rect x="9" y="9" width="6" height="6" rx="1" fill="#000"/><rect x="4" y="14" width="6" height="6" rx="1" fill="#000"/><rect x="14" y="14" width="6" height="6" rx="1" fill="#000"/></svg>
+            OKX
+          </a>
+        </div>
+        <div class="help-volume-note">
+          <strong>0.60%</strong> of all $HELP trading volume goes directly to ImStranded crisis operations. Every trade helps fund API costs, hosting, and development.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Donate Crypto -->
+  <div class="card">
+    <div class="card-label">Donate Crypto</div>
+    <div class="card-title">Direct Donation</div>
+    <div class="card-desc">Send ETH, BTC, or USDC directly. 100% goes to keeping the platform running.</div>
+    <div class="wallet-section">
+      <div class="wallet-row" onclick="copyAddr(this)" data-addr="YOUR_ETH_ADDRESS_HERE">
+        <div class="wallet-icon eth">⟠</div>
+        <div>
+          <div class="wallet-chain">Ethereum (ETH)</div>
+          <div class="wallet-addr">YOUR_ETH_ADDRESS_HERE</div>
+        </div>
+        <div class="wallet-copy">COPY</div>
+      </div>
+      <div class="wallet-row" onclick="copyAddr(this)" data-addr="YOUR_BTC_ADDRESS_HERE">
+        <div class="wallet-icon btc">₿</div>
+        <div>
+          <div class="wallet-chain">Bitcoin (BTC)</div>
+          <div class="wallet-addr">YOUR_BTC_ADDRESS_HERE</div>
+        </div>
+        <div class="wallet-copy">COPY</div>
+      </div>
+      <div class="wallet-row" onclick="copyAddr(this)" data-addr="YOUR_USDC_ADDRESS_HERE">
+        <div class="wallet-icon usdc">$</div>
+        <div>
+          <div class="wallet-chain">USDC (ERC-20)</div>
+          <div class="wallet-addr">YOUR_USDC_ADDRESS_HERE</div>
+        </div>
+        <div class="wallet-copy">COPY</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- What Your Support Funds -->
+  <div class="card">
+    <div class="card-label">Full Transparency</div>
+    <div class="card-title">Where It Goes</div>
+    <div class="card-desc">This is a volunteer project. No salaries, no overhead. Every contribution directly keeps the platform live and accurate.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+      <div class="cost-item">
+        <div class="cost-amount">$50</div>
+        <div class="cost-label">Flight API / mo</div>
+      </div>
+      <div class="cost-item">
+        <div class="cost-amount">$25</div>
+        <div class="cost-label">Supabase / mo</div>
+      </div>
+      <div class="cost-item">
+        <div class="cost-amount">$20</div>
+        <div class="cost-label">Vercel Hosting</div>
+      </div>
+      <div class="cost-item">
+        <div class="cost-amount">$15</div>
+        <div class="cost-label">Domain / mo</div>
+      </div>
+    </div>
+    <div style="margin-top:.7rem;padding:.5rem .7rem;border-radius:8px;background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.1);font-size:.7rem;color:rgba(255,255,255,.4);line-height:1.5">
+      Total operating cost: <strong style="color:#22c55e">~$110/month</strong>. Anything beyond keeps servers running through the crisis and funds improvements.
+    </div>
+  </div>
+
+  <!-- Impact stats -->
+  <div class="card" style="grid-column:1/-1">
+    <div class="card-label">Impact So Far</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.8rem;text-align:center">
+      <div>
+        <div style="font-size:1.4rem;font-weight:900;color:#a855f7" id="stat-airports">155</div>
+        <div style="font-size:.62rem;color:rgba(255,255,255,.3);text-transform:uppercase;font-weight:600;letter-spacing:.05em">Airports Tracked</div>
+      </div>
+      <div>
+        <div style="font-size:1.4rem;font-weight:900;color:#ec3452" id="stat-cancelled">42K+</div>
+        <div style="font-size:.62rem;color:rgba(255,255,255,.3);text-transform:uppercase;font-weight:600;letter-spacing:.05em">Flights Cancelled</div>
+      </div>
+      <div>
+        <div style="font-size:1.4rem;font-weight:900;color:#fff" id="stat-data">100%</div>
+        <div style="font-size:.62rem;color:rgba(255,255,255,.3);text-transform:uppercase;font-weight:600;letter-spacing:.05em">Live API Data</div>
+      </div>
+      <div>
+        <div style="font-size:1.4rem;font-weight:900;color:#22c55e">$0</div>
+        <div style="font-size:.62rem;color:rgba(255,255,255,.3);text-transform:uppercase;font-weight:600;letter-spacing:.05em">Salaries / Overhead</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="support-footer">
+  <p>
+    ImStranded is open-source and built by volunteers.<br>
+    <a href="/">Back to Dashboard</a> · <a href="https://github.com/communityvolunteer/imstranded" target="_blank">GitHub</a> · <a href="https://imstranded.org" target="_blank">imstranded.org</a>
+  </p>
+</div>
+
+<script>
+function copyAddr(el) {
+  const addr = el.dataset.addr;
+  if (!addr || addr.includes('YOUR_')) {
+    // Placeholder — address not set yet
+    return;
+  }
+  navigator.clipboard.writeText(addr).then(() => {
+    const btn = el.querySelector('.wallet-copy');
+    btn.textContent = 'COPIED ✓';
+    btn.classList.add('copied-toast');
+    setTimeout(() => {
+      btn.textContent = 'COPY';
+      btn.classList.remove('copied-toast');
+    }, 2000);
+  });
+}
+</script>
+</body>
+</html>
