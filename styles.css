@@ -210,6 +210,12 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 
 /* Leaflet */
 .leaflet-container{background:#c9d2d8 !important;}
+/* Eliminate tile seam lines — subpixel gap fix */
+.leaflet-tile{
+  width:calc(100% + 1px) !important;
+  height:calc(100% + 1px) !important;
+  image-rendering:-webkit-optimize-contrast;
+}
 .leaflet-popup-content-wrapper{
   background:#000 !important;border:1px solid rgba(255,255,255,.12) !important;
   color:#fff !important;border-radius:var(--radius) !important;
