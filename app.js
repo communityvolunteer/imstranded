@@ -308,6 +308,7 @@ async function fetchSitrepFromSupabase() {
         }));
         _globalDisruptions = [...meAsDots, ...gd];
         console.log(`[Global] Loaded ${gd.length} global + ${meAsDots.length} ME airports from Supabase`);
+        buildMEOutboundIndex();
       } else {
         _globalDisruptions = computeGlobalFromAirportData();
       }
@@ -351,7 +352,10 @@ function computeGlobalFromAirportData() {
       isME: true,
     }));
     console.log(`[Global] Using REAL data: ${REAL_GLOBAL_DISRUPTIONS.length} global + ${meAsDots.length} ME airports`);
-    return [...meAsDots, ...REAL_GLOBAL_DISRUPTIONS];
+    const result = [...meAsDots, ...REAL_GLOBAL_DISRUPTIONS];
+    // Build outbound index after disruptions are set
+    setTimeout(buildMEOutboundIndex, 0);
+    return result;
   }
   // Fallback to modeled data
   if (typeof computeGlobalDisruptions !== 'function' || typeof ME_AIRPORTS === 'undefined') {
@@ -375,6 +379,7 @@ function computeGlobalFromAirportData() {
   }
   const raw = computeGlobalDisruptions(meStatuses);
   console.log(`[Global] Computed ${raw.length} disrupted airports from model (no real data)`);
+  buildMEOutboundIndex();
   return raw;
 }
 
@@ -383,6 +388,74 @@ function computeTotalStranded() {
   // Skip isME entries — those are already counted in AIRPORT_DATA
   const globalStranded = _globalDisruptions.reduce((s, g) => s + (g.isME ? 0 : (g.stranded || 0)), 0);
   return meStranded + globalStranded;
+}
+
+// ── ME Outbound Index ─────────────────────────────────────
+// Pre-computed: for each ME hub, sorted list of global destinations with cancelled/stranded/airlines
+// Built by inverting AIRLINE_ROUTES with current AIRPORT_DATA cancel rates.
+// This is the source of truth for ME popup "Trying to Leave" data and outbound arcs.
+let _meOutbound = null;
+
+function buildMEOutboundIndex() {
+  if (typeof AIRLINE_ROUTES === 'undefined' || typeof ME_AIRPORTS === 'undefined') return;
+  const meStatuses = {};
+  for (const a of AIRPORT_DATA) {
+    const iata = a.iata || a.code;
+    const cr = (a.cancelRate && a.cancelRate > 1) ? a.cancelRate / 100
+      : a.status === 'CLOSED' ? 0.93
+      : a.status === 'RESTRICTED' || a.status === 'LIMITED' ? 0.6
+      : a.status === 'DISRUPTED' ? 0.15
+      : 0.05;
+    meStatuses[iata] = { cancelRate: cr };
+  }
+
+  const raw = {}; // { hubIata: { destIata: { cancelled, stranded, airlines: Set } } }
+
+  for (const airlineKey in AIRLINE_ROUTES) {
+    const airline = AIRLINE_ROUTES[airlineKey];
+    for (const hub of airline.hubs) {
+      const hubStatus = meStatuses[hub];
+      if (!hubStatus || hubStatus.cancelRate < 0.03) continue;
+      const meHub = ME_AIRPORTS[hub];
+      if (!meHub) continue;
+
+      let totalWeight = 0;
+      const destWeights = [];
+      for (const dest of airline.destinations) {
+        if (ME_AIRPORTS[dest]) continue; // skip intra-ME
+        const w = (typeof DEST_TRAFFIC !== 'undefined' && DEST_TRAFFIC[dest]) || 15;
+        totalWeight += w;
+        destWeights.push({ iata: dest, weight: w });
+      }
+      if (totalWeight === 0) continue;
+
+      const hubCapacity = meHub.dailyFlights * 0.7;
+      for (const dw of destWeights) {
+        const share = dw.weight / totalWeight;
+        const cancelled = Math.round(hubCapacity * share * hubStatus.cancelRate);
+        if (cancelled < 1) continue;
+        const stranded = Math.round(cancelled * (meHub.avgPax || 180));
+        if (!raw[hub]) raw[hub] = {};
+        if (!raw[hub][dw.iata]) raw[hub][dw.iata] = { cancelled: 0, stranded: 0, airlines: new Set() };
+        raw[hub][dw.iata].cancelled += cancelled;
+        raw[hub][dw.iata].stranded  += stranded;
+        raw[hub][dw.iata].airlines.add(airline.name);
+      }
+    }
+  }
+
+  _meOutbound = {};
+  for (const hub of Object.keys(raw)) {
+    _meOutbound[hub] = Object.entries(raw[hub])
+      .map(([destIata, d]) => ({
+        iata: destIata,
+        cancelled: d.cancelled,
+        stranded:  d.stranded,
+        airlines:  Array.from(d.airlines),
+      }))
+      .sort((a, b) => b.cancelled - a.cancelled);
+  }
+  console.log(`[MEOutbound] Built index for ${Object.keys(_meOutbound).length} ME airports`);
 }
 
 // ============================================================
@@ -1310,20 +1383,19 @@ function buildDualPopup(iata) {
   // Global airport: people there trying to fly to/through ME hubs
   var lCancelled = 0, lStranded = 0, lRoutes = [], lAirlines = [];
   if (isMEAirport) {
-    // Use AIRPORT_DATA totals for the headline numbers
+    // Pull from pre-computed outbound index (inverted AIRLINE_ROUTES with live cancel rates)
     var apRow = AIRPORT_DATA.find(function(a) { return (a.iata || a.code) === iata; });
     lCancelled = apRow ? (apRow.cancelled || 0) : 0;
     lStranded  = apRow ? (apRow.stranded  || 0) : 0;
-    // Outbound destinations = global airports that route through this hub, sorted by cancelled desc
-    var outbound = (typeof REAL_GLOBAL_DISRUPTIONS !== 'undefined' ? REAL_GLOBAL_DISRUPTIONS : [])
-      .filter(function(g) { return (g.me_hubs || []).includes(iata); })
-      .sort(function(a, b) { return (b.cancelled || 0) - (a.cancelled || 0); });
-    lRoutes = outbound.slice(0, 6).map(function(g) {
-      var ap2 = typeof findAirport === 'function' ? findAirport(g.iata) : null;
-      return { hub: g.iata, cancelled: g.cancelled || 0, city: ap2 ? ap2.city : g.iata };
+    var outboundDests = (_meOutbound && _meOutbound[iata]) || [];
+    lRoutes = outboundDests.slice(0, 6).map(function(d) {
+      var ap2 = typeof findAirport === 'function' ? findAirport(d.iata) : null;
+      return { hub: d.iata, cancelled: d.cancelled, city: ap2 ? ap2.city : d.iata };
     });
     var seenL = {};
-    outbound.forEach(function(g) { (g.airlines || []).forEach(function(a) { if (!seenL[a]) { seenL[a] = 1; lAirlines.push(a); } }); });
+    outboundDests.forEach(function(d) {
+      d.airlines.forEach(function(a) { if (!seenL[a]) { seenL[a] = 1; lAirlines.push(a); } });
+    });
   } else {
     if (gData) {
       lCancelled = gData.cancelled || 0;
@@ -1346,6 +1418,12 @@ function buildDualPopup(iata) {
   if (isMEAirport) {
     var inbound = (typeof REAL_GLOBAL_DISRUPTIONS !== 'undefined' ? REAL_GLOBAL_DISRUPTIONS : [])
       .filter(function(g) { return (g.me_hubs || []).includes(iata); });
+    // For minor ME hubs not covered by REAL_GLOBAL_DISRUPTIONS, use _meOutbound as a symmetric proxy
+    if (!inbound.length && _meOutbound && _meOutbound[iata]) {
+      inbound = _meOutbound[iata].slice(0, 20).map(function(d) {
+        return { iata: d.iata, cancelled: d.cancelled, stranded: d.stranded, airlines: d.airlines };
+      });
+    }
     hCancelled = inbound.reduce(function(s, g) { return s + (g.cancelled || 0); }, 0);
     hStranded  = inbound.reduce(function(s, g) { return s + (g.stranded || 0); }, 0);
     hRoutes = inbound.slice(0, 6).map(function(g) {
@@ -1472,16 +1550,15 @@ function drawPopupArcs(iata, mode) {
   if (mode === 'leave') {
     if (isMEAirport) {
       // ME airport: draw arcs FROM this hub TO affected global destinations
-      const globalDests = (typeof REAL_GLOBAL_DISRUPTIONS !== 'undefined' ? REAL_GLOBAL_DISRUPTIONS : [])
-        .filter(g => (g.me_hubs || []).includes(iata));
-      if (!globalDests.length) return;
-      const maxC = Math.max(...globalDests.map(g => g.cancelled || 1), 1);
+      const outboundDests = (_meOutbound && _meOutbound[iata]) || [];
+      if (!outboundDests.length) return;
+      const maxC = Math.max(...outboundDests.map(d => d.cancelled || 1), 1);
       for (const map of maps) {
-        for (const g of globalDests) {
-          const destAp = typeof findAirport === 'function' ? findAirport(g.iata) : null;
+        for (const d of outboundDests) {
+          const destAp = typeof findAirport === 'function' ? findAirport(d.iata) : null;
           if (!destAp) continue;
-          const weight = 1 + ((g.cancelled || 1) / maxC) * 4;
-          const opacity = 0.2 + ((g.cancelled || 1) / maxC) * 0.35;
+          const weight = 1 + ((d.cancelled || 1) / maxC) * 4;
+          const opacity = 0.2 + ((d.cancelled || 1) / maxC) * 0.35;
           const arc = generateArc([ap.lat, ap.lng], [destAp.lat, destAp.lng], 30);
           const line = L.polyline(arc, { color: `rgba(168,85,247,${opacity})`, weight, interactive: false }).addTo(map);
           _globalArcLines.push(line);
@@ -1520,8 +1597,12 @@ function drawPopupArcs(iata, mode) {
     // 'home' or 'flyin'
     if (isMEAirport) {
       // ME airport "flying in": draw arcs FROM global origins TO this hub
-      const inbound = (typeof REAL_GLOBAL_DISRUPTIONS !== 'undefined' ? REAL_GLOBAL_DISRUPTIONS : [])
+      let inbound = (typeof REAL_GLOBAL_DISRUPTIONS !== 'undefined' ? REAL_GLOBAL_DISRUPTIONS : [])
         .filter(g => (g.me_hubs || []).includes(iata));
+      // Fall back to _meOutbound for minor hubs not in REAL_GLOBAL_DISRUPTIONS me_hubs
+      if (!inbound.length && _meOutbound && _meOutbound[iata]) {
+        inbound = _meOutbound[iata].slice(0, 20).map(d => ({ iata: d.iata, cancelled: d.cancelled, stranded: d.stranded }));
+      }
       if (!inbound.length) return;
       const maxC = Math.max(...inbound.map(g => g.cancelled || 1), 1);
       for (const map of maps) {
