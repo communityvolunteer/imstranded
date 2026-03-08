@@ -109,20 +109,20 @@ function googleTranslateInit() {
     <div class="sitrep-label" id="stranded-label">Est. Stranded</div>
     <div class="sitrep-sub" id="stranded-sub">tap · see how</div>
   </div>
-  <div class="sitrep-stat sitrep-stat--help-money" id="ss-help-money" onclick="window.open('/support.html','_blank')">
-    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#a051ea" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-    <div class="sitrep-label">$HELP</div>
-    <div class="sitrep-sub">tap · donate</div>
+  <div class="sitrep-stat sitrep-stat--offer-room" id="ss-offer-room" onclick="showView('help');switchHelpTab('offer')">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    <div class="sitrep-label" style="color:#3498ec">Offer Spare Room</div>
+    <div class="sitrep-sub">tap · help someone</div>
   </div>
   <div class="sitrep-stat sitrep-stat--im-stranded" id="ss-im-stranded" onclick="showView('help');switchHelpMode('stranded')">
     <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
     <div class="sitrep-label" style="color:#ec3452">I'm Stranded</div>
     <div class="sitrep-sub">tap · register</div>
   </div>
-  <div class="sitrep-stat sitrep-stat--offer-room" id="ss-offer-room" onclick="showView('help');switchHelpTab('offer')">
-    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    <div class="sitrep-label" style="color:#3498ec">Offer Spare Room</div>
-    <div class="sitrep-sub">tap · help someone</div>
+  <div class="sitrep-stat sitrep-stat--help-money" id="ss-help-money" onclick="window.open('/support.html','_blank')">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#a051ea" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    <div class="sitrep-label">$HELP</div>
+    <div class="sitrep-sub">tap · donate</div>
   </div>
 </div>
 
