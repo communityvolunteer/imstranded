@@ -213,11 +213,10 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 
 /* Leaflet */
 .leaflet-container{background:#c9d2d8 !important;}
-/* Eliminate tile seam lines — subpixel gap fix */
+/* Eliminate tile seam lines — GPU compositing trick, doesn't break Leaflet's tile sizing */
 .leaflet-tile{
-  width:calc(100% + 1px) !important;
-  height:calc(100% + 1px) !important;
-  image-rendering:-webkit-optimize-contrast;
+  outline:1px solid transparent;
+  transform:translate3d(0,0,0);
 }
 /* Zoom controls — transparent, oversized, theme-aware color */
 .leaflet-control-zoom{border:none !important;box-shadow:none !important;background:transparent !important;}
