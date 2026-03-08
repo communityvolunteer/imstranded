@@ -332,8 +332,17 @@ async function fetchSitrepFromSupabase() {
 function computeGlobalFromAirportData() {
   // Prefer REAL global disruption data from AviationStack
   if (typeof REAL_GLOBAL_DISRUPTIONS !== 'undefined' && REAL_GLOBAL_DISRUPTIONS.length) {
-    console.log(`[Global] Using REAL data: ${REAL_GLOBAL_DISRUPTIONS.length} global airports from AviationStack`);
-    return REAL_GLOBAL_DISRUPTIONS;
+    // Add ME airports as purple dots too (flagged isME to avoid double-counting in totals)
+    const meAsDots = AIRPORT_DATA.filter(a => (a.cancelled || 0) > 0).map(a => ({
+      iata: a.iata || a.code,
+      cancelled: a.cancelled,
+      stranded: a.stranded || (a.cancelled * 185),
+      airlines: [],
+      me_hubs: [],
+      isME: true,
+    }));
+    console.log(`[Global] Using REAL data: ${REAL_GLOBAL_DISRUPTIONS.length} global + ${meAsDots.length} ME airports`);
+    return [...meAsDots, ...REAL_GLOBAL_DISRUPTIONS];
   }
   // Fallback to modeled data
   if (typeof computeGlobalDisruptions !== 'function' || typeof ME_AIRPORTS === 'undefined') {
@@ -362,7 +371,8 @@ function computeGlobalFromAirportData() {
 
 function computeTotalStranded() {
   const meStranded = AIRPORT_DATA.reduce((s, a) => s + (a.stranded || 0), 0);
-  const globalStranded = _globalDisruptions.reduce((s, g) => s + (g.stranded || 0), 0);
+  // Skip isME entries — those are already counted in AIRPORT_DATA
+  const globalStranded = _globalDisruptions.reduce((s, g) => s + (g.isME ? 0 : (g.stranded || 0)), 0);
   return meStranded + globalStranded;
 }
 
