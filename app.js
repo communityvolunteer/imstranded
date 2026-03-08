@@ -1391,8 +1391,16 @@ function setAccent(name) {
     drawSuccessArcs(window._mobileMap);
     // Live-repaint country status dots (rendered once at init, stored in _mk.country)
     const newCol = accentHex();
-    (_mk.country || []).forEach(({marker}) => {
-      try { marker.setStyle({ fillColor: newCol, color: newCol }); } catch(e) {}
+    (_mk.country || []).forEach(({marker, status}) => {
+      // glow rings have fillOpacity .12 and are red — skip them
+      try {
+        const opts = marker.options;
+        if (opts.fillOpacity > 0.2) marker.setStyle({ fillColor: newCol });
+      } catch(e) {}
+    });
+    // Worldwide dots
+    (_mk.worldwide || []).forEach(m => {
+      try { m.setStyle({ fillColor: newCol }); } catch(e) {}
     });
   }
 }
@@ -1832,7 +1840,7 @@ function renderGlobalDisruptions(map, data) {
       radius,
       pane: 'airportPane',
       fillColor: accentHex(),
-      color: ''+accentRgba(.5)+'',
+      color: '#fff',
       weight: borderW,
       fillOpacity: opacity,
       className: 'global-disruption-dot',
@@ -2272,6 +2280,13 @@ async function refreshSitrep() {
   _globalPins = [];
   renderGlobalDisruptions(window._crisisMap, _globalDisruptions);
   renderGlobalDisruptions(window._mobileMap, _globalDisruptions);
+  // Draw arcs on initial load (checkboxes default to checked)
+  const _arcState = getFilterState();
+  if (_arcState.showArcs) {
+    clearGlobalArcs();
+    drawGlobalRouteArcs(window._crisisMap, _globalDisruptions);
+    drawGlobalRouteArcs(window._mobileMap, _globalDisruptions);
+  }
 }
 
 // ============================================================
@@ -2316,13 +2331,16 @@ function initMobile(){
 
   COUNTRIES.forEach(c => {
     const col = getSC()[c.status];
-    L.circleMarker(c.coords, {pane:'countryPane',interactive:false,radius:28,fillColor:'#ec3452',color:'#ec3452',weight:0,opacity:0,fillOpacity:.12}).addTo(mmap);
-    L.circleMarker(c.coords, {pane:'countryPane',interactive:true,radius:10,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.92}).addTo(mmap)
+    const mglow = L.circleMarker(c.coords, {pane:'countryPane',interactive:false,radius:28,fillColor:'#ec3452',color:'#ec3452',weight:0,opacity:0,fillOpacity:.12}).addTo(mmap);
+    const mdot  = L.circleMarker(c.coords, {pane:'countryPane',interactive:true,radius:10,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.92}).addTo(mmap)
       .on('click', () => openMCountryPopup(c.id));
+    _mk.country.push({marker:mglow,status:c.status});
+    _mk.country.push({marker:mdot,status:c.status});
   });
   WORLDWIDE.forEach(r=>{
-    L.circleMarker(r.coords,{pane:'worldwidePane',interactive:true,radius:7,fillColor:accentHex(),color:'#fff',weight:1.5,opacity:.9,fillOpacity:.5}).addTo(mmap)
+    const mw = L.circleMarker(r.coords,{pane:'worldwidePane',interactive:true,radius:7,fillColor:accentHex(),color:'#fff',weight:1.5,opacity:.9,fillOpacity:.5}).addTo(mmap)
       .on('click',()=>openMWorldwidePopup(r.id));
+    _mk.worldwide.push(mw);
   });
   window._mobileMap=mmap;
   _mHelpCluster = L.markerClusterGroup({

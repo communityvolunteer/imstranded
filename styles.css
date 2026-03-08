@@ -73,7 +73,7 @@ nav button{
   color:rgba(255,255,255,.6);font-family:'Inter',sans-serif;font-size:.85rem;font-weight:500;
   padding:0 1.1rem;height:56px;margin-bottom:-1px;cursor:pointer;transition:all .15s;white-space:nowrap;
 }
-nav button.active{color:#fff;border-bottom-color:#3498ec;}
+nav button.active{color:#fff;border-bottom-color:var(--accent);}
 nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 
 .header-right{display:flex;align-items:center;gap:.75rem;justify-self:end;}
@@ -664,7 +664,7 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
   }
   .m-tab svg{width:25px;height:25px;stroke:rgb(255, 255, 255);}
   .m-tab#mtab-help svg{stroke:var(--accent);}
-  .m-tab.active{color:#fff;border-top-color:#3498ec;}
+  .m-tab.active{color:#fff;border-top-color:var(--accent);}
   .m-tab.active svg{stroke:#fff;}
   .m-tab:hover:not(.active){color:rgb(255, 255, 255);}
 
@@ -867,7 +867,7 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 .sitrep-stat--filter:hover{background:rgba(255,255,255,.04);}
 .sitrep-stat--filter:hover svg{stroke:#fff;}
 .sitrep-stat--filter.active-filter{background:rgba(255,255,255,.04);}
-.sitrep-stat--filter.active-filter svg{stroke:#3498ec;} 
+.sitrep-stat--filter.active-filter svg{stroke:var(--accent);} 
 
 @media(max-width:768px){
   .filter-panel{display:none !important;}
