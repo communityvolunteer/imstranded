@@ -2843,7 +2843,7 @@ async function renderProfilePosts() {
   const verified = _currentProfile?.google_verified || _currentProfile?.x_verified || _currentProfile?.tg_verified;
   el.innerHTML = data.map(p => {
     const t = p.created_at ? new Date(p.created_at).toLocaleString() : '';
-    return `<div class="profile-post-card">
+    return `<div class="profile-post-card" data-post-id="${p.id}">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">
         <span style="font-size:.82rem;font-weight:600;color:#fff">${p.name} ${buildBadge(verified)}</span>
         <span style="font-size:.63rem;color:rgba(255,255,255,.35)">${t}</span>
@@ -2857,6 +2857,7 @@ async function renderProfilePosts() {
       </div>
     </div>`;
   }).join('');
+  injectMatchNotifications('profile-posts-list');
 }
 
 async function profileDeletePost(id) {
@@ -3029,7 +3030,7 @@ async function mRenderProfilePosts() {
     }
     list.innerHTML = data.map(p => {
       const t = p.created_at ? new Date(p.created_at).toLocaleString() : '';
-      return `<div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.75rem;margin-bottom:.6rem">
+      return `<div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.75rem;margin-bottom:.6rem" data-post-id="${p.id}">
         <div style="font-size:.7rem;color:rgba(255,255,255,.45);margin-bottom:.2rem">${t}</div>
         <div style="font-size:.85rem;font-weight:600;color:#fff;margin-bottom:.15rem">📍 ${p.location}</div>
         <div style="font-size:.8rem;color:rgba(255,255,255,.7);line-height:1.5;margin-bottom:.6rem">${(p.body || '').slice(0, 120)}${(p.body || '').length > 120 ? '...' : ''}</div>
@@ -3039,6 +3040,7 @@ async function mRenderProfilePosts() {
         </div>
       </div>`;
     }).join('');
+    injectMatchNotifications('m-my-posts-list');
   } catch (e) {
     list.innerHTML = `<div style="color:#ec3452;font-size:.82rem;padding:.5rem 0">Error: ${e.message}</div>`;
   }
@@ -3084,6 +3086,9 @@ async function renderProfileStranded() {
       ${needsList ? '<div style="font-size:.72rem;color:#e67e22;margin-top:.2rem">Needs: '+needsList+'</div>' : ''}
       ${p.details ? '<div style="font-size:.78rem;color:rgba(255,255,255,.45);line-height:1.4;margin-top:.2rem">'+p.details.slice(0,120)+'</div>' : ''}
       <div class="profile-post-actions">
+        <button class="found-place-btn" onclick="openMatchPicker('${p.id}','${p.current_lat||0}','${p.current_lng||0}','${(p.name||'').replace(/'/g,"\\'")}')">
+          🏠 Found a place?
+        </button>
         <button onclick="editStrandedPost('${p.id}')" style="background:rgba(52,152,236,.15);color:#3498ec;border:1px solid rgba(52,152,236,.25);border-radius:6px;padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Edit</button>
         <button onclick="deleteStrandedPost('${p.id}')" style="background:#ec3452;color:#fff;border:none;border-radius:6px;padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Remove from Map</button>
       </div>
@@ -3576,6 +3581,292 @@ function initStrandedRealtime() {
 }
 
 
+// ════════════════════════════════════════════════════════════════
+// SUCCESS STORIES / MATCH SYSTEM
+// ════════════════════════════════════════════════════════════════
+/*
+  SUPABASE — run this SQL once in your dashboard:
+
+  create table public.success_stories (
+    id uuid default gen_random_uuid() primary key,
+    stranded_post_id uuid not null,
+    offer_post_id uuid not null,
+    stranded_user_id uuid not null,
+    offer_user_id uuid not null,
+    stranded_story text,
+    offer_story text,
+    stranded_confirmed boolean default true,
+    offer_confirmed boolean default false,
+    confirmed_at timestamptz,
+    lat double precision,
+    lng double precision,
+    offer_location text,
+    offer_xhandle text,
+    stranded_name text,
+    offer_name text,
+    created_at timestamptz default now()
+  );
+  alter table public.success_stories enable row level security;
+  create policy "read_confirmed" on public.success_stories
+    for select using (offer_confirmed = true);
+  create policy "read_own" on public.success_stories
+    for select using (auth.uid() = stranded_user_id or auth.uid() = offer_user_id);
+  create policy "stranded_insert" on public.success_stories
+    for insert with check (auth.uid() = stranded_user_id);
+  create policy "update_own" on public.success_stories
+    for update using (auth.uid() = stranded_user_id or auth.uid() = offer_user_id);
+*/
+
+let _successStories = [];
+let _successLayer = null;
+let _mSuccessLayer = null;
+
+// ── Haversine distance (km) ──────────────────────────────────
+function haversineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371, toRad = x => x * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1), dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// ── Load confirmed stories and render green pins ─────────────
+async function loadSuccessStories() {
+  if (!SB_ON) return;
+  const { data } = await _sb.from('success_stories')
+    .select('id,lat,lng,offer_location,offer_xhandle,stranded_name,offer_name,stranded_story,offer_story,confirmed_at')
+    .eq('offer_confirmed', true)
+    .order('confirmed_at', { ascending: false })
+    .limit(500);
+  _successStories = data || [];
+  renderSuccessOnMap(window._crisisMap);
+  renderSuccessOnMap(window._mobileMap);
+}
+
+function renderSuccessOnMap(map) {
+  if (!map) return;
+  const isMobileM = map === window._mobileMap;
+  const key = isMobileM ? '_mSuccessLayer' : '_successLayer';
+  if (window[key]) map.removeLayer(window[key]);
+  window[key] = L.layerGroup();
+
+  for (const s of _successStories) {
+    if (!s.lat || !s.lng) continue;
+    const icon = L.divIcon({ className: '', html: '<div class="success-pin"></div>', iconSize: [16,16], iconAnchor: [8,8] });
+    const date = s.confirmed_at ? new Date(s.confirmed_at).toLocaleDateString() : '';
+    const sStory = s.stranded_story ? `<div style="font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.5;margin:.35rem 0;padding-left:.55rem;border-left:2px solid rgba(236,52,82,.4)">"${s.stranded_story}"</div>` : '';
+    const oStory = s.offer_story   ? `<div style="font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.5;margin:.35rem 0;padding-left:.55rem;border-left:2px solid rgba(52,152,236,.4)">"${s.offer_story}"</div>` : '';
+    const popHtml = `<div style="font-family:Inter,sans-serif">
+      <div style="font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:#22c55e;margin-bottom:.35rem">✓ Matched · ${date}</div>
+      <div style="font-size:.9rem;font-weight:700;color:#fff;margin-bottom:.08rem">${s.offer_name||'A Helper'} welcomed ${s.stranded_name||'Someone Stranded'}</div>
+      <div style="font-size:.7rem;color:rgba(255,255,255,.35);margin-bottom:.45rem">📍 ${s.offer_location||''}</div>
+      ${sStory}${oStory}
+      ${!sStory&&!oStory ? '<div style="font-size:.73rem;color:rgba(255,255,255,.25);font-style:italic">No story shared.</div>' : ''}
+    </div>`;
+    const marker = L.marker([s.lat, s.lng], { icon });
+    if (isMobileM) marker.on('click', e => { L.DomEvent.stopPropagation(e); openMPinSheet(popHtml); });
+    else marker.bindPopup(popHtml, { className: 'dark-popup', maxWidth: 280 });
+    window[key].addLayer(marker);
+  }
+  map.addLayer(window[key]);
+}
+
+// ── "Found a place?" — open match picker from stranded card ──
+let _matchPickerStrandedId = null;
+
+async function openMatchPicker(strandedPostId, strandedLat, strandedLng, strandedName) {
+  if (!isLoggedIn()) { alert('Please sign in first.'); return; }
+  _matchPickerStrandedId = strandedPostId;
+
+  // Check if already submitted
+  const { data: existing } = await _sb.from('success_stories')
+    .select('id,offer_confirmed').eq('stranded_post_id', strandedPostId).eq('stranded_user_id', _currentUser.id).maybeSingle();
+  if (existing?.offer_confirmed) {
+    openStoryPrompt(existing.id, 'stranded'); return;
+  }
+  if (existing && !existing.offer_confirmed) {
+    alert('Your match request is waiting for the room-offerer to approve. We\'ll notify them!'); return;
+  }
+
+  // Sort available offers by distance
+  const lat = parseFloat(strandedLat), lng = parseFloat(strandedLng);
+  let offerList = posts.filter(p => p.lat && p.lng && p.user_id);
+  if (lat && lng) {
+    offerList = offerList.map(p => ({ ...p, _dist: haversineKm(lat, lng, p.lat, p.lng) }))
+                         .sort((a,b) => a._dist - b._dist);
+  }
+
+  const body = document.getElementById('match-modal-body');
+  body.innerHTML = `
+    <div class="match-modal-title">🏠 Who gave you a place?</div>
+    <div class="match-modal-sub">Select the spare room post that helped you. The host will get a notification to confirm — and enter the weekly $HELP pool.</div>
+    <div id="match-offer-list">
+      ${offerList.length === 0
+        ? '<div style="color:rgba(255,255,255,.35);font-size:.8rem;padding:1rem 0 .5rem">No spare room posts found near you yet.</div>'
+        : offerList.slice(0, 15).map(p => `
+        <div class="match-offer-card" onclick="selectMatchOffer(this,'${p.id}','${(p.user_id||'')}','${(p.location||'').replace(/'/g,"\\'")}','${(p.xhandle||'')}','${(p.lat||0)}','${(p.lng||0)}','${(p.name||'').replace(/'/g,"\\'")}')">
+          <div class="match-offer-name">${p.name||'Anonymous'}</div>
+          <div class="match-offer-loc">📍 ${p.location||'Unknown'}</div>
+          ${p._dist != null ? `<div class="match-offer-dist">${p._dist < 1 ? '<1' : Math.round(p._dist)} km away</div>` : ''}
+          ${p.body ? `<div class="match-offer-body">${(p.body).slice(0,100)}${p.body.length>100?'…':''}</div>` : ''}
+        </div>`).join('')}
+    </div>
+    <div style="display:flex;gap:.5rem;margin-top:.9rem">
+      <button onclick="closeMatchModal()" style="flex:1;padding:.5rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:rgba(255,255,255,.4);font-family:Inter,sans-serif;font-size:.75rem;font-weight:700;cursor:pointer">Cancel</button>
+      <button id="match-confirm-btn" onclick="submitMatchRequest('${strandedPostId}','${strandedName}')" disabled style="flex:2;padding:.5rem;background:#22c55e;border:none;border-radius:9px;color:#000;font-family:Inter,sans-serif;font-size:.75rem;font-weight:800;cursor:pointer;opacity:.3">Confirm Match →</button>
+    </div>`;
+
+  document.getElementById('match-modal').classList.add('open');
+}
+
+let _selectedOffer = null;
+
+function selectMatchOffer(el, offerId, offerUserId, offerLocation, offerXhandle, lat, lng, offerName) {
+  document.querySelectorAll('.match-offer-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  _selectedOffer = { offerId, offerUserId, offerLocation, offerXhandle, lat: parseFloat(lat), lng: parseFloat(lng), offerName };
+  const btn = document.getElementById('match-confirm-btn');
+  if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+}
+
+async function submitMatchRequest(strandedPostId, strandedName) {
+  if (!_selectedOffer || !isLoggedIn()) return;
+  const btn = document.getElementById('match-confirm-btn');
+  if (btn) { btn.textContent = 'Sending…'; btn.disabled = true; }
+
+  try {
+    const { error } = await _sb.from('success_stories').insert({
+      stranded_post_id: strandedPostId,
+      offer_post_id: _selectedOffer.offerId,
+      stranded_user_id: _currentUser.id,
+      offer_user_id: _selectedOffer.offerUserId,
+      stranded_confirmed: true,
+      offer_confirmed: false,
+      lat: _selectedOffer.lat || null,
+      lng: _selectedOffer.lng || null,
+      offer_location: _selectedOffer.offerLocation || null,
+      offer_xhandle: _selectedOffer.offerXhandle || null,
+      stranded_name: strandedName || _currentProfile?.display_name || null,
+      offer_name: _selectedOffer.offerName || null,
+    });
+    if (error) throw error;
+    closeMatchModal();
+    renderProfileStranded();
+    alert('✅ Match request sent! The host will see a notification and approve it — which enters them into the weekly $HELP pool.');
+  } catch(e) {
+    alert('Error submitting match: ' + e.message);
+    if (btn) { btn.textContent = 'Confirm Match →'; btn.disabled = false; btn.style.opacity = '1'; }
+  }
+}
+
+function closeMatchModal() {
+  document.getElementById('match-modal').classList.remove('open');
+  _selectedOffer = null;
+  _matchPickerStrandedId = null;
+}
+
+// ── Pending match notifications on offer cards ──────────────
+async function injectMatchNotifications(listElId) {
+  if (!isLoggedIn() || !SB_ON) return;
+  const { data: pending } = await _sb.from('success_stories')
+    .select('id,offer_post_id,stranded_name,stranded_story,offer_confirmed')
+    .eq('offer_user_id', _currentUser.id)
+    .eq('offer_confirmed', false);
+  if (!pending || !pending.length) return;
+
+  const list = document.getElementById(listElId);
+  if (!list) return;
+
+  for (const s of pending) {
+    const card = list.querySelector(`[data-post-id="${s.offer_post_id}"]`);
+    if (!card) continue;
+    // Don't inject twice
+    if (card.querySelector('.match-notif-banner')) continue;
+    const banner = document.createElement('div');
+    banner.className = 'match-notif-banner';
+    banner.innerHTML = `
+      <div class="match-notif-dot"></div>
+      <div class="match-notif-text"><strong style="color:#22c55e">${s.stranded_name||'Someone'}</strong> says you helped them. Approve to enter the weekly $HELP pool!</div>
+      <button class="match-notif-btn" onclick="approveMatch('${s.id}')">Approve ✓</button>`;
+    card.appendChild(banner);
+  }
+}
+
+// ── Approve match (offer-side) ───────────────────────────────
+async function approveMatch(storyId) {
+  if (!isLoggedIn()) return;
+  try {
+    const { error } = await _sb.from('success_stories').update({
+      offer_confirmed: true,
+      confirmed_at: new Date().toISOString()
+    }).eq('id', storyId).eq('offer_user_id', _currentUser.id);
+    if (error) throw error;
+    await loadSuccessStories();
+    renderProfilePosts();
+    mRenderProfilePosts();
+    openStoryPrompt(storyId, 'offer');
+  } catch(e) { alert('Error approving match: ' + e.message); }
+}
+
+// ── Story Prompt ─────────────────────────────────────────────
+async function openStoryPrompt(storyId, side) {
+  const { data: s } = await _sb.from('success_stories')
+    .select('stranded_story,offer_story,stranded_name,offer_name').eq('id', storyId).single();
+  if (!s) return;
+
+  const existingText = side === 'stranded' ? (s.stranded_story||'') : (s.offer_story||'');
+  const otherName = side === 'stranded' ? (s.offer_name||'your host') : (s.stranded_name||'the person you helped');
+  const maxLen = 200;
+
+  const body = document.getElementById('story-modal-body');
+  body.innerHTML = `
+    <div class="match-modal-title" style="color:#22c55e">🎉 You're matched!</div>
+    <div class="match-modal-sub">Want to share what happened with ${otherName}? It'll appear on the map as a green pin — a little proof this works. (Optional, max ${maxLen} chars)</div>
+    <textarea class="story-textarea" id="story-text" maxlength="${maxLen}" placeholder="In my own words, what happened…" oninput="document.getElementById('story-char-count').textContent=(${maxLen}-this.value.length)+' left'">${existingText}</textarea>
+    <div class="story-char-count" id="story-char-count">${maxLen - existingText.length} left</div>
+    <div style="display:flex;gap:.5rem">
+      <button onclick="closeStoryModal()" style="flex:1;padding:.5rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:rgba(255,255,255,.4);font-family:Inter,sans-serif;font-size:.75rem;font-weight:700;cursor:pointer">Skip</button>
+      <button onclick="submitStory('${storyId}','${side}')" style="flex:2;padding:.5rem;background:#22c55e;border:none;border-radius:9px;color:#000;font-family:Inter,sans-serif;font-size:.75rem;font-weight:800;cursor:pointer">Share Story →</button>
+    </div>`;
+
+  document.getElementById('story-modal').classList.add('open');
+}
+
+async function submitStory(storyId, side) {
+  const text = (document.getElementById('story-text')?.value || '').trim();
+  if (!text) { closeStoryModal(); return; }
+  const field = side === 'stranded' ? 'stranded_story' : 'offer_story';
+  try {
+    const { error } = await _sb.from('success_stories').update({ [field]: text }).eq('id', storyId);
+    if (error) throw error;
+    await loadSuccessStories();
+    closeStoryModal();
+  } catch(e) { alert('Error saving story: ' + e.message); }
+}
+
+function closeStoryModal() {
+  document.getElementById('story-modal').classList.remove('open');
+}
+
+// ── Weekly $HELP pool download (admin) ──────────────────────
+// Open your browser console and run: downloadPoolCSV()
+async function downloadPoolCSV() {
+  const weekAgo = new Date(Date.now() - 7*24*60*60*1000).toISOString();
+  const { data } = await _sb.from('success_stories')
+    .select('offer_xhandle,offer_name,offer_location,confirmed_at')
+    .eq('offer_confirmed', true)
+    .gte('confirmed_at', weekAgo)
+    .not('offer_xhandle', 'is', null);
+  if (!data?.length) { console.log('No confirmed matches this week.'); return; }
+  const csv = 'X Handle,Name,Location,Confirmed\n' +
+    data.map(r => `@${r.offer_xhandle},${r.offer_name||''},${r.offer_location||''},${r.confirmed_at}`).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = `help-pool-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  console.log(`Downloaded ${data.length} confirmed matches for this week's $HELP pool.`);
+}
+window.downloadPoolCSV = downloadPoolCSV;
+
 window.addEventListener('DOMContentLoaded',()=>{
   if(isMob()){ initMobile(); }
   else {
@@ -3595,7 +3886,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   initLocationAutocomplete('m-stranded-location','m-stranded-lat','m-stranded-lng','m-stranded-location-ac');
   refreshSitrep();
   setInterval(refreshSitrep,5*60*1000);
-  if(SB_ON){loadPosts();subscribeStream();}
+  if(SB_ON){loadPosts();loadSuccessStories();subscribeStream();}
   else{
     const el=document.getElementById('offer-posts');
     if(el)el.innerHTML='<div class="empty-state" style="color:var(--warn)">Supabase not configured.</div>';

@@ -912,13 +912,13 @@ function googleTranslateInit() {
       <div class="hstep" id="hs-s3">
         <div class="hstep-num">3</div>
         <div class="hstep-body">
-          <div class="hstep-title">Send $HELP to ImStranded</div>
-          <div class="hstep-desc">Tip our account directly to help keep this crisis tool running for everyone.</div>
+          <div class="hstep-title">Tip the $HELP Pool</div>
+          <div class="hstep-desc">Tips sent to @imstrandedorg are split every week among all confirmed matched hosts — the people who actually gave someone a place to stay.</div>
           <a id="hs-s3-btn" href="https://x.com/intent/tweet?text=@bankrbot%20Tip%201%20$HELP%20to%20@imstrandedorg" target="_blank" class="hstep-btn hstep-btn--blue">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-            Tip @imstrandedorg on X
+            Tip the $HELP Pool
           </a>
-          <div class="hstep-muted" id="hs-s3-locked" style="display:none">Connect X first (step 1) to enable tipping.</div>
+          <div class="hstep-muted" id="hs-s3-locked" style="display:none">Connect X first (step 1) to tip the pool.</div>
         </div>
       </div>
 
@@ -997,12 +997,32 @@ function googleTranslateInit() {
 
     </div>
 
-    <!-- Coinbase -->
+    <!-- $HELP Pool -->
     <div class="help-donate-row">
-      <span>Don't have $HELP?</span>
-      <a href="https://coinbase.com/join/KFWJYRD?src=android-link" target="_blank">Get it on Coinbase →</a>
+      <span>All tips to @imstrandedorg →</span>
+      <a href="https://x.com/intent/tweet?text=@bankrbot%20Tip%201%20$HELP%20to%20@imstrandedorg" target="_blank">split weekly among Matched hosts ✓</a>
     </div>
 
+  </div>
+</div>
+
+<!-- Match Picker Modal — stranded person picks which offer they matched with -->
+<div id="match-modal">
+  <div class="match-modal-inner">
+    <button onclick="closeMatchModal()" class="help-panel-x" aria-label="Close">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div id="match-modal-body"></div>
+  </div>
+</div>
+
+<!-- Story Prompt Modal — shown after match is approved, to both sides -->
+<div id="story-modal">
+  <div class="match-modal-inner">
+    <button onclick="closeStoryModal()" class="help-panel-x" aria-label="Close">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div id="story-modal-body"></div>
   </div>
 </div>
 
