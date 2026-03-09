@@ -3010,61 +3010,66 @@ const isMob=()=>window.innerWidth<=600;
 function initMobile(){
   window._mobileInit=true;
   document.getElementById('m-shell').style.display='flex';
-  const mmap=L.map('m-crisis-map',{zoomControl:false,attributionControl:false}).setView([28,45],4);
-  window._mTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mmap);
 
-  mmap.createPane('worldwidePane');
-  mmap.getPane('worldwidePane').style.zIndex = 580;
-  mmap.createPane('airportGlowPane');
-  mmap.getPane('airportGlowPane').style.zIndex = 620;
-  mmap.createPane('airportPane');
-  mmap.getPane('airportPane').style.zIndex = 630;
-  mmap.createPane('countryPane');
-  mmap.getPane('countryPane').style.zIndex = 640;
+  // ── Critical: wait for the browser to paint the flex layout ──────────────
+  // #m-shell starts as display:none. Setting it to flex and immediately calling
+  // L.map() means Leaflet measures a 0×0 container — the SVG overlay is created
+  // at zero size, so ALL vector layers (circle markers, polylines, arcs) are
+  // invisible. Two rAF calls let the browser complete layout + paint first.
+  requestAnimationFrame(() => requestAnimationFrame(() => {
 
-  COUNTRIES.forEach(c => {
-    const col = getSC()[c.status];
-    const mglow = L.circleMarker(c.coords, {pane:'countryPane',interactive:false,radius:28,fillColor:'#ec3452',color:'#ec3452',weight:0,opacity:0,fillOpacity:.12}).addTo(mmap);
-    const mdot  = L.circleMarker(c.coords, {pane:'countryPane',interactive:true,radius:10,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.92}).addTo(mmap)
-      .on('click', () => openMCountryPopup(c.id));
-    _mk.country.push({marker:mglow,status:c.status});
-    _mk.country.push({marker:mdot,status:c.status});
-  });
-  WORLDWIDE.forEach(r=>{
-    const mw = L.circleMarker(r.coords,{pane:'worldwidePane',interactive:true,radius:7,fillColor:accentHex(),color:'#fff',weight:1.5,opacity:.9,fillOpacity:.5}).addTo(mmap)
-      .on('click',()=>openMWorldwidePopup(r.id));
-    _mk.worldwide.push(mw);
-  });
-  window._mobileMap=mmap;
-  _mHelpCluster = L.markerClusterGroup({
-    maxClusterRadius: 120,
-    spiderfyOnMaxZoom: true,
-    showCoverageOnHover: false,
-    zoomToBoundsOnClick: true,
-    disableClusteringAtZoom: 16,
-  });
-  mmap.addLayer(_mHelpCluster);
-  renderStrandedOnMap(mmap, true);
-  mRenderResources();
+    const mmap=L.map('m-crisis-map',{zoomControl:false,attributionControl:false}).setView([28,45],4);
+    window._mTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mmap);
 
-  // Let the browser commit the flex layout before Leaflet measures the container.
-  // On mobile, display:none → display:flex can leave stale offsetHeight in Leaflet.
-  // Use multiple checkpoints: browsers vary on when they paint after a display change.
-  [80, 250, 600].forEach(delay => {
-    setTimeout(() => {
-      if (!window._mobileMap) return;
-      mmap.invalidateSize();
-      // On the 600ms pass only: if sitrep data already arrived (fast network),
-      // render disruptions now so the user sees pins before refreshSitrep's rAF fires.
-      if (delay === 600 && _globalDisruptions.length) {
-        _globalPins.forEach(m => { try { mmap.removeLayer(m); } catch(e) {} });
-        _globalPins = _globalPins.filter(m => { try { return mmap !== m._map; } catch(e) { return true; } });
-        renderGlobalDisruptions(mmap, _globalDisruptions);
-        clearGlobalArcs();
-        drawGlobalRouteArcs(mmap, _globalDisruptions);
-      }
-    }, delay);
-  });
+    mmap.createPane('worldwidePane');
+    mmap.getPane('worldwidePane').style.zIndex = 580;
+    mmap.createPane('airportGlowPane');
+    mmap.getPane('airportGlowPane').style.zIndex = 620;
+    mmap.createPane('airportPane');
+    mmap.getPane('airportPane').style.zIndex = 630;
+    mmap.createPane('countryPane');
+    mmap.getPane('countryPane').style.zIndex = 640;
+
+    COUNTRIES.forEach(c => {
+      const col = getSC()[c.status];
+      const mglow = L.circleMarker(c.coords, {pane:'countryPane',interactive:false,radius:28,fillColor:'#ec3452',color:'#ec3452',weight:0,opacity:0,fillOpacity:.12}).addTo(mmap);
+      const mdot  = L.circleMarker(c.coords, {pane:'countryPane',interactive:true,radius:10,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.92}).addTo(mmap)
+        .on('click', () => openMCountryPopup(c.id));
+      _mk.country.push({marker:mglow,status:c.status});
+      _mk.country.push({marker:mdot,status:c.status});
+    });
+    WORLDWIDE.forEach(r=>{
+      const mw = L.circleMarker(r.coords,{pane:'worldwidePane',interactive:true,radius:7,fillColor:accentHex(),color:'#fff',weight:1.5,opacity:.9,fillOpacity:.5}).addTo(mmap)
+        .on('click',()=>openMWorldwidePopup(r.id));
+      _mk.worldwide.push(mw);
+    });
+
+    _mHelpCluster = L.markerClusterGroup({
+      maxClusterRadius: 120,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+      disableClusteringAtZoom: 16,
+    });
+    mmap.addLayer(_mHelpCluster);
+
+    // Set the map reference BEFORE rendering so all async callbacks that
+    // already resolved (loadStranded, loadPosts, refreshSitrep) can find it.
+    window._mobileMap = mmap;
+
+    // Render whatever data already arrived while we were waiting for layout.
+    renderStrandedOnMap(mmap, true);
+    renderPostsOnMap(mmap);   // ← was missing from initMobile (present in initMap)
+
+    if (_globalDisruptions.length) {
+      renderGlobalDisruptions(mmap, _globalDisruptions);
+      clearGlobalArcs();
+      drawGlobalRouteArcs(mmap, _globalDisruptions);
+    }
+
+    mRenderResources();
+
+  })); // end double-rAF
 }
 
 function mFilterMap(type){
