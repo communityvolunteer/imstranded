@@ -298,6 +298,29 @@ async function fetchSitrepFromSupabase() {
     }
     console.log(`[Pipeline] Built _globalInbound for ${Object.keys(window._globalInbound).length} global airports`);
 
+    // ── 4d. Build _globalOutbound (global airport → ME hubs) ──
+    // dep = global airport, arr = ME hub.
+    // Powers the "Trying to Leave [city]" popup tab for non-ME airports.
+    // e.g. IFN→DXB: 8 cancelled = 8 flights from Isfahan to Dubai cancelled.
+    // Without this, both popup tabs showed the same ME→global data.
+    window._globalOutbound = {};
+    for (const dep of Object.keys(routeTotals)) {
+      if (meIatas.has(dep)) continue;           // dep must be global
+      for (const [arr, d] of Object.entries(routeTotals[dep])) {
+        if (!meIatas.has(arr)) continue;         // arr must be ME
+        if (!window._globalOutbound[dep]) window._globalOutbound[dep] = {};
+        if (!window._globalOutbound[dep][arr]) window._globalOutbound[dep][arr] = { cancelled: 0, airlines: new Set() };
+        window._globalOutbound[dep][arr].cancelled += d.cancelled;
+        d.airlines.forEach(a => window._globalOutbound[dep][arr].airlines.add(a));
+      }
+    }
+    for (const globalIata of Object.keys(window._globalOutbound)) {
+      window._globalOutbound[globalIata] = Object.entries(window._globalOutbound[globalIata])
+        .map(([iata, d]) => ({ iata, cancelled: d.cancelled, stranded: d.cancelled * AVG_PAX, airlines: Array.from(d.airlines) }))
+        .sort((a, b) => b.cancelled - a.cancelled);
+    }
+    console.log(`[Pipeline] Built _globalOutbound for ${Object.keys(window._globalOutbound).length} global airports`);
+
     // ── 5. Build _globalDisruptions ───────────────────────────
     // ME airports as isME dots
     const meAsDots = AIRPORT_DATA.filter(a => a.cancelled > 0).map(a => ({
@@ -1522,13 +1545,28 @@ function buildDualPopup(iata) {
       d.airlines.forEach(function(a) { if (!seenL[a]) { seenL[a] = 1; lAirlines.push(a); } });
     });
   } else {
-    if (gData) {
+    // Global airport "Trying to Leave": dep=this airport, arr=ME hub
+    // Use _globalOutbound which has the correct direction (IFN→DXB, not DXB→IFN)
+    var outbound = (window._globalOutbound && window._globalOutbound[iata]) || [];
+    if (outbound.length) {
+      lCancelled = outbound.reduce(function(s, r) { return s + (r.cancelled || 0); }, 0);
+      lStranded  = outbound.reduce(function(s, r) { return s + (r.stranded  || 0); }, 0);
+      lRoutes    = outbound.map(function(r) {
+        var ap2 = typeof findAirport === 'function' ? findAirport(r.iata) : null;
+        return { hub: r.iata, cancelled: r.cancelled, city: ap2 ? ap2.city : r.iata };
+      });
+      var seenLG = {};
+      outbound.forEach(function(r) {
+        (r.airlines || []).forEach(function(a) { if (!seenLG[a]) { seenLG[a] = 1; lAirlines.push(a); } });
+      });
+    } else if (gData) {
+      // Fallback to gData if _globalOutbound not populated yet (first load before backfill)
       lCancelled = gData.cancelled || 0;
       lStranded  = gData.stranded  || 0;
-      lRoutes = gData.routes || (gData.me_hubs || []).map(function(h) {
+      lRoutes    = (gData.me_hubs || []).map(function(h) {
         return { hub: h, cancelled: Math.round(lCancelled / (gData.me_hubs||[]).length) };
       });
-      lAirlines = gData.airlines || [];
+      lAirlines  = gData.airlines || [];
     }
   }
   var lHubCities = lRoutes.slice(0, 4).map(function(r) {
