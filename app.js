@@ -2744,7 +2744,23 @@ function flyAndDismissOverlay() {
     setTimeout(() => {
       overlay.style.opacity          = '0';
       overlay.style.pointerEvents    = 'none';
-      setTimeout(() => overlay.remove(), 850);
+      setTimeout(() => {
+        overlay.remove();
+        // Safari/mobile: removing a backdrop-filter element resets GPU compositing.
+        // Leaflet vector layers (SVG polylines + circleMarkers) added while the
+        // overlay was live get discarded. Force a full re-render of all vector layers.
+        const maps = [window._crisisMap, window._mobileMap].filter(Boolean);
+        if (maps.length && _globalDisruptions.length) {
+          _globalPins.forEach(m => { maps.forEach(mp => { try { mp.removeLayer(m); } catch(e) {} }); });
+          _globalPins = [];
+          maps.forEach(mp => {
+            mp.invalidateSize();
+            renderGlobalDisruptions(mp, _globalDisruptions);
+          });
+          clearGlobalArcs();
+          maps.forEach(mp => drawGlobalRouteArcs(mp, _globalDisruptions));
+        }
+      }, 850);
     }, 120);
   }, 400);
 }
@@ -2922,6 +2938,20 @@ function initMobile(){
   mmap.addLayer(_mHelpCluster);
   renderStrandedOnMap(mmap, true);
   mRenderResources();
+
+  // Let the browser commit the flex layout before Leaflet measures the container.
+  // On mobile, display:none → display:flex can leave stale offsetHeight in Leaflet.
+  setTimeout(() => {
+    mmap.invalidateSize();
+    // If sitrep data already arrived while the map was initialising, render it now.
+    if (_globalDisruptions.length) {
+      _globalPins.forEach(m => { try { mmap.removeLayer(m); } catch(e) {} });
+      _globalPins = _globalPins.filter(m => !m['_map'] || m['_map'] !== mmap);
+      renderGlobalDisruptions(mmap, _globalDisruptions);
+      clearGlobalArcs();
+      drawGlobalRouteArcs(mmap, _globalDisruptions);
+    }
+  }, 80);
 }
 
 function mFilterMap(type){
@@ -4852,7 +4882,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   initAuth();
   checkTelegramRedirect();
   checkXRedirect();
-  initStrandedRealtime(); 
+  initStrandedRealtime();
   loadStranded();
   initLocationAutocomplete('stranded-location','stranded-lat','stranded-lng','stranded-location-ac');
   initLocationAutocomplete('m-stranded-location','m-stranded-lat','m-stranded-lng','m-stranded-location-ac');
