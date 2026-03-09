@@ -2829,23 +2829,14 @@ function flyAndDismissOverlay() {
       overlay.style.pointerEvents    = 'none';
       setTimeout(() => {
         overlay.remove();
-        // iOS Safari: removing a backdrop-filter element resets the GPU compositor,
-        // wiping any Leaflet SVG vector layers added while the overlay was live.
-        // We need TWO animation frames after removal so the browser can tear down
-        // the overlay's compositing layer and rebuild the stacking context before
-        // we re-add the mobile map layers to the now-stable compositor.
+        // iOS Safari: removing a backdrop-filter element can reset the GPU compositor,
+        // wiping Leaflet SVG layers rendered while the overlay was live.
+        // Two rAF calls give the browser time to settle before we re-render.
+        // applyFilters() is the canonical full-repaint path — it handles pins,
+        // arcs, clusters, and filter state in one shot for both maps.
         requestAnimationFrame(() => requestAnimationFrame(() => {
-          if (!window._mobileMap || !_globalDisruptions.length) return;
-          // Strip stale mobile pins
-          const stalePins = _globalPins.filter(m => { try { return m._map === window._mobileMap; } catch(e) { return true; } });
-          stalePins.forEach(m => { try { window._mobileMap.removeLayer(m); } catch(e) {} });
-          _globalPins = _globalPins.filter(m => { try { return m._map !== window._mobileMap; } catch(e) { return false; } });
-          // Re-render fresh
-          window._mobileMap.invalidateSize();
-          renderGlobalDisruptions(window._mobileMap, _globalDisruptions);
-          clearGlobalArcs();
-          if (window._crisisMap) drawGlobalRouteArcs(window._crisisMap, _globalDisruptions);
-          drawGlobalRouteArcs(window._mobileMap, _globalDisruptions);
+          if (window._mobileMap) window._mobileMap.invalidateSize();
+          applyFilters();
         }));
       }, 850);
     }, 120);
@@ -2950,33 +2941,14 @@ async function refreshSitrep() {
   // Render global disruption dots + arcs now that _globalDisruptions is populated.
   // Use requestAnimationFrame so Leaflet tile layers are committed before we add vector layers.
   requestAnimationFrame(() => {
-    // Clear all existing pins then re-render PC map immediately.
-    // Mobile is intentionally skipped here — it will be rendered (or re-rendered)
-    // from flyAndDismissOverlay via a double-rAF AFTER the overlay is removed.
-    // This avoids iOS Safari's compositor reset (triggered by backdrop-filter
-    // element removal) wiping Leaflet SVG layers added while the overlay was live.
-    _globalPins.forEach(m => {
-      if (window._crisisMap) try { window._crisisMap.removeLayer(m); } catch(e) {}
-    });
-    _globalPins = _globalPins.filter(m => {
-      // keep mobile pins in array so flyAndDismissOverlay can clean them up
-      try { return m._map === window._mobileMap; } catch(e) { return false; }
-    });
-    if (window._crisisMap) {
-      renderGlobalDisruptions(window._crisisMap, _globalDisruptions);
-      clearGlobalArcs();
-      drawGlobalRouteArcs(window._crisisMap, _globalDisruptions);
-    }
+    _globalPins.forEach(m => { [window._crisisMap, window._mobileMap].forEach(map => { if (map) try { map.removeLayer(m); } catch(e) {} }); });
+    _globalPins = [];
+    renderGlobalDisruptions(window._crisisMap, _globalDisruptions);
+    renderGlobalDisruptions(window._mobileMap, _globalDisruptions);
+    clearGlobalArcs();
+    drawGlobalRouteArcs(window._crisisMap, _globalDisruptions);
+    drawGlobalRouteArcs(window._mobileMap, _globalDisruptions);
     if (icon) icon.classList.remove('spinning');
-    // If the overlay is already gone (e.g. 5-min refresh cycle), render mobile now too.
-    if (!document.getElementById('intro-overlay')) {
-      _globalPins.forEach(m => { if (window._mobileMap) try { window._mobileMap.removeLayer(m); } catch(e) {} });
-      _globalPins = _globalPins.filter(m => { try { return m._map !== window._mobileMap; } catch(e) { return true; } });
-      if (window._mobileMap) {
-        renderGlobalDisruptions(window._mobileMap, _globalDisruptions);
-        drawGlobalRouteArcs(window._mobileMap, _globalDisruptions);
-      }
-    }
   });
 }
 
