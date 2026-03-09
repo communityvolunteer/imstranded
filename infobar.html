@@ -126,7 +126,7 @@ async function refresh() {
     const { data, error } = await _sb
       .from('stranded_people')
       .select('group_size, current_location, nationality')
-      .is('deleted_at', null);
+      .eq('status', 'active');
 
     if (!error && data && data.length > 0) {
       const totalPeople = data.reduce((s, r) => s + (r.group_size || 1), 0);
