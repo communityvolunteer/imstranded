@@ -1418,10 +1418,33 @@ function setAccent(name) {
     (_mk.worldwide || []).forEach(m => {
       try { m.setStyle({ fillColor: newCol }); } catch(e) {}
     });
-  }
+  // Sweep inline-style elements that hardcode #3498ec / rgba(52,152,236,...)
+  // Excludes offer/spare room UI which intentionally stays blue as its own brand color.
+  const hex = t.hex;
+  const rgbStr = `${t.r},${t.g},${t.b}`;
+  const offerSelectors = '.help-panel-offer, .post-form-header--offer, .post-form-header--live, .submit-btn--offer, [data-offer], .help-tab-dot--offer, #ss-offer-room, #m-stat-offer';
+  const offerEls = new Set(document.querySelectorAll(offerSelectors));
+  const isInOffer = el => {
+    let n = el;
+    while (n) { if (offerEls.has(n)) return true; n = n.parentElement; }
+    return false;
+  };
+  document.querySelectorAll('[style]').forEach(el => {
+    if (isInOffer(el)) return;
+    const st = el.getAttribute('style');
+    if (!st.includes('#3498ec') && !st.includes('52,152,236')) return;
+    el.setAttribute('style',
+      st.replace(/#3498ec/gi, hex)
+        .replace(/rgba\(52,\s*152,\s*236,\s*([\d.]+)\)/g, `rgba(${rgbStr},$1)`)
+    );
+  });
+  // SVG fill/stroke attributes
+  document.querySelectorAll('[fill="#3498ec"],[stroke="#3498ec"]').forEach(el => {
+    if (isInOffer(el)) return;
+    if (el.getAttribute('fill') === '#3498ec') el.setAttribute('fill', hex);
+    if (el.getAttribute('stroke') === '#3498ec') el.setAttribute('stroke', hex);
+  });
 }
-
-function toggleImpactSheet() {
   const sheet = document.getElementById('m-impact-sheet');
   const backdrop = document.getElementById('m-impact-backdrop');
   if (!sheet) return;
