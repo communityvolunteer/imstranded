@@ -674,9 +674,9 @@ function _buildChartPoints(canvasEl, metric) {
   if (!sorted.length) return null;
   const vals   = sorted.map(d => source[d][metric] || 0);
   const maxVal = Math.max(...vals, 1);
-  const dpr    = window.devicePixelRatio || 1;
-  const w      = canvasEl.offsetWidth || 240;
-  const h      = parseInt(canvasEl.getAttribute('height')) || 64;
+  // Use cached dims if available (set during _drawChart) to avoid feedback loop on hover
+  const w      = canvasEl._cachedW || canvasEl.offsetWidth || 240;
+  const h      = canvasEl._cachedH || parseInt(canvasEl.getAttribute('height')) || 64;
   const pad    = { l: 2, r: 2, t: 10, b: 4 };
   const cw     = w - pad.l - pad.r;
   const ch     = h - pad.t - pad.b;
@@ -687,13 +687,20 @@ function _buildChartPoints(canvasEl, metric) {
     val:  v,
     date: sorted[i],
   }));
-  return { pts, vals, sorted, maxVal, w, h, pad, cw, ch, dpr };
+  return { pts, vals, sorted, maxVal, w, h, pad, cw, ch, dpr: window.devicePixelRatio || 1 };
 }
 
 function _drawChart(canvasEl, metric, accentOverride) {
+  // Snapshot offsetWidth BEFORE touching canvas.width (which causes reflow)
+  const w   = canvasEl.offsetWidth || 240;
+  const h   = parseInt(canvasEl.getAttribute('height')) || 64;
+  // Cache so hover handler never re-reads offsetWidth
+  canvasEl._cachedW = w;
+  canvasEl._cachedH = h;
+
   const data = _buildChartPoints(canvasEl, metric);
   if (!data) return;
-  const { pts, vals, maxVal, w, h, pad, ch, dpr } = data;
+  const { pts, vals, maxVal, pad, ch, dpr } = data;
   const peakIdx = vals.indexOf(Math.max(...vals));
   const accent  = accentOverride || getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#3498ec';
 
@@ -784,8 +791,7 @@ function _attachChartHover(canvasEl, metric, peakLabelId) {
     if (minDist > 40) { tip.style.opacity = '0'; return; }
 
     const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#3498ec';
-    const mmdd   = closest.date; // 'MM-DD'
-    const day    = `Mar ${parseInt(mmdd.slice(3))}`;
+    const day    = `Mar ${parseInt(closest.date.slice(3))}`;
     const label  = metric === 'stranded' ? 'people' : 'flights';
     tip.innerHTML = `<span style="color:rgba(255,255,255,.45);font-size:.65rem">${day}</span><br><span style="color:${accent};font-weight:800;font-size:.85rem">${closest.val.toLocaleString()}</span> <span style="color:rgba(255,255,255,.4);font-size:.65rem">${label}</span>`;
     tip.style.opacity = '1';
@@ -801,27 +807,31 @@ function _attachChartHover(canvasEl, metric, peakLabelId) {
     tip.style.left = tx + 'px';
     tip.style.top  = ty + 'px';
 
-    // Draw crosshair
-    const accent2 = accent;
-    _drawChart(canvasEl, metric, accent2);
+    // Draw crosshair overlay ON TOP without resizing canvas
     const dpr = window.devicePixelRatio || 1;
-    const ctx  = canvasEl.getContext('2d');
+    const ctx = canvasEl.getContext('2d');
+    // Redraw base chart cleanly first (using cached dims — no offsetWidth read)
+    _drawChart(canvasEl, metric, accent);
+    // Now add crosshair on top (canvas already scaled by _drawChart)
+    ctx.save();
     ctx.scale(dpr, dpr);
-    ctx.strokeStyle = 'rgba(255,255,255,.2)';
+    ctx.strokeStyle = 'rgba(255,255,255,.18)';
     ctx.lineWidth   = 1;
     ctx.setLineDash([3, 3]);
+    const h = canvasEl._cachedH || 64;
     ctx.beginPath();
     ctx.moveTo(closest.x, 2);
-    ctx.lineTo(closest.x, canvasEl.offsetHeight - 2);
+    ctx.lineTo(closest.x, h - 2);
     ctx.stroke();
     ctx.setLineDash([]);
     ctx.beginPath();
     ctx.arc(closest.x, closest.y, 5, 0, Math.PI * 2);
-    ctx.fillStyle   = accent2;
+    ctx.fillStyle   = accent;
     ctx.fill();
     ctx.strokeStyle = '#000';
     ctx.lineWidth   = 1.5;
     ctx.stroke();
+    ctx.restore();
   };
 
   canvasEl._leaveHandler = () => {
@@ -1711,6 +1721,8 @@ function setAccent(name) {
     (_mk.worldwide || []).forEach(m => {
       try { m.setStyle({ fillColor: newCol }); } catch(e) {}
     });
+  }
+
   // Repaint timeline charts with new accent color
   renderTimelineChart();
   renderImpactSheetChart();
@@ -1742,6 +1754,10 @@ function setAccent(name) {
     if (el.getAttribute('stroke') === '#3498ec') el.setAttribute('stroke', hex);
   });
 }
+
+function toggleImpactSheet() {
+  // PC: no popup — data lives in the filter sidebar chart
+  if (!isMob()) return;
   const sheet = document.getElementById('m-impact-sheet');
   const backdrop = document.getElementById('m-impact-backdrop');
   if (!sheet) return;
@@ -1753,7 +1769,7 @@ function setAccent(name) {
     requestAnimationFrame(() => {
       backdrop.style.opacity = '1';
       sheet.style.transform = 'translateY(0)';
-      setTimeout(renderImpactSheetChart, 60); // after transition starts, canvas has width
+      setTimeout(renderImpactSheetChart, 60);
     });
   }
 }
