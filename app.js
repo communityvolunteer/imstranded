@@ -4286,9 +4286,12 @@ async function loadStranded() {
     const countEl = document.getElementById('stat-stranded');
     const mCountEl = document.getElementById('m-stat-stranded');
     // Only update if we have registered people (otherwise keep the estimated number)
+    // NOTE: do NOT overwrite stat-stranded — that shows flight impact (millions).
+    // Registered people is a separate count shown elsewhere.
     if (totalPeople > 0) {
-      if (countEl) countEl.textContent = totalPeople.toLocaleString() + '+';
-      if (mCountEl) mCountEl.textContent = totalPeople.toLocaleString() + '+';
+      // update a dedicated registered-count element if it exists
+      const regEl = document.getElementById('stat-registered-people');
+      if (regEl) regEl.textContent = totalPeople.toLocaleString() + '+';
     }
 
     renderStrandedOnMap(window._crisisMap, false);
@@ -4846,5 +4849,5 @@ window.addEventListener('DOMContentLoaded',()=>{
     const el=document.getElementById('offer-posts');
     if(el)el.innerHTML='<div class="empty-state" style="color:var(--warn)">Supabase not configured.</div>';
   }
-}); 
+});
 window.addEventListener('resize',()=>{if(isMob()&&!window._mobileInit)initMobile();});
