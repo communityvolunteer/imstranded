@@ -139,7 +139,8 @@ async function refresh() {
       .from('airport_daily')
       .select('iata, cancelled')
       .gte('date', CRISIS_START)
-      .lte('date', today);
+      .lte('date', today)
+      .eq('is_me_hub', true);
 
     if (!adErr && adRows && adRows.length) {
       const apTotals = {};
