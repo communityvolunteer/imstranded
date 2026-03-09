@@ -1361,35 +1361,54 @@ function drawGlobalRouteArcs(map, disruptions) {
   
   for (const g of disruptions) {
     const ap = typeof findAirport === 'function' ? findAirport(g.iata) : null;
-    if (!ap) continue;
-    
-    for (const hub of (g.me_hubs || [])) {
-      let hubCoords = null;
-      if (typeof ME_AIRPORTS !== 'undefined' && ME_AIRPORTS[hub]) {
-        hubCoords = [ME_AIRPORTS[hub].lat, ME_AIRPORTS[hub].lng];
-      } else {
-        const ad = AIRPORT_DATA.find(a => (a.iata || a.code) === hub);
-        if (ad) hubCoords = ad.coords || [ad.lat, ad.lng];
+    // For ME hubs, fall back to ME_AIRPORTS coords
+    let fromCoords = ap ? [ap.lat, ap.lng] : null;
+    if (!fromCoords && typeof ME_AIRPORTS !== 'undefined' && ME_AIRPORTS[g.iata]) {
+      fromCoords = [ME_AIRPORTS[g.iata].lat, ME_AIRPORTS[g.iata].lng];
+    }
+    if (!fromCoords) continue;
+
+    const c = g.cancelled || 0;
+    let weight, opacity;
+    if (c >= 5000)      { weight = 4.5; opacity = 0.4; }
+    else if (c >= 1000) { weight = 3.5; opacity = 0.32; }
+    else if (c >= 500)  { weight = 2.5; opacity = 0.25; }
+    else if (c >= 200)  { weight = 1.8; opacity = 0.2; }
+    else if (c >= 50)   { weight = 1.0; opacity = 0.15; }
+    else                { weight = 0.5; opacity = 0.1; }
+
+    if (g.isME) {
+      // ME hub → draw arcs outward to top global destinations via _meOutbound
+      const outbound = (window._meOutbound && window._meOutbound[g.iata]) || [];
+      const topDests = outbound.slice(0, 12); // cap per hub
+      for (const dest of topDests) {
+        const dap = typeof findAirport === 'function' ? findAirport(dest.iata) : null;
+        if (!dap) continue;
+        const destC = dest.cancelled || 0;
+        let dw, do_;
+        if (destC >= 300)      { dw = 3.5; do_ = 0.35; }
+        else if (destC >= 100) { dw = 2.5; do_ = 0.27; }
+        else if (destC >= 30)  { dw = 1.5; do_ = 0.2; }
+        else                   { dw = 0.8; do_ = 0.13; }
+        const arc = generateArc(fromCoords, [dap.lat, dap.lng], 30);
+        const line = L.polyline(arc, { color: accentRgba(do_), weight: dw, interactive: false }).addTo(map);
+        _globalArcLines.push(line);
       }
-      if (!hubCoords) continue;
-      
-      // Tiered arc thickness based on cancelled flights
-      const c = g.cancelled || 0;
-      let weight, opacity;
-      if (c >= 5000)      { weight = 4.5; opacity = 0.4; }
-      else if (c >= 1000) { weight = 3.5; opacity = 0.32; }
-      else if (c >= 500)  { weight = 2.5; opacity = 0.25; }
-      else if (c >= 200)  { weight = 1.8; opacity = 0.2; }
-      else if (c >= 50)   { weight = 1.0; opacity = 0.15; }
-      else                { weight = 0.5; opacity = 0.1; }
-      
-      const arc = generateArc([ap.lat, ap.lng], hubCoords, 30);
-      const line = L.polyline(arc, {
-        color: accentRgba(opacity),
-        weight,
-        interactive: false,
-      }).addTo(map);
-      _globalArcLines.push(line);
+    } else {
+      // Global airport → draw arcs to each connected ME hub
+      for (const hub of (g.me_hubs || [])) {
+        let hubCoords = null;
+        if (typeof ME_AIRPORTS !== 'undefined' && ME_AIRPORTS[hub]) {
+          hubCoords = [ME_AIRPORTS[hub].lat, ME_AIRPORTS[hub].lng];
+        } else {
+          const ad = AIRPORT_DATA.find(a => (a.iata || a.code) === hub);
+          if (ad) hubCoords = ad.coords || [ad.lat, ad.lng];
+        }
+        if (!hubCoords) continue;
+        const arc = generateArc(fromCoords, hubCoords, 30);
+        const line = L.polyline(arc, { color: accentRgba(opacity), weight, interactive: false }).addTo(map);
+        _globalArcLines.push(line);
+      }
     }
   }
 }
@@ -2825,18 +2844,18 @@ async function refreshSitrep() {
   const now=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
   const lbl=document.getElementById('last-updated-label'); if(lbl)lbl.textContent='Updated: '+now;
 
-  // Render global disruption dots on both maps (initial full set)
-  _globalPins.forEach(m => { [window._crisisMap, window._mobileMap].forEach(map => { if (map) try { map.removeLayer(m); } catch(e) {} }); });
-  _globalPins = [];
-  renderGlobalDisruptions(window._crisisMap, _globalDisruptions);
-  renderGlobalDisruptions(window._mobileMap, _globalDisruptions);
-  // Draw arcs on initial load (checkboxes default to checked)
-  const _arcState = getFilterState();
-  if (_arcState.showArcs) {
+  // Render global disruption dots + arcs now that _globalDisruptions is populated.
+  // Use requestAnimationFrame so Leaflet tile layers are committed before we add vector layers.
+  requestAnimationFrame(() => {
+    _globalPins.forEach(m => { [window._crisisMap, window._mobileMap].forEach(map => { if (map) try { map.removeLayer(m); } catch(e) {} }); });
+    _globalPins = [];
+    renderGlobalDisruptions(window._crisisMap, _globalDisruptions);
+    renderGlobalDisruptions(window._mobileMap, _globalDisruptions);
     clearGlobalArcs();
     drawGlobalRouteArcs(window._crisisMap, _globalDisruptions);
     drawGlobalRouteArcs(window._mobileMap, _globalDisruptions);
-  }
+    if (icon) icon.classList.remove('spinning');
+  });
 }
 
 // ============================================================
