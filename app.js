@@ -2048,29 +2048,63 @@ function buildDualPopup(iata) {
   
   var embBtn = '';
   
-  // Build panel HTML
+  // Build panel HTML — designed for the 320px sidebar
   function buildPanel(cancelled, stranded, routes, airlines, mode, hubCities) {
     var desc = '';
     var routeLabel = '';
     if (mode === 'leave') {
       var dest = hubCities.length ? hubCities.join(', ') : (isMEAirport ? 'worldwide destinations' : 'the Middle East');
-      desc = stranded.toLocaleString() + ' people here in ' + city + ', ' + country + ' trying to reach ' + dest;
+      desc = 'People in ' + city + ' trying to reach ' + dest + '.';
       routeLabel = 'Cancelled routes to';
     } else if (mode === 'flyin') {
-      desc = stranded.toLocaleString() + ' passengers from ' + (hubCities.length ? hubCities.join(', ') : 'global airports') + ' with cancelled flights to or via ' + city + ', ' + country;
-      routeLabel = 'Cancelled inbound routes from';
+      desc = 'Passengers with cancelled inbound flights to or via ' + city + '.';
+      routeLabel = 'Cancelled routes from';
     } else {
-      desc = stranded.toLocaleString() + ' people stranded in ' + (hubCities.length ? hubCities.join(', ') : 'the Middle East') + ' trying to get home to ' + city + ', ' + country;
+      var origin = hubCities.length ? hubCities.join(', ') : 'the Middle East';
+      desc = 'People stranded in ' + origin + ' trying to get home to ' + city + '.';
       routeLabel = 'Stranded at';
     }
-    
-    return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem;margin-bottom:.4rem">' +
-      '<div><div style="font-size:1.1rem;font-weight:800;color:'+accentHex()+';line-height:1">' + cancelled.toLocaleString() + '</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:.1rem">Flights Cancelled</div></div>' +
-      '<div><div style="font-size:1.1rem;font-weight:800;color:#ec3452;line-height:1">' + stranded.toLocaleString() + '</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:.1rem">People Affected</div></div>' +
-    '</div>' +
-    '<div style="font-size:.68rem;color:rgba(255,255,255,.45);margin-bottom:.5rem;line-height:1.4">' + desc + '</div>' +
-    (routes.length ? '<div style="font-size:.58rem;font-weight:700;text-transform:uppercase;color:#fff;margin-bottom:.25rem">' + routeLabel + '</div>' + buildRouteRows(routes) : '') +
-    (airlines.length ? '<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:.4rem">' + buildPills(airlines) + '</div>' : '');
+
+    var statsHtml =
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-bottom:.9rem">' +
+        '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.7rem .8rem">' +
+          '<div style="font-size:1.5rem;font-weight:900;color:'+accentHex()+';line-height:1;letter-spacing:-.03em">' + cancelled.toLocaleString() + '</div>' +
+          '<div style="font-size:.52rem;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.06em;margin-top:.28rem">Flights Cancelled</div>' +
+        '</div>' +
+        '<div style="background:rgba(236,52,82,.06);border:1px solid rgba(236,52,82,.14);border-radius:10px;padding:.7rem .8rem">' +
+          '<div style="font-size:1.5rem;font-weight:900;color:#ec3452;line-height:1;letter-spacing:-.03em">' + stranded.toLocaleString() + '</div>' +
+          '<div style="font-size:.52rem;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.06em;margin-top:.28rem">People Affected</div>' +
+        '</div>' +
+      '</div>';
+
+    var descHtml = '<p style="font-size:.74rem;color:rgba(255,255,255,.45);line-height:1.6;margin:0 0 .9rem;padding:.55rem .7rem;background:rgba(255,255,255,.03);border-radius:8px;border-left:2px solid '+accentRgba(.3)+'">' + desc + '</p>';
+
+    var routesHtml = '';
+    if (routes.length) {
+      var rows = routes.map(function(r) {
+        var hubAp = typeof findAirport === 'function' ? findAirport(r.hub) : null;
+        var hubName = r.city || (hubAp ? hubAp.city : r.hub);
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:.28rem 0;border-bottom:1px solid rgba(255,255,255,.04)">' +
+          '<span style="font-size:.72rem;color:rgba(255,255,255,.65)">' + hubName + ' <span style="color:rgba(255,255,255,.25);font-size:.64rem">(' + r.hub + ')</span></span>' +
+          '<span style="font-size:.72rem;font-weight:700;color:'+accentHex()+'">' + (r.cancelled||0).toLocaleString() + '</span>' +
+        '</div>';
+      }).join('');
+      routesHtml =
+        '<div style="font-size:.56rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.28);margin-bottom:.4rem">' + routeLabel + '</div>' +
+        '<div style="margin-bottom:.85rem">' + rows + '</div>';
+    }
+
+    var airlinesHtml = '';
+    if (airlines.length) {
+      var pills = airlines.map(function(a) {
+        return '<span style="padding:.16rem .42rem;background:'+accentRgba(.1)+';border:1px solid '+accentRgba(.18)+';border-radius:5px;font-size:.62rem;color:'+accentHex()+';font-weight:600">' + a + '</span>';
+      }).join('');
+      airlinesHtml =
+        '<div style="font-size:.56rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.28);margin-bottom:.38rem">Airlines affected</div>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:4px">' + pills + '</div>';
+    }
+
+    return statsHtml + descHtml + routesHtml + airlinesHtml;
   }
   
   var uid = iata.replace(/[^A-Z0-9]/g, '');
@@ -2081,10 +2115,10 @@ function buildDualPopup(iata) {
     '<div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:.1rem">' + city + ' (' + iata + ')</div>' +
     '<div style="font-size:.68rem;color:#fff;margin-bottom:.5rem">' + country + '</div>' +
     
-    // Toggle — both buttons always present
+    // Toggle — both tabs always present
     '<div style="' + tWrap + '">' +
-      '<div id="gtl-' + uid + '" onclick="event.stopPropagation();switchPopupMode(\'' + iata + '\',\'leave\')" style="' + tBase + tOn + '">Trying to Leave ' + city + '</div>' +
-      '<div id="gth-' + uid + '" onclick="event.stopPropagation();switchPopupMode(\'' + iata + '\',\'' + homeMode + '\')" style="' + tBase + tOff + '">' + homeLabel + '</div>' +
+      '<button id="gtl-' + uid + '" onclick="event.stopPropagation();switchPopupMode(\'' + iata + '\',\'leave\')" style="' + tBase + tOn + '">↑ Leaving ' + city + '</button>' +
+      '<button id="gth-' + uid + '" onclick="event.stopPropagation();switchPopupMode(\'' + iata + '\',\'' + homeMode + '\')" style="' + tBase + tOff + '">' + homeLabel + '</button>' +
     '</div>' +
     
     // LEAVE panel (visible by default)
@@ -2126,26 +2160,82 @@ function switchPopupMode(iata, mode) {
       homeBtn.style.cssText  += isLeave ? tOff : tOn;
     }
   } else {
-    const uid = iata.replace(/[^A-Z0-9]/g, '');
-    const leavePanel = document.getElementById('gpl-' + uid);
-    const homePanel  = document.getElementById('gph-' + uid);
-    const leaveBtn   = document.getElementById('gtl-' + uid);
-    const homeBtn    = document.getElementById('gth-' + uid);
-    const isLeave    = (mode === 'leave');
-    const tOn  = 'background:'+accentRgba(.15)+';color:'+accentHex()+';border:1px solid '+accentRgba(.2)+';';
-    const tOff = 'background:transparent;color:rgba(255,255,255,.3);border:1px solid transparent;';
-    if (leavePanel && homePanel) {
-      leavePanel.style.display = isLeave ? 'block' : 'none';
-      homePanel.style.display  = isLeave ? 'none' : 'block';
-    }
-    if (leaveBtn && homeBtn) {
-      leaveBtn.style.cssText += isLeave ? tOn : tOff;
-      homeBtn.style.cssText  += isLeave ? tOff : tOn;
+    // PC sidebar — re-inject content so rebuilt panels are in the sidebar DOM
+    const sbBody = document.getElementById('pin-sidebar-body');
+    if (sbBody) {
+      sbBody.innerHTML = buildDualPopup(iata);
+      // Set correct panel visibility immediately after inject
+      const uid = iata.replace(/[^A-Z0-9]/g, '');
+      const leavePanel = document.getElementById('gpl-' + uid);
+      const homePanel  = document.getElementById('gph-' + uid);
+      const leaveBtn   = document.getElementById('gtl-' + uid);
+      const homeBtn    = document.getElementById('gth-' + uid);
+      const isLeave = (mode === 'leave');
+      const tOn  = 'background:'+accentRgba(.15)+';color:'+accentHex()+';border:1px solid '+accentRgba(.2)+';';
+      const tOff = 'background:transparent;color:rgba(255,255,255,.3);border:1px solid transparent;';
+      if (leavePanel && homePanel) {
+        leavePanel.style.display = isLeave ? 'block' : 'none';
+        homePanel.style.display  = isLeave ? 'none'  : 'block';
+      }
+      if (leaveBtn && homeBtn) {
+        leaveBtn.style.cssText  += isLeave ? tOn : tOff;
+        homeBtn.style.cssText   += isLeave ? tOff : tOn;
+      }
     }
   }
 
   clearGlobalArcs();
   drawPopupArcs(iata, mode);
+}
+
+// ── PC RIGHT-SIDE PIN INFO SIDEBAR ─────────────────────────────────────────
+function openPinSidebar(iata) {
+  _activePopupIata = iata;
+  _activePopupMode = 'leave';
+
+  const ap   = typeof findAirport === 'function' ? findAirport(iata) : null;
+  const city = ap ? ap.city : iata;
+  const country = ap ? (ap.countryName || '') : '';
+
+  // Populate header
+  const titleCity = document.getElementById('pin-sidebar-city');
+  const titleCode = document.getElementById('pin-sidebar-code');
+  const titleCoun = document.getElementById('pin-sidebar-country');
+  if (titleCity) titleCity.textContent = city;
+  if (titleCode) titleCode.textContent = iata;
+  if (titleCoun) titleCoun.textContent = country;
+
+  // Populate body
+  const body = document.getElementById('pin-sidebar-body');
+  if (body) body.innerHTML = buildDualPopup(iata);
+
+  // Slide open
+  const sb = document.getElementById('pin-sidebar');
+  if (sb) sb.classList.add('open');
+
+  // Draw focused arcs for this pin
+  clearGlobalArcs();
+  drawPopupArcs(iata, 'leave');
+
+  // Close on any bare map click (not a pin or control click)
+  if (window._crisisMap && !window._crisisMap._pinSidebarClose) {
+    window._crisisMap._pinSidebarClose = function() { closePinSidebar(); };
+    window._crisisMap.on('click', window._crisisMap._pinSidebarClose);
+  }
+}
+
+function closePinSidebar() {
+  const sb = document.getElementById('pin-sidebar');
+  if (sb) sb.classList.remove('open');
+  _activePopupIata  = '';
+  _activePopupCircle = null;
+  clearGlobalArcs();
+  drawGlobalRouteArcs(window._crisisMap, _globalDisruptions);
+  // Remove map close listener
+  if (window._crisisMap && window._crisisMap._pinSidebarClose) {
+    window._crisisMap.off('click', window._crisisMap._pinSidebarClose);
+    window._crisisMap._pinSidebarClose = null;
+  }
 }
 
 function drawPopupArcs(iata, mode) {
@@ -2286,21 +2376,14 @@ function renderGlobalDisruptions(map, data) {
         drawPopupArcs(g.iata, 'leave');
       });
     } else {
-      circle.bindPopup('', { className: 'dark-popup', maxWidth: 320, closeOnClick: false });
-      circle.on('popupopen', function() {
-        circle.setPopupContent(buildDualPopup(g.iata));
-        _activePopupCircle = circle;
-        _activePopupIata = g.iata;
-        _activePopupMode = 'leave';
-        clearGlobalArcs();
-        drawPopupArcs(g.iata, 'leave');
-      });
-      circle.on('popupclose', function() {
-        _activePopupCircle = null;
-        _activePopupIata = '';
-        clearGlobalArcs();
-        drawGlobalRouteArcs(window._crisisMap, _globalDisruptions);
-        drawGlobalRouteArcs(window._mobileMap, _globalDisruptions);
+      // PC: click opens right-side info panel. Drag detection prevents accidental opens.
+      let _pcPinDragged = false;
+      circle.on('mousedown', function() { _pcPinDragged = false; });
+      circle.on('mousemove', function() { _pcPinDragged = true; });
+      circle.on('click', function(e) {
+        if (_pcPinDragged) { _pcPinDragged = false; return; }
+        L.DomEvent.stopPropagation(e);
+        openPinSidebar(g.iata);
       });
     }
     
@@ -2746,20 +2829,24 @@ function flyAndDismissOverlay() {
       overlay.style.pointerEvents    = 'none';
       setTimeout(() => {
         overlay.remove();
-        // Safari/mobile: removing a backdrop-filter element resets GPU compositing.
-        // Leaflet vector layers (SVG polylines + circleMarkers) added while the
-        // overlay was live get discarded. Force a full re-render of all vector layers.
-        const maps = [window._crisisMap, window._mobileMap].filter(Boolean);
-        if (maps.length && _globalDisruptions.length) {
-          _globalPins.forEach(m => { maps.forEach(mp => { try { mp.removeLayer(m); } catch(e) {} }); });
-          _globalPins = [];
-          maps.forEach(mp => {
-            mp.invalidateSize();
-            renderGlobalDisruptions(mp, _globalDisruptions);
-          });
+        // iOS Safari: removing a backdrop-filter element resets the GPU compositor,
+        // wiping any Leaflet SVG vector layers added while the overlay was live.
+        // We need TWO animation frames after removal so the browser can tear down
+        // the overlay's compositing layer and rebuild the stacking context before
+        // we re-add the mobile map layers to the now-stable compositor.
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          if (!window._mobileMap || !_globalDisruptions.length) return;
+          // Strip stale mobile pins
+          const stalePins = _globalPins.filter(m => { try { return m._map === window._mobileMap; } catch(e) { return true; } });
+          stalePins.forEach(m => { try { window._mobileMap.removeLayer(m); } catch(e) {} });
+          _globalPins = _globalPins.filter(m => { try { return m._map !== window._mobileMap; } catch(e) { return false; } });
+          // Re-render fresh
+          window._mobileMap.invalidateSize();
+          renderGlobalDisruptions(window._mobileMap, _globalDisruptions);
           clearGlobalArcs();
-          maps.forEach(mp => drawGlobalRouteArcs(mp, _globalDisruptions));
-        }
+          if (window._crisisMap) drawGlobalRouteArcs(window._crisisMap, _globalDisruptions);
+          drawGlobalRouteArcs(window._mobileMap, _globalDisruptions);
+        }));
       }, 850);
     }, 120);
   }, 400);
@@ -2863,14 +2950,33 @@ async function refreshSitrep() {
   // Render global disruption dots + arcs now that _globalDisruptions is populated.
   // Use requestAnimationFrame so Leaflet tile layers are committed before we add vector layers.
   requestAnimationFrame(() => {
-    _globalPins.forEach(m => { [window._crisisMap, window._mobileMap].forEach(map => { if (map) try { map.removeLayer(m); } catch(e) {} }); });
-    _globalPins = [];
-    renderGlobalDisruptions(window._crisisMap, _globalDisruptions);
-    renderGlobalDisruptions(window._mobileMap, _globalDisruptions);
-    clearGlobalArcs();
-    drawGlobalRouteArcs(window._crisisMap, _globalDisruptions);
-    drawGlobalRouteArcs(window._mobileMap, _globalDisruptions);
+    // Clear all existing pins then re-render PC map immediately.
+    // Mobile is intentionally skipped here — it will be rendered (or re-rendered)
+    // from flyAndDismissOverlay via a double-rAF AFTER the overlay is removed.
+    // This avoids iOS Safari's compositor reset (triggered by backdrop-filter
+    // element removal) wiping Leaflet SVG layers added while the overlay was live.
+    _globalPins.forEach(m => {
+      if (window._crisisMap) try { window._crisisMap.removeLayer(m); } catch(e) {}
+    });
+    _globalPins = _globalPins.filter(m => {
+      // keep mobile pins in array so flyAndDismissOverlay can clean them up
+      try { return m._map === window._mobileMap; } catch(e) { return false; }
+    });
+    if (window._crisisMap) {
+      renderGlobalDisruptions(window._crisisMap, _globalDisruptions);
+      clearGlobalArcs();
+      drawGlobalRouteArcs(window._crisisMap, _globalDisruptions);
+    }
     if (icon) icon.classList.remove('spinning');
+    // If the overlay is already gone (e.g. 5-min refresh cycle), render mobile now too.
+    if (!document.getElementById('intro-overlay')) {
+      _globalPins.forEach(m => { if (window._mobileMap) try { window._mobileMap.removeLayer(m); } catch(e) {} });
+      _globalPins = _globalPins.filter(m => { try { return m._map !== window._mobileMap; } catch(e) { return true; } });
+      if (window._mobileMap) {
+        renderGlobalDisruptions(window._mobileMap, _globalDisruptions);
+        drawGlobalRouteArcs(window._mobileMap, _globalDisruptions);
+      }
+    }
   });
 }
 

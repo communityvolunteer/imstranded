@@ -1410,3 +1410,103 @@ html.translated-ltr body,html.translated-rtl body{top:0 !important;}
   align-self: flex-end;
   padding-bottom: .05em;
 }
+/* ═══════════════════════════════════════════════════════════════════════
+   PC PIN INFO SIDEBAR  — slides in from the right edge of the map.
+   Arcs stay live on the map behind it. Click bare map to close.
+═══════════════════════════════════════════════════════════════════════ */
+#pin-sidebar {
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 320px;
+  z-index: 950;
+  background: rgba(7,7,12,.97);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-left: 1px solid rgba(255,255,255,.08);
+  box-shadow: -8px 0 40px rgba(0,0,0,.6);
+  transform: translateX(100%);
+  transition: transform .3s cubic-bezier(.4,0,.2,1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  pointer-events: none;
+}
+#pin-sidebar.open {
+  transform: translateX(0);
+  pointer-events: all;
+}
+
+#pin-sidebar-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: 1rem 1rem .85rem;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  flex-shrink: 0;
+}
+#pin-sidebar-header-text { flex: 1; min-width: 0; }
+#pin-sidebar-city {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -.01em;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#pin-sidebar-meta {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  margin-top: .2rem;
+}
+#pin-sidebar-code {
+  font-size: .65rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+#pin-sidebar-country {
+  font-size: .65rem;
+  color: rgba(255,255,255,.35);
+  font-weight: 500;
+}
+#pin-sidebar-close {
+  flex-shrink: 0;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+  color: rgba(255,255,255,.45);
+  cursor: pointer;
+  padding: 5px;
+  line-height: 0;
+  border-radius: 7px;
+  transition: color .15s, background .15s, border-color .15s;
+  margin-top: .1rem;
+}
+#pin-sidebar-close:hover {
+  color: #fff;
+  background: rgba(255,255,255,.1);
+  border-color: rgba(255,255,255,.15);
+}
+
+#pin-sidebar-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1rem 2rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,.1) transparent;
+}
+#pin-sidebar-body::-webkit-scrollbar { width: 4px; }
+#pin-sidebar-body::-webkit-scrollbar-track { background: transparent; }
+#pin-sidebar-body::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,.12);
+  border-radius: 4px;
+}
+
+/* Hide on mobile — mobile uses its own m-pin-sheet */
+@media (max-width: 600px) {
+  #pin-sidebar { display: none !important; }
+}
