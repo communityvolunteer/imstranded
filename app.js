@@ -4852,7 +4852,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   initAuth();
   checkTelegramRedirect();
   checkXRedirect();
-  initStrandedRealtime();
+  initStrandedRealtime(); 
   loadStranded();
   initLocationAutocomplete('stranded-location','stranded-lat','stranded-lng','stranded-location-ac');
   initLocationAutocomplete('m-stranded-location','m-stranded-lat','m-stranded-lng','m-stranded-location-ac');
