@@ -691,10 +691,11 @@ function _buildChartPoints(canvasEl, metric) {
 }
 
 function _drawChart(canvasEl, metric, accentOverride) {
-  // Snapshot offsetWidth BEFORE touching canvas.width (which causes reflow)
-  const w   = canvasEl.offsetWidth || 240;
-  const h   = parseInt(canvasEl.getAttribute('height')) || 64;
-  // Cache so hover handler never re-reads offsetWidth
+  // Read width from PARENT, never from canvas itself (canvas.offsetWidth drifts
+  // after style.width is set on previous draws, causing the snowball on toggle)
+  const parent = canvasEl.parentElement;
+  const w = parent ? parent.clientWidth || parent.offsetWidth : (canvasEl._cachedW || 240);
+  const h = parseInt(canvasEl.getAttribute('height')) || 64;
   canvasEl._cachedW = w;
   canvasEl._cachedH = h;
 
