@@ -61,7 +61,7 @@ header{
 }
 .logo-accent{color:var(--accent);}
 .pulse-dot{
-  width:8px;height:8px;border-radius:50%;background:var(--accent);
+  width:8px;height:8px;border-radius:50%;background:var(--accent);margin-right:.5rem;
   flex-shrink:0;animation:pdot 2s infinite;
 }
 @keyframes pdot{0%,100%{transform:scale(1);box-shadow:0 0 0 0 var(--accent);}50%{transform:scale(.8);box-shadow:0 0 0 5px rgba(0,0,0,0);}}
