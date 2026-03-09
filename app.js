@@ -321,7 +321,7 @@ async function fetchSitrepFromSupabase() {
       .from('route_daily')
       .select('dep_iata, arr_iata, cancelled, airlines')
       .eq('date', today)
-      .limit(5000);
+      .limit(10000);
 
     if (rdErr) console.warn('[Pipeline] route_daily error:', rdErr.message);
     const routes = rdRows || [];
