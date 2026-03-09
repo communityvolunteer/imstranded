@@ -96,242 +96,99 @@ const NGOS = [
 ];
 
 
+
+// ── ME hub skeleton for fallback rendering (coords/city only — no hardcoded counts) ──
+// All cancelled/stranded figures come from Supabase airport_daily + route_daily.
+// This array is ONLY used when the DB is unreachable.
 let AIRPORT_DATA = [
-  // REAL DATA — AviationStack API full pull, March 7, 2026 (paid tier)
-  // cancelled = today's cancelled, h7 = 7-day cumulative cancelled flights
-  // Gulf
-  {city:'Dubai',code:'DXB',iata:'DXB',coords:[25.252,55.364],cancelled:6632,stranded:1226920,status:'DISRUPTED',cancelRate:39,dailyFlights:17219,h7:5515,updated:'live'},
-  {city:'Abu Dhabi',code:'AUH',iata:'AUH',coords:[24.432,54.651],cancelled:2404,stranded:444740,status:'DISRUPTED',cancelRate:34,dailyFlights:6981,h7:2175,updated:'live'},
-  {city:'Doha',code:'DOH',iata:'DOH',coords:[25.273,51.608],cancelled:11949,stranded:2210565,status:'RESTRICTED',cancelRate:62,dailyFlights:19242,h7:11306,updated:'live'},
-  {city:'Kuwait City',code:'KWI',iata:'KWI',coords:[29.226,47.968],cancelled:469,stranded:86765,status:'OPEN',cancelRate:16,dailyFlights:2895,h7:388,updated:'live'},
-  {city:'Bahrain',code:'BAH',iata:'BAH',coords:[26.270,50.633],cancelled:1115,stranded:206275,status:'RESTRICTED',cancelRate:53,dailyFlights:2122,h7:897,updated:'live'},
-  {city:'Muscat',code:'MCT',iata:'MCT',coords:[23.593,58.284],cancelled:694,stranded:128390,status:'DISRUPTED',cancelRate:22,dailyFlights:3100,h7:599,updated:'live'},
-  {city:'Sharjah',code:'SHJ',iata:'SHJ',coords:[25.329,55.517],cancelled:147,stranded:27195,status:'OPEN',cancelRate:4,dailyFlights:3344,h7:0,updated:'live'},
-  {city:'Al Maktoum',code:'DWC',iata:'DWC',coords:[24.896,55.161],cancelled:82,stranded:15170,status:'OPEN',cancelRate:5,dailyFlights:1796,h7:0,updated:'live'},
-  {city:'Ras Al Khaimah',code:'RKT',iata:'RKT',coords:[25.613,55.939],cancelled:72,stranded:13320,status:'DISRUPTED',cancelRate:34,dailyFlights:210,h7:0,updated:'live'},
-  // Saudi
-  {city:'Riyadh',code:'RUH',iata:'RUH',coords:[24.957,46.698],cancelled:1105,stranded:204425,status:'OPEN',cancelRate:20,dailyFlights:5555,h7:736,updated:'live'},
-  {city:'Jeddah',code:'JED',iata:'JED',coords:[21.670,39.150],cancelled:1091,stranded:201835,status:'OPEN',cancelRate:13,dailyFlights:8375,h7:806,updated:'live'},
-  {city:'Dammam',code:'DMM',iata:'DMM',coords:[26.471,49.798],cancelled:765,stranded:141525,status:'DISRUPTED',cancelRate:36,dailyFlights:2149,h7:0,updated:'live'},
-  {city:'Medina',code:'MED',iata:'MED',coords:[24.553,39.705],cancelled:294,stranded:54390,status:'OPEN',cancelRate:17,dailyFlights:1683,h7:0,updated:'live'},
-  // Iran — mostly OPEN
-  {city:'Tehran IKA',code:'IKA',iata:'IKA',coords:[35.416,51.152],cancelled:212,stranded:39220,status:'OPEN',cancelRate:16,dailyFlights:1304,h7:0,updated:'live'},
-  {city:'Tehran Mehrabad',code:'THR',iata:'THR',coords:[35.689,51.313],cancelled:0,stranded:0,status:'OPEN',cancelRate:0,dailyFlights:75,h7:0,updated:'live'},
-  {city:'Mashhad',code:'MHD',iata:'MHD',coords:[36.236,59.641],cancelled:49,stranded:9065,status:'OPEN',cancelRate:4,dailyFlights:1365,h7:0,updated:'live'},
-  {city:'Shiraz',code:'SYZ',iata:'SYZ',coords:[29.540,52.590],cancelled:27,stranded:4995,status:'OPEN',cancelRate:9,dailyFlights:310,h7:0,updated:'live'},
-  // Iraq
-  {city:'Baghdad',code:'BGW',iata:'BGW',coords:[33.262,44.235],cancelled:112,stranded:20720,status:'OPEN',cancelRate:18,dailyFlights:606,h7:0,updated:'live'},
-  {city:'Erbil',code:'EBL',iata:'EBL',coords:[36.237,43.963],cancelled:74,stranded:13690,status:'DISRUPTED',cancelRate:23,dailyFlights:320,h7:0,updated:'live'},
-  {city:'Basra',code:'BSR',iata:'BSR',coords:[30.549,47.662],cancelled:55,stranded:10175,status:'DISRUPTED',cancelRate:33,dailyFlights:168,h7:0,updated:'live'},
-  // Israel
-  {city:'Tel Aviv',code:'TLV',iata:'TLV',coords:[32.011,34.887],cancelled:1198,stranded:221630,status:'DISRUPTED',cancelRate:31,dailyFlights:3843,h7:969,updated:'live'},
-  // Jordan / Lebanon
-  {city:'Amman',code:'AMM',iata:'AMM',coords:[31.723,35.993],cancelled:734,stranded:135790,status:'DISRUPTED',cancelRate:37,dailyFlights:1965,h7:605,updated:'live'},
-  {city:'Beirut',code:'BEY',iata:'BEY',coords:[33.821,35.488],cancelled:295,stranded:54575,status:'DISRUPTED',cancelRate:30,dailyFlights:968,h7:0,updated:'live'},
+  {city:'Dubai',          code:'DXB',iata:'DXB',coords:[25.252,55.364],cancelled:0,stranded:0,status:'DISRUPTED',isME:true,updated:'fallback'},
+  {city:'Abu Dhabi',      code:'AUH',iata:'AUH',coords:[24.432,54.651],cancelled:0,stranded:0,status:'DISRUPTED',isME:true,updated:'fallback'},
+  {city:'Doha',           code:'DOH',iata:'DOH',coords:[25.273,51.608],cancelled:0,stranded:0,status:'RESTRICTED',isME:true,updated:'fallback'},
+  {city:'Kuwait City',    code:'KWI',iata:'KWI',coords:[29.226,47.968],cancelled:0,stranded:0,status:'OPEN',    isME:true,updated:'fallback'},
+  {city:'Bahrain',        code:'BAH',iata:'BAH',coords:[26.270,50.633],cancelled:0,stranded:0,status:'RESTRICTED',isME:true,updated:'fallback'},
+  {city:'Muscat',         code:'MCT',iata:'MCT',coords:[23.593,58.284],cancelled:0,stranded:0,status:'DISRUPTED',isME:true,updated:'fallback'},
+  {city:'Sharjah',        code:'SHJ',iata:'SHJ',coords:[25.329,55.517],cancelled:0,stranded:0,status:'OPEN',    isME:true,updated:'fallback'},
+  {city:'Al Maktoum',     code:'DWC',iata:'DWC',coords:[24.896,55.161],cancelled:0,stranded:0,status:'OPEN',    isME:true,updated:'fallback'},
+  {city:'Ras Al Khaimah', code:'RKT',iata:'RKT',coords:[25.613,55.939],cancelled:0,stranded:0,status:'DISRUPTED',isME:true,updated:'fallback'},
+  {city:'Riyadh',         code:'RUH',iata:'RUH',coords:[24.957,46.698],cancelled:0,stranded:0,status:'OPEN',    isME:true,updated:'fallback'},
+  {city:'Jeddah',         code:'JED',iata:'JED',coords:[21.670,39.150],cancelled:0,stranded:0,status:'OPEN',    isME:true,updated:'fallback'},
+  {city:'Dammam',         code:'DMM',iata:'DMM',coords:[26.471,49.798],cancelled:0,stranded:0,status:'DISRUPTED',isME:true,updated:'fallback'},
+  {city:'Medina',         code:'MED',iata:'MED',coords:[24.553,39.705],cancelled:0,stranded:0,status:'OPEN',    isME:true,updated:'fallback'},
+  {city:'Tehran IKA',     code:'IKA',iata:'IKA',coords:[35.416,51.152],cancelled:0,stranded:0,status:'OPEN',    isME:true,updated:'fallback'},
+  {city:'Tehran Mehrabad',code:'THR',iata:'THR',coords:[35.689,51.313],cancelled:0,stranded:0,status:'OPEN',    isME:true,updated:'fallback'},
+  {city:'Mashhad',        code:'MHD',iata:'MHD',coords:[36.236,59.641],cancelled:0,stranded:0,status:'OPEN',    isME:true,updated:'fallback'},
+  {city:'Shiraz',         code:'SYZ',iata:'SYZ',coords:[29.540,52.590],cancelled:0,stranded:0,status:'OPEN',    isME:true,updated:'fallback'},
+  {city:'Baghdad',        code:'BGW',iata:'BGW',coords:[33.262,44.235],cancelled:0,stranded:0,status:'OPEN',    isME:true,updated:'fallback'},
+  {city:'Erbil',          code:'EBL',iata:'EBL',coords:[36.237,43.963],cancelled:0,stranded:0,status:'DISRUPTED',isME:true,updated:'fallback'},
+  {city:'Basra',          code:'BSR',iata:'BSR',coords:[30.549,47.662],cancelled:0,stranded:0,status:'DISRUPTED',isME:true,updated:'fallback'},
+  {city:'Tel Aviv',       code:'TLV',iata:'TLV',coords:[32.011,34.887],cancelled:0,stranded:0,status:'DISRUPTED',isME:true,updated:'fallback'},
+  {city:'Amman',          code:'AMM',iata:'AMM',coords:[31.723,35.993],cancelled:0,stranded:0,status:'DISRUPTED',isME:true,updated:'fallback'},
+  {city:'Beirut',         code:'BEY',iata:'BEY',coords:[33.821,35.488],cancelled:0,stranded:0,status:'DISRUPTED',isME:true,updated:'fallback'},
 ];
 
-// 7-day history for top 10 ME hubs (real AviationStack data)
-const HISTORY_7D = {
-  DXB:{days:{'03-01':1141,'03-02':1114,'03-03':1001,'03-04':847,'03-05':674,'03-06':492,'03-07':246},total:5515},
-  DOH:{days:{'03-01':1538,'03-02':1598,'03-03':1633,'03-04':1583,'03-05':1610,'03-06':1694,'03-07':1650},total:11306},
-  AUH:{days:{'03-01':538,'03-02':432,'03-03':216,'03-04':264,'03-05':444,'03-06':222,'03-07':59},total:2175},
-  TLV:{days:{'03-01':207,'03-02':205,'03-03':190,'03-04':121,'03-05':146,'03-06':85,'03-07':15},total:969},
-  RUH:{days:{'03-01':135,'03-02':118,'03-03':108,'03-04':97,'03-05':107,'03-06':99,'03-07':72},total:736},
-  JED:{days:{'03-01':160,'03-02':151,'03-03':126,'03-04':114,'03-05':107,'03-06':89,'03-07':59},total:806},
-  KWI:{days:{'03-01':71,'03-02':65,'03-03':58,'03-04':45,'03-05':57,'03-06':60,'03-07':32},total:388},
-  BAH:{days:{'03-01':192,'03-02':163,'03-03':154,'03-04':154,'03-05':108,'03-06':55,'03-07':71},total:897},
-  MCT:{days:{'03-01':96,'03-02':80,'03-03':107,'03-04':94,'03-05':115,'03-06':53,'03-07':54},total:599},
-  AMM:{days:{'03-01':79,'03-02':104,'03-03':111,'03-04':78,'03-05':86,'03-06':90,'03-07':57},total:605},
-};
-
-// REAL global disruption data — 132 airports from AviationStack route-pair queries (Mar 7, 2026)
-// Every number is an exact count of cancelled flights on a specific route
-const REAL_GLOBAL_DISRUPTIONS = [
-  {iata:'CMB',cancelled:676,stranded:125060,airlines:['flydubai','Emirates','Qatar Airways','LATAM Airlines','Iberia'],me_hubs:['DXB','DOH','AUH','RUH','KWI']},
-  {iata:'BKK',cancelled:672,stranded:124320,airlines:['Qatar Airways','Bangkok Airways','EgyptAir','Thai Airways International','Gulf Air'],me_hubs:['DXB','DOH','AUH','BAH','KWI','MCT','TLV']},
-  {iata:'LHR',cancelled:626,stranded:115810,airlines:['WestJet','SAS','Delta Air Lines','Qatar Airways','American Airlines'],me_hubs:['DXB','DOH','AUH','RUH','JED','BAH','TLV','AMM']},
-  {iata:'CDG',cancelled:453,stranded:83805,airlines:['SAS','KLM','Delta Air Lines','Air France','Etihad Airways'],me_hubs:['DXB','DOH','AUH','RUH','BAH','TLV']},
-  {iata:'JNB',cancelled:421,stranded:77885,airlines:['South African Airways','Emirates','British Airways','Finnair','Etihad Airways'],me_hubs:['DXB','DOH','AUH']},
-  {iata:'NBO',cancelled:379,stranded:70115,airlines:['Kenya Airways','flydubai','Emirates','Qatar Airways','Etihad Airways'],me_hubs:['DXB','DOH','AUH','JED','BAH']},
-  {iata:'AMS',cancelled:352,stranded:65120,airlines:['SAS','Delta Air Lines','Air France','Etihad Airways','KLM'],me_hubs:['DXB','DOH','AUH','TLV','AMM']},
-  {iata:'SIN',cancelled:333,stranded:61605,airlines:['Qantas','Emirates','Qatar Airways','Singapore Airlines','Gulf Air'],me_hubs:['DXB','DOH','AUH','JED','BAH']},
-  {iata:'CPT',cancelled:286,stranded:52910,airlines:['Emirates','South African Airways','Qatar Airways','Finnair'],me_hubs:['DXB','DOH']},
-  {iata:'JFK',cancelled:274,stranded:50690,airlines:['Emirates','Qatar Airways','Etihad Airways','Delta Air Lines','Saudia'],me_hubs:['DXB','DOH','AUH','RUH','JED','KWI','TLV']},
-  {iata:'BOM',cancelled:249,stranded:46065,airlines:['IndiGo','Air India','SpiceJet','Qatar Airways','Etihad Airways'],me_hubs:['DXB','DOH','AUH','RUH','JED','BAH','KWI','MCT','AMM']},
-  {iata:'MLE',cancelled:243,stranded:44955,airlines:['Qatar Airways','Oman Air','Etihad Airways','EgyptAir'],me_hubs:['DOH','AUH']},
-  {iata:'BCN',cancelled:241,stranded:44585,airlines:['Qantas','Etihad Airways','Iberia','El Al'],me_hubs:['DXB','DOH','AUH','TLV']},
-  {iata:'KHI',cancelled:240,stranded:44400,airlines:['Qatar Airways','Etihad Airways','flydubai','Emirates','Saudia'],me_hubs:['DOH','AUH','DXB','RUH','JED','BAH']},
-  {iata:'KUL',cancelled:228,stranded:42180,airlines:['Emirates','Qatar Airways','Malaysia Airlines','EgyptAir'],me_hubs:['DXB','DOH','AUH','JED']},
-  {iata:'MEL',cancelled:214,stranded:39590,airlines:['Qantas','Emirates','Oman Air','Etihad Airways'],me_hubs:['DXB','DOH','AUH']},
-  {iata:'FRA',cancelled:205,stranded:37925,airlines:['Qantas','Emirates','SAS','Gulf Air','El Al'],me_hubs:['DXB','DOH','AUH','BAH','TLV']},
-  {iata:'MXP',cancelled:202,stranded:37370,airlines:['Qantas','Qatar Airways','Etihad Airways'],me_hubs:['DXB','DOH','AUH']},
-  {iata:'CAI',cancelled:199,stranded:36815,airlines:['EgyptAir','Air Cairo','Gulf Air','Jazeera Airways'],me_hubs:['RUH','JED','BAH','KWI','MCT','AMM']},
-  {iata:'DAC',cancelled:195,stranded:36075,airlines:['flydubai','Emirates','Qatar Airways','Saudia','Gulf Air'],me_hubs:['DXB','DOH','RUH','JED','BAH','MCT']},
-  {iata:'ATH',cancelled:192,stranded:35520,airlines:['Emirates','Qatar Airways','Etihad Airways','Gulf Air','El Al'],me_hubs:['DXB','DOH','AUH','BAH','TLV']},
-  {iata:'FCO',cancelled:190,stranded:35150,airlines:['Qantas','Emirates','Qatar Airways','El Al'],me_hubs:['DXB','DOH','JED','TLV']},
-  {iata:'DEL',cancelled:190,stranded:35150,airlines:['Air India','Qatar Airways','IndiGo','Etihad Airways','Gulf Air'],me_hubs:['DXB','DOH','AUH','RUH','JED','BAH','KWI','TLV']},
-  {iata:'SYD',cancelled:188,stranded:34780,airlines:['Qantas','Condor','Emirates','Oman Air','Etihad Airways'],me_hubs:['DXB','DOH','AUH']},
-  {iata:'LHE',cancelled:182,stranded:33670,airlines:['Qatar Airways','Pakistan International Airlines','Saudia','Gulf Air'],me_hubs:['DOH','RUH','JED','BAH','KWI','MCT']},
-  {iata:'MAD',cancelled:176,stranded:32560,airlines:['Qantas','Emirates','Qatar Airways','Iberia','El Al'],me_hubs:['DXB','DOH','TLV','AMM']},
-  {iata:'ISB',cancelled:175,stranded:32375,airlines:['Qatar Airways','Pakistan International Airlines','Etihad Airways','Saudia','Gulf Air'],me_hubs:['DOH','AUH','JED','BAH']},
-  {iata:'ZRH',cancelled:173,stranded:32005,airlines:['SWISS','Qatar Airways','Etihad Airways','El Al'],me_hubs:['DXB','DOH','AUH','TLV']},
-  {iata:'IST',cancelled:169,stranded:31265,airlines:['Qantas','Emirates','Turkish Airlines','Qatar Airways','Gulf Air'],me_hubs:['DXB','DOH','AUH','RUH','JED','BAH','AMM']},
-  {iata:'CGK',cancelled:167,stranded:30895,airlines:['Garuda Indonesia','flydubai','Qatar Airways','Etihad Airways','Saudia'],me_hubs:['DXB','DOH','AUH','JED']},
-  {iata:'HKG',cancelled:157,stranded:29045,airlines:['Emirates','British Airways','Etihad Airways'],me_hubs:['DXB','DOH','AUH']},
-  {iata:'MUC',cancelled:154,stranded:28490,airlines:['Qantas','Emirates','Lufthansa','Etihad Airways','Gulf Air'],me_hubs:['DXB','DOH','AUH','BAH','TLV']},
-  {iata:'DPS',cancelled:152,stranded:28120,airlines:['Emirates','Garuda Indonesia','flydubai','Qatar Airways'],me_hubs:['DXB','DOH']},
-  {iata:'GRU',cancelled:140,stranded:25900,airlines:['Emirates','Qatar Airways','Gulf Air'],me_hubs:['DXB','DOH']},
-  {iata:'CPH',cancelled:139,stranded:25715,airlines:['Qantas','Emirates','Qatar Airways'],me_hubs:['DXB','DOH']},
-  {iata:'ADD',cancelled:130,stranded:24050,airlines:['flydubai','British Airways','Qatar Airways'],me_hubs:['DXB','DOH']},
-  {iata:'DFW',cancelled:128,stranded:23680,airlines:['Emirates','Qatar Airways'],me_hubs:['DXB','DOH']},
-  {iata:'HAN',cancelled:128,stranded:23680,airlines:['Qatar Airways','British Airways'],me_hubs:['DOH']},
-  {iata:'ICN',cancelled:125,stranded:23125,airlines:['Emirates','Korean Air','Qatar Airways','Etihad Airways'],me_hubs:['DXB','DOH','AUH']},
-  {iata:'HYD',cancelled:120,stranded:22200,airlines:['IndiGo','Air India','Qatar Airways','Etihad Airways','Gulf Air'],me_hubs:['DXB','DOH','AUH','RUH','JED','BAH','KWI','MCT']},
-  {iata:'VIE',cancelled:117,stranded:21645,airlines:['Emirates','Qantas','Qatar Airways','Etihad Airways','El Al'],me_hubs:['DXB','DOH','AUH','TLV']},
-  {iata:'BNE',cancelled:113,stranded:20905,airlines:['Qantas','Emirates','Qatar Airways'],me_hubs:['DXB','DOH']},
-  {iata:'BER',cancelled:111,stranded:20535,airlines:['Condor','Qatar Airways'],me_hubs:['DXB','DOH']},
-  {iata:'BRU',cancelled:108,stranded:19980,airlines:['Qantas','Emirates','Qatar Airways','Etihad Airways'],me_hubs:['DXB','DOH','AUH','TLV']},
-  {iata:'IAD',cancelled:103,stranded:19055,airlines:['Emirates','Qatar Airways','Etihad Airways','Saudia','United Airlines'],me_hubs:['DXB','DOH','AUH','JED','TLV']},
-  {iata:'SGN',cancelled:103,stranded:19055,airlines:['Qatar Airways','Finnair'],me_hubs:['DOH']},
-  {iata:'COK',cancelled:101,stranded:18685,airlines:['Air India','SpiceJet','IndiGo','Qatar Airways','Gulf Air'],me_hubs:['DXB','DOH','AUH','BAH','KWI','MCT']},
-  {iata:'PER',cancelled:100,stranded:18500,airlines:['Emirates','Qantas','Qatar Airways'],me_hubs:['DXB','DOH']},
-  {iata:'BLR',cancelled:88,stranded:16280,airlines:['IndiGo','Emirates','Qatar Airways','Etihad Airways','Gulf Air'],me_hubs:['DXB','DOH','AUH','RUH','JED','BAH']},
-  {iata:'MIA',cancelled:87,stranded:16095,airlines:['Emirates','Qatar Airways','El Al'],me_hubs:['DXB','DOH','TLV']},
-  {iata:'BOS',cancelled:82,stranded:15170,airlines:['Emirates','Qatar Airways','El Al'],me_hubs:['DXB','DOH','TLV']},
-  {iata:'MNL',cancelled:79,stranded:14615,airlines:['Qatar Airways','Etihad Airways','Saudia','Philippine Airlines','Gulf Air'],me_hubs:['DOH','AUH','RUH','BAH']},
-  {iata:'PVG',cancelled:78,stranded:14430,airlines:['China Eastern Airlines','Saudia','Qatar Airways','Etihad Airways','Gulf Air'],me_hubs:['DXB','DOH','AUH','RUH','BAH']},
-  {iata:'DAR',cancelled:73,stranded:13505,airlines:['Emirates','Qatar Airways'],me_hubs:['DXB','DOH']},
-  {iata:'MAA',cancelled:72,stranded:13320,airlines:['Air India','IndiGo','Qatar Airways','Etihad Airways'],me_hubs:['DXB','DOH','AUH']},
-  {iata:'ORD',cancelled:69,stranded:12765,airlines:['Emirates','Qatar Airways','Etihad Airways','United Airlines'],me_hubs:['DXB','DOH','AUH','TLV']},
-  {iata:'YYZ',cancelled:69,stranded:12765,airlines:['Air Canada','Emirates','Qatar Airways','Etihad Airways'],me_hubs:['DXB','DOH','AUH','TLV']},
-  {iata:'KTM',cancelled:69,stranded:12765,airlines:['flydubai','Emirates','Qatar Airways'],me_hubs:['DXB','DOH']},
-  {iata:'OSL',cancelled:68,stranded:12580,airlines:['Emirates','Qantas','Qatar Airways'],me_hubs:['DXB','DOH']},
-  {iata:'ARN',cancelled:62,stranded:11470,airlines:['Emirates','Qantas','Qatar Airways'],me_hubs:['DXB','DOH']},
-  {iata:'CAN',cancelled:60,stranded:11100,airlines:['China Southern Airlines','Emirates','Qatar Airways','Gulf Air'],me_hubs:['DXB','DOH','BAH']},
-  {iata:'LAX',cancelled:57,stranded:10545,airlines:['Emirates','Qatar Airways','El Al'],me_hubs:['DXB','DOH','TLV']},
-  {iata:'NRT',cancelled:57,stranded:10545,airlines:['Japan Airlines','Emirates','Qatar Airways','Etihad Airways'],me_hubs:['DXB','DOH','AUH']},
-  {iata:'MAN',cancelled:52,stranded:9620,airlines:['Emirates','Qantas','Gulf Air'],me_hubs:['DXB','BAH']},
-  {iata:'AKL',cancelled:52,stranded:9620,airlines:['Emirates','Qatar Airways'],me_hubs:['DXB','DOH']},
-  {iata:'TBS',cancelled:52,stranded:9620,airlines:['flydubai','Emirates','El Al'],me_hubs:['DXB','TLV']},
-  {iata:'EWR',cancelled:50,stranded:9250,airlines:['United Airlines'],me_hubs:['DXB','TLV']},
-  {iata:'LGW',cancelled:49,stranded:9065,airlines:['Qantas','Emirates'],me_hubs:['DXB']},
-  {iata:'PRG',cancelled:47,stranded:8695,airlines:['flydubai','Emirates','SmartWings','El Al','Ryanair'],me_hubs:['DXB','TLV','AMM']},
-  {iata:'DUB',cancelled:45,stranded:8325,airlines:['Emirates','Qantas','Etihad Airways'],me_hubs:['DXB','AUH']},
-  {iata:'BUD',cancelled:45,stranded:8325,airlines:['Emirates','Qantas','El Al'],me_hubs:['DXB','TLV']},
-  {iata:'MRU',cancelled:42,stranded:7770,airlines:['Emirates','Air Mauritius'],me_hubs:['DXB']},
-  {iata:'LOS',cancelled:41,stranded:7585,airlines:['Emirates','Qatar Airways'],me_hubs:['DXB','DOH']},
-  {iata:'AMD',cancelled:40,stranded:7400,airlines:['IndiGo','SpiceJet','Qatar Airways'],me_hubs:['DXB','DOH','KWI']},
-  {iata:'GVA',cancelled:39,stranded:7215,airlines:['Emirates','Qantas','Etihad Airways'],me_hubs:['DXB','AUH']},
-  {iata:'WAW',cancelled:38,stranded:7030,airlines:['flydubai','Emirates'],me_hubs:['DXB']},
-  {iata:'OTP',cancelled:35,stranded:6475,airlines:['El Al','TAROM','Ryanair'],me_hubs:['TLV','AMM']},
-  {iata:'PHL',cancelled:31,stranded:5735,airlines:['Qatar Airways'],me_hubs:['DOH']},
-  {iata:'TAS',cancelled:29,stranded:5365,airlines:['flydubai','Emirates'],me_hubs:['DXB']},
-  {iata:'EBB',cancelled:29,stranded:5365,airlines:['flydubai','Emirates'],me_hubs:['DXB']},
-  {iata:'BEG',cancelled:28,stranded:5180,airlines:['flydubai','Emirates'],me_hubs:['DXB']},
-  {iata:'DME',cancelled:26,stranded:4810,airlines:['Emirates','S7 Airlines'],me_hubs:['DXB']},
-  {iata:'SOF',cancelled:25,stranded:4625,airlines:['flydubai','Emirates','El Al'],me_hubs:['DXB','TLV']},
-  {iata:'HAM',cancelled:24,stranded:4440,airlines:['Emirates','Qantas'],me_hubs:['DXB']},
-  {iata:'TPE',cancelled:24,stranded:4440,airlines:['Emirates','STARLUX','Etihad Airways'],me_hubs:['DXB','AUH']},
-  {iata:'SAW',cancelled:23,stranded:4255,airlines:['Pegasus','Emirates','flydubai'],me_hubs:['DXB']},
-  {iata:'BHX',cancelled:22,stranded:4070,airlines:['Emirates','Qantas'],me_hubs:['DXB']},
-  {iata:'LIS',cancelled:22,stranded:4070,airlines:['TAP Air Portugal','Emirates'],me_hubs:['DXB']},
-  {iata:'EVN',cancelled:22,stranded:4070,airlines:['flydubai','Emirates'],me_hubs:['DXB']},
-  {iata:'ZNZ',cancelled:22,stranded:4070,airlines:['flydubai','Emirates'],me_hubs:['DXB']},
-  {iata:'DUS',cancelled:20,stranded:3700,airlines:['Emirates','Qantas'],me_hubs:['DXB']},
-  {iata:'PEK',cancelled:20,stranded:3700,airlines:['Emirates','Air China'],me_hubs:['DXB','AUH']},
-  {iata:'CCU',cancelled:19,stranded:3515,airlines:['Emirates','Qatar Airways'],me_hubs:['DXB','DOH']},
-  {iata:'DUR',cancelled:18,stranded:3330,airlines:['Emirates','South African Airways'],me_hubs:['DXB']},
-  {iata:'KZN',cancelled:18,stranded:3330,airlines:['flydubai','Emirates'],me_hubs:['DXB']},
-  {iata:'GYD',cancelled:18,stranded:3330,airlines:['flydubai','Emirates'],me_hubs:['DXB']},
-  {iata:'GLA',cancelled:15,stranded:2775,airlines:['Emirates','Qantas'],me_hubs:['DXB']},
-  {iata:'LED',cancelled:15,stranded:2775,airlines:['flydubai'],me_hubs:['DXB']},
-  {iata:'KRK',cancelled:14,stranded:2590,airlines:['flydubai','Emirates'],me_hubs:['DXB']},
-  {iata:'ASB',cancelled:14,stranded:2590,airlines:['flydubai','Emirates'],me_hubs:['DXB']},
-  {iata:'DAM',cancelled:14,stranded:2590,airlines:['Royal Jordanian'],me_hubs:['AMM']},
-  {iata:'CMN',cancelled:13,stranded:2405,airlines:['Gulf Air'],me_hubs:['BAH']},
-  {iata:'NCL',cancelled:12,stranded:2220,airlines:['Emirates','Qantas'],me_hubs:['DXB']},
-  {iata:'LYS',cancelled:12,stranded:2220,airlines:['Emirates','Qantas'],me_hubs:['DXB']},
-  {iata:'TRV',cancelled:11,stranded:2035,airlines:['Emirates'],me_hubs:['DXB']},
-  {iata:'NCE',cancelled:10,stranded:1850,airlines:['Emirates','Qantas'],me_hubs:['DXB']},
-  {iata:'VCE',cancelled:10,stranded:1850,airlines:['Emirates','Qantas'],me_hubs:['DXB']},
-  {iata:'HND',cancelled:10,stranded:1850,airlines:['Japan Airlines','Emirates'],me_hubs:['DXB']},
-  {iata:'ACC',cancelled:10,stranded:1850,airlines:['Qatar Airways'],me_hubs:['DOH']},
-  {iata:'SVO',cancelled:10,stranded:1850,airlines:['Aeroflot'],me_hubs:['DXB']},
-  {iata:'ASM',cancelled:10,stranded:1850,airlines:['flydubai','Emirates'],me_hubs:['DXB']},
-  {iata:'LTN',cancelled:10,stranded:1850,airlines:['El Al'],me_hubs:['TLV']},
-  {iata:'PFO',cancelled:10,stranded:1850,airlines:['Ryanair'],me_hubs:['AMM']},
-  {iata:'EDI',cancelled:8,stranded:1480,airlines:['Emirates','Qantas'],me_hubs:['DXB']},
-  {iata:'VNO',cancelled:8,stranded:1480,airlines:['Air Baltic','Emirates','flydubai'],me_hubs:['DXB']},
-  {iata:'LCA',cancelled:8,stranded:1480,airlines:['Gulf Air'],me_hubs:['BAH']},
-  {iata:'ALG',cancelled:7,stranded:1295,airlines:['Emirates'],me_hubs:['DXB']},
-  {iata:'IAH',cancelled:6,stranded:1110,airlines:['Emirates'],me_hubs:['DXB']},
-  {iata:'VOG',cancelled:6,stranded:1110,airlines:['flydubai','Emirates'],me_hubs:['DXB']},
-  {iata:'GOI',cancelled:6,stranded:1110,airlines:['Gulf Air'],me_hubs:['BAH']},
-  {iata:'SEA',cancelled:5,stranded:925,airlines:['Emirates'],me_hubs:['DXB']},
-  {iata:'YUL',cancelled:5,stranded:925,airlines:['Emirates'],me_hubs:['DXB']},
-  {iata:'SFO',cancelled:4,stranded:740,airlines:['Emirates'],me_hubs:['DXB']},
-  {iata:'MCO',cancelled:3,stranded:555,airlines:['Emirates'],me_hubs:['DXB']},
-  {iata:'HEL',cancelled:3,stranded:555,airlines:['Finnair'],me_hubs:['DXB']},
-  {iata:'DSS',cancelled:3,stranded:555,airlines:['Emirates'],me_hubs:['DXB']},
-  {iata:'BGY',cancelled:3,stranded:555,airlines:['Ryanair'],me_hubs:['AMM']},
-  {iata:'CIA',cancelled:3,stranded:555,airlines:['Ryanair'],me_hubs:['AMM']},
-  {iata:'KGL',cancelled:2,stranded:370,airlines:['RwandAir'],me_hubs:['DXB']},
-  {iata:'TUN',cancelled:2,stranded:370,airlines:['Tunisair'],me_hubs:['JED']},
-  {iata:'PSA',cancelled:2,stranded:370,airlines:['Ryanair'],me_hubs:['AMM']},
-  {iata:'ESB',cancelled:1,stranded:185,airlines:['Pegasus'],me_hubs:['AMM']},
-];
-
-// ============================================================
 // ============================================================
 // LIVE DATA FROM SUPABASE — unified pipeline
-// Single source of truth: airport_daily + route_daily tables.
-// No ME-vs-global split. No synthetic math. No baked constants used at runtime.
+//
+// Data model:
+//   airport_daily  — one row per (iata, date), cancelled = that day's count
+//   route_daily    — one row per (dep_iata, arr_iata, date), cancelled = that day's count
+//
+// ALL figures are cumulative since CRISIS_START (2026-03-01) so the map
+// shows the full picture of who is still stranded — not just today.
+// "Today" figures are derived separately for the +today labels.
+// The bar graph later = group route_daily by date, trivial from this structure.
 // ============================================================
+const CRISIS_START = '2026-03-01';
 let _globalDisruptions = [];
 
 // _meOutbound[hubIata] = sorted array of { iata, cancelled, stranded, airlines[] }
-// Populated from route_daily (dep_iata = ME hub) — real observed data.
+// Cumulative since CRISIS_START — real observed data from route_daily.
 let _meOutbound = null;
 
-// todayStr: the date key for "today" rows in airport_daily / route_daily
 let _dataDate = '';
 
 async function fetchSitrepFromSupabase() {
   const AVG_PAX = 185;
 
   try {
-    // ── 1. Pull last 7 days of airport_daily ─────────────────
-    const sevenDaysAgo = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
-    const today        = new Date().toISOString().slice(0, 10);
+    const today = new Date().toISOString().slice(0, 10);
     _dataDate = today;
 
+    // ── 1. Pull ALL airport_daily rows since crisis start ──────
     const { data: adRows, error: adErr } = await _sb
       .from('airport_daily')
       .select('iata, date, cancelled, status, cancel_rate, is_me_hub, city, country_code, lat, lng')
-      .gte('date', sevenDaysAgo)
+      .gte('date', CRISIS_START)
       .lte('date', today)
       .order('date', { ascending: true });
 
     if (adErr || !adRows || !adRows.length) throw new Error('No airport_daily data');
 
-    // ── 2. Pull today's route_daily ───────────────────────────
-    // NOTE: Supabase default row cap is 1000 — must set limit explicitly
-    // to avoid silently truncating later-batch airports (e.g. MED, BEY, etc.)
-    const { data: rdRows, error: rdErr } = await _sb
-      .from('route_daily')
-      .select('dep_iata, arr_iata, cancelled, airlines')
-      .eq('date', today)
-      .limit(10000);
-
-    if (rdErr) console.warn('[Pipeline] route_daily error:', rdErr.message);
-    const routes = rdRows || [];
+    // ── 2. Pull ALL route_daily rows since crisis start ────────
+    // Key fix: DOH→BOS cancelled on Mar 3 still matters today —
+    // those passengers are still stranded. Sum across ALL days.
+    let routes = [];
+    let from = 0;
+    const pageSize = 1000;
+    while (true) {
+      const { data: page, error: pageErr } = await _sb
+        .from('route_daily')
+        .select('dep_iata, arr_iata, date, cancelled, airlines')
+        .gte('date', CRISIS_START)
+        .lte('date', today)
+        .range(from, from + pageSize - 1);
+      if (pageErr) { console.warn('[Pipeline] route_daily page error:', pageErr.message); break; }
+      if (!page || !page.length) break;
+      routes.push(...page);
+      if (page.length < pageSize) break;
+      from += pageSize;
+    }
     console.log(`[Pipeline] route_daily rows fetched: ${routes.length}`);
 
-    // ── 3. Build AIRPORT_DATA from airport_daily ──────────────
-    // Aggregate per airport across all 7 days.
-    // .cancelled = 7-day total (the number used everywhere as the main figure)
-    // .todayCancelled = just today's row
-    // .h7days = { 'MM-DD': count } for sparkline/history
+    // ── 3. Build AIRPORT_DATA from airport_daily ───────────────
+    // .cancelled     = crisis total (sum of all days) — used everywhere as main figure
+    // .todayCancelled = today's row only — used for +today labels
+    // .h7days        = { 'MM-DD': count } for future sparklines / bar chart
     const apMap = {};
     for (const row of adRows) {
       const k = row.iata;
@@ -342,54 +199,53 @@ async function fetchSitrepFromSupabase() {
           status: row.status || 'UNKNOWN',
           cancelRate: row.cancel_rate || 0,
           isME: row.is_me_hub,
-          cancelled: 0,       // 7-day total
-          todayCancelled: 0,  // today only
-          stranded: 0,        // 7-day total × AVG_PAX
+          cancelled: 0,
+          todayCancelled: 0,
+          stranded: 0,
           todayStranded: 0,
           h7days: {},
           updated: 'live',
         };
       }
       const count = row.cancelled || 0;
-      const mmdd = row.date.slice(5).replace('-', '-'); // 'MM-DD'
+      const mmdd  = row.date.slice(5);
       apMap[k].cancelled += count;
       apMap[k].h7days[mmdd] = count;
-      apMap[k].status = row.status || apMap[k].status; // latest day's status wins
+      apMap[k].status     = row.status || apMap[k].status;
       apMap[k].cancelRate = row.cancel_rate || apMap[k].cancelRate;
       if (row.date === today) {
         apMap[k].todayCancelled = count;
         apMap[k].todayStranded  = count * AVG_PAX;
       }
     }
-    // Compute stranded from 7-day totals
     for (const a of Object.values(apMap)) {
       a.stranded = a.cancelled * AVG_PAX;
     }
 
-    // Replace AIRPORT_DATA with ME airports only (keeps rest of app working)
     AIRPORT_DATA = Object.values(apMap).filter(a => a.isME);
     console.log(`[Pipeline] Built AIRPORT_DATA: ${AIRPORT_DATA.length} ME airports`);
 
-    // ── 4. Build _meOutbound from route_daily (dep = ME hub) ──
-    const meIatas = new Set(AIRPORT_DATA.map(a => a.iata));
-    const outboundRaw = {};
+    // ── 4. Aggregate routes across ALL days ───────────────────
+    // routeTotals[dep][arr] = { cancelled: N, airlines: Set }
+    const routeTotals = {};
     for (const r of routes) {
-      if (!meIatas.has(r.dep_iata)) continue;     // only ME departures
-      if (meIatas.has(r.arr_iata)) continue;       // skip intra-ME
-      const hub = r.dep_iata;
-      if (!outboundRaw[hub]) outboundRaw[hub] = {};
-      if (!outboundRaw[hub][r.arr_iata]) {
-        outboundRaw[hub][r.arr_iata] = { cancelled: 0, airlines: new Set() };
-      }
-      outboundRaw[hub][r.arr_iata].cancelled += r.cancelled || 0;
-      (r.airlines || []).forEach(a => outboundRaw[hub][r.arr_iata].airlines.add(a));
+      const dep = r.dep_iata, arr = r.arr_iata;
+      if (!routeTotals[dep]) routeTotals[dep] = {};
+      if (!routeTotals[dep][arr]) routeTotals[dep][arr] = { cancelled: 0, airlines: new Set() };
+      routeTotals[dep][arr].cancelled += r.cancelled || 0;
+      (r.airlines || []).forEach(a => routeTotals[dep][arr].airlines.add(a));
     }
+
+    const meIatas = new Set(AIRPORT_DATA.map(a => a.iata));
+
+    // ── 4a. _meOutbound: ME hub → global destinations ─────────
     _meOutbound = {};
-    for (const hub of Object.keys(outboundRaw)) {
-      _meOutbound[hub] = Object.entries(outboundRaw[hub])
-        .map(([destIata, d]) => ({
-          iata: destIata,
-          cancelled: d.cancelled,
+    for (const dep of Object.keys(routeTotals)) {
+      if (!meIatas.has(dep)) continue;
+      _meOutbound[dep] = Object.entries(routeTotals[dep])
+        .filter(([arr]) => !meIatas.has(arr))
+        .map(([arr, d]) => ({
+          iata: arr, cancelled: d.cancelled,
           stranded: d.cancelled * AVG_PAX,
           airlines: Array.from(d.airlines),
         }))
@@ -397,162 +253,107 @@ async function fetchSitrepFromSupabase() {
     }
     console.log(`[Pipeline] Built _meOutbound for ${Object.keys(_meOutbound).length} ME hubs`);
 
-    // ── 4b. Build _meInbound from route_daily (arr = ME hub) ──
-    // Powers "Trying to Fly In" tab — real observed inbound cancellations
-    const inboundRaw = {};
-    for (const r of routes) {
-      if (!meIatas.has(r.arr_iata)) continue;     // only ME arrivals
-      if (meIatas.has(r.dep_iata)) continue;       // skip intra-ME
-      const hub = r.arr_iata;
-      if (!inboundRaw[hub]) inboundRaw[hub] = {};
-      if (!inboundRaw[hub][r.dep_iata]) {
-        inboundRaw[hub][r.dep_iata] = { cancelled: 0, airlines: new Set() };
-      }
-      inboundRaw[hub][r.dep_iata].cancelled += r.cancelled || 0;
-      (r.airlines || []).forEach(a => inboundRaw[hub][r.dep_iata].airlines.add(a));
-    }
+    // ── 4b. _meInbound: global → ME hub ──────────────────────
     window._meInbound = {};
-    for (const hub of Object.keys(inboundRaw)) {
-      window._meInbound[hub] = Object.entries(inboundRaw[hub])
-        .map(([originIata, d]) => ({
-          iata: originIata,
-          cancelled: d.cancelled,
-          stranded: d.cancelled * AVG_PAX,
-          airlines: Array.from(d.airlines),
-        }))
+    for (const dep of Object.keys(routeTotals)) {
+      if (meIatas.has(dep)) continue;
+      for (const [arr, d] of Object.entries(routeTotals[dep])) {
+        if (!meIatas.has(arr)) continue;
+        if (!window._meInbound[arr]) window._meInbound[arr] = {};
+        if (!window._meInbound[arr][dep]) window._meInbound[arr][dep] = { cancelled: 0, airlines: new Set() };
+        window._meInbound[arr][dep].cancelled += d.cancelled;
+        d.airlines.forEach(a => window._meInbound[arr][dep].airlines.add(a));
+      }
+    }
+    for (const hub of Object.keys(window._meInbound)) {
+      window._meInbound[hub] = Object.entries(window._meInbound[hub])
+        .map(([iata, d]) => ({ iata, cancelled: d.cancelled, stranded: d.cancelled * AVG_PAX, airlines: Array.from(d.airlines) }))
         .sort((a, b) => b.cancelled - a.cancelled);
     }
     console.log(`[Pipeline] Built _meInbound for ${Object.keys(window._meInbound).length} ME hubs`);
 
-    // ── 4c. Build _globalInbound (for global airport "Trying to Get Home" tab) ──
-    // Routes where dep = global airport, arr = ME hub → people stranded at global waiting to reach ME
-    const globalInboundRaw = {};
-    for (const r of routes) {
-      if (!meIatas.has(r.arr_iata)) continue;   // arr must be ME
-      if (meIatas.has(r.dep_iata)) continue;    // dep must be global
-      const globalIata = r.dep_iata;
-      if (!globalInboundRaw[globalIata]) globalInboundRaw[globalIata] = {};
-      const meHub = r.arr_iata;
-      if (!globalInboundRaw[globalIata][meHub]) {
-        globalInboundRaw[globalIata][meHub] = { cancelled: 0, airlines: new Set() };
-      }
-      globalInboundRaw[globalIata][meHub].cancelled += r.cancelled || 0;
-      (r.airlines || []).forEach(a => globalInboundRaw[globalIata][meHub].airlines.add(a));
-    }
+    // ── 4c. _globalInbound: global airport → which ME hubs ────
     window._globalInbound = {};
-    for (const globalIata of Object.keys(globalInboundRaw)) {
-      window._globalInbound[globalIata] = Object.entries(globalInboundRaw[globalIata])
-        .map(([meHub, d]) => ({
-          iata: meHub,
-          cancelled: d.cancelled,
-          stranded: d.cancelled * AVG_PAX,
-          airlines: Array.from(d.airlines),
-        }))
+    for (const dep of Object.keys(routeTotals)) {
+      if (!meIatas.has(dep)) continue;
+      for (const [arr, d] of Object.entries(routeTotals[dep])) {
+        if (meIatas.has(arr)) continue;
+        if (!window._globalInbound[arr]) window._globalInbound[arr] = {};
+        if (!window._globalInbound[arr][dep]) window._globalInbound[arr][dep] = { cancelled: 0, airlines: new Set() };
+        window._globalInbound[arr][dep].cancelled += d.cancelled;
+        d.airlines.forEach(a => window._globalInbound[arr][dep].airlines.add(a));
+      }
+    }
+    for (const globalIata of Object.keys(window._globalInbound)) {
+      window._globalInbound[globalIata] = Object.entries(window._globalInbound[globalIata])
+        .map(([iata, d]) => ({ iata, cancelled: d.cancelled, stranded: d.cancelled * AVG_PAX, airlines: Array.from(d.airlines) }))
         .sort((a, b) => b.cancelled - a.cancelled);
     }
     console.log(`[Pipeline] Built _globalInbound for ${Object.keys(window._globalInbound).length} global airports`);
 
     // ── 5. Build _globalDisruptions ───────────────────────────
-    // ME airports as isME dots (for map rendering, not double-counted in totals)
+    // ME airports as isME dots
     const meAsDots = AIRPORT_DATA.filter(a => a.cancelled > 0).map(a => ({
       iata: a.iata, cancelled: a.cancelled, stranded: a.stranded,
       airlines: [], me_hubs: [], isME: true,
     }));
 
-    // Global airports: aggregate route_daily by arr_iata (flights cancelled INTO each global airport)
+    // Global airports: sum of cancelled outbound from any ME hub to this airport
     const globalAcc = {};
-    for (const r of routes) {
-      const arr = r.arr_iata;
-      if (meIatas.has(arr)) continue; // ME airports handled separately
-      if (!globalAcc[arr]) globalAcc[arr] = { cancelled: 0, me_hubs: new Set(), airlines: new Set() };
-      globalAcc[arr].cancelled += r.cancelled || 0;
-      globalAcc[arr].me_hubs.add(r.dep_iata);
-      (r.airlines || []).forEach(a => globalAcc[arr].airlines.add(a));
-    }
-
-    // Fill in any global airports from seeded REAL_GLOBAL_DISRUPTIONS that aren't in today's DB yet
-    // (graceful fallback so the map isn't empty before the first cron run)
-    const dbGlobalIatas = new Set(Object.keys(globalAcc));
-    if (typeof REAL_GLOBAL_DISRUPTIONS !== 'undefined') {
-      for (const g of REAL_GLOBAL_DISRUPTIONS) {
-        if (!dbGlobalIatas.has(g.iata)) {
-          globalAcc[g.iata] = {
-            cancelled: g.cancelled,
-            me_hubs: new Set(g.me_hubs || []),
-            airlines: new Set(g.airlines || []),
-            _seeded: true,
-          };
-        }
+    for (const dep of Object.keys(routeTotals)) {
+      if (!meIatas.has(dep)) continue;
+      for (const [arr, d] of Object.entries(routeTotals[dep])) {
+        if (meIatas.has(arr)) continue;
+        if (!globalAcc[arr]) globalAcc[arr] = { cancelled: 0, me_hubs: new Set(), airlines: new Set() };
+        globalAcc[arr].cancelled += d.cancelled;
+        globalAcc[arr].me_hubs.add(dep);
+        d.airlines.forEach(a => globalAcc[arr].airlines.add(a));
       }
     }
 
     const globalDots = Object.entries(globalAcc).map(([iata, g]) => ({
       iata,
       cancelled: g.cancelled,
-      stranded: g.cancelled * AVG_PAX,
-      me_hubs: Array.from(g.me_hubs),
-      airlines: Array.from(g.airlines),
-      isME: false,
+      stranded:  g.cancelled * AVG_PAX,
+      me_hubs:   Array.from(g.me_hubs),
+      airlines:  Array.from(g.airlines),
+      isME:      false,
     }));
 
     _globalDisruptions = [...meAsDots, ...globalDots];
-    console.log(`[Pipeline] _globalDisruptions: ${meAsDots.length} ME + ${globalDots.length} global`);
+    console.log(`[Pipeline] _globalDisruptions: ${meAsDots.length} ME + ${globalDots.length} global lets go`);
 
-    // ── 6. Compute totals for sitrep bar ─────────────────────
-    const totalCancelled7d = AIRPORT_DATA.reduce((s, a) => s + a.cancelled, 0)
-      + globalDots.filter(g => !g._seeded).reduce((s, g) => s + g.cancelled, 0);
-    const totalStranded    = totalCancelled7d * AVG_PAX;
-    const todayCancelled   = AIRPORT_DATA.reduce((s, a) => s + (a.todayCancelled || 0), 0);
-    const airportsClosed   = AIRPORT_DATA.filter(a => a.status === 'CLOSED').length;
+    // ── 6. Totals ─────────────────────────────────────────────
+    const totalCancelled = AIRPORT_DATA.reduce((s, a) => s + a.cancelled, 0);
+    const todayCancelled = AIRPORT_DATA.reduce((s, a) => s + (a.todayCancelled || 0), 0);
+    const airportsClosed = AIRPORT_DATA.filter(a => a.status === 'CLOSED').length;
 
-    // Stash today figures for refreshSitrep "+today" labels
     window._todayCancelledFlight = todayCancelled;
     window._todayStrandedPeople  = todayCancelled * AVG_PAX;
 
     return {
-      stranded:  totalStranded,
-      cancelled: totalCancelled7d,
+      stranded:  totalCancelled * AVG_PAX,
+      cancelled: totalCancelled,
       airports:  airportsClosed,
       airspace:  4,
     };
 
   } catch(e) {
-    console.warn('[Pipeline] DB unavailable, falling back to seeded data:', e.message);
+    console.warn('[Pipeline] DB unavailable, using fallback skeleton:', e.message);
 
-    // ── Fallback: build from baked-in JS constants ─────────────
-    // Normalize AIRPORT_DATA: use h7 as the 7-day cancelled total (real figure),
-    // replacing the synthetic cancelRate×dailyFlights value stored in .cancelled
-    for (const a of AIRPORT_DATA) {
-      if (a.h7 > 0) {
-        a.cancelled = a.h7;
-        a.stranded  = a.h7 * AVG_PAX;
-      }
-      // todayCancelled from HISTORY_7D if available
-      const h = (typeof HISTORY_7D !== 'undefined') && HISTORY_7D[a.iata];
-      a.todayCancelled = h ? (h.days['03-07'] || 0) : 0;
-      a.todayStranded  = a.todayCancelled * AVG_PAX;
-    }
-
-    // Build _meOutbound from the fixed buildMEOutboundIndex (distributes h7 total)
+    // ── Fallback: AIRPORT_DATA skeleton (coords only, no counts) ──
+    // Global dots not shown in fallback — DB is source of truth.
     buildMEOutboundIndex();
-
-    // Build _globalDisruptions from seeded REAL_GLOBAL_DISRUPTIONS
-    const meAsDots = AIRPORT_DATA.filter(a => a.cancelled > 0).map(a => ({
+    const meAsDots = AIRPORT_DATA.filter(a => (a.cancelled || 0) > 0).map(a => ({
       iata: a.iata, cancelled: a.cancelled, stranded: a.stranded,
       airlines: [], me_hubs: [], isME: true,
     }));
-    const globalSeeded = typeof REAL_GLOBAL_DISRUPTIONS !== 'undefined'
-      ? REAL_GLOBAL_DISRUPTIONS.map(g => ({ ...g, isME: false }))
-      : [];
-    _globalDisruptions = [...meAsDots, ...globalSeeded];
+    _globalDisruptions = meAsDots;
 
-    // Today totals from HISTORY_7D
-    const todayC = AIRPORT_DATA.reduce((s, a) => s + (a.todayCancelled || 0), 0);
-    window._todayCancelledFlight = todayC;
-    window._todayStrandedPeople  = todayC * AVG_PAX;
+    window._todayCancelledFlight = 0;
+    window._todayStrandedPeople  = 0;
 
-    const totalC = AIRPORT_DATA.reduce((s, a) => s + a.cancelled, 0)
-      + globalSeeded.reduce((s, g) => s + (g.cancelled || 0), 0);
+    const totalC = AIRPORT_DATA.reduce((s, a) => s + (a.cancelled || 0), 0);
     return {
       stranded:  totalC * AVG_PAX,
       cancelled: totalC,
@@ -561,6 +362,7 @@ async function fetchSitrepFromSupabase() {
     };
   }
 }
+
 
 function computeTotalStranded() {
   const meStranded = AIRPORT_DATA.reduce((s, a) => s + (a.stranded || 0), 0);
@@ -1943,9 +1745,9 @@ function drawPopupArcs(iata, mode) {
     // 'home' or 'flyin'
     if (isMEAirport) {
       // ME airport "flying in": draw arcs FROM global origins TO this hub
-      let inbound = (typeof REAL_GLOBAL_DISRUPTIONS !== 'undefined' ? REAL_GLOBAL_DISRUPTIONS : [])
-        .filter(g => (g.me_hubs || []).includes(iata));
-      // Fall back to _meOutbound for minor hubs not in REAL_GLOBAL_DISRUPTIONS me_hubs
+      // Use _globalDisruptions (built from DB route_daily, all days since CRISIS_START)
+      let inbound = _globalDisruptions.filter(g => !g.isME && (g.me_hubs || []).includes(iata));
+      // Fall back to _meOutbound for minor hubs
       if (!inbound.length && _meOutbound && _meOutbound[iata]) {
         inbound = _meOutbound[iata].map(d => ({ iata: d.iata, cancelled: d.cancelled, stranded: d.stranded }));
       }
