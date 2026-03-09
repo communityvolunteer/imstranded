@@ -861,6 +861,31 @@ function renderTimelineChart() {
   _attachChartHover(canvas, _timelineMetric, 'fp-timeline-peak-label');
 }
 
+function renderMobileNations() {
+  const el = document.getElementById('m-nations-list');
+  if (!el || !window._countryImpact || !window._countryImpact.length) return;
+
+  const top = window._countryImpact.slice(0, 15);
+  const maxStranded = top[0]?.stranded || 1;
+
+  el.innerHTML = top.map(c => {
+    const pct  = Math.round((c.stranded / maxStranded) * 100);
+    const flag = c.code.toUpperCase().replace(/./g, ch =>
+      String.fromCodePoint(0x1F1E6 - 65 + ch.charCodeAt(0))
+    );
+    return `
+      <div style="padding:.45rem 1.1rem;border-bottom:1px solid rgba(255,255,255,.04)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem">
+          <span style="font-weight:600;color:#fff;font-size:.78rem">${flag} ${c.name}</span>
+          <span style="color:var(--accent);font-weight:700;font-size:.75rem;white-space:nowrap;margin-left:.5rem">${c.stranded.toLocaleString()}</span>
+        </div>
+        <div style="height:2px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden">
+          <div style="width:${pct}%;height:100%;background:var(--accent);border-radius:2px"></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
 function renderNationsPanel() {
   renderTimelineChart();
   const el = document.getElementById('fp-nations-list');
@@ -1284,7 +1309,11 @@ function updateStrandedLabel(atIata, toIata, filteredGlobal, reverseData) {
 }
 
 function refreshStrandedCount() {
-  const total = computeTotalStranded();
+  // Use canonical pipeline value — computeTotalStranded() adds global airports
+  // and produces inflated numbers (56m+). We only want ME-hub totals here.
+  const total = window._canonicalStranded != null
+    ? window._canonicalStranded
+    : computeTotalStranded();
   ['stat-stranded', 'm-stat-stranded'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.textContent = total.toLocaleString();
@@ -1771,7 +1800,7 @@ function toggleImpactSheet() {
     requestAnimationFrame(() => {
       backdrop.style.opacity = '1';
       sheet.style.transform = 'translateY(0)';
-      setTimeout(renderImpactSheetChart, 60);
+      setTimeout(() => { renderImpactSheetChart(); renderMobileNations(); }, 60);
     });
   }
 }
@@ -2551,7 +2580,15 @@ async function submitPost(type) {
 // ============================================================
 // SITREP
 // ============================================================
+// Canonical stat values — set by refreshSitrep, used by refreshStrandedCount
+// to prevent computeTotalStranded() from pulling in global airports and inflating the number
+window._canonicalStranded  = null;
+window._canonicalCancelled = null;
+window._sitrepLoaded = false;
+
 function animCount(id, target, dur) {
+  // On first load skip animation — just set instantly to avoid count-up flash
+  if (!window._sitrepLoaded) { setStatNow(id, target); return; }
   const el=document.getElementById(id); if(!el||target==null)return;
   const raw=el.textContent.replace(/[^0-9]/g,'');
   const startVal=raw.length?parseInt(raw):0;
@@ -2592,12 +2629,17 @@ async function refreshSitrep() {
   setStatNow('m-stat-stranded',vals.stranded);
   setStatNow('m-stat-cancelled',vals.cancelled);
 
+  // Cache so refreshStrandedCount never recomputes from global arrays
+  window._canonicalStranded  = vals.stranded;
+  window._canonicalCancelled = vals.cancelled;
+
   animCount('stat-stranded',vals.stranded,1200);
   animCount('stat-cancelled',vals.cancelled,800);
   animCount('stat-airports-closed',vals.airports,500);
   animCount('stat-airspace',vals.airspace,500);
   animCount('m-stat-stranded',vals.stranded,1200);
   animCount('m-stat-cancelled',vals.cancelled,800);
+  window._sitrepLoaded = true; // subsequent refreshes can animate
 
   // ── Inject +Today labels ────────────────────────────────────
   function setToday(id, n, prefix='+') {
