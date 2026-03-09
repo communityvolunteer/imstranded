@@ -762,11 +762,14 @@ function _drawChart(canvasEl, metric, accentOverride) {
 }
 
 function _attachChartHover(canvasEl, metric, peakLabelId) {
-  // Remove old listener
   if (canvasEl._hoverHandler) canvasEl.removeEventListener('mousemove', canvasEl._hoverHandler);
   if (canvasEl._leaveHandler) canvasEl.removeEventListener('mouseleave', canvasEl._leaveHandler);
 
-  // Create tooltip
+  // Snapshot the freshly-drawn chart pixels — restore these on every hover frame
+  // instead of calling _drawChart (which resets canvas.width → reflow → snowball)
+  const dpr      = window.devicePixelRatio || 1;
+  const snapshot = canvasEl.getContext('2d').getImageData(0, 0, canvasEl.width, canvasEl.height);
+
   let tip = document.getElementById('chart-hover-tip');
   if (!tip) {
     tip = document.createElement('div');
@@ -782,7 +785,6 @@ function _attachChartHover(canvasEl, metric, peakLabelId) {
     const rect = canvasEl.getBoundingClientRect();
     const mx   = e.clientX - rect.left;
 
-    // Find closest point
     let closest = pts[0], minDist = Infinity;
     for (const p of pts) {
       const d = Math.abs(p.x - mx);
@@ -796,8 +798,7 @@ function _attachChartHover(canvasEl, metric, peakLabelId) {
     tip.innerHTML = `<span style="color:rgba(255,255,255,.45);font-size:.65rem">${day}</span><br><span style="color:${accent};font-weight:800;font-size:.85rem">${closest.val.toLocaleString()}</span> <span style="color:rgba(255,255,255,.4);font-size:.65rem">${label}</span>`;
     tip.style.opacity = '1';
 
-    // Position above cursor
-    const tipW = tip.offsetWidth  || 100;
+    const tipW = tip.offsetWidth || 100;
     const tipH = tip.offsetHeight || 48;
     let tx = e.clientX - tipW / 2;
     let ty = e.clientY - tipH - 12;
@@ -807,18 +808,17 @@ function _attachChartHover(canvasEl, metric, peakLabelId) {
     tip.style.left = tx + 'px';
     tip.style.top  = ty + 'px';
 
-    // Draw crosshair overlay ON TOP without resizing canvas
-    const dpr = window.devicePixelRatio || 1;
+    // Restore snapshot (no canvas.width reset — no reflow)
     const ctx = canvasEl.getContext('2d');
-    // Redraw base chart cleanly first (using cached dims — no offsetWidth read)
-    _drawChart(canvasEl, metric, accent);
-    // Now add crosshair on top (canvas already scaled by _drawChart)
+    ctx.putImageData(snapshot, 0, 0);
+
+    // Draw crosshair overlay
+    const h = canvasEl._cachedH || 64;
     ctx.save();
     ctx.scale(dpr, dpr);
     ctx.strokeStyle = 'rgba(255,255,255,.18)';
     ctx.lineWidth   = 1;
     ctx.setLineDash([3, 3]);
-    const h = canvasEl._cachedH || 64;
     ctx.beginPath();
     ctx.moveTo(closest.x, 2);
     ctx.lineTo(closest.x, h - 2);
@@ -836,7 +836,8 @@ function _attachChartHover(canvasEl, metric, peakLabelId) {
 
   canvasEl._leaveHandler = () => {
     tip.style.opacity = '0';
-    _drawChart(canvasEl, metric);
+    // Restore clean snapshot on leave too
+    canvasEl.getContext('2d').putImageData(snapshot, 0, 0);
   };
 
   canvasEl.addEventListener('mousemove', canvasEl._hoverHandler);
