@@ -930,29 +930,40 @@ function toggleFpSection(head) {
 }
 
 function getFilterState() {
-  // Read from whichever set of controls exists — use fp- (desktop) as primary, fall back to mfp- (mobile)
+  // IMPORTANT: Both fp- (desktop) and mfp- (mobile) elements exist in the DOM at all times
+  // (one is just CSS-hidden). We must read the ACTIVE set first — otherwise ?? never falls
+  // through since a hidden checkbox still returns true/false, not null.
+  const mob = isMob();
+  const P = mob ? 'mfp' : 'fp';   // primary prefix
+  const S = mob ? 'fp'  : 'mfp';  // secondary prefix (fallback)
+
   function val(id) { const el = document.getElementById(id); return el ? (el.type === 'checkbox' ? el.checked : el.value) : null; }
+  function v(key) { return val(P + '-' + key) ?? val(S + '-' + key); }
   function checked(containerId) { return [...document.querySelectorAll('#' + containerId + ' input:checked')].map(c => c.value); }
+  function chk(key) {
+    const pArr = checked(P + '-' + key);
+    return pArr.length ? pArr : checked(S + '-' + key);
+  }
 
-  // Try desktop first, then mobile
-  const showOffers = val('fp-show-offers') ?? val('mfp-show-offers') ?? true;
-  const offersVerified = val('fp-offers-verified') ?? val('mfp-offers-verified') ?? false;
-  const offerTypes = checked('fp-offer-type').length ? checked('fp-offer-type') : checked('mfp-offer-type');
-  const showStranded = val('fp-show-stranded') ?? val('mfp-show-stranded') ?? true;
-  const strandedVerified = val('fp-stranded-verified') ?? val('mfp-stranded-verified') ?? false;
-  const nationality = val('fp-nationality') || val('mfp-nationality') || '';
-  const strandedNeeds = checked('fp-stranded-needs').length ? checked('fp-stranded-needs') : checked('mfp-stranded-needs');
-  const groupSize = val('fp-group-size') || val('mfp-group-size') || '';
-  const showWorldwide = val('fp-show-worldwide') ?? val('mfp-show-worldwide') ?? true;
+  const showOffers      = v('show-offers')    ?? true;
+  const offersVerified  = v('offers-verified') ?? false;
+  const offerTypes      = chk('offer-type');
+  const showStranded    = v('show-stranded')   ?? true;
+  const strandedVerified = v('stranded-verified') ?? false;
+  const nationality     = v('nationality')     || '';
+  const strandedNeeds   = chk('stranded-needs');
+  const groupSize       = v('group-size')      || '';
+  const showWorldwide   = v('show-worldwide')  ?? true;
+  const showArcs        = v('worldwide-arcs')  ?? true;
+  const showSuccess     = v('show-success')    ?? true;
+  const showSuccessArcs = v('show-success-arcs') ?? true;
+  const showHome        = v('show-home')       ?? true;
 
-  const destCountry = val('fp-filter-dest-country') || val('mfp-filter-dest-country') || '';
-  const destAirport = val('fp-filter-dest-airport') || val('mfp-filter-dest-airport') || '';
-  const showArcs = val('fp-worldwide-arcs') ?? val('mfp-worldwide-arcs') ?? true;
-  const atIata = _filterAtIata || val('fp-at-iata') || val('mfp-at-iata') || '';
-  const toIata = _filterToIata || val('fp-to-iata') || val('mfp-to-iata') || '';
-  const showSuccess = val('fp-show-success') ?? val('mfp-show-success') ?? true;
-  const showSuccessArcs = val('fp-show-success-arcs') ?? val('mfp-show-success-arcs') ?? true;
-  const showHome = val('fp-show-home') ?? val('mfp-show-home') ?? true;
+  const destCountry = val(P + '-filter-dest-country') || val(S + '-filter-dest-country') || '';
+  const destAirport = val(P + '-filter-dest-airport') || val(S + '-filter-dest-airport') || '';
+  const atIata = _filterAtIata || val(P + '-at-iata') || val(S + '-at-iata') || '';
+  const toIata = _filterToIata || val(P + '-to-iata') || val(S + '-to-iata') || '';
+
   return { showOffers, offersVerified, offerTypes, showStranded, strandedVerified, nationality, strandedNeeds, groupSize, showWorldwide, destCountry, destAirport, showArcs, atIata, toIata, showSuccess, showSuccessArcs, showHome };
 }
 
@@ -2970,15 +2981,15 @@ async function refreshSitrep() {
     // Mobile: after data loads, fire a second full re-render timed to land AFTER the
     // intro overlay's ~1370ms dismissal window. This ensures arcs and pins survive the
     // iOS GPU compositor reset that backdrop-filter removal can trigger on SVG layers.
-    if (window._mobileMap) {
-      window._mobileMap.invalidateSize();
-      setTimeout(() => {
-        if (window._mobileMap) {
-          window._mobileMap.invalidateSize();
-          applyFilters();
-        }
-      }, 1600);
-    }
+    // Always schedule the catch-up re-render, even if _mobileMap isn't ready yet.
+    // If map init (double-rAF) hasn't fired yet, _mobileMap will be set by the time
+    // this 1600ms timeout runs (double-rAF takes ~33ms, this is 1600ms).
+    setTimeout(() => {
+      if (window._mobileMap) {
+        window._mobileMap.invalidateSize();
+        applyFilters();
+      }
+    }, 1600);
   });
 }
 
@@ -3029,6 +3040,10 @@ function initMobile(){
     mmap.getPane('airportPane').style.zIndex = 630;
     mmap.createPane('countryPane');
     mmap.getPane('countryPane').style.zIndex = 640;
+
+    // Clear any stale desktop markers from the shared arrays before pushing mobile ones
+    _mk.country = [];
+    _mk.worldwide = [];
 
     COUNTRIES.forEach(c => {
       const col = getSC()[c.status];
