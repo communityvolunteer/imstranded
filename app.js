@@ -380,7 +380,7 @@ async function fetchSitrepFromSupabase() {
       .sort((a, b) => b.stranded - a.stranded);
 
     console.log(`[Pipeline] Built _countryImpact for ${window._countryImpact.length} countries`);
-    renderNationsPanel();
+    try { renderNationsPanel(); } catch(e) { console.warn('[Pipeline] renderNationsPanel error:', e.message); }
 
     // ── 5. Build _globalDisruptions ───────────────────────────
     // ME airports as isME dots
