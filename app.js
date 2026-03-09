@@ -2673,6 +2673,63 @@ function flipStrandedStats(targetNum) {
   flipToNumber('flip-stranded-m', targetNum);
 }
 
+function flyAndDismissOverlay() {
+  const overlay = document.getElementById('intro-overlay');
+  if (!overlay || overlay._dismissed) return;
+  overlay._dismissed = true;
+
+  const mob = window.innerWidth <= 600;
+
+  // Target real icon IDs per platform
+  const tgTargetId = mob ? 'mob-social-tg' : 'pc-social-tg';
+  const xTargetId  = mob ? 'mob-social-x'  : 'pc-social-x';
+
+  const introTg = document.getElementById('intro-icon-tg');
+  const introX  = document.getElementById('intro-icon-x');
+  const tgTarget = document.getElementById(tgTargetId);
+  const xTarget  = document.getElementById(xTargetId);
+
+  function flyIcon(introEl, targetEl, delay) {
+    if (!introEl || !targetEl) return;
+    const fromR = introEl.getBoundingClientRect();
+    const toR   = targetEl.getBoundingClientRect();
+
+    // Convert to position:fixed at current spot
+    introEl.style.position   = 'fixed';
+    introEl.style.left       = fromR.left + 'px';
+    introEl.style.top        = fromR.top  + 'px';
+    introEl.style.width      = fromR.width  + 'px';
+    introEl.style.height     = fromR.height + 'px';
+    introEl.style.margin     = '0';
+    introEl.style.zIndex     = '100001';
+    introEl.style.transition = 'none';
+    document.body.appendChild(introEl); // pull out of overlay so it survives fade
+
+    const dx = toR.left - fromR.left + (toR.width  - fromR.width)  / 2;
+    const dy = toR.top  - fromR.top  + (toR.height - fromR.height) / 2;
+
+    setTimeout(() => {
+      introEl.style.transition = `transform .6s cubic-bezier(.4,0,.2,1), opacity .5s ease .25s`;
+      introEl.style.transform  = `translate(${dx}px,${dy}px) scale(${toR.width / fromR.width})`;
+      introEl.style.opacity    = '0';
+      setTimeout(() => introEl.remove(), 900);
+    }, delay);
+  }
+
+  // Brief pause so users can read the message, then fly
+  setTimeout(() => {
+    flyIcon(introTg, tgTarget, 0);
+    flyIcon(introX,  xTarget,  80);
+
+    // Fade overlay slightly before icons fully land
+    setTimeout(() => {
+      overlay.style.opacity          = '0';
+      overlay.style.pointerEvents    = 'none';
+      setTimeout(() => overlay.remove(), 850);
+    }, 120);
+  }, 400);
+}
+
 async function refreshSitrep() {
   const icon=document.getElementById('refresh-icon');
   if(icon) icon.classList.add('spinning');
@@ -2714,6 +2771,9 @@ async function refreshSitrep() {
   const toast = document.getElementById('data-loading-toast');
   if (toast) toast.classList.add('toast-hidden');
   document.querySelectorAll('.stat-loading').forEach(el => el.classList.remove('stat-loading'));
+
+  // Fly intro overlay icons to their real positions, then fade out
+  flyAndDismissOverlay();
 
   // ── Inject +Today labels ────────────────────────────────────
   function setToday(id, n, prefix='+') {
