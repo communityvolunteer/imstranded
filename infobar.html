@@ -133,15 +133,21 @@ async function refresh() {
   document.getElementById('stat-days').textContent = getDaysIn();
 
   try {
-    // People Impacted — sum cancelled × AVG_PAX from airport_daily
+    // Est. Stranded — match app exactly: group by IATA, sum cancelled per airport, × AVG_PAX
+    const today = new Date().toISOString().slice(0, 10);
     const { data: adRows, error: adErr } = await _sb
       .from('airport_daily')
-      .select('cancelled')
-      .gte('date', CRISIS_START);
+      .select('iata, cancelled')
+      .gte('date', CRISIS_START)
+      .lte('date', today);
 
     if (!adErr && adRows && adRows.length) {
-      const totalStranded = adRows.reduce((s, r) => s + ((r.cancelled || 0) * AVG_PAX), 0);
-      animCount('stat-stranded', totalStranded, 1200);
+      const apTotals = {};
+      for (const row of adRows) {
+        apTotals[row.iata] = (apTotals[row.iata] || 0) + (row.cancelled || 0);
+      }
+      const totalCancelled = Object.values(apTotals).reduce((s, c) => s + c, 0);
+      animCount('stat-stranded', totalCancelled * AVG_PAX, 1200);
     }
 
     // Cities + Countries — distinct arr_iata destinations from route_daily
