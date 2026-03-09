@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="airports.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{background:transparent;font-family:'Inter',sans-serif;}
@@ -96,18 +97,27 @@ const SUPABASE_URL  = 'https://nzvlvqyitsjuxnafcuhl.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im56dmx2cXlpdHNqdXhuYWZjdWhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0MTQxOTEsImV4cCI6MjA4Nzk5MDE5MX0.K4JCnTJTBR7zQBaLmxbeZS2QBRCIxdVzbZKrmapOEkw';
 const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-const CRISIS_START = new Date('2026-03-01T00:00:00Z');
+const CRISIS_START = '2026-03-01';
+const AVG_PAX = 185;
 
-function getDaysIn() {
-  const diff = Date.now() - CRISIS_START.getTime();
-  return Math.max(1, Math.floor(diff / (1000 * 60 * 60 * 24)) + 1);
+// Build IATA → { city, country } lookup from airports.js
+const IATA_MAP = {};
+if (typeof AIRPORTS_RAW !== 'undefined') {
+  AIRPORTS_RAW.forEach(([iata, city, , countryCode]) => {
+    IATA_MAP[iata] = { city, country: countryCode };
+  });
 }
 
-function animCount(id, target, dur){
+function getDaysIn() {
+  const start = new Date(CRISIS_START + 'T00:00:00Z');
+  const diff = Date.now() - start.getTime();
+  return Math.max(1, Math.floor(diff / 86400000) + 1);
+}
+
+function animCount(id, target, dur) {
   const el = document.getElementById(id);
   if (!el || target == null) return;
-  const raw = el.textContent.replace(/[^0-9]/g, '');
-  const startVal = raw.length ? parseInt(raw) : 0;
+  const startVal = parseInt(el.textContent.replace(/[^0-9]/g, '')) || 0;
   const start = Date.now();
   const step = () => {
     const p = Math.min((Date.now() - start) / dur, 1);
@@ -119,32 +129,55 @@ function animCount(id, target, dur){
 }
 
 async function refresh() {
-  // Block 1: always live, no API needed
+  // Block 1: always live
   document.getElementById('stat-days').textContent = getDaysIn();
 
   try {
-    const { data, error } = await _sb
-      .from('stranded_people')
-      .select('group_size, current_location, nationality')
-      .eq('status', 'active');
+    // People Impacted — sum cancelled × AVG_PAX from airport_daily
+    const { data: adRows, error: adErr } = await _sb
+      .from('airport_daily')
+      .select('cancelled')
+      .gte('date', CRISIS_START);
 
-    if (!error && data && data.length > 0) {
-      const totalPeople = data.reduce((s, r) => s + (r.group_size || 1), 0);
-      const cities = new Set(data.map(r => (r.current_location || '').trim().toLowerCase()).filter(Boolean));
-      const countries = new Set(data.map(r => (r.nationality || '').trim().toLowerCase()).filter(Boolean));
-
-      animCount('stat-stranded', totalPeople, 1200);
-      animCount('stat-cities', cities.size, 600);
-      animCount('stat-countries', countries.size, 600);
-    } else {
-      ['stat-stranded','stat-cities','stat-countries'].forEach(id => {
-        document.getElementById(id).textContent = '--';
-      });
+    if (!adErr && adRows && adRows.length) {
+      const totalStranded = adRows.reduce((s, r) => s + ((r.cancelled || 0) * AVG_PAX), 0);
+      animCount('stat-stranded', totalStranded, 1200);
     }
+
+    // Cities + Countries — distinct arr_iata destinations from route_daily
+    const cities = new Set();
+    const countries = new Set();
+    let page = 0;
+    const PAGE_SIZE = 1000;
+
+    while (true) {
+      const { data: routes, error: rErr } = await _sb
+        .from('route_daily')
+        .select('arr_iata')
+        .gte('date', CRISIS_START)
+        .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+
+      if (rErr || !routes || !routes.length) break;
+
+      routes.forEach(r => {
+        const ap = IATA_MAP[r.arr_iata];
+        if (ap) {
+          cities.add(ap.city);
+          countries.add(ap.country);
+        } else if (r.arr_iata) {
+          cities.add(r.arr_iata); // fallback: use IATA code as city
+        }
+      });
+
+      if (routes.length < PAGE_SIZE) break;
+      page++;
+    }
+
+    animCount('stat-cities',    cities.size,    600);
+    animCount('stat-countries', countries.size, 600);
+
   } catch(e) {
-    ['stat-stranded','stat-cities','stat-countries'].forEach(id => {
-      document.getElementById(id).textContent = '--';
-    });
+    console.error('infobar refresh error:', e);
   }
 }
 
