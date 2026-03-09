@@ -229,6 +229,19 @@ async function fetchSitrepFromSupabase() {
       a.stranded = a.cancelled * AVG_PAX;
     }
 
+    // ── Build _dailyTotals from ALL airports (ME + global) ────
+    // h7days on AIRPORT_DATA is ME-only after the filter below,
+    // so we capture global daily sums here for the timeline chart.
+    window._dailyTotals = {};
+    for (const ap of Object.values(apMap)) {
+      for (const [mmdd, count] of Object.entries(ap.h7days || {})) {
+        if (!window._dailyTotals[mmdd]) window._dailyTotals[mmdd] = { cancelled: 0, stranded: 0 };
+        window._dailyTotals[mmdd].cancelled += count || 0;
+        window._dailyTotals[mmdd].stranded  += (count || 0) * AVG_PAX;
+      }
+    }
+    console.log(`[Pipeline] Built _dailyTotals: ${Object.keys(window._dailyTotals).length} days`);
+
     AIRPORT_DATA = Object.values(apMap).filter(a => a.isME);
     console.log(`[Pipeline] Built AIRPORT_DATA: ${AIRPORT_DATA.length} ME airports`);
 
@@ -624,7 +637,29 @@ function toggleSocialsBar() {
   if (btn) btn.textContent = hidden ? 'Hide Socials' : 'Show Socials';
 }
 
-let _impactSheetMetric = 'stranded';
+function renderImpactSheetChart() {
+  const canvas = document.getElementById('impact-sheet-canvas');
+  if (!canvas) return;
+  const result = _drawChart(canvas, _impactSheetMetric);
+  if (!result) return;
+  const { pts, peakIdx } = result;
+  const peakEl = document.getElementById('impact-sheet-peak');
+  if (peakEl && pts[peakIdx]) {
+    const mmdd = Object.keys(window._dailyTotals || {}).sort()[peakIdx];
+    if (mmdd) peakEl.textContent = `Peak: Mar ${parseInt(mmdd.slice(3))} · ${pts[peakIdx].val.toLocaleString()}`;
+  }
+  _attachChartHover(canvas, _impactSheetMetric, 'impact-sheet-peak');
+}
+
+let _timelineMetric     = 'stranded';
+let _impactSheetMetric  = 'stranded';
+
+function toggleTimelineMetric() {
+  _timelineMetric = _timelineMetric === 'stranded' ? 'cancelled' : 'stranded';
+  const btn = document.getElementById('fp-timeline-metric-toggle');
+  if (btn) btn.textContent = _timelineMetric === 'stranded' ? 'People ▾' : 'Flights ▾';
+  renderTimelineChart();
+}
 
 function toggleImpactSheetMetric() {
   _impactSheetMetric = _impactSheetMetric === 'stranded' ? 'cancelled' : 'stranded';
@@ -633,63 +668,55 @@ function toggleImpactSheetMetric() {
   renderImpactSheetChart();
 }
 
-function renderImpactSheetChart() {
-  const canvas = document.getElementById('impact-sheet-canvas');
-  if (!canvas || !AIRPORT_DATA || !AIRPORT_DATA.length) return;
+function _buildChartPoints(canvasEl, metric) {
+  const source = window._dailyTotals || {};
+  const sorted = Object.keys(source).sort();
+  if (!sorted.length) return null;
+  const vals   = sorted.map(d => source[d][metric] || 0);
+  const maxVal = Math.max(...vals, 1);
+  const dpr    = window.devicePixelRatio || 1;
+  const w      = canvasEl.offsetWidth || 240;
+  const h      = parseInt(canvasEl.getAttribute('height')) || 64;
+  const pad    = { l: 2, r: 2, t: 10, b: 4 };
+  const cw     = w - pad.l - pad.r;
+  const ch     = h - pad.t - pad.b;
+  const n      = vals.length;
+  const pts    = vals.map((v, i) => ({
+    x:    pad.l + (n === 1 ? cw / 2 : i * (cw / (n - 1))),
+    y:    pad.t + ch * (1 - v / maxVal),
+    val:  v,
+    date: sorted[i],
+  }));
+  return { pts, vals, sorted, maxVal, w, h, pad, cw, ch, dpr };
+}
 
-  const dayTotals = {};
-  for (const ap of AIRPORT_DATA) {
-    for (const [mmdd, count] of Object.entries(ap.h7days || {})) {
-      if (!dayTotals[mmdd]) dayTotals[mmdd] = { cancelled: 0, stranded: 0 };
-      dayTotals[mmdd].cancelled += count || 0;
-      dayTotals[mmdd].stranded  += (count || 0) * 185;
-    }
-  }
-
-  const sorted = Object.keys(dayTotals).sort();
-  if (!sorted.length) return;
-
-  const vals    = sorted.map(d => dayTotals[d][_impactSheetMetric] || 0);
-  const maxVal  = Math.max(...vals, 1);
+function _drawChart(canvasEl, metric, accentOverride) {
+  const data = _buildChartPoints(canvasEl, metric);
+  if (!data) return;
+  const { pts, vals, maxVal, w, h, pad, ch, dpr } = data;
   const peakIdx = vals.indexOf(Math.max(...vals));
+  const accent  = accentOverride || getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#3498ec';
 
-  const peakEl = document.getElementById('impact-sheet-peak');
-  if (peakEl) peakEl.textContent = `Peak: Mar ${parseInt(sorted[peakIdx].slice(3))} · ${vals[peakIdx].toLocaleString()}`;
+  canvasEl.width  = w * dpr;
+  canvasEl.height = h * dpr;
+  canvasEl.style.width  = w + 'px';
+  canvasEl.style.height = h + 'px';
 
-  const dpr = window.devicePixelRatio || 1;
-  const w   = canvas.offsetWidth || 300;
-  const h   = 72;
-  canvas.width  = w * dpr;
-  canvas.height = h * dpr;
-  canvas.style.width  = w + 'px';
-  canvas.style.height = h + 'px';
-
-  const ctx = canvas.getContext('2d');
+  const ctx = canvasEl.getContext('2d');
   ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, w, h);
 
-  const pad = { l: 2, r: 2, t: 8, b: 4 };
-  const cw  = w - pad.l - pad.r;
-  const ch  = h - pad.t - pad.b;
-  const n   = vals.length;
-  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#3498ec';
-
   // Grid lines
-  ctx.strokeStyle = 'rgba(255,255,255,.04)';
+  ctx.strokeStyle = 'rgba(255,255,255,.05)';
   ctx.lineWidth = 1;
-  [0.33, 0.66].forEach(f => {
+  [0.25, 0.5, 0.75].forEach(f => {
     const y = pad.t + ch * (1 - f);
     ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(w - pad.r, y); ctx.stroke();
   });
 
-  const pts = vals.map((v, i) => ({
-    x: pad.l + (n === 1 ? cw / 2 : i * (cw / (n - 1))),
-    y: pad.t + ch * (1 - v / maxVal),
-  }));
-
   // Gradient fill
   const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
-  grad.addColorStop(0, accent + '55');
+  grad.addColorStop(0, accent + '44');
   grad.addColorStop(1, accent + '00');
   ctx.beginPath();
   ctx.moveTo(pts[0].x, pad.t + ch);
@@ -712,11 +739,8 @@ function renderImpactSheetChart() {
   if (pts[peakIdx]) {
     ctx.beginPath();
     ctx.arc(pts[peakIdx].x, pts[peakIdx].y, 4.5, 0, Math.PI * 2);
-    ctx.fillStyle   = accent;
-    ctx.fill();
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth   = 1.5;
-    ctx.stroke();
+    ctx.fillStyle = accent; ctx.fill();
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5; ctx.stroke();
   }
 
   // Latest dot
@@ -724,125 +748,105 @@ function renderImpactSheetChart() {
   if (last && peakIdx !== pts.length - 1) {
     ctx.beginPath();
     ctx.arc(last.x, last.y, 3, 0, Math.PI * 2);
-    ctx.fillStyle = '#fff';
-    ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.fill();
   }
+
+  return { pts, peakIdx };
 }
 
-let _timelineMetric = 'stranded'; // or 'cancelled'
+function _attachChartHover(canvasEl, metric, peakLabelId) {
+  // Remove old listener
+  if (canvasEl._hoverHandler) canvasEl.removeEventListener('mousemove', canvasEl._hoverHandler);
+  if (canvasEl._leaveHandler) canvasEl.removeEventListener('mouseleave', canvasEl._leaveHandler);
 
-function toggleTimelineMetric() {
-  _timelineMetric = _timelineMetric === 'stranded' ? 'cancelled' : 'stranded';
-  const btn = document.getElementById('fp-timeline-metric-toggle');
-  if (btn) btn.textContent = _timelineMetric === 'stranded' ? 'People ▾' : 'Flights ▾';
-  renderTimelineChart();
+  // Create tooltip
+  let tip = document.getElementById('chart-hover-tip');
+  if (!tip) {
+    tip = document.createElement('div');
+    tip.id = 'chart-hover-tip';
+    tip.style.cssText = 'position:fixed;pointer-events:none;z-index:99999;background:#111;border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:.35rem .65rem;font-family:Inter,sans-serif;font-size:.72rem;color:#fff;white-space:nowrap;opacity:0;transition:opacity .1s;box-shadow:0 4px 16px rgba(0,0,0,.5)';
+    document.body.appendChild(tip);
+  }
+
+  canvasEl._hoverHandler = (e) => {
+    const data = _buildChartPoints(canvasEl, metric);
+    if (!data) return;
+    const { pts } = data;
+    const rect = canvasEl.getBoundingClientRect();
+    const mx   = e.clientX - rect.left;
+
+    // Find closest point
+    let closest = pts[0], minDist = Infinity;
+    for (const p of pts) {
+      const d = Math.abs(p.x - mx);
+      if (d < minDist) { minDist = d; closest = p; }
+    }
+    if (minDist > 40) { tip.style.opacity = '0'; return; }
+
+    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#3498ec';
+    const mmdd   = closest.date; // 'MM-DD'
+    const day    = `Mar ${parseInt(mmdd.slice(3))}`;
+    const label  = metric === 'stranded' ? 'people' : 'flights';
+    tip.innerHTML = `<span style="color:rgba(255,255,255,.45);font-size:.65rem">${day}</span><br><span style="color:${accent};font-weight:800;font-size:.85rem">${closest.val.toLocaleString()}</span> <span style="color:rgba(255,255,255,.4);font-size:.65rem">${label}</span>`;
+    tip.style.opacity = '1';
+
+    // Position above cursor
+    const tipW = tip.offsetWidth  || 100;
+    const tipH = tip.offsetHeight || 48;
+    let tx = e.clientX - tipW / 2;
+    let ty = e.clientY - tipH - 12;
+    if (tx < 4) tx = 4;
+    if (tx + tipW > window.innerWidth - 4) tx = window.innerWidth - tipW - 4;
+    if (ty < 4) ty = e.clientY + 16;
+    tip.style.left = tx + 'px';
+    tip.style.top  = ty + 'px';
+
+    // Draw crosshair
+    const accent2 = accent;
+    _drawChart(canvasEl, metric, accent2);
+    const dpr = window.devicePixelRatio || 1;
+    const ctx  = canvasEl.getContext('2d');
+    ctx.scale(dpr, dpr);
+    ctx.strokeStyle = 'rgba(255,255,255,.2)';
+    ctx.lineWidth   = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(closest.x, 2);
+    ctx.lineTo(closest.x, canvasEl.offsetHeight - 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.arc(closest.x, closest.y, 5, 0, Math.PI * 2);
+    ctx.fillStyle   = accent2;
+    ctx.fill();
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth   = 1.5;
+    ctx.stroke();
+  };
+
+  canvasEl._leaveHandler = () => {
+    tip.style.opacity = '0';
+    _drawChart(canvasEl, metric);
+  };
+
+  canvasEl.addEventListener('mousemove', canvasEl._hoverHandler);
+  canvasEl.addEventListener('mouseleave', canvasEl._leaveHandler);
 }
 
 function renderTimelineChart() {
   const canvas = document.getElementById('fp-timeline-canvas');
   if (!canvas) return;
+  const result = _drawChart(canvas, _timelineMetric);
+  if (!result) return;
 
-  // Build daily series from AIRPORT_DATA.h7days (keyed 'MM-DD')
-  // We need all days from Mar 1 to today sorted
-  const dayTotals = {}; // 'MM-DD' → total
-  if (!AIRPORT_DATA || !AIRPORT_DATA.length) return;
-
-  for (const ap of AIRPORT_DATA) {
-    const days = ap.h7days || {};
-    for (const [mmdd, count] of Object.entries(days)) {
-      if (!dayTotals[mmdd]) dayTotals[mmdd] = { cancelled: 0, stranded: 0 };
-      dayTotals[mmdd].cancelled += count || 0;
-      dayTotals[mmdd].stranded  += (count || 0) * 185;
-    }
-  }
-
-  const sorted = Object.keys(dayTotals).sort(); // 'MM-DD' sorts correctly within same year
-  if (!sorted.length) return;
-
-  const vals = sorted.map(d => dayTotals[d][_timelineMetric] || 0);
-  const maxVal = Math.max(...vals, 1);
-  const peakIdx = vals.indexOf(Math.max(...vals));
-  const peakDay = sorted[peakIdx];
-
-  // Update peak label
+  const { pts, peakIdx } = result;
   const peakEl = document.getElementById('fp-timeline-peak-label');
-  if (peakEl) peakEl.textContent = `Peak: Mar ${parseInt(peakDay.slice(3))} · ${vals[peakIdx].toLocaleString()}`;
-
-  // Draw chart
-  const dpr = window.devicePixelRatio || 1;
-  const w = canvas.offsetWidth || 240;
-  const h = 64;
-  canvas.width  = w * dpr;
-  canvas.height = h * dpr;
-  canvas.style.width  = w + 'px';
-  canvas.style.height = h + 'px';
-
-  const ctx = canvas.getContext('2d');
-  ctx.scale(dpr, dpr);
-  ctx.clearRect(0, 0, w, h);
-
-  const pad = { l: 2, r: 2, t: 6, b: 2 };
-  const cw = w - pad.l - pad.r;
-  const ch = h - pad.t - pad.b;
-  const n = vals.length;
-  const step = n > 1 ? cw / (n - 1) : cw;
-
-  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#3498ec';
-
-  // Grid lines (subtle)
-  ctx.strokeStyle = 'rgba(255,255,255,.04)';
-  ctx.lineWidth = 1;
-  [0.25, 0.5, 0.75].forEach(f => {
-    const y = pad.t + ch * (1 - f);
-    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(w - pad.r, y); ctx.stroke();
-  });
-
-  // Points
-  const pts = vals.map((v, i) => ({
-    x: pad.l + (n === 1 ? cw / 2 : i * step),
-    y: pad.t + ch * (1 - v / maxVal),
-  }));
-
-  // Gradient fill under line
-  const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
-  grad.addColorStop(0, accent + '55');
-  grad.addColorStop(1, accent + '00');
-  ctx.beginPath();
-  ctx.moveTo(pts[0].x, pad.t + ch);
-  pts.forEach(p => ctx.lineTo(p.x, p.y));
-  ctx.lineTo(pts[pts.length - 1].x, pad.t + ch);
-  ctx.closePath();
-  ctx.fillStyle = grad;
-  ctx.fill();
-
-  // Line
-  ctx.beginPath();
-  ctx.strokeStyle = accent;
-  ctx.lineWidth = 2;
-  ctx.lineJoin = 'round';
-  ctx.lineCap  = 'round';
-  pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
-  ctx.stroke();
-
-  // Peak dot
-  if (pts[peakIdx]) {
-    ctx.beginPath();
-    ctx.arc(pts[peakIdx].x, pts[peakIdx].y, 4, 0, Math.PI * 2);
-    ctx.fillStyle = accent;
-    ctx.fill();
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
+  if (peakEl && pts[peakIdx]) {
+    const mmdd = Object.keys(window._dailyTotals || {}).sort()[peakIdx];
+    const val  = pts[peakIdx].val;
+    if (mmdd) peakEl.textContent = `Peak: Mar ${parseInt(mmdd.slice(3))} · ${val.toLocaleString()}`;
   }
-
-  // Latest dot
-  const last = pts[pts.length - 1];
-  if (last && peakIdx !== pts.length - 1) {
-    ctx.beginPath();
-    ctx.arc(last.x, last.y, 3, 0, Math.PI * 2);
-    ctx.fillStyle = '#fff';
-    ctx.fill();
-  }
+  _attachChartHover(canvas, _timelineMetric, 'fp-timeline-peak-label');
 }
 
 function renderNationsPanel() {
