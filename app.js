@@ -555,6 +555,26 @@ function toggleFilterPanel() {
   if (panel) panel.classList.toggle('open', _filterPanelOpen);
   document.getElementById('ss-filter')?.classList.toggle('active-filter', _filterPanelOpen);
   document.getElementById('map-view')?.style.setProperty('--sidebar-w', _filterPanelOpen ? '280px' : '0px');
+  const btn = document.getElementById('nav-filters-btn');
+  if (btn) btn.textContent = _filterPanelOpen ? 'Hide Filters' : 'Show Filters';
+}
+
+function toggleSitrepBar() {
+  const bar = document.getElementById('sitrep-bar');
+  const btn = document.getElementById('nav-sitrep-btn');
+  if (!bar) return;
+  const hidden = bar.style.display === 'none';
+  bar.style.display = hidden ? '' : 'none';
+  if (btn) btn.textContent = hidden ? 'Hide Menu' : 'Show Menu';
+}
+
+function toggleSocialsBar() {
+  const bar = document.querySelector('.map-community-bar');
+  const btn = document.getElementById('nav-socials-btn');
+  if (!bar) return;
+  const hidden = bar.style.display === 'none';
+  bar.style.display = hidden ? '' : 'none';
+  if (btn) btn.textContent = hidden ? 'Hide Socials' : 'Show Socials';
 }
 
 function toggleFpSection(head) {

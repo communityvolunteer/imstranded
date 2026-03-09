@@ -79,7 +79,9 @@ function googleTranslateInit() {
   <nav>
     <button class="active" onclick="showView('map')"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff" style="vertical-align:-2px;margin-right:4px"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4zm7-2l8 4v14l-8-4V4z"/></svg>Map</button>
     <button onclick="showView('resources')">Resources</button>
-    <button onclick="document.getElementById('filter-panel').classList.toggle('open')">Filters</button>
+    <button id="nav-filters-btn" onclick="toggleFilterPanel()">Hide Filters</button>
+    <button id="nav-sitrep-btn" onclick="toggleSitrepBar()">Hide Menu</button>
+    <button id="nav-socials-btn" onclick="toggleSocialsBar()">Hide Socials</button>
   </nav>
   <div class="header-right">
     <div class="translate-wrap">

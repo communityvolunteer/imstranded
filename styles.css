@@ -89,7 +89,9 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 .sitrep-bar{
   background:#000;
   display:flex;overflow-x:auto;scrollbar-width:none;
+  transition:opacity .2s;
 }
+.sitrep-bar.hidden{display:none;}
 .sitrep-bar::-webkit-scrollbar{display:none;}
 .sitrep-stat{
   flex:1;min-width:130px;
@@ -205,16 +207,16 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
   border:1px solid rgba(255,255,255,.08);
 }
 .community-text{
-  font-size:.72rem;font-weight:700;color:rgb(255 255 255 / 88%);
+  font-size:.84rem;font-weight:700;color:rgb(255 255 255 / 88%);
   letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;
 }
 .community-link{
   display:flex;align-items:center;justify-content:center;
   width:34px;height:34px;border-radius:8px;
-  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);
-  transition:background .15s;
+  background:var(--accent);border:1px solid rgba(255,255,255,.15);
+  transition:background .15s,opacity .15s;
 }
-.community-link:hover{background:rgba(255,255,255,.15);}
+.community-link:hover{opacity:.82;}
 
 /* Leaflet */
 .leaflet-container{background:#c9d2d8 !important;}
