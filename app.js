@@ -170,14 +170,23 @@ async function fetchSitrepFromSupabase() {
     let routes = [];
     let from = 0;
     const pageSize = 1000;
+    const MAX_RETRIES = 3;
     while (true) {
-      const { data: page, error: pageErr } = await _sb
-        .from('route_daily')
-        .select('dep_iata, arr_iata, date, cancelled, airlines')
-        .gte('date', CRISIS_START)
-        .lte('date', today)
-        .range(from, from + pageSize - 1);
-      if (pageErr) { console.warn('[Pipeline] route_daily page error:', pageErr.message); break; }
+      let page = null, pageErr = null, attempts = 0;
+      while (attempts < MAX_RETRIES) {
+        const res = await _sb
+          .from('route_daily')
+          .select('dep_iata, arr_iata, date, cancelled, airlines')
+          .gte('date', CRISIS_START)
+          .lte('date', today)
+          .range(from, from + pageSize - 1);
+        page = res.data; pageErr = res.error;
+        if (!pageErr) break;
+        attempts++;
+        console.warn(`[Pipeline] route_daily page ${from} attempt ${attempts} failed:`, pageErr.message);
+        if (attempts < MAX_RETRIES) await new Promise(r => setTimeout(r, 400 * attempts));
+      }
+      if (pageErr) { console.warn('[Pipeline] route_daily page failed after retries, continuing with partial data'); break; }
       if (!page || !page.length) break;
       routes.push(...page);
       if (page.length < pageSize) break;
@@ -2836,7 +2845,15 @@ function flyAndDismissOverlay() {
         // arcs, clusters, and filter state in one shot for both maps.
         requestAnimationFrame(() => requestAnimationFrame(() => {
           if (window._mobileMap) window._mobileMap.invalidateSize();
-          applyFilters();
+          if (_globalDisruptions.length) {
+            // Data is ready — full re-render restores anything the GPU reset wiped
+            applyFilters();
+          } else {
+            // Data hasn't arrived yet; refreshSitrep's 1600ms callback will handle
+            // the post-overlay re-render once _globalDisruptions is populated.
+            // Still re-render stranded/help layers which may already have data.
+            applyFilters();
+          }
         }));
       }, 850);
     }, 120);
@@ -2949,6 +2966,19 @@ async function refreshSitrep() {
     drawGlobalRouteArcs(window._crisisMap, _globalDisruptions);
     drawGlobalRouteArcs(window._mobileMap, _globalDisruptions);
     if (icon) icon.classList.remove('spinning');
+
+    // Mobile: after data loads, fire a second full re-render timed to land AFTER the
+    // intro overlay's ~1370ms dismissal window. This ensures arcs and pins survive the
+    // iOS GPU compositor reset that backdrop-filter removal can trigger on SVG layers.
+    if (window._mobileMap) {
+      window._mobileMap.invalidateSize();
+      setTimeout(() => {
+        if (window._mobileMap) {
+          window._mobileMap.invalidateSize();
+          applyFilters();
+        }
+      }, 1600);
+    }
   });
 }
 
@@ -3019,17 +3049,22 @@ function initMobile(){
 
   // Let the browser commit the flex layout before Leaflet measures the container.
   // On mobile, display:none → display:flex can leave stale offsetHeight in Leaflet.
-  setTimeout(() => {
-    mmap.invalidateSize();
-    // If sitrep data already arrived while the map was initialising, render it now.
-    if (_globalDisruptions.length) {
-      _globalPins.forEach(m => { try { mmap.removeLayer(m); } catch(e) {} });
-      _globalPins = _globalPins.filter(m => !m['_map'] || m['_map'] !== mmap);
-      renderGlobalDisruptions(mmap, _globalDisruptions);
-      clearGlobalArcs();
-      drawGlobalRouteArcs(mmap, _globalDisruptions);
-    }
-  }, 80);
+  // Use multiple checkpoints: browsers vary on when they paint after a display change.
+  [80, 250, 600].forEach(delay => {
+    setTimeout(() => {
+      if (!window._mobileMap) return;
+      mmap.invalidateSize();
+      // On the 600ms pass only: if sitrep data already arrived (fast network),
+      // render disruptions now so the user sees pins before refreshSitrep's rAF fires.
+      if (delay === 600 && _globalDisruptions.length) {
+        _globalPins.forEach(m => { try { mmap.removeLayer(m); } catch(e) {} });
+        _globalPins = _globalPins.filter(m => { try { return mmap !== m._map; } catch(e) { return true; } });
+        renderGlobalDisruptions(mmap, _globalDisruptions);
+        clearGlobalArcs();
+        drawGlobalRouteArcs(mmap, _globalDisruptions);
+      }
+    }, delay);
+  });
 }
 
 function mFilterMap(type){
