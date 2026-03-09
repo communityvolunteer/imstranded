@@ -3029,6 +3029,14 @@ function initMobile(){
   // invisible. Two rAF calls let the browser complete layout + paint first.
   requestAnimationFrame(() => requestAnimationFrame(() => {
 
+    // Guard: if map already created (initMobile called twice before rAF fired), bail out.
+    if (window._mobileMap) return;
+
+    // Guard: if Leaflet already stamped this container (e.g. from a previous failed init),
+    // wipe it so L.map() doesn't throw "Map container is already initialized."
+    const _mc = document.getElementById('m-crisis-map');
+    if (_mc && _mc._leaflet_id) { delete _mc._leaflet_id; _mc.innerHTML = ''; }
+
     const mmap=L.map('m-crisis-map',{zoomControl:false,attributionControl:false}).setView([28,45],4);
     window._mTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mmap);
 
