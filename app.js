@@ -2641,6 +2641,11 @@ async function refreshSitrep() {
   animCount('m-stat-cancelled',vals.cancelled,800);
   window._sitrepLoaded = true; // subsequent refreshes can animate
 
+  // Dismiss loading toast + shimmer
+  const toast = document.getElementById('data-loading-toast');
+  if (toast) toast.classList.add('toast-hidden');
+  document.querySelectorAll('.stat-loading').forEach(el => el.classList.remove('stat-loading'));
+
   // ── Inject +Today labels ────────────────────────────────────
   function setToday(id, n, prefix='+') {
     const el = document.getElementById(id);

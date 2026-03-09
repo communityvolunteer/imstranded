@@ -50,6 +50,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;line-
 /* ── HEADER ─────────────────────────────────────────────── */
 header{
   background:#000;
+  border-bottom:1px solid var(--accent);
   position:sticky;top:0;z-index:1000;
   display:grid;grid-template-columns:1fr auto 1fr;
   align-items:center;height:56px;padding:0 1.5rem;
@@ -103,7 +104,10 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 }
 .sitrep-stat:hover{background:rgba(255,255,255,.04);}
 .sitrep-stat.active-filter{background:#000;}
-
+.sitrep-stat.active-filter::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;
+  height:3px;background:var(--accent);border-radius:3px 3px 0 0;
+}
 
 /* Colored stat cells */
 .sitrep-stat--offer{background:#000 !important;}
@@ -1288,22 +1292,10 @@ html.translated-ltr body,html.translated-rtl body{top:0 !important;}
 }
 
 /* ── Filter panel crisis snapshot ─────────────────────────── */
-.fp-crisis-stats {
-  padding: .85rem 1.1rem .7rem;
+.fp-timeline-card {
+  padding: .85rem 1.1rem .75rem;
   border-bottom: 1px solid rgba(255,255,255,.06);
-  background: rgba(var(--accent-r),var(--accent-g),var(--accent-b),.04);
-}
-.fp-crisis-row {
-  display: flex; align-items: stretch; gap: 0;
-}
-.fp-crisis-item {
-  flex: 1; padding: 0 .4rem;
-}
-.fp-crisis-item:first-child { padding-left: 0; }
-.fp-crisis-item:last-child  { padding-right: 0; }
-.fp-crisis-divider {
-  width: 1px; background: rgba(255,255,255,.07); margin: .1rem 0;
-  flex-shrink: 0;
+  background: #000;
 }
 .fp-crisis-val {
   font-size: 1.15rem; font-weight: 800; color: #fff;
@@ -1361,4 +1353,30 @@ html.translated-ltr body,html.translated-rtl body{top:0 !important;}
 .accent-opt-dot {
   display: block; width: 18px; height: 18px; border-radius: 50%;
   box-shadow: 0 0 8px currentColor;
+}
+/* ── Loading state ─────────────────────────────────────── */
+@keyframes statPulse {
+  0%,100% { opacity: 1; }
+  50%      { opacity: .25; }
+}
+@keyframes toastDot {
+  0%,100% { opacity: .25; transform: scale(.8); }
+  50%      { opacity: 1;   transform: scale(1.2); }
+}
+@keyframes toastSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.stat-loading {
+  animation: statPulse 1.2s ease-in-out infinite;
+  color: rgba(255,255,255,.35) !important;
+}
+.toast-spin { animation: toastSpin 1s linear infinite; }
+#data-loading-toast.toast-hidden {
+  opacity: 0 !important;
+  transform: translateX(-50%) translateY(12px) !important;
+  pointer-events: none;
+}
+@media (max-width: 600px) {
+  #data-loading-toast { bottom: 5rem; }
 }
