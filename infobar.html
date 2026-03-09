@@ -148,7 +148,7 @@ async function refresh() {
         apTotals[row.iata] = (apTotals[row.iata] || 0) + (row.cancelled || 0);
       }
       const totalCancelled = Object.values(apTotals).reduce((s, c) => s + c, 0);
-      animCount('stat-stranded', totalCancelled * AVG_PAX, 1200);
+      animCount('stat-stranded', Math.round(totalCancelled * AVG_PAX * 0.20), 1200);
     }
 
     // Cities + Countries — distinct arr_iata destinations from route_daily
