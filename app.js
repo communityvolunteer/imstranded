@@ -321,6 +321,45 @@ async function fetchSitrepFromSupabase() {
     }
     console.log(`[Pipeline] Built _globalOutbound for ${Object.keys(window._globalOutbound).length} global airports`);
 
+    // ── 4e. Build _countryImpact (country → total cancelled + stranded) ──
+    // For each non-ME country: sum all cancelled flights on routes touching
+    // that country (either dep or arr), deduplicated so a DXB→JFK route
+    // only counts JFK's country (USA) once, not twice.
+    // ME hub countries are included as their own category.
+    window._countryImpact = {};
+    const addToCountry = (iata, cancelled) => {
+      const ap = typeof findAirport === 'function' ? findAirport(iata) : null;
+      if (!ap) return;
+      const cc = ap.countryCode;
+      const name = ap.countryName || cc;
+      if (!window._countryImpact[cc]) window._countryImpact[cc] = { code: cc, name, cancelled: 0, stranded: 0, airports: new Set() };
+      window._countryImpact[cc].cancelled += cancelled;
+      window._countryImpact[cc].stranded  += cancelled * AVG_PAX;
+      window._countryImpact[cc].airports.add(iata);
+    };
+
+    // Walk all route pairs — count the non-ME side's country
+    for (const dep of Object.keys(routeTotals)) {
+      const depIsME = meIatas.has(dep);
+      for (const [arr, d] of Object.entries(routeTotals[dep])) {
+        const arrIsME = meIatas.has(arr);
+        // For ME→global: attribute to the global destination country
+        if (depIsME && !arrIsME) addToCountry(arr, d.cancelled);
+        // For global→ME: attribute to the global origin country
+        if (!depIsME && arrIsME) addToCountry(dep, d.cancelled);
+        // Intra-ME: attribute to both sides' countries
+        if (depIsME && arrIsME) { addToCountry(dep, d.cancelled); addToCountry(arr, d.cancelled); }
+      }
+    }
+
+    // Convert Sets to counts, sort by stranded desc
+    window._countryImpact = Object.values(window._countryImpact)
+      .map(c => ({ ...c, airports: c.airports.size }))
+      .sort((a, b) => b.stranded - a.stranded);
+
+    console.log(`[Pipeline] Built _countryImpact for ${window._countryImpact.length} countries`);
+    renderNationsPanel();
+
     // ── 5. Build _globalDisruptions ───────────────────────────
     // ME airports as isME dots
     const meAsDots = AIRPORT_DATA.filter(a => a.cancelled > 0).map(a => ({
@@ -583,6 +622,34 @@ function toggleSocialsBar() {
   const hidden = bar.style.display === 'none';
   bar.style.display = hidden ? '' : 'none';
   if (btn) btn.textContent = hidden ? 'Hide Socials' : 'Show Socials';
+}
+
+function renderNationsPanel() {
+  const el = document.getElementById('fp-nations-list');
+  if (!el || !window._countryImpact || !window._countryImpact.length) return;
+
+  const top = window._countryImpact.slice(0, 25);
+  const maxStranded = top[0]?.stranded || 1;
+
+  el.innerHTML = top.map((c, i) => {
+    const pct = Math.round((c.stranded / maxStranded) * 100);
+    const flag = c.code.toUpperCase().replace(/./g, ch =>
+      String.fromCodePoint(0x1F1E6 - 65 + ch.charCodeAt(0))
+    );
+    return `
+      <div style="padding:.55rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);cursor:default">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">
+          <span style="font-weight:600;color:#fff;font-size:.8rem">${flag} ${c.name}</span>
+          <span style="color:var(--accent);font-weight:700;font-size:.78rem;white-space:nowrap;margin-left:.5rem">${c.stranded.toLocaleString()}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <div style="flex:1;height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden">
+            <div style="width:${pct}%;height:100%;background:var(--accent);border-radius:2px;transition:width .4s"></div>
+          </div>
+          <span style="font-size:.68rem;color:rgba(255,255,255,.35);white-space:nowrap">${c.cancelled.toLocaleString()} flights · ${c.airports} airport${c.airports !== 1 ? 's' : ''}</span>
+        </div>
+      </div>`;
+  }).join('');
 }
 
 function toggleFpSection(head) {
