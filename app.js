@@ -2603,6 +2603,76 @@ function animCount(id, target, dur) {
 }
 function setStatNow(id,val){const el=document.getElementById(id);if(el)el.textContent=typeof val==='number'?val.toLocaleString():val;}
 
+// ── Digit flip animation ────────────────────────────────
+// Builds a slot-machine style flip for each digit position.
+function flipToNumber(containerId, targetNum) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const formatted = Math.round(targetNum).toLocaleString(); // e.g. "8,312,450"
+  const charH = container.closest('.sitrep-num, .m-stat-num')?.offsetHeight || 38;
+
+  container.innerHTML = '';
+
+  // Build one column per character
+  formatted.split('').forEach((ch, i) => {
+    if (ch === ',' || ch === '.') {
+      const sep = document.createElement('span');
+      sep.className = 'flip-sep';
+      sep.textContent = ch;
+      container.appendChild(sep);
+      return;
+    }
+
+    const finalDigit = parseInt(ch);
+    const wrap = document.createElement('span');
+    wrap.className = 'flip-digit-wrap';
+    wrap.style.height = charH + 'px';
+
+    const inner = document.createElement('span');
+    inner.className = 'flip-digit-inner';
+
+    // Stack: random digits for spinning, then the final digit at bottom
+    const spinCount = 10 + Math.floor(Math.random() * 8);
+    const digits = [];
+    for (let s = 0; s < spinCount; s++) {
+      digits.push(Math.floor(Math.random() * 10));
+    }
+    digits.push(finalDigit); // last one is the target
+
+    digits.forEach(d => {
+      const span = document.createElement('span');
+      span.className = 'flip-char';
+      span.style.height = charH + 'px';
+      span.style.lineHeight = charH + 'px';
+      span.textContent = d;
+      inner.appendChild(span);
+    });
+
+    wrap.appendChild(inner);
+    container.appendChild(wrap);
+
+    // Animate: translate from top to final position, staggered per column
+    const totalH  = charH * digits.length;
+    const finalY  = -charH * spinCount; // land on last digit
+    const delay   = i * 60 + Math.random() * 40; // cascade left→right
+    const dur     = 520 + i * 40;
+
+    // Start at top
+    inner.style.transform = 'translateY(0)';
+
+    setTimeout(() => {
+      inner.style.transition = `transform ${dur}ms cubic-bezier(.15,.85,.35,1.05)`;
+      inner.style.transform  = `translateY(${finalY}px)`;
+    }, delay);
+  });
+}
+
+function flipStrandedStats(targetNum) {
+  flipToNumber('flip-stranded',   targetNum);
+  flipToNumber('flip-stranded-m', targetNum);
+}
+
 async function refreshSitrep() {
   const icon=document.getElementById('refresh-icon');
   if(icon) icon.classList.add('spinning');
@@ -2622,22 +2692,21 @@ async function refreshSitrep() {
   const estStranded      = Math.round(vals.stranded * 0.20);
   const todayEstStranded = Math.round(todayStranded  * 0.20);
 
-  setStatNow('stat-stranded',vals.stranded);
   setStatNow('stat-cancelled',vals.cancelled);
   setStatNow('stat-airports-closed',vals.airports);
   setStatNow('stat-airspace',vals.airspace);
-  setStatNow('m-stat-stranded',vals.stranded);
   setStatNow('m-stat-cancelled',vals.cancelled);
 
   // Cache so refreshStrandedCount never recomputes from global arrays
   window._canonicalStranded  = vals.stranded;
   window._canonicalCancelled = vals.cancelled;
 
-  animCount('stat-stranded',vals.stranded,1200);
+  // Slot-machine flip for the headline people-affected number
+  flipStrandedStats(vals.stranded);
+
   animCount('stat-cancelled',vals.cancelled,800);
   animCount('stat-airports-closed',vals.airports,500);
   animCount('stat-airspace',vals.airspace,500);
-  animCount('m-stat-stranded',vals.stranded,1200);
   animCount('m-stat-cancelled',vals.cancelled,800);
   window._sitrepLoaded = true; // subsequent refreshes can animate
 
@@ -4705,6 +4774,11 @@ window.addEventListener('DOMContentLoaded',()=>{
   loadStranded();
   initLocationAutocomplete('stranded-location','stranded-lat','stranded-lng','stranded-location-ac');
   initLocationAutocomplete('m-stranded-location','m-stranded-lat','m-stranded-lng','m-stranded-location-ac');
+  // Seed placeholder dashes in flip columns before data arrives
+  ['flip-stranded','flip-stranded-m'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '<span style="letter-spacing:.05em;color:rgba(255,255,255,.15)">— — — —</span>';
+  });
   refreshSitrep();
   setInterval(refreshSitrep,5*60*1000);
   if(SB_ON){loadPosts();loadSuccessStories();subscribeStream();}

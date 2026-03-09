@@ -1380,3 +1380,38 @@ html.translated-ltr body,html.translated-rtl body{top:0 !important;}
 @media (max-width: 600px) {
   #data-loading-toast { bottom: 5rem; }
 }
+
+/* ── Digit flip animation ──────────────────────────────── */
+.flip-display {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 0;
+  overflow: hidden;
+  vertical-align: baseline;
+}
+.flip-digit-wrap {
+  display: inline-block;
+  overflow: hidden;
+  position: relative;
+  line-height: 1;
+}
+.flip-digit-inner {
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+  transition: transform 0s;
+}
+.flip-digit-inner.is-spinning {
+  animation: none;
+}
+.flip-char {
+  display: block;
+  text-align: center;
+  line-height: 1;
+}
+.flip-sep {
+  display: inline-block;
+  line-height: 1;
+  align-self: flex-end;
+  padding-bottom: .05em;
+}
