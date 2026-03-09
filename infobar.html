@@ -43,13 +43,14 @@ html,body{background:transparent;font-family:'Inter',sans-serif;}
   font-size:.5rem;color:rgba(255,255,255,.55);margin-top:.1rem;
 }
 
-/* Blue LAUNCH APP section */
 .sitrep-cta{
   flex:1;min-width:160px;
   background:#3498ec;
   border-right:none;
   display:flex;align-items:center;justify-content:center;
   padding:.9rem 1.2rem;
+  text-decoration:none;
+  cursor:pointer;
 }
 
 .launch-btn{
@@ -61,47 +62,33 @@ html,body{background:transparent;font-family:'Inter',sans-serif;}
   font-weight:900;
   letter-spacing:.06em;
   text-transform:uppercase;
-  cursor:pointer;
   text-decoration:none;
   white-space:nowrap;
 }
-
-/* Refresh spinner */
-.sitrep-refresh{
-  display:flex;align-items:center;justify-content:center;
-  padding:0 1rem;flex-shrink:0;
-  cursor:pointer;border:none;background:transparent;
-  color:rgba(255,255,255,.4);transition:color .2s;
-}
-.sitrep-refresh:hover{color:#3498ec;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.spinning{animation:spin 1s linear infinite;display:inline-block;}
 </style>
 </head>
 <body>
 
 <div class="sitrep">
   <div class="sitrep-stat">
+    <span class="sitrep-num" id="stat-days">--</span>
+    <div class="sitrep-label">Days In</div>
+  </div>
+  <div class="sitrep-stat">
     <span class="sitrep-num" id="stat-stranded">--</span>
-    <div class="sitrep-label">Est. Stranded</div>
+    <div class="sitrep-label">People Impacted</div>
   </div>
   <div class="sitrep-stat">
-    <span class="sitrep-num" id="stat-cancelled">--</span>
-    <div class="sitrep-label">Flights Cancelled</div>
+    <span class="sitrep-num" id="stat-cities">--</span>
+    <div class="sitrep-label">Cities Affected</div>
   </div>
   <div class="sitrep-stat">
-    <span class="sitrep-num" id="stat-airports">--</span>
-    <div class="sitrep-label">Airports Closed</div>
+    <span class="sitrep-num" id="stat-countries">--</span>
+    <div class="sitrep-label">Countries Affected</div>
   </div>
-  <div class="sitrep-stat">
-    <span class="sitrep-num" id="stat-airspace">--</span>
-    <div class="sitrep-label">Airspace Closed</div>
-  </div>
-  <div class="sitrep-cta">
-    <a class="launch-btn" href="https://help.imstranded.org" target="_top">
-      LAUNCH APP
-    </a>
-  </div>
+  <a class="sitrep-cta" href="https://help.imstranded.org" target="_top">
+    <span class="launch-btn">LAUNCH APP</span>
+  </a>
 </div>
 
 <script>
@@ -109,64 +96,61 @@ const SUPABASE_URL  = 'https://nzvlvqyitsjuxnafcuhl.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im56dmx2cXlpdHNqdXhuYWZjdWhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0MTQxOTEsImV4cCI6MjA4Nzk5MDE5MX0.K4JCnTJTBR7zQBaLmxbeZS2QBRCIxdVzbZKrmapOEkw';
 const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-const AIRPORT_DATA = [
-  {iata:'DXB',cancelled:312,status:'CLOSED',stranded:56160},
-  {iata:'AUH',cancelled:198,status:'CLOSED',stranded:35640},
-  {iata:'KWI',cancelled:143,status:'CLOSED',stranded:25740},
-  {iata:'DOH',cancelled:117,status:'RESTRICTED',stranded:18720},
-  {iata:'BAH',cancelled:89,status:'CLOSED',stranded:16020},
-  {iata:'MCT',cancelled:34,status:'OPEN',stranded:2720},
-  {iata:'RUH',cancelled:41,status:'PARTIALLY OPEN',stranded:3280},
-  {iata:'IKA',cancelled:201,status:'CLOSED',stranded:36180},
-  {iata:'BGW',cancelled:88,status:'CLOSED',stranded:15840},
-];
+const CRISIS_START = new Date('2026-03-01T00:00:00Z');
+
+function getDaysIn() {
+  const diff = Date.now() - CRISIS_START.getTime();
+  return Math.max(1, Math.floor(diff / (1000 * 60 * 60 * 24)) + 1);
+}
 
 function animCount(id, target, dur){
-  const el=document.getElementById(id);if(!el||target==null)return;
-  const raw=el.textContent.replace(/[^0-9]/g,'');
-  const startVal=raw.length?parseInt(raw):0;
-  const start=Date.now();
-  const step=()=>{
-    const p=Math.min((Date.now()-start)/dur,1);
-    const v=Math.round(startVal+(target-startVal)*(1-Math.pow(1-p,3)));
-    el.textContent=v.toLocaleString();
-    if(p<1)requestAnimationFrame(step);
+  const el = document.getElementById(id);
+  if (!el || target == null) return;
+  const raw = el.textContent.replace(/[^0-9]/g, '');
+  const startVal = raw.length ? parseInt(raw) : 0;
+  const start = Date.now();
+  const step = () => {
+    const p = Math.min((Date.now() - start) / dur, 1);
+    const v = Math.round(startVal + (target - startVal) * (1 - Math.pow(1 - p, 3)));
+    el.textContent = v.toLocaleString();
+    if (p < 1) requestAnimationFrame(step);
   };
   requestAnimationFrame(step);
 }
 
-async function refresh(){
-  const icon=document.getElementById('refresh-icon');
-  if(icon) icon.classList.add('spinning');
+async function refresh() {
+  // Block 1: always live, no API needed
+  document.getElementById('stat-days').textContent = getDaysIn();
 
-  let vals = null;
-  try{
-    const { data, error } = await _sb.from('sitrep').select('*').eq('id','current').single();
-    if(!error && data){
-      const stranded = (data.cancelled_flights||1847) * (data.avg_passengers_per_flight||459);
-      vals = { stranded, cancelled:data.cancelled_flights, airports:data.airports_closed, airspace:data.airspace_closed_countries };
+  try {
+    const { data, error } = await _sb
+      .from('stranded_people')
+      .select('group_size, current_location, nationality')
+      .is('deleted_at', null);
+
+    if (!error && data && data.length > 0) {
+      const totalPeople = data.reduce((s, r) => s + (r.group_size || 1), 0);
+      const cities = new Set(data.map(r => (r.current_location || '').trim().toLowerCase()).filter(Boolean));
+      const countries = new Set(data.map(r => (r.nationality || '').trim().toLowerCase()).filter(Boolean));
+
+      animCount('stat-stranded', totalPeople, 1200);
+      animCount('stat-cities', cities.size, 600);
+      animCount('stat-countries', countries.size, 600);
+    } else {
+      ['stat-stranded','stat-cities','stat-countries'].forEach(id => {
+        document.getElementById(id).textContent = '--';
+      });
     }
-  }catch(e){}
-
-  // Fallback to seeded data
-  if(!vals){
-    const totalCancelled=AIRPORT_DATA.reduce((s,a)=>s+a.cancelled,0);
-    const totalStranded=AIRPORT_DATA.reduce((s,a)=>s+a.stranded,0);
-    const airportsClosed=AIRPORT_DATA.filter(a=>a.status==='CLOSED').length;
-    vals={stranded:totalStranded,cancelled:totalCancelled,airports:airportsClosed,airspace:4};
+  } catch(e) {
+    ['stat-stranded','stat-cities','stat-countries'].forEach(id => {
+      document.getElementById(id).textContent = '--';
+    });
   }
-
-  animCount('stat-stranded',vals.stranded,1200);
-  animCount('stat-cancelled',vals.cancelled,800);
-  animCount('stat-airports',vals.airports,500);
-  animCount('stat-airspace',vals.airspace,500);
-
-  if(icon) icon.classList.remove('spinning');
 }
 
-document.addEventListener('DOMContentLoaded',()=>{
+document.addEventListener('DOMContentLoaded', () => {
   refresh();
-  setInterval(refresh,5*60*1000);
+  setInterval(refresh, 5 * 60 * 1000);
 });
 </script>
 </body>
