@@ -3029,68 +3029,76 @@ function initMobile(){
   // invisible. Two rAF calls let the browser complete layout + paint first.
   requestAnimationFrame(() => requestAnimationFrame(() => {
 
-    // Guard: if map already created (initMobile called twice before rAF fired), bail out.
-    if (window._mobileMap) return;
-
-    // Guard: if Leaflet already stamped this container (e.g. from a previous failed init),
-    // wipe it so L.map() doesn't throw "Map container is already initialized."
+    // If Leaflet already stamped this container, wipe it cleanly before re-init.
     const _mc = document.getElementById('m-crisis-map');
     if (_mc && _mc._leaflet_id) { delete _mc._leaflet_id; _mc.innerHTML = ''; }
+    // If map object already exists, nothing to do.
+    if (window._mobileMap) return;
 
-    const mmap=L.map('m-crisis-map',{zoomControl:false,attributionControl:false}).setView([28,45],4);
-    window._mTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mmap);
-
-    mmap.createPane('worldwidePane');
-    mmap.getPane('worldwidePane').style.zIndex = 580;
-    mmap.createPane('airportGlowPane');
-    mmap.getPane('airportGlowPane').style.zIndex = 620;
-    mmap.createPane('airportPane');
-    mmap.getPane('airportPane').style.zIndex = 630;
-    mmap.createPane('countryPane');
-    mmap.getPane('countryPane').style.zIndex = 640;
-
-    // Clear any stale desktop markers from the shared arrays before pushing mobile ones
-    _mk.country = [];
-    _mk.worldwide = [];
-
-    COUNTRIES.forEach(c => {
-      const col = getSC()[c.status];
-      const mglow = L.circleMarker(c.coords, {pane:'countryPane',interactive:false,radius:28,fillColor:'#ec3452',color:'#ec3452',weight:0,opacity:0,fillOpacity:.12}).addTo(mmap);
-      const mdot  = L.circleMarker(c.coords, {pane:'countryPane',interactive:true,radius:10,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.92}).addTo(mmap)
-        .on('click', () => openMCountryPopup(c.id));
-      _mk.country.push({marker:mglow,status:c.status});
-      _mk.country.push({marker:mdot,status:c.status});
-    });
-    WORLDWIDE.forEach(r=>{
-      const mw = L.circleMarker(r.coords,{pane:'worldwidePane',interactive:true,radius:7,fillColor:accentHex(),color:'#fff',weight:1.5,opacity:.9,fillOpacity:.5}).addTo(mmap)
-        .on('click',()=>openMWorldwidePopup(r.id));
-      _mk.worldwide.push(mw);
-    });
-
-    _mHelpCluster = L.markerClusterGroup({
-      maxClusterRadius: 120,
-      spiderfyOnMaxZoom: true,
-      showCoverageOnHover: false,
-      zoomToBoundsOnClick: true,
-      disableClusteringAtZoom: 16,
-    });
-    mmap.addLayer(_mHelpCluster);
-
-    // Set the map reference BEFORE rendering so all async callbacks that
-    // already resolved (loadStranded, loadPosts, refreshSitrep) can find it.
-    window._mobileMap = mmap;
-
-    // Render whatever data already arrived while we were waiting for layout.
-    renderStrandedOnMap(mmap, true);
-    renderPostsOnMap(mmap);   // ← was missing from initMobile (present in initMap)
-
-    if (_globalDisruptions.length) {
-      renderGlobalDisruptions(mmap, _globalDisruptions);
-      clearGlobalArcs();
-      drawGlobalRouteArcs(mmap, _globalDisruptions);
+    let mmap;
+    try {
+      mmap = L.map('m-crisis-map',{zoomControl:false,attributionControl:false}).setView([28,45],4);
+    } catch(e) {
+      console.error('[initMobile] L.map failed:', e.message);
+      return;
     }
 
-    mRenderResources();
+    // Assign immediately so any async callbacks that fire during init can find it,
+    // and so a second rAF call won't re-enter.
+    window._mobileMap = mmap;
+
+    try {
+      window._mTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mmap);
+
+      mmap.createPane('worldwidePane');
+      mmap.getPane('worldwidePane').style.zIndex = 580;
+      mmap.createPane('airportGlowPane');
+      mmap.getPane('airportGlowPane').style.zIndex = 620;
+      mmap.createPane('airportPane');
+      mmap.getPane('airportPane').style.zIndex = 630;
+      mmap.createPane('countryPane');
+      mmap.getPane('countryPane').style.zIndex = 640;
+
+      _mk.country = [];
+      _mk.worldwide = [];
+
+      COUNTRIES.forEach(c => {
+        const col = getSC()[c.status];
+        const mglow = L.circleMarker(c.coords, {pane:'countryPane',interactive:false,radius:28,fillColor:'#ec3452',color:'#ec3452',weight:0,opacity:0,fillOpacity:.12}).addTo(mmap);
+        const mdot  = L.circleMarker(c.coords, {pane:'countryPane',interactive:true,radius:10,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.92}).addTo(mmap)
+          .on('click', () => openMCountryPopup(c.id));
+        _mk.country.push({marker:mglow,status:c.status});
+        _mk.country.push({marker:mdot,status:c.status});
+      });
+      WORLDWIDE.forEach(r=>{
+        const mw = L.circleMarker(r.coords,{pane:'worldwidePane',interactive:true,radius:7,fillColor:accentHex(),color:'#fff',weight:1.5,opacity:.9,fillOpacity:.5}).addTo(mmap)
+          .on('click',()=>openMWorldwidePopup(r.id));
+        _mk.worldwide.push(mw);
+      });
+
+      _mHelpCluster = L.markerClusterGroup({
+        maxClusterRadius: 120,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+        zoomToBoundsOnClick: true,
+        disableClusteringAtZoom: 16,
+      });
+      mmap.addLayer(_mHelpCluster);
+
+      renderStrandedOnMap(mmap, true);
+      renderPostsOnMap(mmap);
+
+      if (_globalDisruptions.length) {
+        renderGlobalDisruptions(mmap, _globalDisruptions);
+        clearGlobalArcs();
+        drawGlobalRouteArcs(mmap, _globalDisruptions);
+      }
+
+      mRenderResources();
+
+    } catch(e) {
+      console.error('[initMobile] init error:', e.message, e.stack);
+    }
 
   })); // end double-rAF
 }
