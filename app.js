@@ -193,9 +193,16 @@ async function fetchSitrepFromSupabase() {
     for (const row of adRows) {
       const k = row.iata;
       if (!apMap[k]) {
+        // Fall back to airports.js reference data for any fields the DB left null.
+        // This is the main reason airports were rendering at [0,0] (null island) —
+        // the edge function wasn't writing lat/lng/city for many airports.
+        const apRef = (typeof findAirport === 'function') ? findAirport(k) : null;
+        const lat   = row.lat  || apRef?.lat  || 0;
+        const lng   = row.lng  || apRef?.lng  || 0;
+        const city  = row.city || apRef?.city || k;
         apMap[k] = {
-          iata: k, city: row.city || k, code: k,
-          coords: [row.lat || 0, row.lng || 0],
+          iata: k, city, code: k,
+          coords: [lat, lng],
           status: row.status || 'UNKNOWN',
           cancelRate: row.cancel_rate || 0,
           isME: row.is_me_hub,
