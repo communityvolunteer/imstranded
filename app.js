@@ -561,11 +561,19 @@ function toggleFilterPanel() {
 
 function toggleSitrepBar() {
   const bar = document.getElementById('sitrep-bar');
+  const mapView = document.getElementById('map-view');
   const btn = document.getElementById('nav-sitrep-btn');
   if (!bar) return;
   const hidden = bar.style.display === 'none';
   bar.style.display = hidden ? '' : 'none';
+  // Recalculate map height: 56px header, 96px sitrep bar
+  if (mapView) mapView.style.height = hidden ? 'calc(100vh - 56px - 96px)' : 'calc(100vh - 56px)';
   if (btn) btn.textContent = hidden ? 'Hide Menu' : 'Show Menu';
+  // Invalidate Leaflet map size so tiles fill correctly
+  setTimeout(() => {
+    if (window._crisisMap) window._crisisMap.invalidateSize();
+    if (window._mobileMap) window._mobileMap.invalidateSize();
+  }, 50);
 }
 
 function toggleSocialsBar() {
