@@ -624,7 +624,229 @@ function toggleSocialsBar() {
   if (btn) btn.textContent = hidden ? 'Hide Socials' : 'Show Socials';
 }
 
+let _impactSheetMetric = 'stranded';
+
+function toggleImpactSheetMetric() {
+  _impactSheetMetric = _impactSheetMetric === 'stranded' ? 'cancelled' : 'stranded';
+  const btn = document.getElementById('impact-sheet-metric-toggle');
+  if (btn) btn.textContent = _impactSheetMetric === 'stranded' ? 'People ▾' : 'Flights ▾';
+  renderImpactSheetChart();
+}
+
+function renderImpactSheetChart() {
+  const canvas = document.getElementById('impact-sheet-canvas');
+  if (!canvas || !AIRPORT_DATA || !AIRPORT_DATA.length) return;
+
+  const dayTotals = {};
+  for (const ap of AIRPORT_DATA) {
+    for (const [mmdd, count] of Object.entries(ap.h7days || {})) {
+      if (!dayTotals[mmdd]) dayTotals[mmdd] = { cancelled: 0, stranded: 0 };
+      dayTotals[mmdd].cancelled += count || 0;
+      dayTotals[mmdd].stranded  += (count || 0) * 185;
+    }
+  }
+
+  const sorted = Object.keys(dayTotals).sort();
+  if (!sorted.length) return;
+
+  const vals    = sorted.map(d => dayTotals[d][_impactSheetMetric] || 0);
+  const maxVal  = Math.max(...vals, 1);
+  const peakIdx = vals.indexOf(Math.max(...vals));
+
+  const peakEl = document.getElementById('impact-sheet-peak');
+  if (peakEl) peakEl.textContent = `Peak: Mar ${parseInt(sorted[peakIdx].slice(3))} · ${vals[peakIdx].toLocaleString()}`;
+
+  const dpr = window.devicePixelRatio || 1;
+  const w   = canvas.offsetWidth || 300;
+  const h   = 72;
+  canvas.width  = w * dpr;
+  canvas.height = h * dpr;
+  canvas.style.width  = w + 'px';
+  canvas.style.height = h + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, w, h);
+
+  const pad = { l: 2, r: 2, t: 8, b: 4 };
+  const cw  = w - pad.l - pad.r;
+  const ch  = h - pad.t - pad.b;
+  const n   = vals.length;
+  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#3498ec';
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,.04)';
+  ctx.lineWidth = 1;
+  [0.33, 0.66].forEach(f => {
+    const y = pad.t + ch * (1 - f);
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(w - pad.r, y); ctx.stroke();
+  });
+
+  const pts = vals.map((v, i) => ({
+    x: pad.l + (n === 1 ? cw / 2 : i * (cw / (n - 1))),
+    y: pad.t + ch * (1 - v / maxVal),
+  }));
+
+  // Gradient fill
+  const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
+  grad.addColorStop(0, accent + '55');
+  grad.addColorStop(1, accent + '00');
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pad.t + ch);
+  pts.forEach(p => ctx.lineTo(p.x, p.y));
+  ctx.lineTo(pts[pts.length - 1].x, pad.t + ch);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  ctx.strokeStyle = accent;
+  ctx.lineWidth   = 2;
+  ctx.lineJoin    = 'round';
+  ctx.lineCap     = 'round';
+  pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+  ctx.stroke();
+
+  // Peak dot
+  if (pts[peakIdx]) {
+    ctx.beginPath();
+    ctx.arc(pts[peakIdx].x, pts[peakIdx].y, 4.5, 0, Math.PI * 2);
+    ctx.fillStyle   = accent;
+    ctx.fill();
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth   = 1.5;
+    ctx.stroke();
+  }
+
+  // Latest dot
+  const last = pts[pts.length - 1];
+  if (last && peakIdx !== pts.length - 1) {
+    ctx.beginPath();
+    ctx.arc(last.x, last.y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = '#fff';
+    ctx.fill();
+  }
+}
+
+let _timelineMetric = 'stranded'; // or 'cancelled'
+
+function toggleTimelineMetric() {
+  _timelineMetric = _timelineMetric === 'stranded' ? 'cancelled' : 'stranded';
+  const btn = document.getElementById('fp-timeline-metric-toggle');
+  if (btn) btn.textContent = _timelineMetric === 'stranded' ? 'People ▾' : 'Flights ▾';
+  renderTimelineChart();
+}
+
+function renderTimelineChart() {
+  const canvas = document.getElementById('fp-timeline-canvas');
+  if (!canvas) return;
+
+  // Build daily series from AIRPORT_DATA.h7days (keyed 'MM-DD')
+  // We need all days from Mar 1 to today sorted
+  const dayTotals = {}; // 'MM-DD' → total
+  if (!AIRPORT_DATA || !AIRPORT_DATA.length) return;
+
+  for (const ap of AIRPORT_DATA) {
+    const days = ap.h7days || {};
+    for (const [mmdd, count] of Object.entries(days)) {
+      if (!dayTotals[mmdd]) dayTotals[mmdd] = { cancelled: 0, stranded: 0 };
+      dayTotals[mmdd].cancelled += count || 0;
+      dayTotals[mmdd].stranded  += (count || 0) * 185;
+    }
+  }
+
+  const sorted = Object.keys(dayTotals).sort(); // 'MM-DD' sorts correctly within same year
+  if (!sorted.length) return;
+
+  const vals = sorted.map(d => dayTotals[d][_timelineMetric] || 0);
+  const maxVal = Math.max(...vals, 1);
+  const peakIdx = vals.indexOf(Math.max(...vals));
+  const peakDay = sorted[peakIdx];
+
+  // Update peak label
+  const peakEl = document.getElementById('fp-timeline-peak-label');
+  if (peakEl) peakEl.textContent = `Peak: Mar ${parseInt(peakDay.slice(3))} · ${vals[peakIdx].toLocaleString()}`;
+
+  // Draw chart
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.offsetWidth || 240;
+  const h = 64;
+  canvas.width  = w * dpr;
+  canvas.height = h * dpr;
+  canvas.style.width  = w + 'px';
+  canvas.style.height = h + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, w, h);
+
+  const pad = { l: 2, r: 2, t: 6, b: 2 };
+  const cw = w - pad.l - pad.r;
+  const ch = h - pad.t - pad.b;
+  const n = vals.length;
+  const step = n > 1 ? cw / (n - 1) : cw;
+
+  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#3498ec';
+
+  // Grid lines (subtle)
+  ctx.strokeStyle = 'rgba(255,255,255,.04)';
+  ctx.lineWidth = 1;
+  [0.25, 0.5, 0.75].forEach(f => {
+    const y = pad.t + ch * (1 - f);
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(w - pad.r, y); ctx.stroke();
+  });
+
+  // Points
+  const pts = vals.map((v, i) => ({
+    x: pad.l + (n === 1 ? cw / 2 : i * step),
+    y: pad.t + ch * (1 - v / maxVal),
+  }));
+
+  // Gradient fill under line
+  const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
+  grad.addColorStop(0, accent + '55');
+  grad.addColorStop(1, accent + '00');
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pad.t + ch);
+  pts.forEach(p => ctx.lineTo(p.x, p.y));
+  ctx.lineTo(pts[pts.length - 1].x, pad.t + ch);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 2;
+  ctx.lineJoin = 'round';
+  ctx.lineCap  = 'round';
+  pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+  ctx.stroke();
+
+  // Peak dot
+  if (pts[peakIdx]) {
+    ctx.beginPath();
+    ctx.arc(pts[peakIdx].x, pts[peakIdx].y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = accent;
+    ctx.fill();
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+
+  // Latest dot
+  const last = pts[pts.length - 1];
+  if (last && peakIdx !== pts.length - 1) {
+    ctx.beginPath();
+    ctx.arc(last.x, last.y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = '#fff';
+    ctx.fill();
+  }
+}
+
 function renderNationsPanel() {
+  renderTimelineChart();
   const el = document.getElementById('fp-nations-list');
   if (!el || !window._countryImpact || !window._countryImpact.length) return;
 
@@ -1485,6 +1707,10 @@ function setAccent(name) {
     (_mk.worldwide || []).forEach(m => {
       try { m.setStyle({ fillColor: newCol }); } catch(e) {}
     });
+  // Repaint timeline charts with new accent color
+  renderTimelineChart();
+  renderImpactSheetChart();
+
   // Sweep inline-style elements that hardcode #3498ec / rgba(52,152,236,...)
   // Excludes offer/spare room UI which intentionally stays blue as its own brand color.
   const hex = t.hex;
@@ -1523,6 +1749,7 @@ function setAccent(name) {
     requestAnimationFrame(() => {
       backdrop.style.opacity = '1';
       sheet.style.transform = 'translateY(0)';
+      setTimeout(renderImpactSheetChart, 60); // after transition starts, canvas has width
     });
   }
 }
