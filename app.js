@@ -344,10 +344,19 @@ async function fetchSitrepFromSupabase() {
     console.log(`[Pipeline] Built _globalOutbound for ${Object.keys(window._globalOutbound).length} global airports`);
 
     // ── 4e. Build _countryImpact (country → total cancelled + stranded) ──
-    // For each non-ME country: sum all cancelled flights on routes touching
-    // that country (either dep or arr), deduplicated so a DXB→JFK route
-    // only counts JFK's country (USA) once, not twice.
-    // ME hub countries are included as their own category.
+    //
+    // TWO different sources, one per airport type:
+    //
+    // ME hub countries (SA, AE, QA, ...):
+    //   Use airport_daily (apMap) — comprehensive total for every flight at that airport.
+    //   route_daily only captures tracked international routes; intra-ME logic previously
+    //   excluded the dominant ME→global volume, making SA appear 20× too small.
+    //
+    // Non-ME countries (US, GB, IN, ...):
+    //   Use route_daily (routeTotals) — only data source available for global airports.
+    //   Count the global side of ME↔global routes (i.e. how many flights to/from that
+    //   country were cancelled because of the ME disruption).
+    //
     window._countryImpact = {};
     const addToCountry = (iata, cancelled) => {
       const ap = typeof findAirport === 'function' ? findAirport(iata) : null;
@@ -360,17 +369,20 @@ async function fetchSitrepFromSupabase() {
       window._countryImpact[cc].airports.add(iata);
     };
 
-    // Walk all route pairs — count the non-ME side's country
+    // ME hub countries: sum airport_daily totals directly — accurate and complete
+    for (const ap of Object.values(apMap)) {
+      if (!ap.isME) continue;
+      addToCountry(ap.iata, ap.cancelled);
+    }
+
+    // Non-ME countries: sum route_daily — ME→global direction only.
+    // route_daily has BOTH RUH→JFK and JFK→RUH as separate rows (dep+arr passes).
+    // Counting both would double every non-ME country. Use ME→global only.
     for (const dep of Object.keys(routeTotals)) {
-      const depIsME = meIatas.has(dep);
+      if (!meIatas.has(dep)) continue;  // only ME departure hubs
       for (const [arr, d] of Object.entries(routeTotals[dep])) {
-        const arrIsME = meIatas.has(arr);
-        // For ME→global: attribute to the global destination country
-        if (depIsME && !arrIsME) addToCountry(arr, d.cancelled);
-        // For global→ME: attribute to the global origin country
-        if (!depIsME && arrIsME) addToCountry(dep, d.cancelled);
-        // Intra-ME: attribute to both sides' countries
-        if (depIsME && arrIsME) { addToCountry(dep, d.cancelled); addToCountry(arr, d.cancelled); }
+        if (meIatas.has(arr)) continue; // skip intra-ME (already in airport_daily)
+        addToCountry(arr, d.cancelled);
       }
     }
 
