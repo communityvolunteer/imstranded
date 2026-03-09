@@ -315,13 +315,17 @@ async function fetchSitrepFromSupabase() {
     if (adErr || !adRows || !adRows.length) throw new Error('No airport_daily data');
 
     // ── 2. Pull today's route_daily ───────────────────────────
+    // NOTE: Supabase default row cap is 1000 — must set limit explicitly
+    // to avoid silently truncating later-batch airports (e.g. MED, BEY, etc.)
     const { data: rdRows, error: rdErr } = await _sb
       .from('route_daily')
       .select('dep_iata, arr_iata, cancelled, airlines')
-      .eq('date', today);
+      .eq('date', today)
+      .limit(5000);
 
     if (rdErr) console.warn('[Pipeline] route_daily error:', rdErr.message);
     const routes = rdRows || [];
+    console.log(`[Pipeline] route_daily rows fetched: ${routes.length}`);
 
     // ── 3. Build AIRPORT_DATA from airport_daily ──────────────
     // Aggregate per airport across all 7 days.
