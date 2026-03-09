@@ -50,7 +50,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;line-
 /* ── HEADER ─────────────────────────────────────────────── */
 header{
   background:#000;
-  border-bottom:1px solid rgba(255,255,255,.08);
+  border-bottom:1px solid var(--accent);
   position:sticky;top:0;z-index:1000;
   display:grid;grid-template-columns:1fr auto 1fr;
   align-items:center;height:56px;padding:0 1.5rem;
@@ -60,12 +60,12 @@ header{
   display:flex;align-items:center;gap:.5rem;
   justify-self:start;white-space:nowrap;text-decoration:none;
 }
-.logo-accent{color:#3498ec;}
+.logo-accent{color:var(--accent);}
 .pulse-dot{
-  width:8px;height:8px;border-radius:50%;background:#3498ec;
+  width:8px;height:8px;border-radius:50%;background:var(--accent);
   flex-shrink:0;animation:pdot 2s infinite;
 }
-@keyframes pdot{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(103,232,249,.5);}50%{transform:scale(.8);box-shadow:0 0 0 5px rgba(103,232,249,0);}}
+@keyframes pdot{0%,100%{transform:scale(1);box-shadow:0 0 0 0 var(--accent);}50%{transform:scale(.8);box-shadow:0 0 0 5px rgba(0,0,0,0);}}
 
 nav{display:flex;justify-self:center;}
 nav button{
