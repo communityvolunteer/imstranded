@@ -4969,7 +4969,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     const el = document.getElementById(id);
     if (el) el.innerHTML = '<span style="letter-spacing:.05em;color:rgba(255,255,255,.15)">— — — —</span>';
   });
-  refreshSitrep();
+  refreshSitrep(); 
   setInterval(refreshSitrep,5*60*1000);
   if(SB_ON){loadPosts();loadSuccessStories();subscribeStream();}
   else{

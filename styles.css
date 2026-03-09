@@ -1489,7 +1489,7 @@ html.translated-ltr body,html.translated-rtl body{top:0 !important;}
 #pin-sidebar-close:hover {
   color: #fff;
   background: rgba(255,255,255,.1);
-  border-color: rgba(255,255,255,.15);
+  border-color: rgba(255,255,255,.15); 
 }
 
 #pin-sidebar-body {
