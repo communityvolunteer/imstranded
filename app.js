@@ -432,16 +432,17 @@ async function fetchSitrepFromSupabase() {
       };
     });
 
-    // Global airports: sum of cancelled outbound from any ME hub to this airport
+    // Global airports: sum of cancelled DEPARTURES from this airport to any ME hub
+    // (global→ME direction = flights leaving this airport)
     const globalAcc = {};
     for (const dep of Object.keys(routeTotals)) {
-      if (!meIatas.has(dep)) continue;
+      if (meIatas.has(dep)) continue;       // dep must be global
       for (const [arr, d] of Object.entries(routeTotals[dep])) {
-        if (meIatas.has(arr)) continue;
-        if (!globalAcc[arr]) globalAcc[arr] = { cancelled: 0, me_hubs: new Set(), airlines: new Set() };
-        globalAcc[arr].cancelled += d.cancelled;
-        globalAcc[arr].me_hubs.add(dep);
-        d.airlines.forEach(a => globalAcc[arr].airlines.add(a));
+        if (!meIatas.has(arr)) continue;     // arr must be ME
+        if (!globalAcc[dep]) globalAcc[dep] = { cancelled: 0, me_hubs: new Set(), airlines: new Set() };
+        globalAcc[dep].cancelled += d.cancelled;
+        globalAcc[dep].me_hubs.add(arr);
+        d.airlines.forEach(a => globalAcc[dep].airlines.add(a));
       }
     }
 
@@ -458,7 +459,10 @@ async function fetchSitrepFromSupabase() {
     console.log(`[Pipeline] _globalDisruptions: ${meAsDots.length} ME + ${globalDots.length} global lets go`);
 
     // ── 6. Totals ─────────────────────────────────────────────
-    const totalCancelled = AIRPORT_DATA.reduce((s, a) => s + a.cancelled, 0);
+    // Total = sum of all disruption dots (departure-only per airport)
+    // Ensures sitrep bar matches the cluster total when fully zoomed out
+    const allDotStranded = _globalDisruptions.reduce((s, g) => s + (g.stranded || 0), 0);
+    const allDotCancelled = _globalDisruptions.reduce((s, g) => s + (g.cancelled || 0), 0);
     const todayCancelled = AIRPORT_DATA.reduce((s, a) => s + (a.todayCancelled || 0), 0);
     const airportsClosed = AIRPORT_DATA.filter(a => a.status === 'CLOSED').length;
 
@@ -466,8 +470,8 @@ async function fetchSitrepFromSupabase() {
     window._todayStrandedPeople  = todayCancelled * AVG_PAX;
 
     return {
-      stranded:  totalCancelled * AVG_PAX,
-      cancelled: totalCancelled,
+      stranded:  allDotStranded,
+      cancelled: allDotCancelled,
       airports:  airportsClosed,
       airspace:  4,
     };
@@ -1730,6 +1734,22 @@ function openFormSidebar(which) {
   sb.classList.add('open');
   document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '400px');
 
+  // Click outside form sidebar to close
+  setTimeout(function() {
+    if (!window._fsBackdropClose) {
+      window._fsBackdropClose = function(e) {
+        const sb = document.getElementById('form-sidebar');
+        if (sb && sb.classList.contains('open') && !sb.contains(e.target)) {
+          // Don't close if clicking a button that opens the sidebar
+          if (e.target.closest('[onclick*="openFormSidebar"]') || e.target.closest('[onclick*="mTab"]')) return;
+          closeFormSidebar();
+        }
+      };
+    }
+    document.removeEventListener('mousedown', window._fsBackdropClose);
+    document.addEventListener('mousedown', window._fsBackdropClose);
+  }, 100);
+
   // Make the moved element visible (views are display:none by default)
   if (node) node.style.display = 'block';
 
@@ -1771,6 +1791,9 @@ function closeFormSidebar() {
   sb.classList.remove('open');
   sb.dataset.panel = '';
   document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '0px');
+  if (window._fsBackdropClose) {
+    document.removeEventListener('mousedown', window._fsBackdropClose);
+  }
   _fsReturnMounted();
 }
 
@@ -2294,7 +2317,7 @@ function buildDualPopup(iata) {
         '<div style="display:flex;flex-wrap:wrap;gap:4px">' + pills + '</div>';
     }
 
-    return statsHtml + descHtml + ctaBtn + routesHtml + airlinesHtml;
+    return statsHtml + descHtml + routesHtml + airlinesHtml;
   }
   
   var uid = iata.replace(/[^A-Z0-9]/g, '');
@@ -2326,6 +2349,9 @@ function buildDualPopup(iata) {
     
     // Est. stranded (departure-only) — above toggle, hidden on arrivals tab
     estBlock +
+    
+    // CTA: Offer a Spare Room — right under est stranded
+    ctaBtn +
     
     // Toggle — both tabs always present
     '<div style="' + tWrap + '">' +
