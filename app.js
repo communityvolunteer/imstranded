@@ -5447,6 +5447,8 @@ window.addEventListener('DOMContentLoaded',()=>{
     if (el) el.innerHTML = '<span style="letter-spacing:.05em;color:rgba(255,255,255,.15)">— — — —</span>';
   });
   refreshSitrep(); 
+  // Hard fallback — if refreshSitrep fails or hangs, dismiss overlay after 8s
+  setTimeout(() => flyAndDismissOverlay(), 8000);
   // Data refreshes on page load only — no polling interval.
   if(SB_ON){loadPosts();loadSuccessStories();subscribeStream();}
   else{
