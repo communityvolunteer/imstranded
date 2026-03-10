@@ -349,6 +349,8 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
   display:flex;align-items:center;gap:.75rem;
   padding:.7rem 0;border-bottom:1px solid rgba(255,255,255,.07);
 }
+.p-verify-row > div[style*="flex:1"] { min-width: 0; }
+.p-verify-btn { flex-shrink: 0; }
 .p-verify-row:last-of-type{border-bottom:none;}
 .p-verify-icon{
   width:36px;height:36px;border-radius:9px;
@@ -1790,12 +1792,7 @@ font-size: clamp(.45rem, 1.2vw, .58rem);
   pointer-events: all;
 }
 #form-sidebar-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: .9rem 1.1rem .8rem;
-  border-bottom: 1px solid rgba(255,255,255,.07);
-  flex-shrink: 0;
+  display: none;
 }
 #form-sidebar-title {
   font-size: .68rem;
@@ -1821,10 +1818,32 @@ font-size: clamp(.45rem, 1.2vw, .58rem);
 #form-sidebar-body::-webkit-scrollbar-track { background: transparent; }
 #form-sidebar-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 2px; }
 .fs-panel { display: none; }
+/* Help panel inside sidebar — full width, no modal chrome */
+#form-sidebar-body .help-panel-inner {
+  width: 100% !important;
+  max-width: 100% !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+/* Offer form inside sidebar — no outer card border */
+#form-sidebar-body #help-panel-offer > .post-form-card,
+#form-sidebar-body .post-form-card {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
 .fs-panel.fs-active { display: block; }
 /* Strip inner container widths */
 #form-sidebar-body .container { max-width: 100% !important; padding: 0 !important; }
 #form-sidebar-body #help-panel-offer { display: block !important; grid-template-columns: 1fr !important; }
+/* Remove blue header card border + background in sidebar */
+#form-sidebar-body #help-panel-offer > div:first-child > div:first-child {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 0 .5rem 0 !important;
+}
 
 /* Strip $HELP panel chrome — we're already in a sidebar */
 #form-sidebar-body .help-panel-x { display: none !important; }
