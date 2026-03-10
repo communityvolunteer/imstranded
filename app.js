@@ -1738,6 +1738,8 @@ function switchHelpMode(mode) {
   const op = document.getElementById('help-panel-offer');
   const bs = document.getElementById('help-toggle-stranded');
   const bh = document.getElementById('help-toggle-helper');
+  // Inside the form sidebar, offer panel uses block not grid
+  const inSidebar = !!document.querySelector('#form-sidebar.open');
   if (mode === 'stranded') {
     if (sp) sp.style.display = 'block';
     if (op) op.style.display = 'none';
@@ -1745,7 +1747,7 @@ function switchHelpMode(mode) {
     if (bh) bh.classList.remove('active');
   } else {
     if (sp) sp.style.display = 'none';
-    if (op) op.style.display = 'grid';
+    if (op) op.style.display = inSidebar ? 'block' : 'grid';
     if (bh) bh.classList.add('active');
     if (bs) bs.classList.remove('active');
   }
