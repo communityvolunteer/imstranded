@@ -1380,7 +1380,7 @@ function clearArcLines() {
   _arcLines = [];
 }
 
-function clearGlobalArcs() {
+function clearGlobalArcs(keepClusters) {
   _globalArcLines.forEach(line => {
     [window._crisisMap, window._mobileMap].forEach(m => { if (m) try { m.removeLayer(line); } catch(e) {} });
   });
@@ -1391,9 +1391,11 @@ function clearGlobalArcs() {
     [window._crisisMap, window._mobileMap].forEach(m => { if (m) try { m.removeLayer(line); } catch(e) {} });
   });
   _meArcLines = [];
-  // Remove global disruption cluster layers
-  if (window._globalCluster && window._crisisMap)  { try { window._crisisMap.removeLayer(window._globalCluster);  } catch(e) {} window._globalCluster = null; }
-  if (window._mGlobalCluster && window._mobileMap) { try { window._mobileMap.removeLayer(window._mGlobalCluster); } catch(e) {} window._mGlobalCluster = null; }
+  // Remove global disruption cluster layers (skip when just toggling popup arcs)
+  if (!keepClusters) {
+    if (window._globalCluster && window._crisisMap)  { try { window._crisisMap.removeLayer(window._globalCluster);  } catch(e) {} window._globalCluster = null; }
+    if (window._mGlobalCluster && window._mobileMap) { try { window._mobileMap.removeLayer(window._mGlobalCluster); } catch(e) {} window._mGlobalCluster = null; }
+  }
 }
 
 // ── INTRA-ME ROUTE ARCS (orange/amber) ─────────────────
@@ -2386,7 +2388,7 @@ function switchPopupMode(iata, mode) {
     }
   }
 
-  clearGlobalArcs();
+  clearGlobalArcs(true);
   drawPopupArcs(iata, mode);
 }
 
@@ -2416,7 +2418,7 @@ function openPinSidebar(iata) {
   if (sb) sb.classList.add('open');
 
   // Draw focused arcs for this pin
-  clearGlobalArcs();
+  clearGlobalArcs(true);
   drawPopupArcs(iata, 'leave');
 
   // Close on any bare map click (not a pin or control click)
@@ -2564,7 +2566,7 @@ function closePinSidebar() {
     window._crisisMap.off('click', window._crisisMap._pinSidebarClose);
     window._crisisMap._pinSidebarClose = null;
   }
-  clearGlobalArcs();
+  clearGlobalArcs(true);
   drawGlobalRouteArcs(window._crisisMap, _globalDisruptions);
   drawMERouteArcs(window._crisisMap);
 }
@@ -2780,7 +2782,7 @@ function renderGlobalDisruptions(map, data) {
         _activePopupCircle = marker;
         _activePopupIata = g.iata;
         _activePopupMode = 'leave';
-        clearGlobalArcs();
+        clearGlobalArcs(true);
         openMPinSheet(buildDualPopup(g.iata));
         drawPopupArcs(g.iata, 'leave');
       });
@@ -3570,7 +3572,7 @@ function closeMPinSheet() {
   if (_activePopupIata) {
     _activePopupIata = '';
     _activePopupMode = 'leave';
-    clearGlobalArcs();
+    clearGlobalArcs(true);
     drawGlobalRouteArcs(window._mobileMap, _globalDisruptions);
   }
 }
