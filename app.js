@@ -1880,10 +1880,7 @@ function setAccent(name) {
         if (opts.fillOpacity > 0.2) marker.setStyle({ fillColor: newCol });
       } catch(e) {}
     });
-    // Worldwide dots
-    (_mk.worldwide || []).forEach(m => {
-      try { m.setStyle({ fillColor: newCol }); } catch(e) {}
-    });
+    // Worldwide static dots removed — cluster handles repainting via re-render
   }
 
   // Repaint timeline charts with new accent color
@@ -2020,15 +2017,7 @@ function initMap() {
     _mk.country.push({marker:dot,status:c.status});
   });
 
-  WORLDWIDE.forEach(r => {
-    const m = L.circleMarker(r.coords,{pane:'worldwidePane',interactive:true,radius:7,fillColor:accentHex(),color:'#fff',weight:2,opacity:.9,fillOpacity:.55}).addTo(map)
-      .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:200px">
-        <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#d8b4fe;margin-bottom:.3rem">Worldwide: ${r.name}</div>
-        <div style="font-size:.78rem;color:rgba(255,255,255,.8);line-height:1.5;margin-bottom:.4rem">${r.note}</div>
-        <div style="font-size:.7rem;color:rgba(255,255,255,.5)">${r.contacts[0]?.label}: <strong style="color:#fff">${r.contacts[0]?.value}</strong></div>
-      </div>`);
-    _mk.worldwide.push(m);
-  });
+  // WORLDWIDE static dots suppressed — replaced by live cluster system
 
   _helpCluster = L.markerClusterGroup({
     maxClusterRadius: 120,
@@ -3407,11 +3396,7 @@ function initMobile(){
         _mk.country.push({marker:mglow,status:c.status});
         _mk.country.push({marker:mdot,status:c.status});
       });
-      WORLDWIDE.forEach(r=>{
-        const mw = L.circleMarker(r.coords,{pane:'worldwidePane',interactive:true,radius:7,fillColor:accentHex(),color:'#fff',weight:1.5,opacity:.9,fillOpacity:.5}).addTo(mmap)
-          .on('click',()=>openMWorldwidePopup(r.id));
-        _mk.worldwide.push(mw);
-      });
+      // WORLDWIDE static dots suppressed — replaced by live cluster system
 
       _mHelpCluster = L.markerClusterGroup({
         maxClusterRadius: 120,
