@@ -16,7 +16,7 @@ const ACCENT_THEMES = {
   teal:   { hex: '#2ec4b6', r: 46,  g: 196, b: 182 },
   pink:   { hex: '#ec4899', r: 236, g: 72,  b: 153 },
 };
-let _currentAccent = 'purple';
+let _currentAccent = 'blue';
 function accentHex() { return ACCENT_THEMES[_currentAccent]?.hex || '#a855f7'; }
 function accentRgba(a) { const t = ACCENT_THEMES[_currentAccent] || ACCENT_THEMES.purple; return `rgba(${t.r},${t.g},${t.b},${a})`; }
 
@@ -1192,7 +1192,9 @@ function renderFilteredPosts(map, cluster, filteredPosts) {
     if (isMobile) {
       m.on('click', function(e) { L.DomEvent.stopPropagation(e); openMPinSheet(popupHtml); });
     } else {
-      m.bindPopup(popupHtml, { className: 'dark-popup', maxWidth: 280 });
+      (function(post) {
+        m.on('click', function(e) { L.DomEvent.stopPropagation(e); closePostSidebar(); openPostSidebar(post, 'offer'); });
+      })(p);
     }
     cluster.addLayer(m);
   }
@@ -1236,7 +1238,9 @@ function renderFilteredStranded(map, isMobile, filteredData) {
     if (isMobile) {
       marker.on('click', function(e) { L.DomEvent.stopPropagation(e); openMPinSheet(popupHtml); });
     } else {
-      marker.bindPopup(popupHtml, { className: 'dark-popup', maxWidth: 280 });
+      (function(post) {
+        marker.on('click', function(e) { L.DomEvent.stopPropagation(e); closePostSidebar(); openPostSidebar(post, 'stranded'); });
+      })(p);
     }
     cluster.addLayer(marker);
   }
@@ -1955,7 +1959,7 @@ document.addEventListener('click', e => {
 
 function initAccent() {
   let saved = 'purple';
-  try { saved = localStorage.getItem('imstranded_accent') || 'purple'; } catch(e) {}
+  try { saved = localStorage.getItem('imstranded_accent') || 'blue'; } catch(e) {}
   setAccent(saved);
 }
 
@@ -2328,6 +2332,134 @@ function openPinSidebar(iata) {
   }
 }
 
+// ── POST SIDEBAR (spare room / stranded detail) ─────────────
+function openPostSidebar(post, postType) {
+  // Close airport sidebar if open
+  const pinSb = document.getElementById('pin-sidebar');
+  if (pinSb) pinSb.classList.remove('open');
+
+  // ── Avatar ──
+  const initEl  = document.getElementById('post-sidebar-avatar-initials');
+  const imgEl   = document.getElementById('post-sidebar-avatar-img');
+  const initials = (post.name || '?').trim().charAt(0).toUpperCase();
+  if (initEl) initEl.textContent = initials;
+  if (imgEl) {
+    if (post.avatar_url) {
+      imgEl.src = post.avatar_url;
+      imgEl.style.display = 'block';
+      imgEl.onerror = function() { imgEl.style.display = 'none'; };
+    } else {
+      imgEl.style.display = 'none';
+    }
+  }
+
+  // ── Header ──
+  const nameEl  = document.getElementById('post-sidebar-name');
+  const badgeEl = document.getElementById('post-sidebar-type-badge');
+  const timeEl  = document.getElementById('post-sidebar-time');
+  if (nameEl) nameEl.innerHTML = (post.name || 'Anonymous') + ' ' + buildBadge(!!post.user_id);
+  if (timeEl) timeEl.textContent = timeAgo(post.created_at);
+  if (badgeEl) {
+    const isOffer = (postType === 'offer');
+    badgeEl.textContent  = isOffer ? 'Spare Room' : 'Stranded';
+    badgeEl.style.cssText = isOffer
+      ? `background:rgba(52,152,236,.18);color:#3498ec;`
+      : `background:rgba(236,52,82,.18);color:#ec3452;`;
+  }
+
+  // ── Body ──
+  const body = document.getElementById('post-sidebar-body');
+  if (!body) return;
+
+  let html = '';
+
+  if (postType === 'offer') {
+    // Spare room post
+    html += `<div class="post-sidebar-section">
+      <div class="post-sidebar-label">Location</div>
+      <div class="post-sidebar-value">📍 ${post.location || '—'}</div>
+    </div>`;
+    if (post.post_type) {
+      html += `<div class="post-sidebar-section">
+        <div class="post-sidebar-label">Room Type</div>
+        <div class="post-sidebar-value">${post.post_type}</div>
+      </div>`;
+    }
+    if (post.body) {
+      html += `<hr class="post-sidebar-divider">
+      <div class="post-sidebar-section">
+        <div class="post-sidebar-label">About This Space</div>
+        <div class="post-sidebar-value">${post.body}</div>
+      </div>`;
+    }
+  } else {
+    // Stranded post
+    const needsList = (post.needs || []).map(n => NEED_LABELS[n] || n).join(', ');
+    html += `<div class="post-sidebar-section">
+      <div class="post-sidebar-label">Currently At</div>
+      <div class="post-sidebar-value">📍 ${post.current_location || post.location || '—'}</div>
+    </div>`;
+    html += `<div class="post-sidebar-section">
+      <div class="post-sidebar-label">Trying to Reach</div>
+      <div class="post-sidebar-value">✈ <strong style="color:#fff">${post.destination || '—'}</strong>${post.dest_airport ? ' <span style="background:rgba(255,255,255,.1);padding:.1rem .4rem;border-radius:4px;font-size:.7rem;font-weight:600">'+post.dest_airport+'</span>' : ''}</div>
+    </div>`;
+    if (post.group_size > 1 || post.nationality) {
+      html += `<div class="post-sidebar-section">
+        <div class="post-sidebar-label">Group</div>
+        <div class="post-sidebar-value">${post.group_size > 1 ? post.group_size + ' people' : '1 person'}${post.nationality ? ' &middot; ' + post.nationality : ''}</div>
+      </div>`;
+    }
+    if (needsList) {
+      html += `<div class="post-sidebar-section">
+        <div class="post-sidebar-label">Needs</div>
+        <div class="post-sidebar-value" style="color:#e67e22">${needsList}</div>
+      </div>`;
+    }
+    if (post.stranded_since) {
+      html += `<div class="post-sidebar-section">
+        <div class="post-sidebar-label">Stranded Since</div>
+        <div class="post-sidebar-value">${new Date(post.stranded_since).toLocaleDateString()}</div>
+      </div>`;
+    }
+    if (post.details) {
+      html += `<hr class="post-sidebar-divider">
+      <div class="post-sidebar-section">
+        <div class="post-sidebar-label">Details</div>
+        <div class="post-sidebar-value">${post.details}</div>
+      </div>`;
+    }
+  }
+
+  html += `<hr class="post-sidebar-divider">`;
+  html += `<div style="display:flex;flex-direction:column;gap:.5rem">`;
+  html += buildContactButtons(post.contact, post.xhandle, post.name);
+  html += postType === 'offer'
+    ? buildTipButton(post.xhandle, !!post.user_id)
+    : buildSendHelpButton(post.xhandle, !!post.user_id);
+  html += `</div>`;
+
+  body.innerHTML = html;
+
+  // Open
+  const sb = document.getElementById('post-sidebar');
+  if (sb) sb.classList.add('open');
+
+  // Close on bare map click
+  if (window._crisisMap && !window._crisisMap._postSidebarClose) {
+    window._crisisMap._postSidebarClose = function() { closePostSidebar(); };
+    window._crisisMap.on('click', window._crisisMap._postSidebarClose);
+  }
+}
+
+function closePostSidebar() {
+  const sb = document.getElementById('post-sidebar');
+  if (sb) sb.classList.remove('open');
+  if (window._crisisMap && window._crisisMap._postSidebarClose) {
+    window._crisisMap.off('click', window._crisisMap._postSidebarClose);
+    window._crisisMap._postSidebarClose = null;
+  }
+}
+
 function closePinSidebar() {
   const sb = document.getElementById('pin-sidebar');
   if (sb) sb.classList.remove('open');
@@ -2595,7 +2727,9 @@ async function renderPostsOnMap(map) {
     if (isMobileM) {
       m.on('click', function(e) { L.DomEvent.stopPropagation(e); openMPinSheet(popHtml); });
     } else {
-      m.bindPopup(popHtml, { className: 'dark-popup', maxWidth: 280 });
+      (function(post) {
+        m.on('click', function(e) { L.DomEvent.stopPropagation(e); closePostSidebar(); openPostSidebar(post, post.type || 'offer'); });
+      })(p);
     }
     if (cluster) cluster.addLayer(m);
     _mk.help.push(m);
@@ -2773,7 +2907,7 @@ async function submitPost(type) {
   const btn=document.querySelector(`.submit-btn--${type}`); if(!btn)return;
   btn.textContent='Posting...'; btn.disabled=true;
   try {
-    const{error}=await _sb.from('help_posts').insert({type,post_type:t,location:l,body:b,name:n,contact:c,xhandle:x||null,lat,lng,user_id:_currentUser.id,flagged:false});
+    const{error}=await _sb.from('help_posts').insert({type,post_type:t,location:l,body:b,name:n,contact:c,xhandle:x||null,lat,lng,user_id:_currentUser.id,flagged:false,avatar_url:(_currentProfile&&_currentProfile.avatar_url)||''});
     if(error)throw error;
     ['type','location','body','name'].forEach(f=>{const el=document.getElementById(type+'-'+f);if(el)el.tagName==='SELECT'?el.selectedIndex=0:el.value='';});
     document.getElementById(type+'-lat').value='';document.getElementById(type+'-lng').value='';
@@ -3084,7 +3218,7 @@ async function refreshSitrep() {
 // ============================================================
 async function loadPosts() {
   if(!SB_ON)return;
-  const{data}=await _sb.from('help_posts').select('id,type,post_type,location,body,name,contact,xhandle,lat,lng,user_id,created_at').eq('flagged',false).eq('type','offer').order('created_at',{ascending:false}).limit(100);
+  const{data}=await _sb.from('help_posts').select('id,type,post_type,location,body,name,contact,xhandle,lat,lng,user_id,created_at,avatar_url').eq('flagged',false).eq('type','offer').order('created_at',{ascending:false}).limit(100);
   if(data){posts=data;renderPosts();renderPostsOnMap(window._crisisMap||window._mobileMap);}
 }
 function subscribeStream(){
@@ -3342,7 +3476,7 @@ async function mSubmitOffer(){
   if(!lat||!lng){alert('Please select a location from the dropdown suggestions.');return;}
   const btn=document.querySelector('#m-offer-content .m-submit');btn.textContent='Posting...';btn.disabled=true;
   try{
-    const{error}=await _sb.from('help_posts').insert({type:'offer',post_type:'General',location:l,body:b,name:n,contact:c,xhandle:x||null,lat,lng,user_id:_currentUser.id,flagged:false});
+    const{error}=await _sb.from('help_posts').insert({type:'offer',post_type:'General',location:l,body:b,name:n,contact:c,xhandle:x||null,lat,lng,user_id:_currentUser.id,flagged:false,avatar_url:(_currentProfile&&_currentProfile.avatar_url)||''});
     if(error)throw error;
     ['location','body','name'].forEach(f=>{const el=document.getElementById('m-offer-'+f);if(el)el.value='';});
     document.getElementById('m-offer-lat').value='';document.getElementById('m-offer-lng').value='';
