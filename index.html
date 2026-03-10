@@ -124,7 +124,7 @@ function googleTranslateInit() {
         </div>
       </div>
     </div>
-    <button class="profile-btn" id="profile-avatar-btn" onclick="isMob()?mTab('profile',null):openRightSidebar('profile')" title="My Profile">
+    <button class="profile-btn" id="profile-avatar-btn" onclick="isMob()?mTab('profile',null):openFormSidebar('profile')" title="My Profile">
       <svg id="profile-avatar-default" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <img id="profile-avatar-img" style="display:none;width:28px;height:28px;border-radius:50%;object-fit:cover" alt="">
     </button>
@@ -142,17 +142,17 @@ function googleTranslateInit() {
     <div class="sitrep-label" id="stranded-label">People Impacted <span style="font-size:.55rem;color:rgba(255,255,255,.3);font-weight:500;letter-spacing:.01em">since Mar 1</span></div>
     <div class="sitrep-sub" id="stranded-sub"><span id="stat-stranded-today" style="color:var(--accent);font-weight:700"></span><span id="stat-stranded-today-label"></span></div>
   </div>
-  <div class="sitrep-stat sitrep-stat--offer-room" id="ss-offer-room" onclick="isMob()?mTab('offer',null):openRightSidebar('offer')">
+  <div class="sitrep-stat sitrep-stat--offer-room" id="ss-offer-room" onclick="isMob()?mTab('offer',null):openFormSidebar('offer')">
     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     <div class="sitrep-label" style="color:#3498ec">Offer Spare Room</div>
     <div class="sitrep-sub">tap · help someone</div>
   </div>
-  <div class="sitrep-stat sitrep-stat--im-stranded" id="ss-im-stranded" onclick="isMob()?mTab('stranded',null):openRightSidebar('stranded')">
+  <div class="sitrep-stat sitrep-stat--im-stranded" id="ss-im-stranded" onclick="isMob()?mTab('stranded',null):openFormSidebar('stranded')">
     <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
     <div class="sitrep-label" style="color:#ec3452">I'm Stranded</div>
     <div class="sitrep-sub">tap · register</div>
   </div>
-  <div class="sitrep-stat sitrep-stat--help-money" id="ss-help-money" onclick="isMob()?toggleHelpPanel():openRightSidebar('help')">
+  <div class="sitrep-stat sitrep-stat--help-money" id="ss-help-money" onclick="isMob()?toggleHelpPanel():openFormSidebar('help')">
     <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
     <div class="sitrep-label">$HELP</div>
     <div class="sitrep-sub">tap · donate</div>
@@ -202,19 +202,18 @@ function googleTranslateInit() {
   </div>
 
 
-<!-- ── RIGHT SIDEBAR (PC fly-in: offer / stranded / help / profile) ── -->
-<div id="rs-backdrop" onclick="closeRightSidebar()"></div>
-<div id="right-sidebar">
-  <div id="rs-header">
-    <span id="rs-title">OFFER A SPARE ROOM</span>
-    <button id="rs-close" onclick="closeRightSidebar()" title="Close">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
-  </div>
-  <div id="rs-body">
+  <!-- Form Sidebar (PC fly-in: offer / stranded / $help / profile) — same pattern as pin-sidebar -->
+  <div id="form-sidebar">
+    <div id="form-sidebar-header">
+      <span id="form-sidebar-title">OFFER A SPARE ROOM</span>
+      <button id="form-sidebar-close" onclick="closeFormSidebar()" title="Close">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="form-sidebar-body">
 
-    <!-- Panel: Offer a Room -->
-    <div id="rs-panel-offer" class="rs-panel">
+      <!-- Panel: Offer a Room / I can Help -->
+      <div id="fs-panel-offer" class="fs-panel">
 <!-- Toggle: I'M STRANDED / I CAN HELP -->
     <div style="display:flex;max-width:480px;margin:1.5rem auto 1.5rem;background:rgba(255,255,255,.06);border-radius:12px;padding:4px;border:1px solid rgba(255,255,255,.08)">
       <button id="help-toggle-stranded" onclick="switchHelpMode('stranded')" class="help-toggle help-toggle--stranded active">
@@ -247,19 +246,19 @@ function googleTranslateInit() {
         <div class="form-row"><label class="modal-label">Details <span style="opacity:.5;font-weight:400;text-transform:none">(optional)</span></label><textarea id="stranded-details" placeholder="Any additional context..." class="modal-input" style="min-height:60px;resize:none"></textarea></div>
         <div class="form-row"><label class="modal-label">Email</label>
           <div class="linked-input" id="s-linked-google">
-            <div class="linked-input-icon" style="background:#1a1a1a" onclick="!isLoggedIn()?openRightSidebar('profile'):void 0" title="Google"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg></div>
+            <div class="linked-input-icon" style="background:#1a1a1a" onclick="!isLoggedIn()?showView('profile'):void 0" title="Google"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg></div>
             <input type="text" id="stranded-contact" readonly placeholder="Sign in with Google to add email" class="linked-input-field">
           </div>
         </div>
         <div class="form-row"><label class="modal-label">Telegram</label>
           <div class="linked-input" id="s-linked-tg">
-            <div class="linked-input-icon" style="background:#229ED9" onclick="isLoggedIn()?linkTelegram():openRightSidebar('profile')" title="Link Telegram"><svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg></div>
+            <div class="linked-input-icon" style="background:#229ED9" onclick="isLoggedIn()?linkTelegram():showView('profile')" title="Link Telegram"><svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg></div>
             <input type="text" id="stranded-tg-contact" readonly placeholder="Link Telegram to add contact" class="linked-input-field">
           </div>
         </div>
         <div class="form-row"><label class="modal-label">X / Twitter</label>
           <div class="linked-input" id="s-linked-x">
-            <div class="linked-input-icon" style="background:#000;border:1px solid rgba(255,255,255,.15)" onclick="isLoggedIn()?linkX():openRightSidebar('profile')" title="Link X"><svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></div>
+            <div class="linked-input-icon" style="background:#000;border:1px solid rgba(255,255,255,.15)" onclick="isLoggedIn()?linkX():showView('profile')" title="Link X"><svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></div>
             <input type="text" id="stranded-xhandle" readonly placeholder="Link X to enable Send $HELP" class="linked-input-field">
           </div>
         </div>
@@ -283,7 +282,7 @@ function googleTranslateInit() {
           <!-- Linked account fields -->
           <div class="form-row"><label>Email</label>
             <div class="linked-input" id="linked-google">
-              <div class="linked-input-icon" style="background:#1a1a1a" onclick="!isLoggedIn()?openRightSidebar('profile'):void 0" title="Google">
+              <div class="linked-input-icon" style="background:#1a1a1a" onclick="!isLoggedIn()?showView('profile'):void 0" title="Google">
                 <svg width="12" height="12" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
               </div>
               <input type="text" id="offer-contact" readonly placeholder="Sign in with Google to add email" class="linked-input-field">
@@ -292,7 +291,7 @@ function googleTranslateInit() {
 
           <div class="form-row"><label>Telegram</label>
             <div class="linked-input" id="linked-tg">
-              <div class="linked-input-icon" style="background:#229ED9" onclick="isLoggedIn()?linkTelegram():openRightSidebar('profile')" title="Link Telegram">
+              <div class="linked-input-icon" style="background:#229ED9" onclick="isLoggedIn()?linkTelegram():showView('profile')" title="Link Telegram">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
               </div>
               <input type="text" id="offer-tg-contact" readonly placeholder="Link Telegram to add contact" class="linked-input-field">
@@ -301,7 +300,7 @@ function googleTranslateInit() {
 
           <div class="form-row"><label>X / Twitter</label>
             <div class="linked-input" id="linked-x">
-              <div class="linked-input-icon" style="background:#000;border:1px solid rgba(255,255,255,.15)" onclick="isLoggedIn()?linkX():openRightSidebar('profile')" title="Link X">
+              <div class="linked-input-icon" style="background:#000;border:1px solid rgba(255,255,255,.15)" onclick="isLoggedIn()?linkX():showView('profile')" title="Link X">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
               </div>
               <input type="text" id="offer-xhandle" readonly placeholder="Link X to add @handle & enable tips" class="linked-input-field">
@@ -314,10 +313,10 @@ function googleTranslateInit() {
       <div>
         <div class="post-form-header post-form-header--live">SPARE ROOMS OFFERED</div>
         <div class="posts-list" id="offer-posts" style="margin-top:.75rem">
-    </div>
+      </div>
 
-    <!-- Panel: Profile -->
-    <div id="rs-panel-profile" class="rs-panel">
+      <!-- Panel: Profile -->
+      <div id="fs-panel-profile" class="fs-panel">
 <!-- Login/Signup state -->
     <div id="profile-login" style="padding:3rem 0;text-align:center">
       <div style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 1.2rem">
@@ -440,10 +439,10 @@ function googleTranslateInit() {
       <div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,.06);text-align:center">
         <button onclick="deleteAccount()" style="background:none;border:1px solid rgba(236,52,82,.3);color:rgba(236,52,82,.6);border-radius:8px;padding:.4rem 1.2rem;font-family:Inter,sans-serif;font-size:.72rem;font-weight:600;cursor:pointer;transition:all .15s">Delete My Account</button>
         <div style="font-size:.65rem;color:rgba(255,255,255,.2);margin-top:.4rem">Permanently removes your account, posts, and all associated data.
-    </div>
+      </div>
 
-    <!-- Panel: $HELP -->
-    <div id="rs-panel-help" class="rs-panel">
+      <!-- Panel: $HELP -->
+      <div id="fs-panel-help" class="fs-panel">
   <div class="help-panel-inner">
 
     <!-- Close -->
@@ -462,20 +461,20 @@ function googleTranslateInit() {
 
     <!-- Toggle -->
     <div class="help-toggle-bar">
-      <button class="help-toggle-btn active" id="rs-htab-send" onclick="rsSwitchHelpTab('send')">SEND HELP</button>
-      <button class="help-toggle-btn" id="rs-htab-receive" onclick="rsSwitchHelpTab('receive')">RECEIVE HELP</button>
+      <button class="help-toggle-btn active" id="fs-htab-send" onclick="switchHelpTab('send')">SEND HELP</button>
+      <button class="help-toggle-btn" id="fs-htab-receive" onclick="switchHelpTab('receive')">RECEIVE HELP</button>
     </div>
 
     <!-- SEND PANEL -->
-    <div id="rs-help-send-panel">
+    <div id="fs-help-send-panel">
 
       <!-- Step 1 -->
-      <div class="hstep" id="rs-hs-s1">
-        <div class="hstep-num" id="rs-hs-s1-num">1</div>
+      <div class="hstep" id="fs-hs-s1">
+        <div class="hstep-num" id="fs-hs-s1-num">1</div>
         <div class="hstep-body">
           <div class="hstep-title">Connect X / Twitter</div>
-          <div class="hstep-desc" id="rs-hs-s1-desc">Link your X account so @bankrbot can process your tips.</div>
-          <button class="hstep-btn hstep-btn--blue" id="rs-hs-s1-btn" onclick="closeRightSidebar();isMob()?mTab('profile',null):openRightSidebar('profile')">
+          <div class="hstep-desc" id="fs-hs-s1-desc">Link your X account so @bankrbot can process your tips.</div>
+          <button class="hstep-btn hstep-btn--blue" id="fs-hs-s1-btn" onclick="toggleHelpPanel();isMob()?mTab('profile',null):showView('profile')">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
             Connect X in Profile
           </button>
@@ -487,7 +486,7 @@ function googleTranslateInit() {
       </div>
 
       <!-- Step 2 -->
-      <div class="hstep" id="rs-hs-s2">
+      <div class="hstep" id="fs-hs-s2">
         <div class="hstep-num">2</div>
         <div class="hstep-body">
           <div class="hstep-title">Send $HELP to anyone on the map</div>
@@ -498,7 +497,7 @@ function googleTranslateInit() {
             </span>
             profiles on the map.
           </div>
-          <button class="hstep-btn hstep-btn--purple" onclick="closeRightSidebar();helpFilterVerifiedOnly()">
+          <button class="hstep-btn hstep-btn--purple" onclick="toggleHelpPanel();helpFilterVerifiedOnly()">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
             Try it — Show Verified Profiles
           </button>
@@ -506,27 +505,27 @@ function googleTranslateInit() {
       </div>
 
       <!-- Step 3 -->
-      <div class="hstep" id="rs-hs-s3">
+      <div class="hstep" id="fs-hs-s3">
         <div class="hstep-num">3</div>
         <div class="hstep-body">
           <div class="hstep-title">Tip the $HELP Pool</div>
           <div class="hstep-desc">Tips sent to @imstrandedorg are split every week among all confirmed matched hosts — the people who actually gave someone a place to stay.</div>
-          <a id="rs-hs-s3-btn" href="https://x.com/intent/tweet?text=@bankrbot%20Tip%201%20$HELP%20to%20@imstrandedorg" target="_blank" class="hstep-btn hstep-btn--blue">
+          <a id="fs-hs-s3-btn" href="https://x.com/intent/tweet?text=@bankrbot%20Tip%201%20$HELP%20to%20@imstrandedorg" target="_blank" class="hstep-btn hstep-btn--blue">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
             Tip the $HELP Pool
           </a>
-          <div class="hstep-muted" id="rs-hs-s3-locked" style="display:none">Connect X first (step 1) to tip the pool.</div>
+          <div class="hstep-muted" id="fs-hs-s3-locked" style="display:none">Connect X first (step 1) to tip the pool.</div>
         </div>
       </div>
 
     </div>
 
     <!-- RECEIVE PANEL -->
-    <div id="rs-help-receive-panel" style="display:none">
+    <div id="fs-help-receive-panel" style="display:none">
 
       <!-- Step 1 -->
-      <div class="hstep" id="rs-hr-s1">
-        <div class="hstep-num" id="rs-hr-s1-num">1</div>
+      <div class="hstep" id="fs-hr-s1">
+        <div class="hstep-num" id="fs-hr-s1-num">1</div>
         <div class="hstep-body">
           <div class="hstep-title">Get a Verified Badge</div>
           <div class="hstep-desc">Connect your socials to get the
@@ -536,21 +535,21 @@ function googleTranslateInit() {
             </span>
             badge on your posts — required to receive $HELP tips.
           </div>
-          <div class="hstep-social-checks" id="rs-hr-social-checks">
-            <div class="hstep-social-row" id="rs-hr-check-x">
-              <span class="hstep-social-dot" id="rs-hr-dot-x"></span>
+          <div class="hstep-social-checks" id="fs-hr-social-checks">
+            <div class="hstep-social-row" id="fs-hr-check-x">
+              <span class="hstep-social-dot" id="fs-hr-dot-x"></span>
               <span>X / Twitter</span>
-              <button class="hstep-link-btn" id="rs-hr-btn-x" onclick="closeRightSidebar();isMob()?mTab('profile',null):openRightSidebar('profile')">Connect</button>
+              <button class="hstep-link-btn" id="fs-hr-btn-x" onclick="toggleHelpPanel();isMob()?mTab('profile',null):showView('profile')">Connect</button>
             </div>
-            <div class="hstep-social-row" id="rs-hr-check-tg">
-              <span class="hstep-social-dot" id="rs-hr-dot-tg"></span>
+            <div class="hstep-social-row" id="fs-hr-check-tg">
+              <span class="hstep-social-dot" id="fs-hr-dot-tg"></span>
               <span>Telegram</span>
-              <button class="hstep-link-btn" id="rs-hr-btn-tg" onclick="closeRightSidebar();isMob()?mTab('profile',null):openRightSidebar('profile')">Connect</button>
+              <button class="hstep-link-btn" id="fs-hr-btn-tg" onclick="toggleHelpPanel();isMob()?mTab('profile',null):showView('profile')">Connect</button>
             </div>
-            <div class="hstep-social-row" id="rs-hr-check-g">
-              <span class="hstep-social-dot" id="rs-hr-dot-g"></span>
+            <div class="hstep-social-row" id="fs-hr-check-g">
+              <span class="hstep-social-dot" id="fs-hr-dot-g"></span>
               <span>Google</span>
-              <button class="hstep-link-btn" id="rs-hr-btn-g" onclick="closeRightSidebar();isMob()?mTab('profile',null):openRightSidebar('profile')">Connect</button>
+              <button class="hstep-link-btn" id="fs-hr-btn-g" onclick="toggleHelpPanel();isMob()?mTab('profile',null):showView('profile')">Connect</button>
             </div>
           </div>
           <div class="hstep-bankr-note">
@@ -561,17 +560,17 @@ function googleTranslateInit() {
       </div>
 
       <!-- Step 2 -->
-      <div class="hstep" id="rs-hr-s2">
+      <div class="hstep" id="fs-hr-s2">
         <div class="hstep-num">2</div>
         <div class="hstep-body">
           <div class="hstep-title">Get on the map</div>
           <div class="hstep-desc">Offer a spare room to someone in need — even just a couch for a week helps. Or, if you're stranded, add yourself to the map.</div>
           <div style="display:flex;gap:.4rem;flex-wrap:wrap">
-            <button class="hstep-btn hstep-btn--blue" onclick="closeRightSidebar();isMob()?mTab('offer',null):openRightSidebar('offer')">
+            <button class="hstep-btn hstep-btn--blue" onclick="toggleHelpPanel();isMob()?mTab('offer',null):showView('help')">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
               Offer a Room
             </button>
-            <button class="hstep-btn hstep-btn--red" onclick="closeRightSidebar();isMob()?mTab('stranded',null):openRightSidebar('stranded')">
+            <button class="hstep-btn hstep-btn--red" onclick="toggleHelpPanel();isMob()?mTab('stranded',null):openStrandedForm()">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               I'm Stranded
             </button>
@@ -602,10 +601,10 @@ function googleTranslateInit() {
 
   </div>
 
-    </div>
+      </div>
 
+    </div>
   </div>
-</div>
 
   <!-- Filter Panel (fly-in from right) -->
   <div class="filter-panel open" id="filter-panel">

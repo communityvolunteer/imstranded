@@ -1677,12 +1677,9 @@ function filterMap(type) {
 // VIEW SWITCHING
 // ============================================================
 function showView(name) {
-  // On PC, help and profile open as right sidebar fly-ins
-  if (!isMob() && (name === 'help' || name === 'profile')) {
-    const panel = name === 'profile' ? 'profile' : 'offer';
-    openRightSidebar(panel);
-    return;
-  }
+  // On PC, help and profile open as form-sidebar fly-ins over the map
+  if (!isMob() && name === 'profile') { openFormSidebar('profile'); return; }
+  if (!isMob() && name === 'help')    { openFormSidebar('offer');   return; }
   document.querySelectorAll('.view').forEach(v => {
     v.classList.remove('active');
     v.style.display = '';
@@ -1695,43 +1692,33 @@ function showView(name) {
   if (name === 'resources' && navBtns[1]) navBtns[1].classList.add('active');
   if (name === 'map' && !window._mapInit) initMap();
   if (name === 'resources') renderResources();
-  if (name === 'map') closeRightSidebar();
+  if (name === 'map') closeFormSidebar();
 }
 
-// ── RIGHT SIDEBAR ─────────────────────────────────────────────────────────
-const _rsTitles = {
+// ── FORM SIDEBAR — same pattern as openPinSidebar ───────────────────────
+const _fsTitles = {
   offer:    'OFFER A SPARE ROOM',
   stranded: "I'M STRANDED",
   help:     '$HELP · COMMUNITY TIPS',
   profile:  'MY PROFILE',
 };
-
-function openRightSidebar(which) {
-  const sidebar  = document.getElementById('right-sidebar');
-  const backdrop = document.getElementById('rs-backdrop');
-  const title    = document.getElementById('rs-title');
-  if (!sidebar) return;
-
-  // Hide all panels, show requested
-  document.querySelectorAll('.rs-panel').forEach(p => p.classList.remove('rs-active'));
-  const panel = document.getElementById('rs-panel-' + which);
-  if (panel) panel.classList.add('rs-active');
-
-  if (title) title.textContent = _rsTitles[which] || which.toUpperCase();
-  sidebar.classList.add('open');
-  if (backdrop) backdrop.classList.add('open');
-
-  // Trigger any needed renders
-  if (which === 'profile')  renderProfileView();
-  if (which === 'offer')    renderPosts();
-  if (which === 'stranded') renderPosts();
+function openFormSidebar(which) {
+  if (isMob()) return;
+  const sb    = document.getElementById('form-sidebar');
+  const title = document.getElementById('form-sidebar-title');
+  if (!sb) return;
+  document.querySelectorAll('.fs-panel').forEach(p => p.classList.remove('fs-active'));
+  const panel = document.getElementById('fs-panel-' + which);
+  if (panel) panel.classList.add('fs-active');
+  if (title) title.textContent = _fsTitles[which] || which.toUpperCase();
+  sb.classList.add('open');
+  if (which === 'stranded') { switchHelpMode('stranded'); }
+  if (which === 'offer')    { switchHelpMode('helper'); renderPosts(); }
+  if (which === 'profile')  { renderProfileView(); }
 }
-
-function closeRightSidebar() {
-  const sidebar  = document.getElementById('right-sidebar');
-  const backdrop = document.getElementById('rs-backdrop');
-  if (sidebar)  sidebar.classList.remove('open');
-  if (backdrop) backdrop.classList.remove('open');
+function closeFormSidebar() {
+  const sb = document.getElementById('form-sidebar');
+  if (sb) sb.classList.remove('open');
 }
 
 // ============================================================
@@ -2663,20 +2650,17 @@ function renderGlobalDisruptions(map, data) {
           ? Math.round(totalStranded / 1000) + 'k'
           : Math.round(totalStranded).toLocaleString();
       const count = markers.length;
-      // Heatmap tiers — size, opacity AND ring all scale with intensity
-      let sz, bgOpacity, borderOpacity, borderW, ringInset, ringOpacity, glowSize;
-      if (totalStranded >= 5000000)      { sz = 132; bgOpacity = 0.72; borderOpacity = 0.85; borderW = 3;   ringInset = 18; ringOpacity = 0.35; glowSize = 60; }
-      else if (totalStranded >= 1000000) { sz = 108; bgOpacity = 0.60; borderOpacity = 0.72; borderW = 2.5; ringInset = 14; ringOpacity = 0.28; glowSize = 48; }
-      else if (totalStranded >= 500000)  { sz = 89;  bgOpacity = 0.50; borderOpacity = 0.60; borderW = 2;   ringInset = 12; ringOpacity = 0.22; glowSize = 38; }
-      else if (totalStranded >= 100000)  { sz = 72;  bgOpacity = 0.38; borderOpacity = 0.48; borderW = 1.5; ringInset = 10; ringOpacity = 0.16; glowSize = 28; }
-      else if (totalStranded >= 10000)   { sz = 58;  bgOpacity = 0.26; borderOpacity = 0.35; borderW = 1;   ringInset = 7;  ringOpacity = 0.10; glowSize = 18; }
-      else                               { sz = 43;  bgOpacity = 0.16; borderOpacity = 0.22; borderW = 1;   ringInset = 5;  ringOpacity = 0.06; glowSize = 10; }
+      // Size tiers based on stranded estimate
+      let sz, ring;
+      if (totalStranded >= 5000000)      { sz = 110; ring = 16; }
+      else if (totalStranded >= 1000000) { sz = 90;  ring = 12; }
+      else if (totalStranded >= 500000)  { sz = 74;  ring = 10; }
+      else if (totalStranded >= 100000)  { sz = 60;  ring = 8;  }
+      else if (totalStranded >= 10000)   { sz = 48;  ring = 6;  }
+      else                               { sz = 36;  ring = 4;  }
       const html =
-        '<div class="gd-cluster" style="width:'+sz+'px;height:'+sz+'px;' +
-          'background:radial-gradient(circle at 38% 32%, rgba(var(--accent-r),var(--accent-g),var(--accent-b),'+bgOpacity+'), rgba(var(--accent-r),var(--accent-g),var(--accent-b),'+(bgOpacity*0.45)+'));' +
-          'border:'+borderW+'px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),'+borderOpacity+');' +
-          'box-shadow:0 0 '+glowSize+'px rgba(var(--accent-r),var(--accent-g),var(--accent-b),'+(bgOpacity*0.6)+'),0 0 '+(glowSize*2)+'px rgba(var(--accent-r),var(--accent-g),var(--accent-b),'+(bgOpacity*0.2)+'),0 4px 20px rgba(0,0,0,.5);">' +
-          '<div class="gd-cluster-ring" style="inset:-'+ringInset+'px;border-color:rgba(var(--accent-r),var(--accent-g),var(--accent-b),'+ringOpacity+')"></div>' +
+        '<div class="gd-cluster" style="width:'+sz+'px;height:'+sz+'px">' +
+          '<div class="gd-cluster-ring" style="inset:-'+ring+'px"></div>' +
           '<div class="gd-cluster-inner">' +
             '<div class="gd-cluster-num">~'+label+'</div>' +
             '<div class="gd-cluster-lbl">stranded</div>' +
@@ -3031,7 +3015,7 @@ function renderPosts() {
 }
 
 async function submitPost(type) {
-  if (!isLoggedIn()) { alert('Please sign in first to post.'); isMob()?mTab('profile',null):openRightSidebar('profile'); return; }
+  if (!isLoggedIn()) { alert('Please sign in first to post.'); isMob()?mTab('profile',null):openFormSidebar('profile'); return; }
   if (type === 'offer') {
     const roleErr = await checkUserRole('offer');
     if (roleErr) { alert(roleErr); return; }
@@ -3659,7 +3643,8 @@ async function initAuth() {
     // Check if we just came back from OAuth
     if (sessionStorage.getItem('postLogin') === 'profile') {
       sessionStorage.removeItem('postLogin');
-      if (!isMob()) openRightSidebar('profile'); else mTab('profile', document.getElementById('mtab-help'));
+      if (!isMob()) openFormSidebar('profile');
+      else mTab('profile', document.getElementById('mtab-help'));
     }
   }
   // Listen for auth changes (login, logout, token refresh)
@@ -3685,7 +3670,7 @@ async function initAuth() {
 
       if (sessionStorage.getItem('postLogin') === 'profile') {
         sessionStorage.removeItem('postLogin');
-        if (!isMob()) openRightSidebar('profile');
+        if (!isMob()) openFormSidebar('profile');
         else mTab('profile', document.getElementById('mtab-help'));
       }
     } else if (event === 'SIGNED_OUT') {
@@ -3926,7 +3911,7 @@ async function checkXRedirect() {
     window.location.hash = '';
     if (isLoggedIn()) {
       await loadProfile();
-      if (!isMob()) openRightSidebar('profile');
+      if (!isMob()) openFormSidebar('profile');
       else mTab('profile', document.getElementById('mtab-help'));
     }
     return;
@@ -3976,7 +3961,7 @@ async function checkXRedirect() {
     window.location.hash = '';
     if (isLoggedIn()) {
       await loadProfile();
-      if (!isMob()) openRightSidebar('profile');
+      if (!isMob()) openFormSidebar('profile');
       else mTab('profile', document.getElementById('mtab-help'));
     }
   }
@@ -4023,7 +4008,7 @@ async function finishXLink(userId, accessToken) {
   }).eq('id', userId);
   if (error) { alert('Failed to link X: ' + error.message); return; }
   await loadProfile();
-  if (!isMob()) openRightSidebar('profile');
+  if (!isMob()) openFormSidebar('profile');
   else mTab('profile', document.getElementById('mtab-help'));
 }
 
@@ -4209,7 +4194,8 @@ async function profileEditPost(id) {
   document.getElementById('offer-body').value = data.body || '';
   document.getElementById('offer-name').value = data.name || '';
   // Switch to help view, offer panel
-  if(!isMob()) openRightSidebar('offer'); else { showView('help'); switchHelpMode('helper'); }
+  showView('help');
+  switchHelpMode('helper');
   // Change button
   const btn = document.querySelector('.submit-btn--offer');
   if (btn) { btn.textContent = 'Update Post'; btn.onclick = () => submitEditPost('offer'); }
@@ -4255,7 +4241,7 @@ async function submitEditPost(type) {
     cancelEdit('offer');
     loadPosts();
     renderProfilePosts();
-    if(!isMob()) openRightSidebar('profile'); else mTab('profile',null);
+    isMob()?mTab('profile',null):openFormSidebar('profile');
   } catch (e) { alert('Failed to update: ' + e.message); if (btn) { btn.textContent = 'Update Post'; btn.disabled = false; } }
 }
 
@@ -4471,7 +4457,8 @@ async function editStrandedPost(id) {
   if (isMobile) {
     mTab('stranded', null);
   } else {
-    if(!isMob()) openRightSidebar('stranded'); else { showView('help'); switchHelpMode('stranded'); }
+    showView('help');
+    switchHelpMode('stranded');
   }
 
   // Change submit button
@@ -4524,7 +4511,7 @@ async function submitStrandedEdit(prefix) {
     renderProfileStranded();
     loadStranded();
     if (prefix.startsWith('m-')) mTab('profile', null);
-    else { if(!isMob()) openRightSidebar('profile'); else mTab('profile',null); }
+    else openFormSidebar('profile');
   } catch (e) {
     alert('Failed to update: ' + e.message);
     if (btn) { btn.textContent = 'Update Registration'; btn.disabled = false; }
@@ -4659,7 +4646,7 @@ function refreshHelpPanel() {
     if (s1btn) {
       s1btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Connect X in Profile`;
       s1btn.className = 'hstep-btn hstep-btn--x';
-      s1btn.onclick = () => { isMob()?mTab('profile',null):openRightSidebar('profile'); };
+      s1btn.onclick = () => { isMob()?mTab('profile',null):openFormSidebar('profile'); };
     }
   }
 
@@ -4724,7 +4711,7 @@ function helpFilterVerifiedOnly() {
 
 function openStrandedForm() {
   if (isMob()) { mTab('stranded', null); }
-  else { if(!isMob()) openRightSidebar('stranded'); else { showView('help'); switchHelpMode('stranded'); } }
+  else { showView('help'); switchHelpMode('stranded'); }
 }
 
 function closeStrandedForm() {
@@ -5403,18 +5390,3 @@ window.addEventListener('DOMContentLoaded',()=>{
   }
 });
 window.addEventListener('resize',()=>{if(isMob()&&!window._mobileInit)initMobile();});
-// ── RS-PANEL $HELP tab switcher (sidebar copy has rs- prefixed IDs) ──────
-function rsSwitchHelpTab(tab) {
-  const send = document.getElementById('rs-help-send-panel');
-  const recv = document.getElementById('rs-help-receive-panel');
-  const bSend = document.getElementById('rs-htab-send');
-  const bRecv = document.getElementById('rs-htab-receive');
-  if (!send) return;
-  if (tab === 'send') {
-    send.style.display = 'block'; recv.style.display = 'none';
-    bSend?.classList.add('active'); bRecv?.classList.remove('active');
-  } else {
-    send.style.display = 'none'; recv.style.display = 'block';
-    bSend?.classList.remove('active'); bRecv?.classList.add('active');
-  }
-}
