@@ -1102,6 +1102,8 @@ function applyFilters() {
       if (f.showArcs || hasAt) {
         drawGlobalRouteArcs(window._crisisMap, filteredGlobal);
         drawGlobalRouteArcs(window._mobileMap, filteredGlobal);
+        drawMERouteArcs(window._crisisMap);
+        drawMERouteArcs(window._mobileMap);
       }
     }
 
@@ -1381,6 +1383,7 @@ function refreshStrandedCount() {
 // ── ARC LINES (stranded → destination) ──
 let _arcLines = [];
 let _globalArcLines = [];
+let _meArcLines = [];
 let _filterAtIata = '';  // "Stranded at" filter
 let _filterToIata = '';  // "Heading to" filter
 
@@ -1396,6 +1399,46 @@ function clearGlobalArcs() {
     [window._crisisMap, window._mobileMap].forEach(m => { if (m) try { m.removeLayer(line); } catch(e) {} });
   });
   _globalArcLines = [];
+  _meArcLines.forEach(line => {
+    [window._crisisMap, window._mobileMap].forEach(m => { if (m) try { m.removeLayer(line); } catch(e) {} });
+  });
+  _meArcLines = [];
+}
+
+// ── INTRA-ME ROUTE ARCS (orange/amber) ─────────────────
+// Draws arcs between ME hub airports based on intra-ME route_daily data
+function drawMERouteArcs(map) {
+  if (!map || !window._meAllOutbound) return;
+  const meIatas = new Set(AIRPORT_DATA.map(a => a.iata));
+
+  for (const [dep, dests] of Object.entries(window._meAllOutbound)) {
+    if (!meIatas.has(dep)) continue;
+    const depAp = AIRPORT_DATA.find(a => a.iata === dep);
+    if (!depAp) continue;
+    const fromCoords = depAp.coords || [depAp.lat, depAp.lng];
+
+    for (const dest of dests) {
+      if (!meIatas.has(dest.iata)) continue; // intra-ME only
+      const arrAp = AIRPORT_DATA.find(a => a.iata === dest.iata);
+      if (!arrAp) continue;
+      const toCoords = arrAp.coords || [arrAp.lat, arrAp.lng];
+
+      const c = dest.cancelled || 0;
+      let dw, do_;
+      if (c >= 500)      { dw = 3.0; do_ = 0.5; }
+      else if (c >= 200) { dw = 2.2; do_ = 0.4; }
+      else if (c >= 50)  { dw = 1.5; do_ = 0.3; }
+      else               { dw = 0.8; do_ = 0.2; }
+
+      const arc = generateArc(fromCoords, toCoords, 30);
+      const line = L.polyline(arc, {
+        color: accentRgba(do_),
+        weight: dw,
+        interactive: false,
+      }).addTo(map);
+      _meArcLines.push(line);
+    }
+  }
 }
 
 function drawArcLines(map, strandedData) {
@@ -3017,6 +3060,8 @@ async function refreshSitrep() {
     clearGlobalArcs();
     drawGlobalRouteArcs(window._crisisMap, _globalDisruptions);
     drawGlobalRouteArcs(window._mobileMap, _globalDisruptions);
+    drawMERouteArcs(window._crisisMap);
+    drawMERouteArcs(window._mobileMap);
     if (icon) icon.classList.remove('spinning');
 
     // Mobile: after data loads, fire a second full re-render timed to land AFTER the
@@ -3133,6 +3178,7 @@ function initMobile(){
         renderGlobalDisruptions(mmap, _globalDisruptions);
         clearGlobalArcs();
         drawGlobalRouteArcs(mmap, _globalDisruptions);
+        drawMERouteArcs(mmap);
       }
 
       mRenderResources();
