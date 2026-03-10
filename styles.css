@@ -112,7 +112,7 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 .sitrep-num{
   font-size:2.1rem;font-weight:900;letter-spacing:-.04em;
   line-height:1;margin-bottom:.2rem;display:block;
-  color:var(--accent);font-variant-numeric:tabular-nums;
+  color:#fff;font-variant-numeric:tabular-nums;
 }
 .sitrep-label{
   font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
@@ -1421,9 +1421,10 @@ html.translated-ltr body,html.translated-rtl body{top:0 !important;}
 }
 
 #pin-sidebar-header {
+
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
+  justify-content: center;
   gap: .75rem;
   padding: 1rem 1rem .85rem;
   border-bottom: 1px solid rgba(255,255,255,.07);
@@ -1459,7 +1460,7 @@ html.translated-ltr body,html.translated-rtl body{top:0 !important;}
   font-weight: 500;
 }
 #pin-sidebar-close {
-  flex-shrink: 0;
+  flex-shrink: 0; display: none;
   background: rgba(255,255,255,.06);
   border: 1px solid rgba(255,255,255,.08);
   color: rgba(255,255,255,.45);
@@ -1966,7 +1967,7 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 .sitrep-num{
   font-size:2.1rem;font-weight:900;letter-spacing:-.04em;
   line-height:1;margin-bottom:.2rem;display:block;
-  color:var(--accent);font-variant-numeric:tabular-nums;
+  color:#fff;font-variant-numeric:tabular-nums;
 }
 .sitrep-label{
   font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
@@ -3275,9 +3276,10 @@ html.translated-ltr body,html.translated-rtl body{top:0 !important;}
 }
 
 #pin-sidebar-header {
+
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
+  justify-content: center;
   gap: .75rem;
   padding: 1rem 1rem .85rem;
   border-bottom: 1px solid rgba(255,255,255,.07);
@@ -3313,7 +3315,7 @@ html.translated-ltr body,html.translated-rtl body{top:0 !important;}
   font-weight: 500;
 }
 #pin-sidebar-close {
-  flex-shrink: 0;
+  flex-shrink: 0; display: none;
   background: rgba(255,255,255,.06);
   border: 1px solid rgba(255,255,255,.08);
   color: rgba(255,255,255,.45);
@@ -3757,7 +3759,7 @@ font-size: clamp(.45rem, 1.2vw, .58rem);
 /* ── MOBILE: larger dot text + bubbles ────────────────────── */
 @media (max-width: 600px) {
   .gd-cluster-num {
-    font-size: 1.2rem !important;
+    font-size: 1.5rem !important;
   }
   .gd-cluster-lbl {
     font-size: clamp(.6rem, 2.2vw, .9rem) !important;

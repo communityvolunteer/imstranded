@@ -737,10 +737,16 @@ function _buildChartPoints(canvasEl, metric) {
 }
 
 function _drawChart(canvasEl, metric, accentOverride) {
-  // Read width from PARENT, never from canvas itself (canvas.offsetWidth drifts
-  // after style.width is set on previous draws, causing the snowball on toggle)
+  // Read width from PARENT, capped to viewport width to prevent mobile growth loop.
+  // Subtract parent padding so canvas doesn't overflow into padding zone.
   const parent = canvasEl.parentElement;
-  const w = parent ? parent.clientWidth || parent.offsetWidth : (canvasEl._cachedW || 240);
+  const maxW = window.innerWidth;
+  let rawW = parent ? parent.clientWidth || parent.offsetWidth : 240;
+  if (parent) {
+    const ps = getComputedStyle(parent);
+    rawW -= (parseFloat(ps.paddingLeft) || 0) + (parseFloat(ps.paddingRight) || 0);
+  }
+  const w = Math.max(Math.min(rawW, maxW), 100);
   const h = parseInt(canvasEl.getAttribute('height')) || 64;
   canvasEl._cachedW = w;
   canvasEl._cachedH = h;
@@ -755,6 +761,7 @@ function _drawChart(canvasEl, metric, accentOverride) {
   canvasEl.height = h * dpr;
   canvasEl.style.width  = w + 'px';
   canvasEl.style.height = h + 'px';
+  canvasEl.style.maxWidth = '100%';
 
   const ctx = canvasEl.getContext('2d');
   ctx.scale(dpr, dpr);
@@ -2036,7 +2043,8 @@ function toggleImpactSheet() {
     requestAnimationFrame(() => {
       backdrop.style.opacity = '1';
       sheet.style.transform = 'translateY(0)';
-      setTimeout(() => { renderImpactSheetChart(); renderMobileNations(); }, 60);
+      // Wait for slide animation to fully finish before measuring canvas width
+      setTimeout(() => { renderImpactSheetChart(); renderMobileNations(); }, 350);
     });
   }
 }
