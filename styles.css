@@ -442,7 +442,7 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 .post-form-header--offer{color:#fff;background:#3498ec;border-left:3px solid #3498ec;}
 .post-form-header--live{color:#fff;background:#3498ec;border-left:3px solid #3498ec;}
 
-.post-form{background:#000;border:1px solid #2e2e2f;border-radius:0 var(--radius-sm) var(--radius-sm);border-top:none;padding:1.25rem;margin-bottom:1.25rem;}
+.post-form{background:#000;padding:1.25rem;margin-bottom:1.25rem;}
 .form-note{font-size:.78rem;color:#1c1e22;line-height:1.5;margin-bottom:1rem;background:#c9d5ed;border-radius:6px;padding:.6rem .75rem;border-left:3px solid var(--accent);}
 .form-row{margin-bottom:.9rem;}
 .form-row label{display:block;font-size:.72rem;font-weight:600;color:#c9d5ed;margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.04em;}
