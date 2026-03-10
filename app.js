@@ -451,22 +451,34 @@ async function fetchSitrepFromSupabase() {
       isME:      false,
     }));
 
-    _globalDisruptions = [...meAsDots, ...globalDots];
-    console.log(`[Pipeline] _globalDisruptions: ${meAsDots.length} ME + ${globalDots.length} global lets go`);
-
     // ── 6. Totals ─────────────────────────────────────────────
-    // Headline uses sum of ALL dot stranded values (ME + global)
-    // so when the map clusters everything together, the number matches.
-    const totalStranded = _globalDisruptions.reduce((s, g) => s + (g.stranded || 0), 0);
-    const totalCancelled = _globalDisruptions.reduce((s, g) => s + (g.cancelled || 0), 0);
+    // Headline = authoritative AIRPORT_DATA totals (the ~20M number)
+    const totalCancelled = AIRPORT_DATA.reduce((s, a) => s + a.cancelled, 0);
     const todayCancelled = AIRPORT_DATA.reduce((s, a) => s + (a.todayCancelled || 0), 0);
     const airportsClosed = AIRPORT_DATA.filter(a => a.status === 'CLOSED').length;
+    const headlineStranded = totalCancelled * AVG_PAX;
+
+    // Scale ME dot stranded values so all dots sum to the headline.
+    // Global dots are departure-only and correct; ME dots overcount due to
+    // intra-ME flights being counted at both endpoints.
+    const globalTotal = globalDots.reduce((s, g) => s + (g.stranded || 0), 0);
+    const meTarget = headlineStranded - globalTotal;  // what ME dots should add up to
+    const meRawTotal = meAsDots.reduce((s, g) => s + (g.stranded || 0), 0);
+    if (meRawTotal > 0 && meTarget > 0) {
+      const scale = meTarget / meRawTotal;
+      for (const d of meAsDots) {
+        d.stranded = Math.round((d.stranded || 0) * scale);
+      }
+    }
+
+    _globalDisruptions = [...meAsDots, ...globalDots];
+    console.log(`[Pipeline] _globalDisruptions: ${meAsDots.length} ME + ${globalDots.length} global, headline ${headlineStranded.toLocaleString()}`);
 
     window._todayCancelledFlight = todayCancelled;
     window._todayStrandedPeople  = todayCancelled * AVG_PAX;
 
     return {
-      stranded:  totalStranded,
+      stranded:  headlineStranded,
       cancelled: totalCancelled,
       airports:  airportsClosed,
       airspace:  4,
