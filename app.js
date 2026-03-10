@@ -2419,6 +2419,16 @@ function openPinSidebar(iata) {
   clearGlobalArcs();
   drawPopupArcs(iata, 'leave');
 
+  // backdrop-filter on the sidebar triggers a Leaflet SVG GPU compositor reset.
+  // Two rAFs give the browser time to settle, then we repaint pins/arcs.
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    if (window._crisisMap) window._crisisMap.invalidateSize();
+    applyFilters();
+    // Re-draw popup arcs since applyFilters clears them
+    clearGlobalArcs();
+    drawPopupArcs(iata, 'leave');
+  }));
+
   // Close on any bare map click (not a pin or control click)
   if (window._crisisMap && !window._crisisMap._pinSidebarClose) {
     window._crisisMap._pinSidebarClose = function() { closePinSidebar(); };
@@ -2559,13 +2569,19 @@ function closePinSidebar() {
   if (sb) sb.classList.remove('open');
   _activePopupIata  = '';
   _activePopupCircle = null;
-  clearGlobalArcs();
-  drawGlobalRouteArcs(window._crisisMap, _globalDisruptions);
   // Remove map close listener
   if (window._crisisMap && window._crisisMap._pinSidebarClose) {
     window._crisisMap.off('click', window._crisisMap._pinSidebarClose);
     window._crisisMap._pinSidebarClose = null;
   }
+  // Repaint everything — backdrop-filter removal wipes Leaflet SVG layers
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    if (window._crisisMap) window._crisisMap.invalidateSize();
+    applyFilters();
+    clearGlobalArcs();
+    drawGlobalRouteArcs(window._crisisMap, _globalDisruptions);
+    drawMERouteArcs(window._crisisMap);
+  }));
 }
 
 function drawPopupArcs(iata, mode) {
