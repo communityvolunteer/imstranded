@@ -2430,6 +2430,7 @@ function openPinSidebar(iata) {
   // Slide open
   const sb = document.getElementById('pin-sidebar');
   if (sb) sb.classList.add('open');
+  document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '320px');
 
   // Lock hover state on the clicked dot
   document.querySelectorAll('.gd-active').forEach(el => el.classList.remove('gd-active'));
@@ -2560,6 +2561,7 @@ function openPostSidebar(post, postType) {
   // Open
   const sb = document.getElementById('post-sidebar');
   if (sb) sb.classList.add('open');
+  document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '320px');
 
   // Close on bare map click
   if (window._crisisMap && !window._crisisMap._postSidebarClose) {
@@ -2571,6 +2573,7 @@ function openPostSidebar(post, postType) {
 function closePostSidebar() {
   const sb = document.getElementById('post-sidebar');
   if (sb) sb.classList.remove('open');
+  document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '0px');
   if (window._crisisMap && window._crisisMap._postSidebarClose) {
     window._crisisMap.off('click', window._crisisMap._postSidebarClose);
     window._crisisMap._postSidebarClose = null;
@@ -2580,6 +2583,7 @@ function closePostSidebar() {
 function closePinSidebar() {
   const sb = document.getElementById('pin-sidebar');
   if (sb) sb.classList.remove('open');
+  document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '0px');
   // Release locked hover state
   document.querySelectorAll('.gd-active').forEach(el => el.classList.remove('gd-active'));
   _activePopupIata  = '';
@@ -2736,8 +2740,8 @@ function renderGlobalDisruptions(map, data) {
         '<div class="gd-cluster" style="width:'+sz+'px;height:'+sz+'px">' +
           '<div class="gd-cluster-ring" style="inset:-'+ring+'px"></div>' +
           '<div class="gd-cluster-inner">' +
-            '<div class="gd-cluster-num">~'+label+'</div>' +
-            '<div class="gd-cluster-lbl">stranded</div>' +
+            '<div class="gd-cluster-num">'+label+'</div>' +
+            '<div class="gd-cluster-lbl">impacted</div>' +
           '</div>' +
         '</div>';
       return L.divIcon({ html, className: '', iconSize: [sz, sz], iconAnchor: [sz/2, sz/2] });
@@ -2749,7 +2753,7 @@ function renderGlobalDisruptions(map, data) {
     if (!ap) continue;
 
     const c = g.cancelled || 0;
-    const strandedEst = Math.round(c * 185 * 0.20);
+    const strandedEst = Math.round(c * 185);
 
     // Size tiers for individual dot
     let radius, opacity, borderW;
@@ -2774,8 +2778,8 @@ function renderGlobalDisruptions(map, data) {
       ? '<div class="gd-cluster" style="width:'+sz+'px;height:'+sz+'px">' +
           '<div class="gd-cluster-ring" style="inset:-6px"></div>' +
           '<div class="gd-cluster-inner">' +
-            '<div class="gd-cluster-num">~'+labelK+'</div>' +
-            '<div class="gd-cluster-lbl">stranded</div>' +
+            '<div class="gd-cluster-num">'+labelK+'</div>' +
+            '<div class="gd-cluster-lbl">impacted</div>' +
           '</div>' +
         '</div>'
       : '<div class="gd-single" style="width:'+sz+'px;height:'+sz+'px">' +
