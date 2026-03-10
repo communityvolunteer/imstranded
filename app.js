@@ -2624,12 +2624,12 @@ function renderGlobalDisruptions(map, data) {
       const count = markers.length;
       // Size tiers based on stranded estimate
       let sz, ring;
-      if (totalStranded >= 5000000)      { sz = 110; ring = 16; }
-      else if (totalStranded >= 1000000) { sz = 90;  ring = 12; }
-      else if (totalStranded >= 500000)  { sz = 74;  ring = 10; }
-      else if (totalStranded >= 100000)  { sz = 60;  ring = 8;  }
-      else if (totalStranded >= 10000)   { sz = 48;  ring = 6;  }
-      else                               { sz = 36;  ring = 4;  }
+      if (totalStranded >= 5000000)      { sz = 132; ring = 18; }
+      else if (totalStranded >= 1000000) { sz = 108; ring = 14; }
+      else if (totalStranded >= 500000)  { sz = 89;  ring = 12; }
+      else if (totalStranded >= 100000)  { sz = 72;  ring = 10; }
+      else if (totalStranded >= 10000)   { sz = 58;  ring = 7;  }
+      else                               { sz = 43;  ring = 5;  }
       const html =
         '<div class="gd-cluster" style="width:'+sz+'px;height:'+sz+'px">' +
           '<div class="gd-cluster-ring" style="inset:-'+ring+'px"></div>' +
@@ -2651,12 +2651,12 @@ function renderGlobalDisruptions(map, data) {
 
     // Size tiers for individual dot
     let radius, opacity, borderW;
-    if (c >= 5000)      { radius = 22; opacity = 0.55; borderW = 3;   }
-    else if (c >= 1000) { radius = 16; opacity = 0.45; borderW = 2.5; }
-    else if (c >= 500)  { radius = 13; opacity = 0.4;  borderW = 2;   }
-    else if (c >= 200)  { radius = 10; opacity = 0.35; borderW = 1.5; }
-    else if (c >= 50)   { radius = 7;  opacity = 0.3;  borderW = 1.5; }
-    else                { radius = 5;  opacity = 0.25; borderW = 1;   }
+    if (c >= 5000)      { radius = 22; opacity = 0.44; borderW = 3;   }
+    else if (c >= 1000) { radius = 16; opacity = 0.36; borderW = 2.5; }
+    else if (c >= 500)  { radius = 13; opacity = 0.32; borderW = 2;   }
+    else if (c >= 200)  { radius = 10; opacity = 0.28; borderW = 1.5; }
+    else if (c >= 50)   { radius = 7;  opacity = 0.24; borderW = 1.5; }
+    else                { radius = 5;  opacity = 0.20; borderW = 1;   }
 
     const labelK = strandedEst >= 1000000
       ? (strandedEst / 1000000).toFixed(1) + 'M'
