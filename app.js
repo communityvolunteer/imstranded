@@ -229,7 +229,7 @@ async function fetchSitrepFromSupabase() {
       apMap[k].h7days[mmdd] = count;
       apMap[k].status     = row.status || apMap[k].status;
       apMap[k].cancelRate = row.cancel_rate || apMap[k].cancelRate;
-      if (row.date === today) {
+      if ((row.date || '').slice(0, 10) === today) {
         apMap[k].todayCancelled = count;
         apMap[k].todayStranded  = count * AVG_PAX;
       }
