@@ -432,17 +432,16 @@ async function fetchSitrepFromSupabase() {
       };
     });
 
-    // Global airports: sum of cancelled DEPARTURES from this airport to ME hubs
-    // (global→ME direction = flights leaving this airport)
+    // Global airports: sum of cancelled outbound from any ME hub to this airport
     const globalAcc = {};
     for (const dep of Object.keys(routeTotals)) {
-      if (meIatas.has(dep)) continue;       // dep must be global
+      if (!meIatas.has(dep)) continue;
       for (const [arr, d] of Object.entries(routeTotals[dep])) {
-        if (!meIatas.has(arr)) continue;     // arr must be ME
-        if (!globalAcc[dep]) globalAcc[dep] = { cancelled: 0, me_hubs: new Set(), airlines: new Set() };
-        globalAcc[dep].cancelled += d.cancelled;
-        globalAcc[dep].me_hubs.add(arr);
-        d.airlines.forEach(a => globalAcc[dep].airlines.add(a));
+        if (meIatas.has(arr)) continue;
+        if (!globalAcc[arr]) globalAcc[arr] = { cancelled: 0, me_hubs: new Set(), airlines: new Set() };
+        globalAcc[arr].cancelled += d.cancelled;
+        globalAcc[arr].me_hubs.add(dep);
+        d.airlines.forEach(a => globalAcc[arr].airlines.add(a));
       }
     }
 
@@ -459,10 +458,7 @@ async function fetchSitrepFromSupabase() {
     console.log(`[Pipeline] _globalDisruptions: ${meAsDots.length} ME + ${globalDots.length} global lets go`);
 
     // ── 6. Totals ─────────────────────────────────────────────
-    // Total = sum of all disruption dots (departure-only per airport)
-    // This ensures sitrep bar matches the cluster total when fully zoomed out
-    const allDotStranded = _globalDisruptions.reduce((s, g) => s + (g.stranded || 0), 0);
-    const allDotCancelled = _globalDisruptions.reduce((s, g) => s + (g.cancelled || 0), 0);
+    const totalCancelled = AIRPORT_DATA.reduce((s, a) => s + a.cancelled, 0);
     const todayCancelled = AIRPORT_DATA.reduce((s, a) => s + (a.todayCancelled || 0), 0);
     const airportsClosed = AIRPORT_DATA.filter(a => a.status === 'CLOSED').length;
 
@@ -470,8 +466,8 @@ async function fetchSitrepFromSupabase() {
     window._todayStrandedPeople  = todayCancelled * AVG_PAX;
 
     return {
-      stranded:  allDotStranded,
-      cancelled: allDotCancelled,
+      stranded:  totalCancelled * AVG_PAX,
+      cancelled: totalCancelled,
       airports:  airportsClosed,
       airspace:  4,
     };
@@ -2298,7 +2294,7 @@ function buildDualPopup(iata) {
         '<div style="display:flex;flex-wrap:wrap;gap:4px">' + pills + '</div>';
     }
 
-    return statsHtml + descHtml + routesHtml + airlinesHtml;
+    return statsHtml + descHtml + ctaBtn + routesHtml + airlinesHtml;
   }
   
   var uid = iata.replace(/[^A-Z0-9]/g, '');
@@ -2308,14 +2304,25 @@ function buildDualPopup(iata) {
   var lEstStranded = Math.round(lCancelled * 185 * 0.20);
   var estBlock =
     '<div id="gest-' + uid + '" style="background:rgba(236,52,82,.1);border:1px solid rgba(236,52,82,.25);border-radius:12px;padding:.8rem 1rem;margin-bottom:.6rem;text-align:center">' +
-      '<div style="font-size:.52rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(236,52,82,.7);margin-bottom:.2rem">Est. Stranded Here</div>' +
+      '<div style="font-size:.52rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(236,52,82,.7);margin-bottom:.2rem">Estimated Stranded in ' + city + '</div>' +
       '<div style="font-size:2rem;font-weight:900;color:#ec3452;line-height:1;letter-spacing:-.04em">' + lEstStranded.toLocaleString() + '</div>' +
       '<div style="font-size:.56rem;color:rgba(255,255,255,.3);margin-top:.25rem">active stranded estimate · updated live</div>' +
     '</div>';
 
+  // CTA button HTML — reused inside each panel
+  var ctaBtn =
+    '<div style="margin-top:.85rem;padding-top:.75rem;border-top:1px solid rgba(255,255,255,.07)">' +
+      '<button onclick="isMob()?mTab(\'offer\',null):openFormSidebar(\'offer\')" ' +
+        'style="width:100%;padding:.65rem .8rem;border-radius:10px;cursor:pointer;font-family:Inter,sans-serif;font-size:.76rem;font-weight:800;letter-spacing:.02em;' +
+        'background:rgba(52,152,236,.12);color:#3498ec;border:1px solid rgba(52,152,236,.28);' +
+        'display:flex;align-items:center;justify-content:center;gap:.45rem;transition:background .15s" ' +
+        'onmouseover="this.style.background=\'rgba(52,152,236,.22)\'" onmouseout="this.style.background=\'rgba(52,152,236,.12)\'">' +
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>' +
+        'Offer a Spare Room' +
+      '</button>' +
+    '</div>';
+
   return '<div style="width:100%;font-family:Inter,sans-serif" id="gpop-' + uid + '">' +
-    '<div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:.1rem">' + city + ' (' + iata + ')</div>' +
-    '<div style="font-size:.68rem;color:#fff;margin-bottom:.5rem">' + country + '</div>' +
     
     // Est. stranded (departure-only) — above toggle, hidden on arrivals tab
     estBlock +
@@ -2333,18 +2340,6 @@ function buildDualPopup(iata) {
     '<div id="gph-' + uid + '" style="display:none">' + buildPanel(hCancelled, hStranded, hRoutes, hAirlines, homeMode, hHubCities) + '</div>' +
     
     embBtn +
-
-    // ── CTA: Offer a Spare Room ──
-    '<div style="margin-top:1rem;padding-top:.85rem;border-top:1px solid rgba(255,255,255,.07)">' +
-      '<button onclick="(document.getElementById(\'offer-btn\') || document.getElementById(\'m-offer-btn\'))?.click()" ' +
-        'style="width:100%;padding:.65rem .8rem;border-radius:10px;cursor:pointer;font-family:Inter,sans-serif;font-size:.76rem;font-weight:800;letter-spacing:.02em;' +
-        'background:rgba(52,152,236,.12);color:#3498ec;border:1px solid rgba(52,152,236,.28);' +
-        'display:flex;align-items:center;justify-content:center;gap:.45rem;transition:background .15s" ' +
-        'onmouseover="this.style.background=\'rgba(52,152,236,.22)\'" onmouseout="this.style.background=\'rgba(52,152,236,.12)\'">' +
-        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>' +
-        'Offer a Spare Room' +
-      '</button>' +
-    '</div>' +
 
   '</div>';
 }
