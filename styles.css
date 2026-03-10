@@ -1648,3 +1648,38 @@ html.translated-ltr body,html.translated-rtl body{top:0 !important;}
 @media (max-width: 600px) {
   #post-sidebar { display: none !important; }
 }
+
+/* ── AIRPORT STRANDED ZOOM LABELS ──────────────────────────── */
+.airport-stranded-label {
+  font-family: Inter, sans-serif;
+  font-size: .58rem;
+  font-weight: 800;
+  color: #ec3452;
+  background: rgba(7,7,12,.82);
+  border: 1px solid rgba(236,52,82,.3);
+  border-radius: 5px;
+  padding: .15rem .4rem;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateX(-50%);
+  display: inline-block;
+  letter-spacing: .02em;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* ── STRANDED CLUSTER (red, shows est. stranded) ───────────── */
+.stranded-cluster {
+  background: rgba(236,52,82,.85);
+  border: 2px solid rgba(236,52,82,.4);
+  border-radius: 50%;
+  color: #fff;
+  font-family: Inter, sans-serif;
+  font-size: .68rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 4px rgba(236,52,82,.15), 0 2px 8px rgba(0,0,0,.4);
+  letter-spacing: -.01em;
+}

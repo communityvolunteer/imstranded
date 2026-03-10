@@ -1208,9 +1208,10 @@ function renderFilteredStranded(map, isMobile, filteredData) {
   const cluster = L.markerClusterGroup({
     maxClusterRadius: 60, spiderfyOnMaxZoom: true, showCoverageOnHover: false, zoomToBoundsOnClick: true,
     iconCreateFunction: function(c) {
-      const count = c.getAllChildMarkers().reduce((sum, m) => sum + (m.options.groupSize || 1), 0);
-      const size = count > 50 ? 44 : count > 10 ? 36 : 28;
-      return L.divIcon({ html: '<div class="stranded-cluster" style="width:'+size+'px;height:'+size+'px">'+count+'</div>', className: '', iconSize: [size, size] });
+      const est = c.getAllChildMarkers().reduce((sum, m) => sum + ((m.options.groupSize || 1) * 185 * 0.20), 0);
+      const label = est >= 1000000 ? (est/1000000).toFixed(1)+'M' : est >= 1000 ? Math.round(est/1000)+'k' : Math.round(est).toString();
+      const size = est > 50000 ? 52 : est > 10000 ? 44 : est > 1000 ? 36 : 28;
+      return L.divIcon({ html: '<div class="stranded-cluster" style="width:'+size+'px;height:'+size+'px;background:rgba(236,52,82,.85);border-color:rgba(236,52,82,.4)">~'+label+'</div>', className: '', iconSize: [size, size] });
     }
   });
 
@@ -1403,6 +1404,8 @@ function clearGlobalArcs() {
     [window._crisisMap, window._mobileMap].forEach(m => { if (m) try { m.removeLayer(line); } catch(e) {} });
   });
   _globalArcLines = [];
+  // Clear zoom-label tracking so renderGlobalDisruptions rebuilds them fresh
+  [window._crisisMap, window._mobileMap].forEach(function(m) { if (m) m._strandedLabels = []; });
   _meArcLines.forEach(line => {
     [window._crisisMap, window._mobileMap].forEach(m => { if (m) try { m.removeLayer(line); } catch(e) {} });
   });
@@ -2173,6 +2176,14 @@ function buildDualPopup(iata) {
       routeLabel = 'Stranded at';
     }
 
+    var estStranded = Math.round(cancelled * 185 * 0.20);
+    var estHtml =
+      '<div style="background:rgba(236,52,82,.1);border:1px solid rgba(236,52,82,.25);border-radius:12px;padding:.8rem 1rem;margin-bottom:.85rem;text-align:center">' +
+        '<div style="font-size:.52rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(236,52,82,.7);margin-bottom:.2rem">Est. Stranded Here</div>' +
+        '<div style="font-size:2rem;font-weight:900;color:#ec3452;line-height:1;letter-spacing:-.04em">' + estStranded.toLocaleString() + '</div>' +
+        '<div style="font-size:.56rem;color:rgba(255,255,255,.3);margin-top:.25rem">active stranded estimate · updated live</div>' +
+      '</div>';
+
     var statsHtml =
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-bottom:.9rem">' +
         '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.7rem .8rem">' +
@@ -2212,7 +2223,7 @@ function buildDualPopup(iata) {
         '<div style="display:flex;flex-wrap:wrap;gap:4px">' + pills + '</div>';
     }
 
-    return statsHtml + descHtml + routesHtml + airlinesHtml;
+    return estHtml + statsHtml + descHtml + routesHtml + airlinesHtml;
   }
   
   var uid = iata.replace(/[^A-Z0-9]/g, '');
@@ -2589,6 +2600,7 @@ function renderGlobalDisruptions(map, data) {
     else if (c >= 50)   { radius = 7;  opacity = 0.3;  borderW = 1.5; }  // mid-tier airports
     else                { radius = 5;  opacity = 0.25; borderW = 1; }    // small airports
     
+    const strandedEst = Math.round((g.cancelled || 0) * 185 * 0.20);
     const circle = L.circleMarker([ap.lat, ap.lng], {
       radius,
       pane: 'airportPane',
@@ -2597,7 +2609,24 @@ function renderGlobalDisruptions(map, data) {
       weight: borderW,
       fillOpacity: opacity,
       className: 'global-disruption-dot',
+      strandedEst,
     }).addTo(map);
+
+    // Zoom-dependent stranded label — shown at zoom >= 5
+    const labelK = strandedEst >= 1000 ? (strandedEst >= 1000000 ? (strandedEst/1000000).toFixed(1)+'M' : Math.round(strandedEst/1000)+'k') : strandedEst.toLocaleString();
+    const labelIcon = L.divIcon({
+      className: '',
+      html: '<div class="airport-stranded-label">~' + labelK + ' stranded</div>',
+      iconSize: [0, 0],
+      iconAnchor: [0, radius + 4],
+    });
+    const labelMarker = L.marker([ap.lat, ap.lng], { icon: labelIcon, interactive: false, pane: 'airportPane' });
+    const currentZoom = map.getZoom ? map.getZoom() : 3;
+    if (currentZoom >= 5) labelMarker.addTo(map);
+    // Track label for zoom toggling
+    if (!map._strandedLabels) map._strandedLabels = [];
+    map._strandedLabels.push({ marker: labelMarker, added: currentZoom >= 5 });
+    _globalPins.push(labelMarker);
 
     const isMobileMap = (map === window._mobileMap);
 
@@ -2624,6 +2653,19 @@ function renderGlobalDisruptions(map, data) {
     }
     
     _globalPins.push(circle);
+  }
+
+  // Toggle stranded labels based on zoom level
+  if (!map._strandedLabelZoomBound) {
+    map._strandedLabelZoomBound = true;
+    map.on('zoomend', function() {
+      const z = map.getZoom();
+      if (!map._strandedLabels) return;
+      map._strandedLabels.forEach(function(l) {
+        if (z >= 5 && !l.added) { l.marker.addTo(map); l.added = true; }
+        else if (z < 5 && l.added) { map.removeLayer(l.marker); l.added = false; }
+      });
+    });
   }
 }
 
@@ -4732,9 +4774,10 @@ function renderStrandedOnMap(map, isMobile) {
     showCoverageOnHover: false,
     zoomToBoundsOnClick: true,
     iconCreateFunction: function(c) {
-      const count = c.getAllChildMarkers().reduce((sum, m) => sum + (m.options.groupSize || 1), 0);
-      const size = count > 50 ? 44 : count > 10 ? 36 : 28;
-      return L.divIcon({ html: `<div class="stranded-cluster" style="width:${size}px;height:${size}px">${count}</div>`, className: '', iconSize: [size, size] });
+      const est = c.getAllChildMarkers().reduce((sum, m) => sum + ((m.options.groupSize || 1) * 185 * 0.20), 0);
+      const label = est >= 1000000 ? (est/1000000).toFixed(1)+'M' : est >= 1000 ? Math.round(est/1000)+'k' : Math.round(est).toString();
+      const size = est > 50000 ? 52 : est > 10000 ? 44 : est > 1000 ? 36 : 28;
+      return L.divIcon({ html: `<div class="stranded-cluster" style="width:${size}px;height:${size}px;background:rgba(236,52,82,.85);border-color:rgba(236,52,82,.4)">~${label}</div>`, className: '', iconSize: [size, size] });
     }
   });
 
