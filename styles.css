@@ -1681,12 +1681,21 @@ html.translated-ltr body,html.translated-rtl body{top:0 !important;}
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
 }
-.gd-cluster:hover {
+.gd-cluster:hover,
+.gd-cluster.gd-active {
   transform: scale(1.06);
   box-shadow:
     0 0 0 8px rgba(var(--accent-r),var(--accent-g),var(--accent-b),.12),
     0 0 48px rgba(var(--accent-r),var(--accent-g),var(--accent-b),.4),
     0 4px 24px rgba(0,0,0,.6);
+}
+.gd-cluster.gd-active .gd-cluster-ring {
+  border-color: rgba(var(--accent-r),var(--accent-g),var(--accent-b),.45);
+  animation: gdPulseActive 1.8s ease-in-out infinite;
+}
+@keyframes gdPulseActive {
+  0%, 100% { opacity: .7; transform: scale(1); }
+  50%       { opacity: .25; transform: scale(1.12); }
 }
 .gd-cluster-ring {
   position: absolute;
@@ -1728,7 +1737,8 @@ font-size: clamp(.45rem, 1.2vw, .58rem);
 .gd-single-dot {
   transition: transform .15s, box-shadow .15s;
 }
-.gd-single:hover .gd-single-dot {
+.gd-single:hover .gd-single-dot,
+.gd-single.gd-active .gd-single-dot {
   transform: scale(1.2);
 }
 .gd-single-label {
@@ -1760,7 +1770,8 @@ font-size: clamp(.45rem, 1.2vw, .58rem);
 .leaflet-zoom-level-10 .gd-single-label {
   opacity: 1;
 }
-.gd-single:hover .gd-single-label {
+.gd-single:hover .gd-single-label,
+.gd-single.gd-active .gd-single-label {
   opacity: 1;
 }
 

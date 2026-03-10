@@ -421,11 +421,16 @@ async function fetchSitrepFromSupabase() {
     try { renderNationsPanel(); } catch(e) { console.warn('[Pipeline] renderNationsPanel error:', e.message); }
 
     // ── 5. Build _globalDisruptions ───────────────────────────
-    // ME airports as isME dots
-    const meAsDots = AIRPORT_DATA.filter(a => a.cancelled > 0).map(a => ({
-      iata: a.iata, cancelled: a.cancelled, stranded: a.stranded,
-      airlines: [], me_hubs: [], isME: true,
-    }));
+    // ME airports as isME dots — use DEPARTURE-only cancellations for stranded estimate
+    // (arrivals are stranded elsewhere, not at this airport)
+    const meAsDots = AIRPORT_DATA.filter(a => a.cancelled > 0).map(a => {
+      const outbound = (window._meAllOutbound && window._meAllOutbound[a.iata]) || [];
+      const depCancelled = outbound.reduce((s, r) => s + (r.cancelled || 0), 0);
+      return {
+        iata: a.iata, cancelled: depCancelled, stranded: depCancelled * AVG_PAX,
+        airlines: [], me_hubs: [], isME: true,
+      };
+    });
 
     // Global airports: sum of cancelled outbound from any ME hub to this airport
     const globalAcc = {};
@@ -2249,12 +2254,6 @@ function buildDualPopup(iata) {
     }
 
     var estStranded = Math.round(cancelled * 185 * 0.20);
-    var estHtml =
-      '<div style="background:rgba(236,52,82,.1);border:1px solid rgba(236,52,82,.25);border-radius:12px;padding:.8rem 1rem;margin-bottom:.85rem;text-align:center">' +
-        '<div style="font-size:.52rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(236,52,82,.7);margin-bottom:.2rem">Est. Stranded Here</div>' +
-        '<div style="font-size:2rem;font-weight:900;color:#ec3452;line-height:1;letter-spacing:-.04em">' + estStranded.toLocaleString() + '</div>' +
-        '<div style="font-size:.56rem;color:rgba(255,255,255,.3);margin-top:.25rem">active stranded estimate · updated live</div>' +
-      '</div>';
 
     var statsHtml =
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-bottom:.9rem">' +
@@ -2295,16 +2294,27 @@ function buildDualPopup(iata) {
         '<div style="display:flex;flex-wrap:wrap;gap:4px">' + pills + '</div>';
     }
 
-    return estHtml + statsHtml + descHtml + routesHtml + airlinesHtml;
+    return statsHtml + descHtml + routesHtml + airlinesHtml;
   }
   
   var uid = iata.replace(/[^A-Z0-9]/g, '');
   var homeLabel = isMEAirport ? ('Trying to Fly In to ' + city) : ('Trying to Get Home to ' + city);
   var homeMode  = isMEAirport ? 'flyin' : 'home';
   
+  var lEstStranded = Math.round(lCancelled * 185 * 0.20);
+  var estBlock =
+    '<div id="gest-' + uid + '" style="background:rgba(236,52,82,.1);border:1px solid rgba(236,52,82,.25);border-radius:12px;padding:.8rem 1rem;margin-bottom:.6rem;text-align:center">' +
+      '<div style="font-size:.52rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(236,52,82,.7);margin-bottom:.2rem">Est. Stranded Here</div>' +
+      '<div style="font-size:2rem;font-weight:900;color:#ec3452;line-height:1;letter-spacing:-.04em">' + lEstStranded.toLocaleString() + '</div>' +
+      '<div style="font-size:.56rem;color:rgba(255,255,255,.3);margin-top:.25rem">active stranded estimate · updated live</div>' +
+    '</div>';
+
   return '<div style="width:100%;font-family:Inter,sans-serif" id="gpop-' + uid + '">' +
     '<div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:.1rem">' + city + ' (' + iata + ')</div>' +
     '<div style="font-size:.68rem;color:#fff;margin-bottom:.5rem">' + country + '</div>' +
+    
+    // Est. stranded (departure-only) — above toggle, hidden on arrivals tab
+    estBlock +
     
     // Toggle — both tabs always present
     '<div style="' + tWrap + '">' +
@@ -2359,6 +2369,8 @@ function switchPopupMode(iata, mode) {
       leavePanel.style.display = isLeave ? 'block' : 'none';
       homePanel.style.display  = isLeave ? 'none' : 'block';
     }
+    var estEl = document.getElementById('gest-' + uid);
+    if (estEl) estEl.style.display = isLeave ? 'block' : 'none';
     if (leaveBtn && homeBtn) {
       leaveBtn.style.cssText += isLeave ? tOn : tOff;
       homeBtn.style.cssText  += isLeave ? tOff : tOn;
@@ -2381,6 +2393,8 @@ function switchPopupMode(iata, mode) {
         leavePanel.style.display = isLeave ? 'block' : 'none';
         homePanel.style.display  = isLeave ? 'none'  : 'block';
       }
+      var estEl = document.getElementById('gest-' + uid);
+      if (estEl) estEl.style.display = isLeave ? 'block' : 'none';
       if (leaveBtn && homeBtn) {
         leaveBtn.style.cssText  += isLeave ? tOn : tOff;
         homeBtn.style.cssText   += isLeave ? tOff : tOn;
@@ -2416,6 +2430,13 @@ function openPinSidebar(iata) {
   // Slide open
   const sb = document.getElementById('pin-sidebar');
   if (sb) sb.classList.add('open');
+
+  // Lock hover state on the clicked dot
+  document.querySelectorAll('.gd-active').forEach(el => el.classList.remove('gd-active'));
+  if (_activePopupCircle && _activePopupCircle._icon) {
+    const dot = _activePopupCircle._icon.querySelector('.gd-cluster, .gd-single');
+    if (dot) dot.classList.add('gd-active');
+  }
 
   // Draw focused arcs for this pin
   clearGlobalArcs(true);
@@ -2559,6 +2580,8 @@ function closePostSidebar() {
 function closePinSidebar() {
   const sb = document.getElementById('pin-sidebar');
   if (sb) sb.classList.remove('open');
+  // Release locked hover state
+  document.querySelectorAll('.gd-active').forEach(el => el.classList.remove('gd-active'));
   _activePopupIata  = '';
   _activePopupCircle = null;
   // Remove map close listener
@@ -2794,6 +2817,7 @@ function renderGlobalDisruptions(map, data) {
         if (_dragged) { _dragged = false; return; }
         L.DomEvent.stopPropagation(e);
         closePostSidebar();
+        _activePopupCircle = marker;
         openPinSidebar(g.iata);
       });
     }
@@ -3561,6 +3585,12 @@ function openMPinSheet(html) {
   inner.innerHTML = html;
   sheet.classList.add('open');
   if (backdrop) backdrop.classList.add('open');
+  // Lock hover state on the clicked dot
+  document.querySelectorAll('.gd-active').forEach(el => el.classList.remove('gd-active'));
+  if (_activePopupCircle && _activePopupCircle._icon) {
+    const dot = _activePopupCircle._icon.querySelector('.gd-cluster, .gd-single');
+    if (dot) dot.classList.add('gd-active');
+  }
 }
 
 function closeMPinSheet() {
@@ -3568,6 +3598,8 @@ function closeMPinSheet() {
   const backdrop = document.getElementById('m-pin-sheet-backdrop');
   if (sheet) sheet.classList.remove('open');
   if (backdrop) backdrop.classList.remove('open');
+  // Release locked hover state
+  document.querySelectorAll('.gd-active').forEach(el => el.classList.remove('gd-active'));
   // Clean up any active airport popup state
   if (_activePopupIata) {
     _activePopupIata = '';
