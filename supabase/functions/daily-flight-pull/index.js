@@ -134,17 +134,19 @@ Deno.serve(async (_req) => {
   let totalHubCancelled = 0;
 
   async function flushRoutes(hub, direction, flights) {
-    // Aggregate routes
+    // Aggregate routes — deduplicates flights that AviationStack returns on multiple pages
     const agg = {};
     for (const { depIata, arrIata, airline } of flights) {
       const key = `${depIata}|${arrIata}`;
       if (!agg[key]) agg[key] = { dep: depIata, arr: arrIata, cancelled: 0, airlines: new Set() };
       agg[key].cancelled++;
       if (airline) agg[key].airlines.add(airline);
-      // Accumulate global airport
-      const globalIata = direction === 'dep' ? arrIata : depIata;
+    }
+    // Use deduplicated counts for globalAcc — avoids inflating global airport totals
+    for (const r of Object.values(agg)) {
+      const globalIata = direction === 'dep' ? r.arr : r.dep;
       if (!ME_IATA_SET.has(globalIata)) {
-        globalAcc[globalIata] = (globalAcc[globalIata] ?? 0) + 1;
+        globalAcc[globalIata] = (globalAcc[globalIata] ?? 0) + r.cancelled;
       }
     }
     const rows = Object.values(agg).map(r => ({
@@ -156,20 +158,27 @@ Deno.serve(async (_req) => {
       const { error } = await sb.from('route_daily').upsert(rows.slice(i, i + 200), { onConflict: 'dep_iata,arr_iata,date' });
       if (error) console.error(`  route_daily flush error for ${hub}:`, error.message);
     }
-    console.log(`  flushed ${rows.length} routes for ${hub} (${flights.length} flights)`);
+    // Return deduplicated total so hubCancelledAcc is accurate
+    const dedupTotal = Object.values(agg).reduce((s, r) => s + r.cancelled, 0);
+    console.log(`  flushed ${rows.length} routes for ${hub} (${flights.length} raw → ${dedupTotal} dedup)`);
+    return dedupTotal;
   }
 
   // hubCancelledAcc accumulates DEP + ARR so we write airport_daily ONCE per hub (not twice)
   const hubCancelledAcc = {};
 
   async function processHub(hub, direction) {
-    const cancelled = await fetchCancelled(apiKey, hub, direction, today, (batch) => flushRoutes(hub, direction, batch)).catch(e => {
+    // Track deduplicated count via flushRoutes return values
+    let dedupTotal = 0;
+    await fetchCancelled(apiKey, hub, direction, today, async (batch) => {
+      const n = await flushRoutes(hub, direction, batch);
+      dedupTotal += (n ?? 0);
+    }).catch(e => {
       console.error(`  ${direction.toUpperCase()} ${hub} failed:`, e.message);
-      return 0;
     });
-    console.log(`  ${direction.toUpperCase()} ${hub}: ${cancelled} cancelled`);
-    hubCancelledAcc[hub] = (hubCancelledAcc[hub] ?? 0) + cancelled;
-    return cancelled;
+    console.log(`  ${direction.toUpperCase()} ${hub}: ${dedupTotal} cancelled (dedup)`);
+    hubCancelledAcc[hub] = (hubCancelledAcc[hub] ?? 0) + dedupTotal;
+    return dedupTotal;
   }
 
   async function flushHubAirportDaily(hub) {

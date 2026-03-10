@@ -301,6 +301,32 @@ async function fetchSitrepFromSupabase() {
     }
     console.log(`[Pipeline] Built _meInbound for ${Object.keys(window._meInbound).length} ME hubs`);
 
+    // ── 4b2. _meAllOutbound / _meAllInbound: ALL routes including intra-ME ──
+    // Used only for popup route lists — shows the full picture of what's cancelled.
+    // _meOutbound/_meInbound intentionally exclude intra-ME for arc drawing purposes.
+    window._meAllOutbound = {};
+    window._meAllInbound  = {};
+    for (const dep of Object.keys(routeTotals)) {
+      if (!meIatas.has(dep)) continue;
+      window._meAllOutbound[dep] = Object.entries(routeTotals[dep])
+        .map(([arr, d]) => ({ iata: arr, cancelled: d.cancelled, stranded: d.cancelled * AVG_PAX, airlines: Array.from(d.airlines) }))
+        .sort((a, b) => b.cancelled - a.cancelled);
+    }
+    for (const dep of Object.keys(routeTotals)) {
+      for (const [arr, d] of Object.entries(routeTotals[dep])) {
+        if (!meIatas.has(arr)) continue;
+        if (!window._meAllInbound[arr]) window._meAllInbound[arr] = {};
+        if (!window._meAllInbound[arr][dep]) window._meAllInbound[arr][dep] = { cancelled: 0, airlines: new Set() };
+        window._meAllInbound[arr][dep].cancelled += d.cancelled;
+        d.airlines.forEach(a => window._meAllInbound[arr][dep].airlines.add(a));
+      }
+    }
+    for (const hub of Object.keys(window._meAllInbound)) {
+      window._meAllInbound[hub] = Object.entries(window._meAllInbound[hub])
+        .map(([iata, d]) => ({ iata, cancelled: d.cancelled, stranded: d.cancelled * AVG_PAX, airlines: Array.from(d.airlines) }))
+        .sort((a, b) => b.cancelled - a.cancelled);
+    }
+
     // ── 4c. _globalInbound: global airport → which ME hubs ────
     window._globalInbound = {};
     for (const dep of Object.keys(routeTotals)) {
@@ -1982,7 +2008,10 @@ function buildDualPopup(iata) {
     var apRow = AIRPORT_DATA.find(function(a) { return (a.iata || a.code) === iata; });
     lCancelled = apRow ? (apRow.cancelled || 0) : 0;
     lStranded  = apRow ? (apRow.stranded  || 0) : 0;
-    var outboundDests = (_meOutbound && _meOutbound[iata]) || [];
+    // Use _meAllOutbound for popup — includes intra-ME routes (e.g. BGW→DOH)
+    var outboundDests = (window._meAllOutbound && window._meAllOutbound[iata]) || (_meOutbound && _meOutbound[iata]) || [];
+    lCancelled = outboundDests.reduce(function(s, d) { return s + (d.cancelled || 0); }, 0);
+    lStranded  = lCancelled * 185;
     lRoutes = outboundDests.map(function(d) {
       var ap2 = typeof findAirport === 'function' ? findAirport(d.iata) : null;
       return { hub: d.iata, cancelled: d.cancelled, city: ap2 ? ap2.city : d.iata };
@@ -2026,8 +2055,8 @@ function buildDualPopup(iata) {
   // For global airports: real inbound route data from _globalInbound (dep = this airport, arr = ME hub)
   var hCancelled, hStranded, hRoutes, hAirlines, hHubCities;
   if (isMEAirport) {
-    var inboundRoutes = (window._meInbound && window._meInbound[iata]) || [];
-    // Fallback: if DB hasn't run yet, mirror outbound as symmetric estimate
+    // Use _meAllInbound for popup — includes intra-ME routes (e.g. DOH→BGW, AMM→BGW)
+    var inboundRoutes = (window._meAllInbound && window._meAllInbound[iata]) || (window._meInbound && window._meInbound[iata]) || [];
     if (!inboundRoutes.length && _meOutbound && _meOutbound[iata]) {
       inboundRoutes = _meOutbound[iata];
     }
