@@ -2634,7 +2634,7 @@ function renderGlobalDisruptions(map, data) {
         '<div class="gd-cluster" style="width:'+sz+'px;height:'+sz+'px">' +
           '<div class="gd-cluster-ring" style="inset:-'+ring+'px"></div>' +
           '<div class="gd-cluster-inner">' +
-            '<div class="gd-cluster-num">~'+label+'</div>' +
+            '<div class="gd-cluster-num">'+label+'</div>' +
             '<div class="gd-cluster-lbl">stranded</div>' +
           '</div>' +
         '</div>';
