@@ -868,7 +868,7 @@ function googleTranslateInit() {
       </div>
       <div id="m-offer-content" style="display:none">
         <div class="m-form-note">Your contact will be public so people who need help can reach you.</div>
-        <div class="m-form-row"><label class="m-form-label">Your Location</label><div class="loc-ac-wrap"><input type="text" id="m-offer-location" placeholder="Start typing an address…" autocomplete="off"><input type="hidden" id="m-offer-lat"><input type="hidden" id="m-offer-lng"><div class="loc-ac-list" id="m-offer-location-ac"></div></div></div>
+        <div class="m-form-row"><label class="m-form-label">Your Location</label><div style="display:flex;gap:.3rem"><div class="loc-ac-wrap" style="flex:1"><input type="text" id="m-offer-location" placeholder="Start typing an address…" autocomplete="off"><input type="hidden" id="m-offer-lat"><input type="hidden" id="m-offer-lng"><div class="loc-ac-list" id="m-offer-location-ac"></div></div><button type="button" onclick="useMyLocation('m-offer')" class="gps-btn" title="Use my location"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2"/></svg></button></div></div>
         <div class="m-form-row"><label class="m-form-label">Details</label><textarea id="m-offer-body" placeholder="Describe what you can offer&hellip;"></textarea></div>
         <div class="m-form-row"><label class="m-form-label">Your Name</label><input type="text" id="m-offer-name" placeholder="First name or handle"></div>
 

@@ -3757,7 +3757,7 @@ font-size: clamp(.45rem, 1.2vw, .58rem);
 /* ── MOBILE: larger dot text + bubbles ────────────────────── */
 @media (max-width: 600px) {
   .gd-cluster-num {
-    font-size: 1.5rem !important;
+    font-size: 1.2rem !important;
   }
   .gd-cluster-lbl {
     font-size: clamp(.6rem, 2.2vw, .9rem) !important;
@@ -3772,4 +3772,30 @@ font-size: clamp(.45rem, 1.2vw, .58rem);
   .popup-section-title {
     font-size: 1.5rem !important;
   }
+}
+
+/* Offer tab always white background */
+.m-tab-spare, .m-tab-spare.active, .m-tab-spare:active {
+  background: #fff !important;
+  color: #000 !important;
+}
+.m-tab-spare svg { stroke: #3498ec !important; }
+
+/* ── LIGHT MAP THEME: darker dots + text ─────────────────── */
+.map-light .gd-cluster-num {
+  color: #1a1a2e;
+  text-shadow: 0 0 8px rgba(255,255,255,.8);
+}
+.map-light .gd-cluster-lbl {
+  color: rgba(0,0,0,.55);
+  text-shadow: 0 0 6px rgba(255,255,255,.7);
+}
+.map-light .gd-cluster {
+  background: rgba(255,255,255,.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 2px 12px rgba(0,0,0,.15), 0 0 24px rgba(0,0,0,.08);
+}
+.map-light .gd-cluster-ring {
+  border-color: rgba(0,0,0,.12);
 }

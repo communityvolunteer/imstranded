@@ -1936,6 +1936,8 @@ function toggleMapTheme() {
   });
   // Sync zoom button color with theme
   document.querySelector('.leaflet-control-zoom')?.classList.toggle('theme-light', !_mapDark);
+  // Add theme class to body so CSS can restyle map dots
+  document.body.classList.toggle('map-light', !_mapDark);
 }
 
 function setAccent(name) {
@@ -1969,6 +1971,11 @@ function setAccent(name) {
     _globalPins = [];
     renderGlobalDisruptions(window._crisisMap, _globalDisruptions);
     renderGlobalDisruptions(window._mobileMap, _globalDisruptions);
+    // Redraw arcs (clearGlobalArcs removed them)
+    drawGlobalRouteArcs(window._crisisMap, _globalDisruptions);
+    drawGlobalRouteArcs(window._mobileMap, _globalDisruptions);
+    drawMERouteArcs(window._crisisMap);
+    drawMERouteArcs(window._mobileMap);
     drawSuccessArcs(window._crisisMap);
     drawSuccessArcs(window._mobileMap);
     // Live-repaint country status dots (rendered once at init, stored in _mk.country)
@@ -1991,7 +1998,7 @@ function setAccent(name) {
   // Excludes offer/spare room UI which intentionally stays blue as its own brand color.
   const hex = t.hex;
   const rgbStr = `${t.r},${t.g},${t.b}`;
-  const offerSelectors = '.help-panel-offer, .post-form-header--offer, .post-form-header--live, .submit-btn--offer, [data-offer], .help-tab-dot--offer, #ss-offer-room, #m-stat-offer';
+  const offerSelectors = '.help-panel-offer, .post-form-header--offer, .post-form-header--live, .submit-btn--offer, [data-offer], .help-tab-dot--offer, #ss-offer-room, #m-stat-offer, .m-tab-spare, #mtab-spare, .accent-opt, .accent-opt-dot, .accent-dropdown, .accent-picker-wrap';
   const offerEls = new Set(document.querySelectorAll(offerSelectors));
   const isInOffer = el => {
     let n = el;
@@ -2791,7 +2798,7 @@ function renderGlobalDisruptions(map, data) {
       else if (totalStranded >= 100000)  { sz = 60;  ring = 8;  }
       else if (totalStranded >= 10000)   { sz = 48;  ring = 6;  }
       else                               { sz = 36;  ring = 4;  }
-      if (mob) { sz = Math.round(sz * 1.5); ring = Math.round(ring * 1.5); }
+      if (mob) { sz = Math.round(sz * 1.3); ring = Math.round(ring * 1.3); }
       const html =
         '<div class="gd-cluster" style="width:'+sz+'px;height:'+sz+'px">' +
           '<div class="gd-cluster-ring" style="inset:-'+ring+'px"></div>' +
@@ -2828,8 +2835,8 @@ function renderGlobalDisruptions(map, data) {
 
     // All airports show their impact number
     const mob = isMobileMap;
-    if (mob) radius = Math.round(radius * 1.4);
-    const sz = Math.max(radius * 2, mob ? 60 : 42);
+    if (mob) radius = Math.round(radius * 1.2);
+    const sz = Math.max(radius * 2, mob ? 50 : 42);
     const ringInset = mob ? (c >= 200 ? 8 : 6) : (c >= 200 ? 6 : 4);
     const dotHtml =
       '<div class="gd-cluster" style="width:'+sz+'px;height:'+sz+'px">' +
