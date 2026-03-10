@@ -3400,7 +3400,11 @@ async function refreshSitrep() {
   // Mobile stat bar
   const mTodayEl = document.getElementById('m-stranded-sub');
   if (mTodayEl) mTodayEl.textContent = todayStranded > 0 ? '+' + todayStranded.toLocaleString() + ' today' : '';
-  // Filter sidebar
+  // Filter sidebar (PC)
+  const fpSt  = document.getElementById('fp-stat-stranded');
+  const fpStT = document.getElementById('fp-stat-stranded-today');
+  const fpCa  = document.getElementById('fp-stat-cancelled');
+  const fpCaT = document.getElementById('fp-stat-cancelled-today');
   if (fpSt) fpSt.textContent = estStranded.toLocaleString();
   if (fpStT) fpStT.textContent = todayEstStranded > 0 ? '+' + todayEstStranded.toLocaleString() + ' today' : '';
   if (fpCa) fpCa.textContent = vals.cancelled.toLocaleString();
