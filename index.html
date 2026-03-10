@@ -139,7 +139,7 @@ function googleTranslateInit() {
   </div>
   <div class="sitrep-stat" id="ss-stranded" onclick="toggleArcsFromStat()">
     <span class="sitrep-num stat-loading" id="stat-stranded"><span class="flip-display" id="flip-stranded"></span></span>
-    <div class="sitrep-label" id="stranded-label">People Impacted <span style="font-size:.55rem;color:rgba(255,255,255,.3);font-weight:500;letter-spacing:.01em">since Mar 1</span></div>
+    <div class="sitrep-label" id="stranded-label">People Impacted <span style="font-size:.55rem;color:rgba(255,255,255,.5);font-weight:500;letter-spacing:.01em">since Mar 1</span></div>
     <div class="sitrep-sub" id="stranded-sub"><span id="stat-stranded-today" style="color:var(--accent);font-weight:700"></span><span id="stat-stranded-today-label"></span></div>
   </div>
   <div class="sitrep-stat sitrep-stat--offer-room" id="ss-offer-room" onclick="isMob()?mTab('offer',null):openFormSidebar('offer')">
@@ -223,14 +223,14 @@ function googleTranslateInit() {
     <!-- Section 1: PEOPLE IMPACTED -->
     <!-- Stats row -->
     <div style="display:flex;align-items:stretch;padding:.6rem .8rem;gap:0;border-bottom:1px solid rgba(255,255,255,.06)">
-      <div style="flex:1;padding-right:.8rem">
-        <div style="font-size:1.5rem;font-weight:800;color:#fff;letter-spacing:-.03em;line-height:1" id="fp-stat-stranded">—</div>
+      <div style="flex:1;padding-right:.8rem;text-align:center">
+        <div style="font-size:1.4rem;font-weight:800;color:#fff;letter-spacing:-.03em;line-height:1" id="fp-stat-stranded">—</div>
         <div style="font-size:.52rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.35);margin-top:.25rem">Est. Stranded</div>
         <div style="font-size:.65rem;font-weight:700;color:var(--accent);margin-top:.15rem;min-height:.8rem" id="fp-stat-stranded-today"></div>
       </div>
       <div style="width:1px;background:rgba(255,255,255,.07);margin:.1rem 0"></div>
-      <div style="flex:1;padding-left:.8rem">
-        <div style="font-size:1.5rem;font-weight:800;color:#fff;letter-spacing:-.03em;line-height:1" id="fp-stat-cancelled">—</div>
+      <div style="flex:1;padding-left:.8rem;text-align:center">
+        <div style="font-size:1.4rem;font-weight:800;color:#fff;letter-spacing:-.03em;line-height:1" id="fp-stat-cancelled">—</div>
         <div style="font-size:.52rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.35);margin-top:.25rem">Flights Cancelled</div>
         <div style="font-size:.65rem;font-weight:700;color:var(--accent);margin-top:.15rem;min-height:.8rem" id="fp-stat-cancelled-today"></div>
       </div>
@@ -632,7 +632,7 @@ function googleTranslateInit() {
   <div id="m-statbar">
     <div class="m-stat" id="mss-stranded" onclick="toggleImpactSheet()"style="cursor:pointer">
       <span class="m-stat-num stat-loading" id="m-stat-stranded"><span class="flip-display" id="flip-stranded-m"></span></span>
-      <span class="m-stat-label" id="m-stranded-label">PEOPLE IMPACTED <span style="font-size:.52rem;color:rgba(255,255,255,.3);font-weight:400;letter-spacing:.01em">· since Mar 1</span></span>
+      <span class="m-stat-label" id="m-stranded-label">PEOPLE IMPACTED <span style="font-size:.52rem;color:rgba(255,255,255,.5);font-weight:400;letter-spacing:.01em">· since Mar 1</span></span>
       <span class="m-stat-sub" id="m-stranded-sub" style="color:var(--accent);font-size:.6rem;font-weight:700"></span>
     </div>
     <div class="m-stat m-stat--offer" id="mss-offer" onclick="mTab('stranded',this)" style="background:rgba(236,52,82,.15);border-color:rgba(236,52,82,.2)">

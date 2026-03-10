@@ -2342,7 +2342,7 @@ function buildDualPopup(iata) {
   // CTA: Are You Stranded Here?
   var ctaStranded =
     '<div style="margin-top:1rem;padding-top:.85rem;border-top:1px solid rgba(255,255,255,.07)">' +
-      '<div style="font-size:.82rem;font-weight:800;color:#fff;margin-bottom:.5rem">Are You Stranded Here?</div>' +
+      '<div style="font-size:.99rem;font-weight:800;color:#fff;margin-bottom:.5rem;text-align:center">Are You Stranded Here?</div>' +
       '<button onclick="isMob()?mTab(\'stranded\',null):openFormSidebar(\'stranded\')" ' +
         'style="width:100%;padding:.65rem .8rem;border-radius:10px;cursor:pointer;font-family:Inter,sans-serif;font-size:.76rem;font-weight:800;letter-spacing:.02em;' +
         'background:rgba(236,52,82,.12);color:#ec3452;border:1px solid rgba(236,52,82,.28);' +
@@ -2356,7 +2356,7 @@ function buildDualPopup(iata) {
   // Section header: The Full Impact
   var fullImpactHeader =
     '<div style="margin-top:1rem;padding-top:.85rem;border-top:1px solid rgba(255,255,255,.07);margin-bottom:.6rem">' +
-      '<div style="font-size:.82rem;font-weight:800;color:#fff">The Full Impact</div>' +
+      '<div style="font-size:.99rem;font-weight:800;color:#fff;text-align:center">The Full Impact</div>' +
     '</div>';
 
   return '<div style="width:100%;font-family:Inter,sans-serif" id="gpop-' + uid + '">' +
