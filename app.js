@@ -4981,6 +4981,9 @@ function helpFilterVerifiedOnly() {
   applyFilters();
   // Close help panel + sidebar, switch to map
   closeFormSidebar();
+  // Also close the popup version of help panel if open
+  const helpModal = document.getElementById('help-money-modal');
+  if (helpModal && helpModal.classList.contains('open')) toggleHelpPanel();
   if (isMob()) mTab('map', null);
   else showView('map');
 }
