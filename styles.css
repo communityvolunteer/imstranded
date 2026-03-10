@@ -1726,7 +1726,7 @@ html.translated-ltr body,html.translated-rtl body{top:0 !important;}
 }
 .gd-cluster-num {
   font-family: Inter, sans-serif;
-  font-size: clamp(.7rem, 2.5vw, 1.1rem);
+  font-size: clamp(1.4rem, 2.5vw, 1.1rem);
   font-weight: 900;
   color: #fff;
   letter-spacing: -.03em;
@@ -1734,7 +1734,7 @@ html.translated-ltr body,html.translated-rtl body{top:0 !important;}
 }
 .gd-cluster-lbl {
   font-family: Inter, sans-serif;
-  font-size: clamp(.45rem, 1.2vw, .58rem);
+  font-size: clamp(.5rem, 1.2vw, .58rem);
   font-weight: 700;
   letter-spacing: .06em;
   text-transform: uppercase;
