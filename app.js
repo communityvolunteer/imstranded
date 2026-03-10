@@ -2419,7 +2419,7 @@ function buildDualPopup(iata) {
       '<div style="font-size:1.65rem;font-weight:800;color:#fff;letter-spacing:-.01em">' + city + '</div>' +
       '<div style="display:flex;justify-content:center;align-items:center;gap:.5rem;margin-top:.15rem">' +
         '<span style="font-size:.65rem;font-weight:800;letter-spacing:.1em;color:var(--accent);text-transform:uppercase">' + iata + '</span>' +
-        '<span style="font-size:.65rem;color:rgba(255,255,255,.35)">' + country + '</span>' +
+        '<span style="font-size:.65rem;color:#fff">' + country + '</span>' +
       '</div>' +
     '</div>' +
     
@@ -4605,14 +4605,16 @@ async function renderProfileStranded() {
   [el, mel].forEach(list => {
     if (list) list.innerHTML = '<div style="font-size:.82rem;color:rgba(255,255,255,.4);padding:.3rem 0">Loading...</div>';
   });
-  const { data, error } = await _sb.from('stranded_people').select('id,name,current_location,destination,dest_airport,nationality,group_size,needs,stranded_since,details,status,created_at')
-    .eq('user_id', _currentUser.id).eq('status', 'active').order('created_at', { ascending: false });
-  if (error || !data || !data.length) {
-    [el, mel].forEach(list => {
-      if (list) list.innerHTML = '<div style="font-size:.82rem;color:rgba(255,255,255,.4);padding:.3rem 0">No stranded registration.</div>';
-    });
-    return;
-  }
+  try {
+    const { data, error } = await _sb.from('stranded_people').select('id,name,current_location,current_lat,current_lng,destination,dest_airport,nationality,group_size,needs,stranded_since,details,status,created_at')
+      .eq('user_id', _currentUser.id).eq('status', 'active').order('created_at', { ascending: false });
+    if (error) throw error;
+    if (!data || !data.length) {
+      [el, mel].forEach(list => {
+        if (list) list.innerHTML = '<div style="font-size:.82rem;color:rgba(255,255,255,.4);padding:.3rem 0">No stranded registration.</div>';
+      });
+      return;
+    }
   const html = data.map(p => {
     const t = p.created_at ? new Date(p.created_at).toLocaleString() : '';
     const needsList = (p.needs || []).join(', ');
@@ -4628,18 +4630,24 @@ async function renderProfileStranded() {
       ${p.details ? '<div style="font-size:.78rem;color:rgba(255,255,255,.45);line-height:1.4;margin-top:.2rem">'+p.details.slice(0,120)+'</div>' : ''}
       <div class="profile-post-actions">
         <button class="found-place-btn" onclick="openMatchPicker('${p.id}','${p.current_lat||0}','${p.current_lng||0}','${(p.name||'').replace(/'/g,"\\'")}','${(p.current_location||'').replace(/'/g,"\\'")}')">
-          🏠 Found a place?
+          Matched?
         </button>
         <button class="found-place-btn" style="border-color:rgba(34,197,94,.25);color:rgba(34,197,94,.6)" onclick="checkAndOpenGoHome('${p.id}')">
-          🛫 Got home?
+          Home?
         </button>
         <button onclick="editStrandedPost('${p.id}')" style="background:rgba(52,152,236,.15);color:#3498ec;border:1px solid rgba(52,152,236,.25);border-radius:6px;padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Edit</button>
-        <button onclick="deleteStrandedPost('${p.id}')" style="background:#ec3452;color:#fff;border:none;border-radius:6px;padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Remove from Map</button>
+        <button onclick="deleteStrandedPost('${p.id}')" style="background:#ec3452;color:#fff;border:none;border-radius:6px;padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Delete</button>
       </div>
     </div>`;
   }).join('');
   if (el) el.innerHTML = html;
   if (mel) mel.innerHTML = html;
+  } catch (e) {
+    console.error('renderProfileStranded error:', e);
+    [el, mel].forEach(list => {
+      if (list) list.innerHTML = `<div style="font-size:.82rem;color:#ec3452;padding:.3rem 0">Error loading: ${e.message}</div>`;
+    });
+  }
 }
 
 let _editingStrandedId = null;
@@ -4683,20 +4691,22 @@ async function editStrandedPost(id) {
     needsContainer.querySelectorAll('input').forEach(cb => cb.checked = (data.needs || []).includes(cb.value));
   }
 
-  // Navigate
+  // Navigate to stranded form
   if (isMobile) {
     mTab('stranded', null);
   } else {
-    if(!isMob()) openFormSidebar('stranded'); else mTab('stranded',null);
+    openFormSidebar('stranded');
   }
 
-  // Change submit button
-  const btn = document.getElementById(prefix + '-submit-btn');
-  if (btn) {
-    btn.textContent = 'Update Registration';
-    btn._origOnclick = btn.onclick;
-    btn.onclick = () => submitStrandedEdit(prefix);
-  }
+  // Change submit button (slight delay to ensure form is rendered)
+  setTimeout(() => {
+    const btn = document.getElementById(prefix + '-submit-btn');
+    if (btn) {
+      btn.textContent = 'Update Registration';
+      btn._origOnclick = btn.onclick;
+      btn.onclick = () => submitStrandedEdit(prefix);
+    }
+  }, 150);
 }
 
 async function submitStrandedEdit(prefix) {
@@ -4871,7 +4881,7 @@ function refreshHelpPanel() {
     }
   } else {
     s1num?.classList.remove('done');
-    if (s1desc) s1desc.textContent = 'Link your X account so @bankrbot can process your tips.';
+    if (s1desc) s1desc.textContent = 'Link your X account to send and receive $HELP tips.';
     if (s1btn) {
       s1btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Connect X`;
       s1btn.className = 'hstep-btn hstep-btn--x';
@@ -4949,11 +4959,13 @@ function helpConnectGoogle() {
 
 // Filter map to verified stranded + offers only
 function helpFilterVerifiedOnly() {
-  // Turn off embassies, routes; turn on stranded+offers, verified-only
+  // Turn off disrupted globally + embassies + routes; show only verified spare rooms + stranded
   const setCheck = (id, val) => {
     const el = document.getElementById(id) || document.getElementById(id.replace('fp-','mfp-'));
     if (el) { el.checked = val; }
   };
+  setCheck('fp-show-worldwide', false);
+  setCheck('fp-worldwide-arcs', false);
   setCheck('fp-show-offers', true);
   setCheck('fp-show-stranded', true);
   setCheck('fp-show-embassies', false);
@@ -4961,13 +4973,14 @@ function helpFilterVerifiedOnly() {
   setCheck('fp-offers-verified', true);
   setCheck('fp-stranded-verified', true);
   // mirror to mobile checkboxes too
-  ['mfp-show-offers','mfp-show-stranded','mfp-show-embassies','mfp-show-routes',
+  ['mfp-show-worldwide','mfp-worldwide-arcs','mfp-show-offers','mfp-show-stranded','mfp-show-embassies','mfp-show-routes',
    'mfp-offers-verified','mfp-stranded-verified'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.checked = ['mfp-show-offers','mfp-show-stranded','mfp-offers-verified','mfp-stranded-verified'].includes(id);
   });
   applyFilters();
-  // Switch to map view
+  // Close help panel + sidebar, switch to map
+  closeFormSidebar();
   if (isMob()) mTab('map', null);
   else showView('map');
 }
