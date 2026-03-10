@@ -3237,14 +3237,17 @@ function flyAndDismissOverlay() {
 
   // Brief pause so users can read the message, then fly
   setTimeout(() => {
+    console.log('[flyAndDismiss] 400ms fired, tgTarget:', !!tgTarget, 'xTarget:', !!xTarget);
     flyIcon(introTg, tgTarget, 0);
     flyIcon(introX,  xTarget,  80);
 
     // Fade overlay slightly before icons fully land
     setTimeout(() => {
+      console.log('[flyAndDismiss] fading overlay now');
       overlay.style.opacity          = '0';
       overlay.style.pointerEvents    = 'none';
       setTimeout(() => {
+        console.log('[flyAndDismiss] removing overlay');
         overlay.remove();
         // iOS Safari: removing a backdrop-filter element can reset the GPU compositor,
         // wiping Leaflet SVG layers rendered while the overlay was live.
