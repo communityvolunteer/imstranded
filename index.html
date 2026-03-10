@@ -135,7 +135,7 @@ function googleTranslateInit() {
 <!-- SITREP BAR -->
 <div class="sitrep-bar" id="sitrep-bar">
   <div class="sitrep-stat sitrep-stat--filter" id="ss-filter" onclick="toggleFilterPanel()">
-    <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+    <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
   </div>
   <div class="sitrep-stat" id="ss-stranded" onclick="toggleArcsFromStat()">
     <span class="sitrep-num stat-loading" id="stat-stranded"><span class="flip-display" id="flip-stranded"></span></span>
@@ -219,34 +219,6 @@ function googleTranslateInit() {
 <!-- Filter Panel (fly-in from right) -->
   <div class="filter-panel open" id="filter-panel">
 
-    <!-- Crisis timeline chart -->
-    <div class="fp-timeline-card" id="fp-timeline-card">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.3rem">
-        <span style="font-size:.62rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.35)">CRISIS TIMELINE · MAR 1 – TODAY</span>
-        <span id="fp-timeline-metric-toggle" style="font-size:.6rem;color:var(--accent);font-weight:600;cursor:pointer;user-select:none" onclick="toggleTimelineMetric()">People ▾</span>
-      </div>
-      <canvas id="fp-timeline-canvas" height="64" style="width:100%;display:block"></canvas>
-      <div style="display:flex;justify-content:space-between;margin-top:.4rem">
-        <span style="font-size:.6rem;color:rgba(255,255,255,.25)">Mar 1</span>
-        <div style="text-align:center">
-          <span id="fp-timeline-peak-label" style="font-size:.62rem;color:var(--accent);font-weight:700"></span>
-        </div>
-        <span style="font-size:.6rem;color:rgba(255,255,255,.25)">Today</span>
-      </div>
-      <div style="display:flex;gap:1rem;margin-top:.5rem;padding-top:.5rem;border-top:1px solid rgba(255,255,255,.06)">
-        <div style="flex:1;text-align:center">
-          <div class="fp-crisis-val" id="fp-stat-stranded" style="font-size:1.1rem">—</div>
-          <div class="fp-crisis-label">Est. Stranded</div>
-          <div class="fp-crisis-today" id="fp-stat-stranded-today"></div>
-        </div>
-        <div style="width:1px;background:rgba(255,255,255,.08)"></div>
-        <div style="flex:1;text-align:center;min-width:fit-content;">
-          <div class="fp-crisis-val" id="fp-stat-cancelled" style="font-size:1.1rem">—</div>
-          <div class="fp-crisis-label">Flights Cancelled</div>
-          <div class="fp-crisis-today" id="fp-stat-cancelled-today"></div>
-        </div>
-      </div>
-    </div>
 
     <!-- Section 1: DISRUPTED GLOBALLY -->
     <div class="fp-section">
@@ -383,7 +355,7 @@ function googleTranslateInit() {
 <div id="help-view" class="view">
   <div class="container" style="max-width:960px">
 <!-- Toggle: I'M STRANDED / I CAN HELP -->
-    <div style="display:flex;max-width:480px;margin:1.5rem auto 1.5rem;background:rgba(255,255,255,.06);border-radius:12px;padding:4px;border:1px solid rgba(255,255,255,.08)">
+    <div class="help-toggle-wrap" style="display:flex;max-width:480px;margin:1.5rem auto 1.5rem;background:rgba(255,255,255,.06);border-radius:12px;padding:4px;border:1px solid rgba(255,255,255,.08)">
       <button id="help-toggle-stranded" onclick="switchHelpMode('stranded')" class="help-toggle help-toggle--stranded active">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         I'M STRANDED
@@ -439,16 +411,15 @@ function googleTranslateInit() {
     <!-- HELPER PANEL -->
     <div id="help-panel-offer" class="help-panel" style="display:none;grid-template-columns:1fr 1fr;gap:2rem">
       <div>
-        <div class="post-form-header post-form-header--offer">OFFER UP A SPARE ROOM</div>
+        <div style="background:rgba(52,152,236,.08);border:1px solid rgba(52,152,236,.2);border-radius:14px;padding:1.2rem;margin-bottom:1rem"><div style="font-size:1.15rem;font-weight:800;color:#3498ec;margin-bottom:.25rem">Offer a Spare Room</div><div style="font-size:.82rem;color:rgba(255,255,255,.5);line-height:1.5">Your contact will be visible so stranded people nearby can reach you directly.</div></div>
         <div class="post-form">
-          <p class="form-note">Your contact will be visible so people who need help can reach you directly.</p>
           <input type="hidden" id="offer-type" value="Housing / spare room">
-          <div class="form-row"><label>Your location</label><div class="loc-ac-wrap"><input type="text" id="offer-location" placeholder="Start typing an address…" autocomplete="off"><input type="hidden" id="offer-lat"><input type="hidden" id="offer-lng"><div class="loc-ac-list" id="offer-location-ac"></div></div></div>
-          <div class="form-row"><label>Details</label><textarea id="offer-body" placeholder="Describe what you can offer&hellip;"></textarea></div>
-          <div class="form-row"><label>Your name</label><input type="text" id="offer-name" placeholder="First name or handle"></div>
+          <div class="form-row"><label class="modal-label">Your Location</label><div style="display:flex;gap:.4rem"><div class="loc-ac-wrap" style="flex:1"><input type="text" id="offer-location" placeholder="Start typing an address…" autocomplete="off" class="modal-input"><input type="hidden" id="offer-lat"><input type="hidden" id="offer-lng"><div class="loc-ac-list" id="offer-location-ac"></div></div><button type="button" onclick="useMyLocation('offer')" class="gps-btn" title="Use my location"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2"/></svg></button></div></div>
+          <div class="form-row"><label class="modal-label">Details</label><textarea id="offer-body" placeholder="Describe what you can offer…" class="modal-input" style="min-height:90px;resize:none"></textarea></div>
+          <div class="form-row"><label class="modal-label">Your Name</label><input type="text" id="offer-name" placeholder="First name or handle" class="modal-input"></div>
 
           <!-- Linked account fields -->
-          <div class="form-row"><label>Email</label>
+          <div class="form-row"><label class="modal-label">Email</label>
             <div class="linked-input" id="linked-google">
               <div class="linked-input-icon" style="background:#1a1a1a" onclick="!isLoggedIn()?openFormSidebar('profile'):void 0" title="Google">
                 <svg width="12" height="12" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
@@ -457,7 +428,7 @@ function googleTranslateInit() {
             </div>
           </div>
 
-          <div class="form-row"><label>Telegram</label>
+          <div class="form-row"><label class="modal-label">Telegram</label>
             <div class="linked-input" id="linked-tg">
               <div class="linked-input-icon" style="background:#229ED9" onclick="isLoggedIn()?linkTelegram():openFormSidebar('profile')" title="Link Telegram">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
@@ -466,7 +437,7 @@ function googleTranslateInit() {
             </div>
           </div>
 
-          <div class="form-row"><label>X / Twitter</label>
+          <div class="form-row"><label class="modal-label">X / Twitter</label>
             <div class="linked-input" id="linked-x">
               <div class="linked-input-icon" style="background:#000;border:1px solid rgba(255,255,255,.15)" onclick="isLoggedIn()?linkX():openFormSidebar('profile')" title="Link X">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
@@ -557,7 +528,12 @@ function googleTranslateInit() {
     <div id="profile-main" style="display:none;padding:2rem 0">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
         <div>
+          <div style="display:flex;align-items:center;gap:.5rem">
           <div style="font-size:1.3rem;font-weight:800;color:#fff" id="profile-display-name"></div>
+          <span id="profile-verified-badge" title="Verified">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="rgba(255,255,255,.15)" style="display:block;transition:fill .2s"><path d="M12 22c-1.1 0-2-.2-2.7-.6L3.5 18.2c-.4-.3-.7-.7-.9-1.1-.2-.5-.3-1-.3-1.5V8.4c0-.5.1-1 .3-1.5.2-.4.5-.8.9-1.1l5.8-3.2C10 2.2 11 2 12 2s2 .2 2.7.6l5.8 3.2c.4.3.7.7.9 1.1.2.5.3 1 .3 1.5v7.2c0 .5-.1 1-.3 1.5-.2.4-.5.8-.9 1.1l-5.8 3.2c-.7.4-1.6.6-2.7.6z"/><path d="M9 12l2 2 4-4" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="profile-badge-check"/></svg>
+          </span>
+        </div>
           <div style="font-size:.78rem;color:rgba(255,255,255,.4)" id="profile-email"></div>
         </div>
         <button onclick="doSignOut()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);border-radius:8px;padding:.35rem .9rem;font-size:.72rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;transition:all .15s">Sign Out</button>

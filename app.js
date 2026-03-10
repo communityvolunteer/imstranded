@@ -703,12 +703,6 @@ function renderImpactSheetChart() {
 let _timelineMetric     = 'stranded';
 let _impactSheetMetric  = 'stranded';
 
-function toggleTimelineMetric() {
-  _timelineMetric = _timelineMetric === 'stranded' ? 'cancelled' : 'stranded';
-  const btn = document.getElementById('fp-timeline-metric-toggle');
-  if (btn) btn.textContent = _timelineMetric === 'stranded' ? 'People ▾' : 'Flights ▾';
-  renderTimelineChart();
-}
 
 function toggleImpactSheetMetric() {
   _impactSheetMetric = _impactSheetMetric === 'stranded' ? 'cancelled' : 'stranded';
@@ -894,21 +888,6 @@ function _attachChartHover(canvasEl, metric, peakLabelId) {
   canvasEl.addEventListener('mouseleave', canvasEl._leaveHandler);
 }
 
-function renderTimelineChart() {
-  const canvas = document.getElementById('fp-timeline-canvas');
-  if (!canvas) return;
-  const result = _drawChart(canvas, _timelineMetric);
-  if (!result) return;
-
-  const { pts, peakIdx } = result;
-  const peakEl = document.getElementById('fp-timeline-peak-label');
-  if (peakEl && pts[peakIdx]) {
-    const mmdd = Object.keys(window._dailyTotals || {}).sort()[peakIdx];
-    const val  = pts[peakIdx].val;
-    if (mmdd) peakEl.textContent = `Peak: Mar ${parseInt(mmdd.slice(3))} · ${val.toLocaleString()}`;
-  }
-  _attachChartHover(canvas, _timelineMetric, 'fp-timeline-peak-label');
-}
 
 function renderMobileNations() {
   const el = document.getElementById('m-nations-list');
@@ -1742,6 +1721,7 @@ function openFormSidebar(which) {
 
   if (title) title.textContent = _fsTitles[which] || which.toUpperCase();
   sb.classList.add('open');
+  document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '400px');
 
   // Make the moved element visible (views are display:none by default)
   if (node) node.style.display = 'block';
@@ -1783,6 +1763,7 @@ function closeFormSidebar() {
   if (!sb) return;
   sb.classList.remove('open');
   sb.dataset.panel = '';
+  document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '0px');
   _fsReturnMounted();
 }
 
@@ -3345,10 +3326,6 @@ async function refreshSitrep() {
   const mTodayEl = document.getElementById('m-stranded-sub');
   if (mTodayEl) mTodayEl.textContent = todayStranded > 0 ? '+' + todayStranded.toLocaleString() + ' today' : '';
   // Filter sidebar
-  const fpSt = document.getElementById('fp-stat-stranded');
-  const fpStT = document.getElementById('fp-stat-stranded-today');
-  const fpCa = document.getElementById('fp-stat-cancelled');
-  const fpCaT = document.getElementById('fp-stat-cancelled-today');
   if (fpSt) fpSt.textContent = estStranded.toLocaleString();
   if (fpStT) fpStT.textContent = todayEstStranded > 0 ? '+' + todayEstStranded.toLocaleString() + ' today' : '';
   if (fpCa) fpCa.textContent = vals.cancelled.toLocaleString();
@@ -4141,11 +4118,31 @@ function renderProfileView() {
     updateVerifyStatus('google', _currentProfile?.google_verified);
     updateVerifyStatus('x', _currentProfile?.x_verified);
     updateVerifyStatus('tg', _currentProfile?.tg_verified);
+    // Big badge next to name — accent if any verified, gray if not
+    _updateProfileNameBadge();
     renderProfilePosts();
     renderProfileStranded();
   } else {
     loginEl.style.display = 'block';
     mainEl.style.display = 'none';
+  }
+}
+
+function _updateProfileNameBadge() {
+  const p = _currentProfile;
+  const isVerified = p?.google_verified || p?.x_verified || p?.tg_verified;
+  const badge = document.getElementById('profile-verified-badge');
+  if (!badge) return;
+  const shield = badge.querySelector('svg');
+  const check  = badge.querySelector('#profile-badge-check');
+  if (isVerified) {
+    shield.style.fill = 'var(--accent)';
+    if (check) { check.setAttribute('stroke','#fff'); }
+    badge.title = 'Verified account';
+  } else {
+    shield.style.fill = 'rgba(255,255,255,.12)';
+    if (check) { check.setAttribute('stroke','rgba(255,255,255,.25)'); }
+    badge.title = 'Not yet verified';
   }
 }
 
@@ -4180,6 +4177,8 @@ function updateVerifyStatus(provider, verified) {
     else if (provider === 'tg') sub.textContent = 'Verify your Telegram identity';
     else if (provider === 'google') sub.textContent = 'Verifies your email automatically';
   }
+  // Refresh big name badge
+  _updateProfileNameBadge();
   // Mobile label
   const mLabel = document.getElementById('m-verify-' + provider);
   if (mLabel) {
