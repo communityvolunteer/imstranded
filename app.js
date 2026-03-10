@@ -421,26 +421,27 @@ async function fetchSitrepFromSupabase() {
     try { renderNationsPanel(); } catch(e) { console.warn('[Pipeline] renderNationsPanel error:', e.message); }
 
     // ── 5. Build _globalDisruptions ───────────────────────────
-    // ME airports as isME dots — full airport_daily cancellations (both directions)
-    const meAsDots = AIRPORT_DATA.filter(a => a.cancelled > 0).map(a => ({
-      iata: a.iata, cancelled: a.cancelled, stranded: a.stranded,
-      airlines: [], me_hubs: [], isME: true,
-    }));
+    // ME airports as isME dots — use DEPARTURE-only cancellations for stranded estimate
+    // (arrivals are stranded elsewhere, not at this airport)
+    const meAsDots = AIRPORT_DATA.filter(a => a.cancelled > 0).map(a => {
+      const outbound = (window._meAllOutbound && window._meAllOutbound[a.iata]) || [];
+      const depCancelled = outbound.reduce((s, r) => s + (r.cancelled || 0), 0);
+      return {
+        iata: a.iata, cancelled: depCancelled, stranded: depCancelled * AVG_PAX,
+        airlines: [], me_hubs: [], isME: true,
+      };
+    });
 
-    // Global airports: sum ALL cancelled routes involving this airport and any ME hub
-    // Both directions: ME→global (departures from ME) + global→ME (departures to ME)
+    // Global airports: sum of cancelled outbound from any ME hub to this airport
     const globalAcc = {};
     for (const dep of Object.keys(routeTotals)) {
+      if (!meIatas.has(dep)) continue;
       for (const [arr, d] of Object.entries(routeTotals[dep])) {
-        // One side must be ME, the other global
-        const depIsME = meIatas.has(dep);
-        const arrIsME = meIatas.has(arr);
-        if (depIsME === arrIsME) continue; // skip intra-ME or global↔global
-        const globalIata = depIsME ? arr : dep;
-        if (!globalAcc[globalIata]) globalAcc[globalIata] = { cancelled: 0, me_hubs: new Set(), airlines: new Set() };
-        globalAcc[globalIata].cancelled += d.cancelled;
-        globalAcc[globalIata].me_hubs.add(depIsME ? dep : arr);
-        d.airlines.forEach(a => globalAcc[globalIata].airlines.add(a));
+        if (meIatas.has(arr)) continue;
+        if (!globalAcc[arr]) globalAcc[arr] = { cancelled: 0, me_hubs: new Set(), airlines: new Set() };
+        globalAcc[arr].cancelled += d.cancelled;
+        globalAcc[arr].me_hubs.add(dep);
+        d.airlines.forEach(a => globalAcc[arr].airlines.add(a));
       }
     }
 
@@ -461,15 +462,11 @@ async function fetchSitrepFromSupabase() {
     const todayCancelled = AIRPORT_DATA.reduce((s, a) => s + (a.todayCancelled || 0), 0);
     const airportsClosed = AIRPORT_DATA.filter(a => a.status === 'CLOSED').length;
 
-    // Total people impacted = sum of all disruption dots (ME + global)
-    // This ensures the sitrep bar matches the cluster total when zoomed out
-    const allDotStranded = _globalDisruptions.reduce((s, g) => s + (g.stranded || 0), 0);
-
     window._todayCancelledFlight = todayCancelled;
     window._todayStrandedPeople  = todayCancelled * AVG_PAX;
 
     return {
-      stranded:  allDotStranded,
+      stranded:  totalCancelled * AVG_PAX,
       cancelled: totalCancelled,
       airports:  airportsClosed,
       airspace:  4,
@@ -2773,17 +2770,26 @@ function renderGlobalDisruptions(map, data) {
         ? Math.round(strandedEst / 1000) + 'k'
         : strandedEst.toLocaleString();
 
-    // All airports show their impact number — sized proportionally
-    const sz = Math.max(radius * 2, 42);
-    const ringInset = c >= 200 ? 6 : 4;
-    const dotHtml =
-      '<div class="gd-cluster" style="width:'+sz+'px;height:'+sz+'px">' +
-        '<div class="gd-cluster-ring" style="inset:-'+ringInset+'px"></div>' +
-        '<div class="gd-cluster-inner">' +
-          '<div class="gd-cluster-num">'+labelK+'</div>' +
-          '<div class="gd-cluster-lbl">impacted</div>' +
-        '</div>' +
-      '</div>';
+    // For airports with enough cancellations, show text inside the bubble like clusters
+    // Small airports (c < 200) stay as plain dots
+    const showInner = c >= 200;
+    const sz = showInner ? Math.max(radius * 2, 54) : radius * 2;
+    const dotHtml = showInner
+      ? '<div class="gd-cluster" style="width:'+sz+'px;height:'+sz+'px">' +
+          '<div class="gd-cluster-ring" style="inset:-6px"></div>' +
+          '<div class="gd-cluster-inner">' +
+            '<div class="gd-cluster-num">'+labelK+'</div>' +
+            '<div class="gd-cluster-lbl">impacted</div>' +
+          '</div>' +
+        '</div>'
+      : '<div class="gd-single" style="width:'+sz+'px;height:'+sz+'px">' +
+          '<div class="gd-single-dot" style="' +
+            'width:100%;height:100%;border-radius:50%;' +
+            'background:var(--accent);' +
+            'border:'+borderW+'px solid rgba(255,255,255,'+opacity+');' +
+            'box-shadow:0 0 '+(sz)+'px var(--accent-glow),0 2px 8px rgba(0,0,0,.5);' +
+          '"></div>' +
+        '</div>';
 
     const icon = L.divIcon({
       html: dotHtml,
