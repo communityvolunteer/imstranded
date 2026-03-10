@@ -738,7 +738,6 @@ function _buildChartPoints(canvasEl, metric) {
 
 function _drawChart(canvasEl, metric, accentOverride) {
   // Read width from PARENT, capped to viewport width to prevent mobile growth loop.
-  // Subtract parent padding so canvas doesn't overflow into padding zone.
   const parent = canvasEl.parentElement;
   const maxW = window.innerWidth;
   let rawW = parent ? parent.clientWidth || parent.offsetWidth : 240;
@@ -747,7 +746,10 @@ function _drawChart(canvasEl, metric, accentOverride) {
     rawW -= (parseFloat(ps.paddingLeft) || 0) + (parseFloat(ps.paddingRight) || 0);
   }
   const w = Math.max(Math.min(rawW, maxW), 100);
-  const h = parseInt(canvasEl.getAttribute('height')) || 64;
+  // ALWAYS use the original CSS height (stored once), never read back from canvas.height
+  // because canvas.height = h*dpr overwrites the attribute, causing snowball on retoggle.
+  if (!canvasEl._originalH) canvasEl._originalH = parseInt(canvasEl.getAttribute('height')) || 72;
+  const h = canvasEl._originalH;
   canvasEl._cachedW = w;
   canvasEl._cachedH = h;
 
@@ -816,8 +818,14 @@ function _drawChart(canvasEl, metric, accentOverride) {
 }
 
 function _attachChartHover(canvasEl, metric, peakLabelId) {
-  if (canvasEl._hoverHandler) canvasEl.removeEventListener('mousemove', canvasEl._hoverHandler);
-  if (canvasEl._leaveHandler) canvasEl.removeEventListener('mouseleave', canvasEl._leaveHandler);
+  if (canvasEl._hoverHandler) {
+    canvasEl.removeEventListener('mousemove', canvasEl._hoverHandler);
+    canvasEl.removeEventListener('touchmove', canvasEl._hoverHandler);
+  }
+  if (canvasEl._leaveHandler) {
+    canvasEl.removeEventListener('mouseleave', canvasEl._leaveHandler);
+    canvasEl.removeEventListener('touchend', canvasEl._leaveHandler);
+  }
 
   // Snapshot the freshly-drawn chart pixels — restore these on every hover frame
   // instead of calling _drawChart (which resets canvas.width → reflow → snowball)
@@ -837,14 +845,23 @@ function _attachChartHover(canvasEl, metric, peakLabelId) {
     if (!data) return;
     const { pts } = data;
     const rect = canvasEl.getBoundingClientRect();
-    const mx   = e.clientX - rect.left;
+    // Support both mouse and touch
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const mx = clientX - rect.left;
+
+    // Check if touch/mouse is actually inside the canvas bounds
+    const my = clientY - rect.top;
+    if (mx < 0 || mx > rect.width || my < 0 || my > rect.height) {
+      tip.style.opacity = '0'; return;
+    }
 
     let closest = pts[0], minDist = Infinity;
     for (const p of pts) {
       const d = Math.abs(p.x - mx);
       if (d < minDist) { minDist = d; closest = p; }
     }
-    if (minDist > 40) { tip.style.opacity = '0'; return; }
+    if (minDist > 25) { tip.style.opacity = '0'; return; }
 
     const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#3498ec';
     const day    = `Mar ${parseInt(closest.date.slice(3))}`;
@@ -854,11 +871,11 @@ function _attachChartHover(canvasEl, metric, peakLabelId) {
 
     const tipW = tip.offsetWidth || 100;
     const tipH = tip.offsetHeight || 48;
-    let tx = e.clientX - tipW / 2;
-    let ty = e.clientY - tipH - 12;
+    let tx = clientX - tipW / 2;
+    let ty = clientY - tipH - 12;
     if (tx < 4) tx = 4;
     if (tx + tipW > window.innerWidth - 4) tx = window.innerWidth - tipW - 4;
-    if (ty < 4) ty = e.clientY + 16;
+    if (ty < 4) ty = clientY + 16;
     tip.style.left = tx + 'px';
     tip.style.top  = ty + 'px';
 
@@ -896,6 +913,8 @@ function _attachChartHover(canvasEl, metric, peakLabelId) {
 
   canvasEl.addEventListener('mousemove', canvasEl._hoverHandler);
   canvasEl.addEventListener('mouseleave', canvasEl._leaveHandler);
+  canvasEl.addEventListener('touchmove', canvasEl._hoverHandler, { passive: true });
+  canvasEl.addEventListener('touchend', canvasEl._leaveHandler);
 }
 
 
