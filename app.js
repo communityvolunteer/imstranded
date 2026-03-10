@@ -432,16 +432,17 @@ async function fetchSitrepFromSupabase() {
       };
     });
 
-    // Global airports: sum of cancelled outbound from any ME hub to this airport
+    // Global airports: sum of cancelled DEPARTURES from this airport to ME hubs
+    // (global→ME direction = flights leaving this airport)
     const globalAcc = {};
     for (const dep of Object.keys(routeTotals)) {
-      if (!meIatas.has(dep)) continue;
+      if (meIatas.has(dep)) continue;       // dep must be global
       for (const [arr, d] of Object.entries(routeTotals[dep])) {
-        if (meIatas.has(arr)) continue;
-        if (!globalAcc[arr]) globalAcc[arr] = { cancelled: 0, me_hubs: new Set(), airlines: new Set() };
-        globalAcc[arr].cancelled += d.cancelled;
-        globalAcc[arr].me_hubs.add(dep);
-        d.airlines.forEach(a => globalAcc[arr].airlines.add(a));
+        if (!meIatas.has(arr)) continue;     // arr must be ME
+        if (!globalAcc[dep]) globalAcc[dep] = { cancelled: 0, me_hubs: new Set(), airlines: new Set() };
+        globalAcc[dep].cancelled += d.cancelled;
+        globalAcc[dep].me_hubs.add(arr);
+        d.airlines.forEach(a => globalAcc[dep].airlines.add(a));
       }
     }
 
@@ -458,7 +459,10 @@ async function fetchSitrepFromSupabase() {
     console.log(`[Pipeline] _globalDisruptions: ${meAsDots.length} ME + ${globalDots.length} global lets go`);
 
     // ── 6. Totals ─────────────────────────────────────────────
-    const totalCancelled = AIRPORT_DATA.reduce((s, a) => s + a.cancelled, 0);
+    // Total = sum of all disruption dots (departure-only per airport)
+    // This ensures sitrep bar matches the cluster total when fully zoomed out
+    const allDotStranded = _globalDisruptions.reduce((s, g) => s + (g.stranded || 0), 0);
+    const allDotCancelled = _globalDisruptions.reduce((s, g) => s + (g.cancelled || 0), 0);
     const todayCancelled = AIRPORT_DATA.reduce((s, a) => s + (a.todayCancelled || 0), 0);
     const airportsClosed = AIRPORT_DATA.filter(a => a.status === 'CLOSED').length;
 
@@ -466,8 +470,8 @@ async function fetchSitrepFromSupabase() {
     window._todayStrandedPeople  = todayCancelled * AVG_PAX;
 
     return {
-      stranded:  totalCancelled * AVG_PAX,
-      cancelled: totalCancelled,
+      stranded:  allDotStranded,
+      cancelled: allDotCancelled,
       airports:  airportsClosed,
       airspace:  4,
     };
