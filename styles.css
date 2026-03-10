@@ -3763,3 +3763,13 @@ font-size: clamp(.45rem, 1.2vw, .58rem);
     font-size: clamp(.6rem, 2.2vw, .9rem) !important;
   }
 }
+
+/* Hide popup city header inside PC sidebar (sidebar has its own header) */
+#pin-sidebar-body .popup-city-header { display: none; }
+
+/* Mobile: larger section titles in pin sheet */
+@media (max-width: 600px) {
+  .popup-section-title {
+    font-size: 1.5rem !important;
+  }
+}

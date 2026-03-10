@@ -2342,7 +2342,7 @@ function buildDualPopup(iata) {
   // CTA: Are You Stranded Here?
   var ctaStranded =
     '<div style="margin-top:1rem;padding-top:.85rem;border-top:1px solid rgba(255,255,255,.07)">' +
-      '<div style="font-size:.99rem;font-weight:800;color:#fff;margin-bottom:.5rem;text-align:center">Are You Stranded Here?</div>' +
+      '<div class="popup-section-title" style="font-size:.99rem;font-weight:800;color:#fff;margin-bottom:.5rem;text-align:center">Are You Stranded Here?</div>' +
       '<button onclick="isMob()?mTab(\'stranded\',null):openFormSidebar(\'stranded\')" ' +
         'style="width:100%;padding:.65rem .8rem;border-radius:10px;cursor:pointer;font-family:Inter,sans-serif;font-size:.76rem;font-weight:800;letter-spacing:.02em;' +
         'background:rgba(236,52,82,.12);color:#ec3452;border:1px solid rgba(236,52,82,.28);' +
@@ -2356,10 +2356,19 @@ function buildDualPopup(iata) {
   // Section header: The Full Impact
   var fullImpactHeader =
     '<div style="margin-top:1rem;padding-top:.85rem;border-top:1px solid rgba(255,255,255,.07);margin-bottom:.6rem">' +
-      '<div style="font-size:.99rem;font-weight:800;color:#fff;text-align:center">The Full Impact</div>' +
+      '<div class="popup-section-title" style="font-size:.99rem;font-weight:800;color:#fff;text-align:center">The Full Impact</div>' +
     '</div>';
 
   return '<div style="width:100%;font-family:Inter,sans-serif" id="gpop-' + uid + '">' +
+    
+    // City header — visible on mobile pin sheet, hidden on PC sidebar (has its own header)
+    '<div class="popup-city-header" style="text-align:center;margin-bottom:.5rem">' +
+      '<div style="font-size:1.65rem;font-weight:800;color:#fff;letter-spacing:-.01em">' + city + '</div>' +
+      '<div style="display:flex;justify-content:center;align-items:center;gap:.5rem;margin-top:.15rem">' +
+        '<span style="font-size:.65rem;font-weight:800;letter-spacing:.1em;color:var(--accent);text-transform:uppercase">' + iata + '</span>' +
+        '<span style="font-size:.65rem;color:rgba(255,255,255,.35)">' + country + '</span>' +
+      '</div>' +
+    '</div>' +
     
     // Est. stranded — above toggle, hidden on arrivals tab
     estBlock +
