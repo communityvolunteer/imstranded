@@ -1702,30 +1702,88 @@ const _fsTitles = {
   help:     '$HELP · COMMUNITY TIPS',
   profile:  'MY PROFILE',
 };
+// Map of which DOM element to move into the sidebar for each panel
+const _fsSourceMap = {
+  offer:    () => document.querySelector('#help-view .container'),
+  stranded: () => document.querySelector('#help-view .container'),
+  profile:  () => document.querySelector('#profile-view .container'),
+  help:     () => document.getElementById('help-money-modal'),
+};
+const _fsReturnMap = {
+  offer:    () => document.getElementById('help-view'),
+  stranded: () => document.getElementById('help-view'),
+  profile:  () => document.getElementById('profile-view'),
+  help:     () => document.body,
+};
+
 function openFormSidebar(which) {
   if (isMob()) return;
   const sb    = document.getElementById('form-sidebar');
+  const body  = document.getElementById('form-sidebar-body');
   const title = document.getElementById('form-sidebar-title');
-  if (!sb) return;
-  // Toggle: clicking the same panel again closes the sidebar
+  if (!sb || !body) return;
+
+  // Toggle: clicking same panel again closes
   if (sb.classList.contains('open') && sb.dataset.panel === which) {
     closeFormSidebar(); return;
   }
-  // 'stranded' lives inside the 'offer' panel — map accordingly
-  const panelId = (which === 'stranded') ? 'offer' : which;
-  document.querySelectorAll('.fs-panel').forEach(p => p.classList.remove('fs-active'));
-  const panel = document.getElementById('fs-panel-' + panelId);
-  if (panel) panel.classList.add('fs-active');
+
+  // Return any previously mounted node back to its home
+  _fsReturnMounted();
+
+  // Get the source node and move it into the sidebar body
+  const getNode = _fsSourceMap[which];
+  const node = getNode ? getNode() : null;
+  if (node) {
+    node.dataset.fsHome = node.parentElement?.id || '';
+    body.appendChild(node);
+    sb.dataset.panel = which;
+  }
+
   if (title) title.textContent = _fsTitles[which] || which.toUpperCase();
-  sb.dataset.panel = which;
   sb.classList.add('open');
-  if (which === 'stranded') { switchHelpMode('stranded'); }
+
+  // Make the moved element visible (views are display:none by default)
+  if (node) node.style.display = 'block';
+
+  // Panel-specific init
+  if (which === 'stranded') switchHelpMode('stranded');
   if (which === 'offer')    { switchHelpMode('helper'); renderPosts(); }
-  if (which === 'profile')  { renderProfileView(); }
+  if (which === 'profile')  renderProfileView();
+  if (which === 'help')     {
+    // Ensure modal shows inline
+    if (node) { node.style.position = 'static'; node.style.background = 'none';
+      node.style.backdropFilter = 'none'; node.style.zIndex = 'auto'; }
+  }
 }
+
+function _fsReturnMounted() {
+  const body = document.getElementById('form-sidebar-body');
+  if (!body) return;
+  // Move any child nodes back to their original homes
+  [...body.children].forEach(child => {
+    const homeId = child.dataset.fsHome;
+    if (homeId) {
+      const home = document.getElementById(homeId);
+      if (home) { child.style.display = ''; home.appendChild(child); delete child.dataset.fsHome; }
+    } else {
+      // $HELP modal goes back to body
+      if (child.id === 'help-money-modal') {
+        child.style.position = ''; child.style.background = '';
+        child.style.backdropFilter = ''; child.style.zIndex = '';
+        child.style.display = '';
+        document.body.appendChild(child);
+      }
+    }
+  });
+}
+
 function closeFormSidebar() {
   const sb = document.getElementById('form-sidebar');
-  if (sb) { sb.classList.remove('open'); sb.dataset.panel = ''; }
+  if (!sb) return;
+  sb.classList.remove('open');
+  sb.dataset.panel = '';
+  _fsReturnMounted();
 }
 
 // ============================================================
@@ -5397,4 +5455,4 @@ window.addEventListener('DOMContentLoaded',()=>{
     if(el)el.innerHTML='<div class="empty-state" style="color:var(--warn)">Supabase not configured.</div>';
   }
 });
-window.addEventListener('resize',()=>{if(isMob()&&!window._mobileInit)initMobile();}); 
+window.addEventListener('resize',()=>{if(isMob()&&!window._mobileInit)initMobile();});

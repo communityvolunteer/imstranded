@@ -213,403 +213,7 @@ function googleTranslateInit() {
     <div id="form-sidebar-body">
 
       <!-- Panel: Offer a Room / I can Help -->
-      <div id="fs-panel-offer" class="fs-panel">
-<!-- Toggle: I'M STRANDED / I CAN HELP -->
-    <div style="display:flex;max-width:480px;margin:1.5rem auto 1.5rem;background:rgba(255,255,255,.06);border-radius:12px;padding:4px;border:1px solid rgba(255,255,255,.08)">
-      <button id="help-toggle-stranded" onclick="switchHelpMode('stranded')" class="help-toggle help-toggle--stranded active">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        I'M STRANDED
-      </button>
-      <button id="help-toggle-helper" onclick="switchHelpMode('helper')" class="help-toggle help-toggle--helper">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        I CAN HELP
-      </button>
-    </div>
-    <!-- STRANDED PANEL -->
-    <div id="help-panel-stranded" style="max-width:560px;margin:0 auto">
-      <div style="background:rgba(236,52,82,.08);border:1px solid rgba(236,52,82,.2);border-radius:14px;padding:1.5rem">
-        <div style="font-size:1.15rem;font-weight:800;color:#ec3452;margin-bottom:.25rem">Add Yourself to the Map</div>
-        <div style="font-size:.82rem;color:rgba(255,255,255,.5);margin-bottom:1.3rem;line-height:1.5">Register so embassies, NGOs, and volunteers can find and help you.</div>
-        <div class="form-row"><label class="modal-label">Your name</label><input type="text" id="stranded-name" placeholder="First name or handle" class="modal-input"></div>
-        <div class="form-row"><label class="modal-label">Where are you right now?</label>
-          <div style="display:flex;gap:.4rem"><div class="loc-ac-wrap" style="flex:1"><input type="text" id="stranded-location" placeholder="City, airport, or address" autocomplete="off" class="modal-input"><input type="hidden" id="stranded-lat"><input type="hidden" id="stranded-lng"><div class="loc-ac-list" id="stranded-location-ac"></div></div><button type="button" onclick="useMyLocation('stranded')" class="gps-btn" title="Use my location"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2"/></svg></button></div>
-        </div>
-        <div class="form-row"><label class="modal-label">Where are you trying to get home to? <span style="opacity:.4;font-weight:400;text-transform:none">(type city or airport)</span></label>
-          <div class="loc-ac-wrap"><input type="text" id="stranded-dest" placeholder="e.g. Boston, London, Manila..." autocomplete="off" class="modal-input" oninput="airportAutocomplete(this,'stranded-dest-ac','stranded')"><input type="hidden" id="stranded-dest-lat"><input type="hidden" id="stranded-dest-lng"><input type="hidden" id="stranded-dest-country"><input type="hidden" id="stranded-dest-airport"><div class="loc-ac-list" id="stranded-dest-ac"></div></div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
-          <div class="form-row"><label class="modal-label">Nationality</label><select id="stranded-nationality" class="modal-input"><option value="">Select...</option><option>Indian</option><option>Filipino</option><option>Pakistani</option><option>Bangladeshi</option><option>Nepali</option><option>Sri Lankan</option><option>Egyptian</option><option>American</option><option>British</option><option>Canadian</option><option>Australian</option><option>German</option><option>French</option><option>Italian</option><option>South Korean</option><option>Japanese</option><option>Chinese</option><option>Thai</option><option>Malaysian</option><option>Indonesian</option><option>South African</option><option>Nigerian</option><option>Kenyan</option><option>Jordanian</option><option>Lebanese</option><option>Palestinian</option><option>Syrian</option><option>Yemeni</option><option>Other</option></select></div>
-          <div class="form-row"><label class="modal-label">People in group</label><input type="number" id="stranded-group" value="1" min="1" max="50" class="modal-input"></div>
-        </div>
-        <div class="form-row"><label class="modal-label">What do you need?</label><div style="display:flex;flex-wrap:wrap;gap:.4rem" id="stranded-needs"><label class="need-chip"><input type="checkbox" value="housing"> Housing</label><label class="need-chip"><input type="checkbox" value="flight"> Flight home</label><label class="need-chip"><input type="checkbox" value="food"> Food / water</label><label class="need-chip"><input type="checkbox" value="medical"> Medical</label><label class="need-chip"><input type="checkbox" value="money"> Financial</label><label class="need-chip"><input type="checkbox" value="translation"> Translation</label></div></div>
-        <div class="form-row"><label class="modal-label">Stranded since</label><input type="date" id="stranded-since" class="modal-input"></div>
-        <div class="form-row"><label class="modal-label">Details <span style="opacity:.5;font-weight:400;text-transform:none">(optional)</span></label><textarea id="stranded-details" placeholder="Any additional context..." class="modal-input" style="min-height:60px;resize:none"></textarea></div>
-        <div class="form-row"><label class="modal-label">Email</label>
-          <div class="linked-input" id="s-linked-google">
-            <div class="linked-input-icon" style="background:#1a1a1a" onclick="!isLoggedIn()?openFormSidebar('profile'):void 0" title="Google"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg></div>
-            <input type="text" id="stranded-contact" readonly placeholder="Sign in with Google to add email" class="linked-input-field">
-          </div>
-        </div>
-        <div class="form-row"><label class="modal-label">Telegram</label>
-          <div class="linked-input" id="s-linked-tg">
-            <div class="linked-input-icon" style="background:#229ED9" onclick="isLoggedIn()?linkTelegram():openFormSidebar('profile')" title="Link Telegram"><svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg></div>
-            <input type="text" id="stranded-tg-contact" readonly placeholder="Link Telegram to add contact" class="linked-input-field">
-          </div>
-        </div>
-        <div class="form-row"><label class="modal-label">X / Twitter</label>
-          <div class="linked-input" id="s-linked-x">
-            <div class="linked-input-icon" style="background:#000;border:1px solid rgba(255,255,255,.15)" onclick="isLoggedIn()?linkX():openFormSidebar('profile')" title="Link X"><svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></div>
-            <input type="text" id="stranded-xhandle" readonly placeholder="Link X to enable Send $HELP" class="linked-input-field">
-          </div>
-        </div>
-        <div class="form-row"><label class="modal-label">Phone <span style="opacity:.4;font-weight:400;text-transform:none">(optional — for WhatsApp / calls)</span></label>
-          <input type="tel" id="stranded-phone" placeholder="+1 555 123 4567" class="modal-input">
-        </div>
-        <button onclick="submitStranded()" id="stranded-submit-btn" style="width:100%;background:#ec3452;color:#fff;border:none;border-radius:10px;padding:.75rem;font-family:Inter,sans-serif;font-size:.92rem;font-weight:700;cursor:pointer;margin-top:.3rem">Add Me to the Map</button>
-      </div>
-    </div>
-    <!-- HELPER PANEL -->
-    <div id="help-panel-offer" class="help-panel" style="display:none;grid-template-columns:1fr 1fr;gap:2rem">
-      <div>
-        <div class="post-form-header post-form-header--offer">OFFER UP A SPARE ROOM</div>
-        <div class="post-form">
-          <p class="form-note">Your contact will be visible so people who need help can reach you directly.</p>
-          <input type="hidden" id="offer-type" value="Housing / spare room">
-          <div class="form-row"><label>Your location</label><div class="loc-ac-wrap"><input type="text" id="offer-location" placeholder="Start typing an address…" autocomplete="off"><input type="hidden" id="offer-lat"><input type="hidden" id="offer-lng"><div class="loc-ac-list" id="offer-location-ac"></div></div></div>
-          <div class="form-row"><label>Details</label><textarea id="offer-body" placeholder="Describe what you can offer&hellip;"></textarea></div>
-          <div class="form-row"><label>Your name</label><input type="text" id="offer-name" placeholder="First name or handle"></div>
-
-          <!-- Linked account fields -->
-          <div class="form-row"><label>Email</label>
-            <div class="linked-input" id="linked-google">
-              <div class="linked-input-icon" style="background:#1a1a1a" onclick="!isLoggedIn()?openFormSidebar('profile'):void 0" title="Google">
-                <svg width="12" height="12" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-              </div>
-              <input type="text" id="offer-contact" readonly placeholder="Sign in with Google to add email" class="linked-input-field">
-            </div>
-          </div>
-
-          <div class="form-row"><label>Telegram</label>
-            <div class="linked-input" id="linked-tg">
-              <div class="linked-input-icon" style="background:#229ED9" onclick="isLoggedIn()?linkTelegram():openFormSidebar('profile')" title="Link Telegram">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-              </div>
-              <input type="text" id="offer-tg-contact" readonly placeholder="Link Telegram to add contact" class="linked-input-field">
-            </div>
-          </div>
-
-          <div class="form-row"><label>X / Twitter</label>
-            <div class="linked-input" id="linked-x">
-              <div class="linked-input-icon" style="background:#000;border:1px solid rgba(255,255,255,.15)" onclick="isLoggedIn()?linkX():openFormSidebar('profile')" title="Link X">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-              </div>
-              <input type="text" id="offer-xhandle" readonly placeholder="Link X to add @handle & enable tips" class="linked-input-field">
-            </div>
-          </div>
-
-          <button class="submit-btn submit-btn--offer" onclick="submitPost('offer')">List Spare Room</button>
-        </div>
-      </div>
-      <div>
-        <div class="post-form-header post-form-header--live">SPARE ROOMS OFFERED</div>
-        <div class="posts-list" id="offer-posts" style="margin-top:.75rem">
-      </div>
-
-      <!-- Panel: Profile -->
-      <div id="fs-panel-profile" class="fs-panel">
-<!-- Login/Signup state -->
-    <div id="profile-login" style="padding:3rem 0;text-align:center">
-      <div style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 1.2rem">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      </div>
-
-      <!-- Tabs -->
-      <div style="display:flex;max-width:340px;margin:0 auto 1.5rem;background:rgba(255,255,255,.06);border-radius:10px;padding:3px;border:1px solid rgba(255,255,255,.08)">
-        <button id="auth-tab-login" onclick="switchAuthTab('login')" class="auth-tab auth-tab--active">Log In</button>
-        <button id="auth-tab-signup" onclick="switchAuthTab('signup')" class="auth-tab">Sign Up</button>
-      </div>
-
-      <!-- Login panel -->
-      <div id="auth-panel-login" style="max-width:340px;margin:0 auto">
-        <div style="font-size:.84rem;color:rgba(255,255,255,.45);margin-bottom:1.2rem;line-height:1.55">Sign in with an account you've already linked.</div>
-
-        <button onclick="authAction('x','login')" class="auth-provider-btn" style="background:#000;color:#fff;border:1.5px solid rgba(255,255,255,.2)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-          Log in with X
-        </button>
-        <button onclick="authAction('google','login')" class="auth-provider-btn" style="margin-top:.55rem;background:#fff;color:#333;box-shadow:0 1px 3px rgba(0,0,0,.2)">
-          <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-          Log in with Google
-        </button>
-        <button onclick="authAction('telegram','login')" class="auth-provider-btn" style="margin-top:.55rem;background:#229ED9;color:#fff">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-          Log in with Telegram
-        </button>
-        <div style="margin-top:1rem;font-size:.72rem;color:rgba(255,255,255,.3);line-height:1.5">Don't have an account? <a href="#" onclick="switchAuthTab('signup');return false" style="color:#3498ec;text-decoration:none;font-weight:600">Sign up</a></div>
-      </div>
-
-      <!-- Signup panel -->
-      <div id="auth-panel-signup" style="max-width:340px;margin:0 auto;display:none">
-        <div style="font-size:.84rem;color:rgba(255,255,255,.45);margin-bottom:1.2rem;line-height:1.55">Create your account. You can link additional accounts from your profile.</div>
-
-        <button onclick="authAction('x','signup')" class="auth-provider-btn" style="background:#000;color:#fff;border:1.5px solid rgba(255,255,255,.2)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-          Sign up with X
-        </button>
-        <button onclick="authAction('google','signup')" class="auth-provider-btn" style="margin-top:.55rem;background:#fff;color:#333;box-shadow:0 1px 3px rgba(0,0,0,.2)">
-          <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-          Sign up with Google
-        </button>
-        <button onclick="authAction('telegram','signup')" class="auth-provider-btn" style="margin-top:.55rem;background:#229ED9;color:#fff">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-          Sign up with Telegram
-        </button>
-        <div style="margin-top:1rem;font-size:.72rem;color:rgba(255,255,255,.3);line-height:1.5">Already have an account? <a href="#" onclick="switchAuthTab('login');return false" style="color:#3498ec;text-decoration:none;font-weight:600">Log in</a></div>
-      </div>
-
-      <div style="max-width:340px;margin:1.5rem auto 0;padding:.85rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;text-align:left">
-        <div style="font-size:.75rem;color:rgba(255,255,255,.5);line-height:1.6">
-          <strong style="color:#3498ec">Why sign in?</strong> Your posts get a <svg width="16" height="16" viewBox="0 0 24 24" fill="#3498ec" style="vertical-align:middle"><path d="M12 22c-1.1 0-2-.2-2.7-.6L3.5 18.2c-.4-.3-.7-.7-.9-1.1-.2-.5-.3-1-.3-1.5V8.4c0-.5.1-1 .3-1.5.2-.4.5-.8.9-1.1l5.8-3.2C10 2.2 11 2 12 2s2 .2 2.7.6l5.8 3.2c.4.3.7.7.9 1.1.2.5.3 1 .3 1.5v7.2c0 .5-.1 1-.3 1.5-.2.4-.5.8-.9 1.1l-5.8 3.2c-.7.4-1.6.6-2.7.6z"/><path d="M9 12l2 2 4-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> verified badge. Link your X account to enable $HELP tips.
-        </div>
-      </div>
-    </div>
-
-    <!-- Logged-in state -->
-    <div id="profile-main" style="display:none;padding:2rem 0">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
-        <div>
-          <div style="font-size:1.3rem;font-weight:800;color:#fff" id="profile-display-name"></div>
-          <div style="font-size:.78rem;color:rgba(255,255,255,.4)" id="profile-email"></div>
-        </div>
-        <button onclick="doSignOut()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);border-radius:8px;padding:.35rem .9rem;font-size:.72rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;transition:all .15s">Sign Out</button>
-      </div>
-
-      <!-- Verification Section -->
-      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:1.3rem;margin-bottom:1.5rem">
-        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);margin-bottom:.5rem">Verify Your Accounts</div>
-        <div style="font-size:.82rem;color:rgba(255,255,255,.5);line-height:1.6;margin-bottom:1.1rem">Link your accounts to get a <svg width="16" height="16" viewBox="0 0 24 24" fill="#3498ec" style="vertical-align:middle"><path d="M12 22c-1.1 0-2-.2-2.7-.6L3.5 18.2c-.4-.3-.7-.7-.9-1.1-.2-.5-.3-1-.3-1.5V8.4c0-.5.1-1 .3-1.5.2-.4.5-.8.9-1.1l5.8-3.2C10 2.2 11 2 12 2s2 .2 2.7.6l5.8 3.2c.4.3.7.7.9 1.1.2.5.3 1 .3 1.5v7.2c0 .5-.1 1-.3 1.5-.2.4-.5.8-.9 1.1l-5.8 3.2c-.7.4-1.6.6-2.7.6z"/><path d="M9 12l2 2 4-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> <span style="color:#3498ec;font-weight:700">verified</span> badge on your posts. Linking X enables <strong style="color:#fff">$HELP</strong> tips from the community.</div>
-
-        <div class="p-verify-row">
-          <div class="p-verify-icon" style="background:#000;border:1.5px solid rgba(255,255,255,.15)">𝕏</div>
-          <div style="flex:1">
-            <div style="font-size:.86rem;font-weight:700;color:#fff">X / Twitter</div>
-            <div style="font-size:.7rem;color:rgba(255,255,255,.4)" id="verify-sub-x">Required for $HELP tips</div>
-          </div>
-          <button class="p-verify-btn p-verify-btn--link" id="verify-btn-x" onclick="linkX()">Link</button>
-        </div>
-        <div class="p-verify-row">
-          <div class="p-verify-icon" style="background:#1a1a1a">
-            <svg width="16" height="16" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-          </div>
-          <div style="flex:1">
-            <div style="font-size:.86rem;font-weight:700;color:#fff">Google</div>
-            <div style="font-size:.7rem;color:rgba(255,255,255,.4)" id="verify-sub-google">Verifies your email automatically</div>
-          </div>
-          <button class="p-verify-btn" id="verify-btn-google" disabled>Coming Soon</button>
-        </div>
-        <div class="p-verify-row">
-          <div class="p-verify-icon" style="background:#229ED9"><svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg></div>
-          <div style="flex:1">
-            <div style="font-size:.86rem;font-weight:700;color:#fff">Telegram</div>
-            <div style="font-size:.7rem;color:rgba(255,255,255,.4)" id="verify-sub-tg">Verify your Telegram identity</div>
-          </div>
-          <button class="p-verify-btn p-verify-btn--link" id="verify-btn-tg" onclick="linkTelegram()">Link</button>
-        </div>
-
-        <div style="margin-top:1rem;padding:.7rem .85rem;background:rgba(52,152,236,.08);border:1px solid rgba(52,152,236,.15);border-radius:8px">
-          <div style="font-size:.75rem;color:rgba(255,255,255,.55);line-height:1.55">
-            <strong style="color:#3498ec">Why verify?</strong> Verified users get a <svg width="16" height="16" viewBox="0 0 24 24" fill="#3498ec" style="vertical-align:middle"><path d="M12 22c-1.1 0-2-.2-2.7-.6L3.5 18.2c-.4-.3-.7-.7-.9-1.1-.2-.5-.3-1-.3-1.5V8.4c0-.5.1-1 .3-1.5.2-.4.5-.8.9-1.1l5.8-3.2C10 2.2 11 2 12 2s2 .2 2.7.6l5.8 3.2c.4.3.7.7.9 1.1.2.5.3 1 .3 1.5v7.2c0 .5-.1 1-.3 1.5-.2.4-.5.8-.9 1.1l-5.8 3.2c-.7.4-1.6.6-2.7.6z"/><path d="M9 12l2 2 4-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> badge visible on all their posts. People offering spare rooms are more likely to get responses when their identity is verified. Linking X also enables the community to tip you <strong style="color:#fff">$HELP</strong> tokens as a thank you.
-          </div>
-        </div>
-      </div>
-
-      <!-- My Posts -->
-      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:1.3rem">
-        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);margin-bottom:.75rem">My Listings</div>
-        <div id="profile-posts-list"></div>
-      </div>
-
-      <!-- My Stranded Post -->
-      <div style="background:rgba(236,52,82,.06);border:1px solid rgba(236,52,82,.15);border-radius:14px;padding:1.3rem;margin-top:1rem">
-        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(236,52,82,.5);margin-bottom:.75rem">My Stranded Registration</div>
-        <div id="profile-stranded-list"></div>
-      </div>
-
-      <!-- Delete Account -->
-      <div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,.06);text-align:center">
-        <button onclick="deleteAccount()" style="background:none;border:1px solid rgba(236,52,82,.3);color:rgba(236,52,82,.6);border-radius:8px;padding:.4rem 1.2rem;font-family:Inter,sans-serif;font-size:.72rem;font-weight:600;cursor:pointer;transition:all .15s">Delete My Account</button>
-        <div style="font-size:.65rem;color:rgba(255,255,255,.2);margin-top:.4rem">Permanently removes your account, posts, and all associated data.
-      </div>
-
-      <!-- Panel: $HELP -->
-      <div id="fs-panel-help" class="fs-panel">
-  <div class="help-panel-inner">
-
-    <!-- Close -->
-    <button onclick="closeFormSidebar()" class="help-panel-x" aria-label="Close">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
-
-    <!-- Header -->
-    <div class="help-panel-head">
-      <div class="help-panel-ticker">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-        $HELP
-      </div>
-      <div class="help-panel-sub">Community tipping on X · powered by @bankrbot</div>
-    </div>
-
-    <!-- Toggle -->
-    <div class="help-toggle-bar">
-      <button class="help-toggle-btn active" id="fs-htab-send" onclick="switchHelpTab('send')">SEND HELP</button>
-      <button class="help-toggle-btn" id="fs-htab-receive" onclick="switchHelpTab('receive')">RECEIVE HELP</button>
-    </div>
-
-    <!-- SEND PANEL -->
-    <div id="fs-help-send-panel">
-
-      <!-- Step 1 -->
-      <div class="hstep" id="fs-hs-s1">
-        <div class="hstep-num" id="fs-hs-s1-num">1</div>
-        <div class="hstep-body">
-          <div class="hstep-title">Connect X / Twitter</div>
-          <div class="hstep-desc" id="fs-hs-s1-desc">Link your X account so @bankrbot can process your tips.</div>
-          <button class="hstep-btn hstep-btn--blue" id="fs-hs-s1-btn" onclick="closeFormSidebar();isMob()?mTab('profile',null):openFormSidebar('profile')">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-            Connect X in Profile
-          </button>
-          <div class="hstep-bankr-note">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            Also install <a href="https://bankr.bot" target="_blank">Bankr app</a> on your phone to receive tip notifications.
-          </div>
-        </div>
-      </div>
-
-      <!-- Step 2 -->
-      <div class="hstep" id="fs-hs-s2">
-        <div class="hstep-num">2</div>
-        <div class="hstep-body">
-          <div class="hstep-title">Send $HELP to anyone on the map</div>
-          <div class="hstep-desc">Look for the <strong style="color:var(--accent)">Send $HELP</strong> button on
-            <span class="hstep-badge">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="#3498ec"><path d="M12 22c-1.1 0-2-.2-2.7-.6L3.5 18.2c-.4-.3-.7-.7-.9-1.1-.2-.5-.3-1-.3-1.5V8.4c0-.5.1-1 .3-1.5.2-.4.5-.8.9-1.1l5.8-3.2C10 2.2 11 2 12 2s2 .2 2.7.6l5.8 3.2c.4.3.7.7.9 1.1.2.5.3 1 .3 1.5v7.2c0 .5-.1 1-.3 1.5-.2.4-.5.8-.9 1.1l-5.8 3.2c-.7.4-1.6.6-2.7.6z"/><path d="M9 12l2 2 4-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Verified
-            </span>
-            profiles on the map.
-          </div>
-          <button class="hstep-btn hstep-btn--purple" onclick="closeFormSidebar();helpFilterVerifiedOnly()">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
-            Try it — Show Verified Profiles
-          </button>
-        </div>
-      </div>
-
-      <!-- Step 3 -->
-      <div class="hstep" id="fs-hs-s3">
-        <div class="hstep-num">3</div>
-        <div class="hstep-body">
-          <div class="hstep-title">Tip the $HELP Pool</div>
-          <div class="hstep-desc">Tips sent to @imstrandedorg are split every week among all confirmed matched hosts — the people who actually gave someone a place to stay.</div>
-          <a id="fs-hs-s3-btn" href="https://x.com/intent/tweet?text=@bankrbot%20Tip%201%20$HELP%20to%20@imstrandedorg" target="_blank" class="hstep-btn hstep-btn--blue">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-            Tip the $HELP Pool
-          </a>
-          <div class="hstep-muted" id="fs-hs-s3-locked" style="display:none">Connect X first (step 1) to tip the pool.</div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- RECEIVE PANEL -->
-    <div id="fs-help-receive-panel" style="display:none">
-
-      <!-- Step 1 -->
-      <div class="hstep" id="fs-hr-s1">
-        <div class="hstep-num" id="fs-hr-s1-num">1</div>
-        <div class="hstep-body">
-          <div class="hstep-title">Get a Verified Badge</div>
-          <div class="hstep-desc">Connect your socials to get the
-            <span class="hstep-badge">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="#3498ec"><path d="M12 22c-1.1 0-2-.2-2.7-.6L3.5 18.2c-.4-.3-.7-.7-.9-1.1-.2-.5-.3-1-.3-1.5V8.4c0-.5.1-1 .3-1.5.2-.4.5-.8.9-1.1l5.8-3.2C10 2.2 11 2 12 2s2 .2 2.7.6l5.8 3.2c.4.3.7.7.9 1.1.2.5.3 1 .3 1.5v7.2c0 .5-.1 1-.3 1.5-.2.4-.5.8-.9 1.1l-5.8 3.2c-.7.4-1.6.6-2.7.6z"/><path d="M9 12l2 2 4-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Verified
-            </span>
-            badge on your posts — required to receive $HELP tips.
-          </div>
-          <div class="hstep-social-checks" id="fs-hr-social-checks">
-            <div class="hstep-social-row" id="fs-hr-check-x">
-              <span class="hstep-social-dot" id="fs-hr-dot-x"></span>
-              <span>X / Twitter</span>
-              <button class="hstep-link-btn" id="fs-hr-btn-x" onclick="closeFormSidebar();isMob()?mTab('profile',null):openFormSidebar('profile')">Connect</button>
-            </div>
-            <div class="hstep-social-row" id="fs-hr-check-tg">
-              <span class="hstep-social-dot" id="fs-hr-dot-tg"></span>
-              <span>Telegram</span>
-              <button class="hstep-link-btn" id="fs-hr-btn-tg" onclick="closeFormSidebar();isMob()?mTab('profile',null):openFormSidebar('profile')">Connect</button>
-            </div>
-            <div class="hstep-social-row" id="fs-hr-check-g">
-              <span class="hstep-social-dot" id="fs-hr-dot-g"></span>
-              <span>Google</span>
-              <button class="hstep-link-btn" id="fs-hr-btn-g" onclick="closeFormSidebar();isMob()?mTab('profile',null):openFormSidebar('profile')">Connect</button>
-            </div>
-          </div>
-          <div class="hstep-bankr-note">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            Install <a href="https://bankr.bot" target="_blank">Bankr app</a> on your phone — you'll be notified there when tips arrive.
-          </div>
-        </div>
-      </div>
-
-      <!-- Step 2 -->
-      <div class="hstep" id="fs-hr-s2">
-        <div class="hstep-num">2</div>
-        <div class="hstep-body">
-          <div class="hstep-title">Get on the map</div>
-          <div class="hstep-desc">Offer a spare room to someone in need — even just a couch for a week helps. Or, if you're stranded, add yourself to the map.</div>
-          <div style="display:flex;gap:.4rem;flex-wrap:wrap">
-            <button class="hstep-btn hstep-btn--blue" onclick="closeFormSidebar();isMob()?mTab('offer',null):openFormSidebar('offer')">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-              Offer a Room
-            </button>
-            <button class="hstep-btn hstep-btn--red" onclick="toggleHelpPanel();isMob()?mTab('stranded',null):openStrandedForm()">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              I'm Stranded
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Step 3 -->
-      <div class="hstep">
-        <div class="hstep-num">3</div>
-        <div class="hstep-body">
-          <div class="hstep-title">Check X — you'll be tagged when help arrives</div>
-          <div class="hstep-desc">When someone taps <strong style="color:var(--accent)">Send $HELP</strong> on your post, @bankrbot tags you in a tweet. The tip lands in your Bankr wallet instantly.</div>
-          <a href="https://x.com/notifications" target="_blank" class="hstep-btn hstep-btn--ghost">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-            Open X Notifications
-          </a>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- $HELP Pool -->
-    <div class="help-donate-row">
-      <span>All tips to @imstrandedorg →</span>
-      <a href="https://x.com/intent/tweet?text=@bankrbot%20Tip%201%20$HELP%20to%20@imstrandedorg" target="_blank">split weekly among Matched hosts ✓</a>
-    </div>
-
-  </div>
-
-      </div>
-
-    </div>
-  </div>
-
-    </div>
-  </div>
-  </div>
-  </div>
+      <div id="fs-panel-offer" class="fs-panel"></div>
   </div>
   </div>
 <!-- Filter Panel (fly-in from right) -->
@@ -776,12 +380,255 @@ function googleTranslateInit() {
 </div>
 
 <!-- HELP VIEW — toggled -->
-<div id="help-view" class="view"></div>    </div>
+<div id="help-view" class="view">
+  <div class="container" style="max-width:960px">
+<!-- Toggle: I'M STRANDED / I CAN HELP -->
+    <div style="display:flex;max-width:480px;margin:1.5rem auto 1.5rem;background:rgba(255,255,255,.06);border-radius:12px;padding:4px;border:1px solid rgba(255,255,255,.08)">
+      <button id="help-toggle-stranded" onclick="switchHelpMode('stranded')" class="help-toggle help-toggle--stranded active">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        I'M STRANDED
+      </button>
+      <button id="help-toggle-helper" onclick="switchHelpMode('helper')" class="help-toggle help-toggle--helper">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        I CAN HELP
+      </button>
+    </div>
+    <!-- STRANDED PANEL -->
+    <div id="help-panel-stranded" style="max-width:560px;margin:0 auto">
+      <div style="background:rgba(236,52,82,.08);border:1px solid rgba(236,52,82,.2);border-radius:14px;padding:1.5rem">
+        <div style="font-size:1.15rem;font-weight:800;color:#ec3452;margin-bottom:.25rem">Add Yourself to the Map</div>
+        <div style="font-size:.82rem;color:rgba(255,255,255,.5);margin-bottom:1.3rem;line-height:1.5">Register so embassies, NGOs, and volunteers can find and help you.</div>
+        <div class="form-row"><label class="modal-label">Your name</label><input type="text" id="stranded-name" placeholder="First name or handle" class="modal-input"></div>
+        <div class="form-row"><label class="modal-label">Where are you right now?</label>
+          <div style="display:flex;gap:.4rem"><div class="loc-ac-wrap" style="flex:1"><input type="text" id="stranded-location" placeholder="City, airport, or address" autocomplete="off" class="modal-input"><input type="hidden" id="stranded-lat"><input type="hidden" id="stranded-lng"><div class="loc-ac-list" id="stranded-location-ac"></div></div><button type="button" onclick="useMyLocation('stranded')" class="gps-btn" title="Use my location"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2"/></svg></button></div>
+        </div>
+        <div class="form-row"><label class="modal-label">Where are you trying to get home to? <span style="opacity:.4;font-weight:400;text-transform:none">(type city or airport)</span></label>
+          <div class="loc-ac-wrap"><input type="text" id="stranded-dest" placeholder="e.g. Boston, London, Manila..." autocomplete="off" class="modal-input" oninput="airportAutocomplete(this,'stranded-dest-ac','stranded')"><input type="hidden" id="stranded-dest-lat"><input type="hidden" id="stranded-dest-lng"><input type="hidden" id="stranded-dest-country"><input type="hidden" id="stranded-dest-airport"><div class="loc-ac-list" id="stranded-dest-ac"></div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+          <div class="form-row"><label class="modal-label">Nationality</label><select id="stranded-nationality" class="modal-input"><option value="">Select...</option><option>Indian</option><option>Filipino</option><option>Pakistani</option><option>Bangladeshi</option><option>Nepali</option><option>Sri Lankan</option><option>Egyptian</option><option>American</option><option>British</option><option>Canadian</option><option>Australian</option><option>German</option><option>French</option><option>Italian</option><option>South Korean</option><option>Japanese</option><option>Chinese</option><option>Thai</option><option>Malaysian</option><option>Indonesian</option><option>South African</option><option>Nigerian</option><option>Kenyan</option><option>Jordanian</option><option>Lebanese</option><option>Palestinian</option><option>Syrian</option><option>Yemeni</option><option>Other</option></select></div>
+          <div class="form-row"><label class="modal-label">People in group</label><input type="number" id="stranded-group" value="1" min="1" max="50" class="modal-input"></div>
+        </div>
+        <div class="form-row"><label class="modal-label">What do you need?</label><div style="display:flex;flex-wrap:wrap;gap:.4rem" id="stranded-needs"><label class="need-chip"><input type="checkbox" value="housing"> Housing</label><label class="need-chip"><input type="checkbox" value="flight"> Flight home</label><label class="need-chip"><input type="checkbox" value="food"> Food / water</label><label class="need-chip"><input type="checkbox" value="medical"> Medical</label><label class="need-chip"><input type="checkbox" value="money"> Financial</label><label class="need-chip"><input type="checkbox" value="translation"> Translation</label></div></div>
+        <div class="form-row"><label class="modal-label">Stranded since</label><input type="date" id="stranded-since" class="modal-input"></div>
+        <div class="form-row"><label class="modal-label">Details <span style="opacity:.5;font-weight:400;text-transform:none">(optional)</span></label><textarea id="stranded-details" placeholder="Any additional context..." class="modal-input" style="min-height:60px;resize:none"></textarea></div>
+        <div class="form-row"><label class="modal-label">Email</label>
+          <div class="linked-input" id="s-linked-google">
+            <div class="linked-input-icon" style="background:#1a1a1a" onclick="!isLoggedIn()?openFormSidebar('profile'):void 0" title="Google"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg></div>
+            <input type="text" id="stranded-contact" readonly placeholder="Sign in with Google to add email" class="linked-input-field">
+          </div>
+        </div>
+        <div class="form-row"><label class="modal-label">Telegram</label>
+          <div class="linked-input" id="s-linked-tg">
+            <div class="linked-input-icon" style="background:#229ED9" onclick="isLoggedIn()?linkTelegram():openFormSidebar('profile')" title="Link Telegram"><svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg></div>
+            <input type="text" id="stranded-tg-contact" readonly placeholder="Link Telegram to add contact" class="linked-input-field">
+          </div>
+        </div>
+        <div class="form-row"><label class="modal-label">X / Twitter</label>
+          <div class="linked-input" id="s-linked-x">
+            <div class="linked-input-icon" style="background:#000;border:1px solid rgba(255,255,255,.15)" onclick="isLoggedIn()?linkX():openFormSidebar('profile')" title="Link X"><svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></div>
+            <input type="text" id="stranded-xhandle" readonly placeholder="Link X to enable Send $HELP" class="linked-input-field">
+          </div>
+        </div>
+        <div class="form-row"><label class="modal-label">Phone <span style="opacity:.4;font-weight:400;text-transform:none">(optional — for WhatsApp / calls)</span></label>
+          <input type="tel" id="stranded-phone" placeholder="+1 555 123 4567" class="modal-input">
+        </div>
+        <button onclick="submitStranded()" id="stranded-submit-btn" style="width:100%;background:#ec3452;color:#fff;border:none;border-radius:10px;padding:.75rem;font-family:Inter,sans-serif;font-size:.92rem;font-weight:700;cursor:pointer;margin-top:.3rem">Add Me to the Map</button>
+      </div>
+    </div>
+    <!-- HELPER PANEL -->
+    <div id="help-panel-offer" class="help-panel" style="display:none;grid-template-columns:1fr 1fr;gap:2rem">
+      <div>
+        <div class="post-form-header post-form-header--offer">OFFER UP A SPARE ROOM</div>
+        <div class="post-form">
+          <p class="form-note">Your contact will be visible so people who need help can reach you directly.</p>
+          <input type="hidden" id="offer-type" value="Housing / spare room">
+          <div class="form-row"><label>Your location</label><div class="loc-ac-wrap"><input type="text" id="offer-location" placeholder="Start typing an address…" autocomplete="off"><input type="hidden" id="offer-lat"><input type="hidden" id="offer-lng"><div class="loc-ac-list" id="offer-location-ac"></div></div></div>
+          <div class="form-row"><label>Details</label><textarea id="offer-body" placeholder="Describe what you can offer&hellip;"></textarea></div>
+          <div class="form-row"><label>Your name</label><input type="text" id="offer-name" placeholder="First name or handle"></div>
+
+          <!-- Linked account fields -->
+          <div class="form-row"><label>Email</label>
+            <div class="linked-input" id="linked-google">
+              <div class="linked-input-icon" style="background:#1a1a1a" onclick="!isLoggedIn()?openFormSidebar('profile'):void 0" title="Google">
+                <svg width="12" height="12" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+              </div>
+              <input type="text" id="offer-contact" readonly placeholder="Sign in with Google to add email" class="linked-input-field">
+            </div>
+          </div>
+
+          <div class="form-row"><label>Telegram</label>
+            <div class="linked-input" id="linked-tg">
+              <div class="linked-input-icon" style="background:#229ED9" onclick="isLoggedIn()?linkTelegram():openFormSidebar('profile')" title="Link Telegram">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+              </div>
+              <input type="text" id="offer-tg-contact" readonly placeholder="Link Telegram to add contact" class="linked-input-field">
+            </div>
+          </div>
+
+          <div class="form-row"><label>X / Twitter</label>
+            <div class="linked-input" id="linked-x">
+              <div class="linked-input-icon" style="background:#000;border:1px solid rgba(255,255,255,.15)" onclick="isLoggedIn()?linkX():openFormSidebar('profile')" title="Link X">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              </div>
+              <input type="text" id="offer-xhandle" readonly placeholder="Link X to add @handle & enable tips" class="linked-input-field">
+            </div>
+          </div>
+
+          <button class="submit-btn submit-btn--offer" onclick="submitPost('offer')">List Spare Room</button>
+        </div>
+      </div>
+      <div>
+        <div class="post-form-header post-form-header--live">SPARE ROOMS OFFERED</div>
+        <div class="posts-list" id="offer-posts" style="margin-top:.75rem">
+      </div>
+
+      <!-- Panel: Profile -->
+      <div id="fs-panel-profile" class="fs-panel"></div>
+  </div>
+  </div>
+  
+  </div>
+</div>    </div>
   </div>
 </div>
 
 <!-- PROFILE VIEW -->
-<div id="profile-view" class="view"></div>    </div>
+<div id="profile-view" class="view">
+  <div class="container" style="max-width:720px">
+<!-- Login/Signup state -->
+    <div id="profile-login" style="padding:3rem 0;text-align:center">
+      <div style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 1.2rem">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+
+      <!-- Tabs -->
+      <div style="display:flex;max-width:340px;margin:0 auto 1.5rem;background:rgba(255,255,255,.06);border-radius:10px;padding:3px;border:1px solid rgba(255,255,255,.08)">
+        <button id="auth-tab-login" onclick="switchAuthTab('login')" class="auth-tab auth-tab--active">Log In</button>
+        <button id="auth-tab-signup" onclick="switchAuthTab('signup')" class="auth-tab">Sign Up</button>
+      </div>
+
+      <!-- Login panel -->
+      <div id="auth-panel-login" style="max-width:340px;margin:0 auto">
+        <div style="font-size:.84rem;color:rgba(255,255,255,.45);margin-bottom:1.2rem;line-height:1.55">Sign in with an account you've already linked.</div>
+
+        <button onclick="authAction('x','login')" class="auth-provider-btn" style="background:#000;color:#fff;border:1.5px solid rgba(255,255,255,.2)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          Log in with X
+        </button>
+        <button onclick="authAction('google','login')" class="auth-provider-btn" style="margin-top:.55rem;background:#fff;color:#333;box-shadow:0 1px 3px rgba(0,0,0,.2)">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+          Log in with Google
+        </button>
+        <button onclick="authAction('telegram','login')" class="auth-provider-btn" style="margin-top:.55rem;background:#229ED9;color:#fff">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+          Log in with Telegram
+        </button>
+        <div style="margin-top:1rem;font-size:.72rem;color:rgba(255,255,255,.3);line-height:1.5">Don't have an account? <a href="#" onclick="switchAuthTab('signup');return false" style="color:#3498ec;text-decoration:none;font-weight:600">Sign up</a></div>
+      </div>
+
+      <!-- Signup panel -->
+      <div id="auth-panel-signup" style="max-width:340px;margin:0 auto;display:none">
+        <div style="font-size:.84rem;color:rgba(255,255,255,.45);margin-bottom:1.2rem;line-height:1.55">Create your account. You can link additional accounts from your profile.</div>
+
+        <button onclick="authAction('x','signup')" class="auth-provider-btn" style="background:#000;color:#fff;border:1.5px solid rgba(255,255,255,.2)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          Sign up with X
+        </button>
+        <button onclick="authAction('google','signup')" class="auth-provider-btn" style="margin-top:.55rem;background:#fff;color:#333;box-shadow:0 1px 3px rgba(0,0,0,.2)">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+          Sign up with Google
+        </button>
+        <button onclick="authAction('telegram','signup')" class="auth-provider-btn" style="margin-top:.55rem;background:#229ED9;color:#fff">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+          Sign up with Telegram
+        </button>
+        <div style="margin-top:1rem;font-size:.72rem;color:rgba(255,255,255,.3);line-height:1.5">Already have an account? <a href="#" onclick="switchAuthTab('login');return false" style="color:#3498ec;text-decoration:none;font-weight:600">Log in</a></div>
+      </div>
+
+      <div style="max-width:340px;margin:1.5rem auto 0;padding:.85rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;text-align:left">
+        <div style="font-size:.75rem;color:rgba(255,255,255,.5);line-height:1.6">
+          <strong style="color:#3498ec">Why sign in?</strong> Your posts get a <svg width="16" height="16" viewBox="0 0 24 24" fill="#3498ec" style="vertical-align:middle"><path d="M12 22c-1.1 0-2-.2-2.7-.6L3.5 18.2c-.4-.3-.7-.7-.9-1.1-.2-.5-.3-1-.3-1.5V8.4c0-.5.1-1 .3-1.5.2-.4.5-.8.9-1.1l5.8-3.2C10 2.2 11 2 12 2s2 .2 2.7.6l5.8 3.2c.4.3.7.7.9 1.1.2.5.3 1 .3 1.5v7.2c0 .5-.1 1-.3 1.5-.2.4-.5.8-.9 1.1l-5.8 3.2c-.7.4-1.6.6-2.7.6z"/><path d="M9 12l2 2 4-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> verified badge. Link your X account to enable $HELP tips.
+        </div>
+      </div>
+    </div>
+
+    <!-- Logged-in state -->
+    <div id="profile-main" style="display:none;padding:2rem 0">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+        <div>
+          <div style="font-size:1.3rem;font-weight:800;color:#fff" id="profile-display-name"></div>
+          <div style="font-size:.78rem;color:rgba(255,255,255,.4)" id="profile-email"></div>
+        </div>
+        <button onclick="doSignOut()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);border-radius:8px;padding:.35rem .9rem;font-size:.72rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;transition:all .15s">Sign Out</button>
+      </div>
+
+      <!-- Verification Section -->
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:1.3rem;margin-bottom:1.5rem">
+        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);margin-bottom:.5rem">Verify Your Accounts</div>
+        <div style="font-size:.82rem;color:rgba(255,255,255,.5);line-height:1.6;margin-bottom:1.1rem">Link your accounts to get a <svg width="16" height="16" viewBox="0 0 24 24" fill="#3498ec" style="vertical-align:middle"><path d="M12 22c-1.1 0-2-.2-2.7-.6L3.5 18.2c-.4-.3-.7-.7-.9-1.1-.2-.5-.3-1-.3-1.5V8.4c0-.5.1-1 .3-1.5.2-.4.5-.8.9-1.1l5.8-3.2C10 2.2 11 2 12 2s2 .2 2.7.6l5.8 3.2c.4.3.7.7.9 1.1.2.5.3 1 .3 1.5v7.2c0 .5-.1 1-.3 1.5-.2.4-.5.8-.9 1.1l-5.8 3.2c-.7.4-1.6.6-2.7.6z"/><path d="M9 12l2 2 4-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> <span style="color:#3498ec;font-weight:700">verified</span> badge on your posts. Linking X enables <strong style="color:#fff">$HELP</strong> tips from the community.</div>
+
+        <div class="p-verify-row">
+          <div class="p-verify-icon" style="background:#000;border:1.5px solid rgba(255,255,255,.15)">𝕏</div>
+          <div style="flex:1">
+            <div style="font-size:.86rem;font-weight:700;color:#fff">X / Twitter</div>
+            <div style="font-size:.7rem;color:rgba(255,255,255,.4)" id="verify-sub-x">Required for $HELP tips</div>
+          </div>
+          <button class="p-verify-btn p-verify-btn--link" id="verify-btn-x" onclick="linkX()">Link</button>
+        </div>
+        <div class="p-verify-row">
+          <div class="p-verify-icon" style="background:#1a1a1a">
+            <svg width="16" height="16" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:.86rem;font-weight:700;color:#fff">Google</div>
+            <div style="font-size:.7rem;color:rgba(255,255,255,.4)" id="verify-sub-google">Verifies your email automatically</div>
+          </div>
+          <button class="p-verify-btn" id="verify-btn-google" disabled>Coming Soon</button>
+        </div>
+        <div class="p-verify-row">
+          <div class="p-verify-icon" style="background:#229ED9"><svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg></div>
+          <div style="flex:1">
+            <div style="font-size:.86rem;font-weight:700;color:#fff">Telegram</div>
+            <div style="font-size:.7rem;color:rgba(255,255,255,.4)" id="verify-sub-tg">Verify your Telegram identity</div>
+          </div>
+          <button class="p-verify-btn p-verify-btn--link" id="verify-btn-tg" onclick="linkTelegram()">Link</button>
+        </div>
+
+        <div style="margin-top:1rem;padding:.7rem .85rem;background:rgba(52,152,236,.08);border:1px solid rgba(52,152,236,.15);border-radius:8px">
+          <div style="font-size:.75rem;color:rgba(255,255,255,.55);line-height:1.55">
+            <strong style="color:#3498ec">Why verify?</strong> Verified users get a <svg width="16" height="16" viewBox="0 0 24 24" fill="#3498ec" style="vertical-align:middle"><path d="M12 22c-1.1 0-2-.2-2.7-.6L3.5 18.2c-.4-.3-.7-.7-.9-1.1-.2-.5-.3-1-.3-1.5V8.4c0-.5.1-1 .3-1.5.2-.4.5-.8.9-1.1l5.8-3.2C10 2.2 11 2 12 2s2 .2 2.7.6l5.8 3.2c.4.3.7.7.9 1.1.2.5.3 1 .3 1.5v7.2c0 .5-.1 1-.3 1.5-.2.4-.5.8-.9 1.1l-5.8 3.2c-.7.4-1.6.6-2.7.6z"/><path d="M9 12l2 2 4-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> badge visible on all their posts. People offering spare rooms are more likely to get responses when their identity is verified. Linking X also enables the community to tip you <strong style="color:#fff">$HELP</strong> tokens as a thank you.
+          </div>
+        </div>
+      </div>
+
+      <!-- My Posts -->
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:1.3rem">
+        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);margin-bottom:.75rem">My Listings</div>
+        <div id="profile-posts-list"></div>
+      </div>
+
+      <!-- My Stranded Post -->
+      <div style="background:rgba(236,52,82,.06);border:1px solid rgba(236,52,82,.15);border-radius:14px;padding:1.3rem;margin-top:1rem">
+        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(236,52,82,.5);margin-bottom:.75rem">My Stranded Registration</div>
+        <div id="profile-stranded-list"></div>
+      </div>
+
+      <!-- Delete Account -->
+      <div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,.06);text-align:center">
+        <button onclick="deleteAccount()" style="background:none;border:1px solid rgba(236,52,82,.3);color:rgba(236,52,82,.6);border-radius:8px;padding:.4rem 1.2rem;font-family:Inter,sans-serif;font-size:.72rem;font-weight:600;cursor:pointer;transition:all .15s">Delete My Account</button>
+        <div style="font-size:.65rem;color:rgba(255,255,255,.2);margin-top:.4rem">Permanently removes your account, posts, and all associated data.
+      </div>
+
+      <!-- Panel: $HELP -->
+      <div id="fs-panel-help" class="fs-panel"></div>
+
+    </div>
+  </div>
+
+    
+  </div>
+</div>    </div>
   </div>
 </div>
 
@@ -1480,4 +1327,4 @@ function googleTranslateInit() {
 </div> 
 
 </body>
-</html> 
+</html>
