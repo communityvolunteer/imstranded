@@ -2770,26 +2770,17 @@ function renderGlobalDisruptions(map, data) {
         ? Math.round(strandedEst / 1000) + 'k'
         : strandedEst.toLocaleString();
 
-    // For airports with enough cancellations, show text inside the bubble like clusters
-    // Small airports (c < 200) stay as plain dots
-    const showInner = c >= 200;
-    const sz = showInner ? Math.max(radius * 2, 54) : radius * 2;
-    const dotHtml = showInner
-      ? '<div class="gd-cluster" style="width:'+sz+'px;height:'+sz+'px">' +
-          '<div class="gd-cluster-ring" style="inset:-6px"></div>' +
-          '<div class="gd-cluster-inner">' +
-            '<div class="gd-cluster-num">'+labelK+'</div>' +
-            '<div class="gd-cluster-lbl">impacted</div>' +
-          '</div>' +
-        '</div>'
-      : '<div class="gd-single" style="width:'+sz+'px;height:'+sz+'px">' +
-          '<div class="gd-single-dot" style="' +
-            'width:100%;height:100%;border-radius:50%;' +
-            'background:var(--accent);' +
-            'border:'+borderW+'px solid rgba(255,255,255,'+opacity+');' +
-            'box-shadow:0 0 '+(sz)+'px var(--accent-glow),0 2px 8px rgba(0,0,0,.5);' +
-          '"></div>' +
-        '</div>';
+    // All airports show their impact number
+    const sz = Math.max(radius * 2, 42);
+    const ringInset = c >= 200 ? 6 : 4;
+    const dotHtml =
+      '<div class="gd-cluster" style="width:'+sz+'px;height:'+sz+'px">' +
+        '<div class="gd-cluster-ring" style="inset:-'+ringInset+'px"></div>' +
+        '<div class="gd-cluster-inner">' +
+          '<div class="gd-cluster-num">'+labelK+'</div>' +
+          '<div class="gd-cluster-lbl">impacted</div>' +
+        '</div>' +
+      '</div>';
 
     const icon = L.divIcon({
       html: dotHtml,
