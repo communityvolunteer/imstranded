@@ -3632,7 +3632,7 @@ function initMobile(){
     window._mobileMap = mmap;
 
     try {
-      window._mTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mmap);
+      window._mTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mmap);
 
       mmap.createPane('worldwidePane');
       mmap.getPane('worldwidePane').style.zIndex = 580;
@@ -3669,6 +3669,17 @@ function initMobile(){
       }
 
       mRenderResources();
+
+      // Mobile defaults to light map
+      _mapDark = false;
+      document.body.classList.add('map-light');
+      document.querySelectorAll('.leaflet-control-zoom').forEach(el => el.classList.add('theme-light'));
+      ['','m-'].forEach(prefix => {
+        const sun = document.getElementById(prefix + 'theme-icon-sun');
+        const moon = document.getElementById(prefix + 'theme-icon-moon');
+        if (sun) sun.style.display = 'none';
+        if (moon) moon.style.display = 'block';
+      });
 
     } catch(e) {
       console.error('[initMobile] init error:', e.message, e.stack);
@@ -4605,7 +4616,9 @@ async function mRenderProfilePosts() {
   if (!list || !_currentUser) return;
   list.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:.82rem;padding:.5rem 0">Loading...</div>';
   try {
-    const { data, error } = await _sb.from('help_posts').select('id,location,body,name,post_type,lat,lng,created_at').eq('user_id', _currentUser.id).eq('type', 'offer').eq('flagged', false).order('created_at', { ascending: false });
+    const fetchPromise = _sb.from('help_posts').select('id,location,body,name,post_type,lat,lng,created_at').eq('user_id', _currentUser.id).eq('type', 'offer').eq('flagged', false).order('created_at', { ascending: false });
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), 8000));
+    const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
     if (error) throw error;
     if (!data || !data.length) {
       list.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:.82rem;padding:.5rem 0">No listings yet.</div>';
@@ -4625,7 +4638,7 @@ async function mRenderProfilePosts() {
     }).join('');
     injectMatchNotifications('m-my-posts-list');
   } catch (e) {
-    list.innerHTML = `<div style="color:#ec3452;font-size:.82rem;padding:.5rem 0">Error: ${e.message}</div>`;
+    list.innerHTML = `<div style="color:#ec3452;font-size:.82rem;padding:.5rem 0">Error: ${e.message} <button onclick="mRenderProfilePosts()" style="background:rgba(52,152,236,.15);color:#3498ec;border:none;border-radius:5px;padding:.2rem .5rem;font-size:.7rem;font-weight:600;cursor:pointer;margin-left:.3rem">Retry</button></div>`;
   }
 }
 
@@ -4648,8 +4661,10 @@ async function renderProfileStranded() {
     if (list) list.innerHTML = '<div style="font-size:.82rem;color:rgba(255,255,255,.4);padding:.3rem 0">Loading...</div>';
   });
   try {
-    const { data, error } = await _sb.from('stranded_people').select('id,name,current_location,current_lat,current_lng,destination,dest_airport,nationality,group_size,needs,stranded_since,details,status,created_at')
+    const fetchPromise = _sb.from('stranded_people').select('id,name,current_location,current_lat,current_lng,destination,dest_airport,nationality,group_size,needs,stranded_since,details,status,created_at')
       .eq('user_id', _currentUser.id).eq('status', 'active').order('created_at', { ascending: false });
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), 8000));
+    const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
     if (error) throw error;
     if (!data || !data.length) {
       [el, mel].forEach(list => {
@@ -4687,7 +4702,7 @@ async function renderProfileStranded() {
   } catch (e) {
     console.error('renderProfileStranded error:', e);
     [el, mel].forEach(list => {
-      if (list) list.innerHTML = `<div style="font-size:.82rem;color:#ec3452;padding:.3rem 0">Error loading: ${e.message}</div>`;
+      if (list) list.innerHTML = `<div style="font-size:.82rem;color:#ec3452;padding:.3rem 0">Error loading: ${e.message} <button onclick="renderProfileStranded()" style="background:rgba(52,152,236,.15);color:#3498ec;border:none;border-radius:5px;padding:.2rem .5rem;font-size:.7rem;font-weight:600;cursor:pointer;margin-left:.3rem">Retry</button></div>`;
     });
   }
 }
