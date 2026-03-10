@@ -4591,10 +4591,20 @@ async function deleteAccount() {
 }
 
 // ── Mobile Profile ───────────────────────────────────────
-function renderMobileProfileView() {
+async function renderMobileProfileView() {
   const loginEl = document.getElementById('m-profile-login');
   const mainEl = document.getElementById('m-profile-main');
   if (!loginEl || !mainEl) return;
+  // Refresh session if _currentUser is stale
+  if (!_currentUser) {
+    try {
+      const { data: { session } } = await _sb.auth.getSession();
+      if (session?.user) {
+        _currentUser = session.user;
+        if (!_currentProfile) await loadProfile();
+      }
+    } catch(e) {}
+  }
   if (isLoggedIn()) {
     loginEl.style.display = 'none';
     mainEl.style.display = 'block';
@@ -4613,12 +4623,18 @@ function renderMobileProfileView() {
 
 async function mRenderProfilePosts() {
   const list = document.getElementById('m-my-posts-list');
-  if (!list || !_currentUser) return;
+  if (!list) return;
+  if (!_currentUser) {
+    // Try refreshing session
+    try {
+      const { data: { session } } = await _sb.auth.getSession();
+      if (session?.user) { _currentUser = session.user; }
+      else { list.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:.82rem;padding:.5rem 0">Please sign in.</div>'; return; }
+    } catch(e) { list.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:.82rem;padding:.5rem 0">Please sign in.</div>'; return; }
+  }
   list.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:.82rem;padding:.5rem 0">Loading...</div>';
   try {
-    const fetchPromise = _sb.from('help_posts').select('id,location,body,name,post_type,lat,lng,created_at').eq('user_id', _currentUser.id).eq('type', 'offer').eq('flagged', false).order('created_at', { ascending: false });
-    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), 8000));
-    const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
+    const { data, error } = await _sb.from('help_posts').select('id,location,body,name,post_type,lat,lng,created_at').eq('user_id', _currentUser.id).eq('type', 'offer').eq('flagged', false).order('created_at', { ascending: false });
     if (error) throw error;
     if (!data || !data.length) {
       list.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:.82rem;padding:.5rem 0">No listings yet.</div>';
@@ -4656,15 +4672,20 @@ async function mProfileDeletePost(id) {
 async function renderProfileStranded() {
   const el = document.getElementById('profile-stranded-list');
   const mel = document.getElementById('m-stranded-posts-list');
-  if (!_currentUser) return;
+  if (!_currentUser) {
+    // Try refreshing session
+    try {
+      const { data: { session } } = await _sb.auth.getSession();
+      if (session?.user) { _currentUser = session.user; }
+      else return;
+    } catch(e) { return; }
+  }
   [el, mel].forEach(list => {
     if (list) list.innerHTML = '<div style="font-size:.82rem;color:rgba(255,255,255,.4);padding:.3rem 0">Loading...</div>';
   });
   try {
-    const fetchPromise = _sb.from('stranded_people').select('id,name,current_location,current_lat,current_lng,destination,dest_airport,nationality,group_size,needs,stranded_since,details,status,created_at')
+    const { data, error } = await _sb.from('stranded_people').select('id,name,current_location,current_lat,current_lng,destination,dest_airport,nationality,group_size,needs,stranded_since,details,status,created_at')
       .eq('user_id', _currentUser.id).eq('status', 'active').order('created_at', { ascending: false });
-    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), 8000));
-    const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
     if (error) throw error;
     if (!data || !data.length) {
       [el, mel].forEach(list => {
@@ -4672,10 +4693,31 @@ async function renderProfileStranded() {
       });
       return;
     }
-  const html = data.map(p => {
+  const html = [];
+  // Fetch match status for all stranded posts
+  const postIds = data.map(p => p.id);
+  let matchMap = {};
+  try {
+    const { data: matches } = await _sb.from('success_stories')
+      .select('stranded_post_id,offer_confirmed,home_lat')
+      .eq('stranded_user_id', _currentUser.id)
+      .in('stranded_post_id', postIds);
+    if (matches) for (const m of matches) matchMap[m.stranded_post_id] = m;
+  } catch(e) {}
+
+  for (const p of data) {
     const t = p.created_at ? new Date(p.created_at).toLocaleString() : '';
     const needsList = (p.needs || []).join(', ');
-    return `<div class="profile-post-card" style="border-color:rgba(236,52,82,.15)">
+    const match = matchMap[p.id];
+    const matchedLabel = match?.offer_confirmed ? '✓ Matched' : match ? 'Pending…' : 'Matched?';
+    const matchedStyle = match?.offer_confirmed
+      ? 'border-color:#22c55e;color:#22c55e;opacity:.7;cursor:default'
+      : match ? 'border-color:rgba(255,165,0,.4);color:rgba(255,165,0,.7);cursor:default' : '';
+    const homeLabel = match?.home_lat ? '✓ Home' : 'Home?';
+    const homeStyle = match?.home_lat
+      ? 'border-color:#22c55e;color:#22c55e;opacity:.7;cursor:default'
+      : match?.offer_confirmed ? 'border-color:rgba(34,197,94,.25);color:rgba(34,197,94,.6)' : 'border-color:rgba(255,255,255,.1);color:rgba(255,255,255,.2);cursor:default';
+    html.push(`<div class="profile-post-card" style="border-color:rgba(236,52,82,.15)">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">
         <span style="font-size:.82rem;font-weight:700;color:#ec3452">${p.name || 'Anonymous'}</span>
         <span style="font-size:.63rem;color:rgba(255,255,255,.35)">${t}</span>
@@ -4686,19 +4728,20 @@ async function renderProfileStranded() {
       ${needsList ? '<div style="font-size:.72rem;color:#e67e22;margin-top:.2rem">Needs: '+needsList+'</div>' : ''}
       ${p.details ? '<div style="font-size:.78rem;color:rgba(255,255,255,.45);line-height:1.4;margin-top:.2rem">'+p.details.slice(0,120)+'</div>' : ''}
       <div class="profile-post-actions">
-        <button class="found-place-btn" onclick="openMatchPicker('${p.id}','${p.current_lat||0}','${p.current_lng||0}','${(p.name||'').replace(/'/g,"\\'")}','${(p.current_location||'').replace(/'/g,"\\'")}')">
-          Matched?
+        <button class="found-place-btn" style="${matchedStyle}" onclick="openMatchPicker('${p.id}','${p.current_lat||0}','${p.current_lng||0}','${(p.name||'').replace(/'/g,"\\'")}','${(p.current_location||'').replace(/'/g,"\\'")}')">
+          ${matchedLabel}
         </button>
-        <button class="found-place-btn" style="border-color:rgba(34,197,94,.25);color:rgba(34,197,94,.6)" onclick="checkAndOpenGoHome('${p.id}')">
-          Home?
+        <button class="found-place-btn" style="${homeStyle}" onclick="${match?.offer_confirmed && !match?.home_lat ? "checkAndOpenGoHome('"+p.id+"')" : 'void(0)'}">
+          ${homeLabel}
         </button>
         <button onclick="editStrandedPost('${p.id}')" style="background:rgba(52,152,236,.15);color:#3498ec;border:1px solid rgba(52,152,236,.25);border-radius:6px;padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Edit</button>
         <button onclick="deleteStrandedPost('${p.id}')" style="background:#ec3452;color:#fff;border:none;border-radius:6px;padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Delete</button>
       </div>
-    </div>`;
-  }).join('');
-  if (el) el.innerHTML = html;
-  if (mel) mel.innerHTML = html;
+    </div>`);
+  }
+  const htmlStr = html.join('');
+  if (el) el.innerHTML = htmlStr;
+  if (mel) mel.innerHTML = htmlStr;
   } catch (e) {
     console.error('renderProfileStranded error:', e);
     [el, mel].forEach(list => {
@@ -5464,7 +5507,13 @@ async function checkUserRole(attemptingType) {
 let _matchPickerStrandedId = null;
 
 async function openMatchPicker(strandedPostId, strandedLat, strandedLng, strandedName, strandedLocation) {
-  if (!isLoggedIn()) { alert('Please sign in first.'); return; }
+  if (!isLoggedIn()) {
+    try {
+      const { data: { session } } = await _sb.auth.getSession();
+      if (session?.user) { _currentUser = session.user; }
+      else { alert('Please sign in first.'); return; }
+    } catch(e) { alert('Please sign in first.'); return; }
+  }
   _matchPickerStrandedId = strandedPostId;
 
   const { data: existing } = await _sb.from('success_stories')
@@ -5613,6 +5662,7 @@ async function submitStory(storyId, side) {
   try {
     if (text) await _sb.from('success_stories').update({ [field]: text }).eq('id', storyId);
     await loadSuccessStories();
+    renderProfileStranded();
     closeStoryModal();
   } catch(e) { alert('Error saving story: ' + e.message); }
 }
@@ -5623,15 +5673,25 @@ function closeStoryModal() { document.getElementById('story-modal').classList.re
 let _goHomeStoryId = null;
 
 async function checkAndOpenGoHome(strandedPostId) {
-  if (!isLoggedIn()) { alert('Please sign in first.'); return; }
-  const { data } = await _sb.from('success_stories')
-    .select('id,offer_confirmed,home_lat')
-    .eq('stranded_post_id', strandedPostId)
-    .eq('stranded_user_id', _currentUser.id)
-    .eq('offer_confirmed', true)
-    .maybeSingle();
-  if (!data) { alert('You need a confirmed match first before marking yourself as home.'); return; }
-  openGoHomePrompt(data.id);
+  if (!isLoggedIn()) {
+    try {
+      const { data: { session } } = await _sb.auth.getSession();
+      if (session?.user) { _currentUser = session.user; }
+      else { alert('Please sign in first.'); return; }
+    } catch(e) { alert('Please sign in first.'); return; }
+  }
+  try {
+    const { data, error } = await _sb.from('success_stories')
+      .select('id,offer_confirmed,home_lat')
+      .eq('stranded_post_id', strandedPostId)
+      .eq('stranded_user_id', _currentUser.id)
+      .eq('offer_confirmed', true)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) { alert('You need a confirmed match first. Tap "Matched?" to select your host — they\'ll approve it from their profile.'); return; }
+    if (data.home_lat) { alert('You\'ve already marked yourself as home!'); return; }
+    openGoHomePrompt(data.id);
+  } catch(e) { alert('Error checking match: ' + e.message + '. Try again.'); }
 }
 
 async function openGoHomePrompt(storyId) {
