@@ -1707,12 +1707,17 @@ function openFormSidebar(which) {
   const sb    = document.getElementById('form-sidebar');
   const title = document.getElementById('form-sidebar-title');
   if (!sb) return;
+  // Toggle: clicking the same panel again closes the sidebar
+  if (sb.classList.contains('open') && sb.dataset.panel === which) {
+    closeFormSidebar(); return;
+  }
   // 'stranded' lives inside the 'offer' panel — map accordingly
   const panelId = (which === 'stranded') ? 'offer' : which;
   document.querySelectorAll('.fs-panel').forEach(p => p.classList.remove('fs-active'));
   const panel = document.getElementById('fs-panel-' + panelId);
   if (panel) panel.classList.add('fs-active');
   if (title) title.textContent = _fsTitles[which] || which.toUpperCase();
+  sb.dataset.panel = which;
   sb.classList.add('open');
   if (which === 'stranded') { switchHelpMode('stranded'); }
   if (which === 'offer')    { switchHelpMode('helper'); renderPosts(); }
@@ -1720,7 +1725,7 @@ function openFormSidebar(which) {
 }
 function closeFormSidebar() {
   const sb = document.getElementById('form-sidebar');
-  if (sb) sb.classList.remove('open');
+  if (sb) { sb.classList.remove('open'); sb.dataset.panel = ''; }
 }
 
 // ============================================================
@@ -4196,7 +4201,7 @@ async function profileEditPost(id) {
   document.getElementById('offer-body').value = data.body || '';
   document.getElementById('offer-name').value = data.name || '';
   // Switch to help view, offer panel
-  showView('help');
+  if(!isMob()) openFormSidebar('offer'); else { mTab('offer',null); }
   switchHelpMode('helper');
   // Change button
   const btn = document.querySelector('.submit-btn--offer');
@@ -4459,8 +4464,7 @@ async function editStrandedPost(id) {
   if (isMobile) {
     mTab('stranded', null);
   } else {
-    showView('help');
-    switchHelpMode('stranded');
+    if(!isMob()) openFormSidebar('stranded'); else mTab('stranded',null);
   }
 
   // Change submit button
@@ -4713,7 +4717,7 @@ function helpFilterVerifiedOnly() {
 
 function openStrandedForm() {
   if (isMob()) { mTab('stranded', null); }
-  else { showView('help'); switchHelpMode('stranded'); }
+  else { openFormSidebar('stranded'); }
 }
 
 function closeStrandedForm() {
