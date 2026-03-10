@@ -3192,8 +3192,9 @@ function flipStrandedStats(targetNum) {
 }
 
 function flyAndDismissOverlay() {
+  console.log('[flyAndDismiss] called, overlay:', !!document.getElementById('intro-overlay'), 'dismissed:', document.getElementById('intro-overlay')?._dismissed);
   const overlay = document.getElementById('intro-overlay');
-  if (!overlay || overlay._dismissed) return;
+  if (!overlay || overlay._dismissed) { console.log('[flyAndDismiss] skipped (no overlay or already dismissed)'); return; }
   overlay._dismissed = true;
 
   const mob = window.innerWidth <= 600;
@@ -3268,6 +3269,7 @@ function flyAndDismissOverlay() {
 }
 
 async function refreshSitrep() {
+  console.log('[refreshSitrep] start');
   const icon=document.getElementById('refresh-icon');
   if(icon) icon.classList.add('spinning');
   try {
@@ -3310,6 +3312,7 @@ async function refreshSitrep() {
   document.querySelectorAll('.stat-loading').forEach(el => el.classList.remove('stat-loading'));
 
   // Fly intro overlay icons to their real positions, then fade out
+  console.log('[refreshSitrep] calling flyAndDismissOverlay');
   flyAndDismissOverlay();
 
   // ── Inject +Today labels ────────────────────────────────────
@@ -3388,6 +3391,7 @@ async function refreshSitrep() {
   } catch(e) {
     console.error('[refreshSitrep] uncaught error:', e);
   } finally {
+    console.log('[refreshSitrep] finally — calling flyAndDismissOverlay');
     flyAndDismissOverlay();
     if(icon) icon.classList.remove('spinning');
   }
@@ -5430,6 +5434,7 @@ async function downloadPoolCSV() {
 window.downloadPoolCSV = downloadPoolCSV;
 
 window.addEventListener('DOMContentLoaded',()=>{
+  console.log('[INIT] DOMContentLoaded fired');
   initAccent();
   if(isMob()){ initMobile(); }
   else {
@@ -5452,9 +5457,10 @@ window.addEventListener('DOMContentLoaded',()=>{
     const el = document.getElementById(id);
     if (el) el.innerHTML = '<span style="letter-spacing:.05em;color:rgba(255,255,255,.15)">— — — —</span>';
   });
-  refreshSitrep(); 
+  console.log('[INIT] calling refreshSitrep...');
+  refreshSitrep().then(()=>console.log('[INIT] refreshSitrep resolved')).catch(e=>console.error('[INIT] refreshSitrep rejected:',e));
   // Hard fallback — if refreshSitrep fails or hangs, dismiss overlay after 8s
-  setTimeout(() => flyAndDismissOverlay(), 8000);
+  setTimeout(() => { console.log('[INIT] 8s fallback firing'); flyAndDismissOverlay(); }, 8000);
   // Data refreshes on page load only — no polling interval.
   if(SB_ON){loadPosts();loadSuccessStories();subscribeStream();}
   else{
