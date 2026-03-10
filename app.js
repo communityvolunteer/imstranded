@@ -2002,20 +2002,7 @@ function initMap() {
   map.createPane('countryPane');
   map.getPane('countryPane').style.zIndex = 640;
 
-  COUNTRIES.forEach(c => {
-    const col = getSC()[c.status];
-    const glow = L.circleMarker(c.coords,{pane:'countryPane',interactive:false,radius:28,fillColor:'#ec3452',color:'#ec3452',weight:0,opacity:0,fillOpacity:.12}).addTo(map);
-    const dot  = L.circleMarker(c.coords,{pane:'countryPane',interactive:true,radius:8,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.95}).addTo(map)
-      .bindPopup(`<div style="font-family:Inter,sans-serif;min-width:240px">
-        <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#fcd34d;margin-bottom:.4rem">${c.name}</div>
-        <div style="font-size:.82rem;color:rgba(255,255,255,.85);line-height:1.55;margin-bottom:.6rem">${c.advisory}</div>
-        <div style="font-size:.72rem;margin-bottom:.75rem;color:rgba(255,255,255,.6)">Airspace: <strong style="color:${c.airspace==='CLOSED'?'#ec3452':c.airspace.includes('OPEN')?'#17bc7b':'#fcd34d'}">${c.airspace}</strong></div>
-        ${c.telegram?`<a href="${c.telegram}" style="color:#3498ec;font-size:.76rem;font-weight:500;display:block;margin-bottom:.6rem" target="_blank">→ Telegram group</a>`:''}
-        <button onclick="window.showCountryDetail('${c.id}')" style="background:#3498ec;border:none;color:#fff;font-family:Inter,sans-serif;font-size:.82rem;font-weight:700;padding:.55rem 1rem;cursor:pointer;border-radius:8px;width:100%">Full info &amp; embassies →</button>
-      </div>`);
-    _mk.country.push({marker:glow,status:c.status});
-    _mk.country.push({marker:dot,status:c.status});
-  });
+  // COUNTRIES status dots suppressed — cluster system replaces these
 
   // WORLDWIDE static dots suppressed — replaced by live cluster system
 
@@ -3388,14 +3375,7 @@ function initMobile(){
       _mk.country = [];
       _mk.worldwide = [];
 
-      COUNTRIES.forEach(c => {
-        const col = getSC()[c.status];
-        const mglow = L.circleMarker(c.coords, {pane:'countryPane',interactive:false,radius:28,fillColor:'#ec3452',color:'#ec3452',weight:0,opacity:0,fillOpacity:.12}).addTo(mmap);
-        const mdot  = L.circleMarker(c.coords, {pane:'countryPane',interactive:true,radius:10,fillColor:col,color:'#fff',weight:2,opacity:1,fillOpacity:.92}).addTo(mmap)
-          .on('click', () => openMCountryPopup(c.id));
-        _mk.country.push({marker:mglow,status:c.status});
-        _mk.country.push({marker:mdot,status:c.status});
-      });
+      // COUNTRIES status dots suppressed — cluster system replaces these
       // WORLDWIDE static dots suppressed — replaced by live cluster system
 
       _mHelpCluster = L.markerClusterGroup({
