@@ -1779,3 +1779,80 @@ html.translated-ltr body,html.translated-rtl body{top:0 !important;}
 .gd-single:hover .gd-single-label {
   opacity: 1;
 }
+
+/* ══════════════════════════════════════════════════════════════
+   RIGHT SIDEBAR — PC fly-in for offer / stranded / help / profile
+══════════════════════════════════════════════════════════════ */
+#rs-backdrop {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.52);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  z-index: 1098;
+}
+#rs-backdrop.open { display: block; }
+
+#right-sidebar {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: 480px;
+  z-index: 1099;
+  background: rgba(10,10,14,.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-left: 1px solid rgba(255,255,255,.08);
+  transform: translateX(100%);
+  transition: transform .32s cubic-bezier(.4,0,.2,1);
+  display: flex;
+  flex-direction: column;
+  box-shadow: -8px 0 40px rgba(0,0,0,.5);
+}
+#right-sidebar.open { transform: translateX(0); }
+
+#rs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .9rem 1.2rem;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  flex-shrink: 0;
+}
+#rs-title {
+  font-size: .72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: rgba(255,255,255,.5);
+}
+#rs-close {
+  background: none; border: none;
+  color: rgba(255,255,255,.35);
+  cursor: pointer; padding: 4px; line-height: 0;
+  transition: color .15s;
+}
+#rs-close:hover { color: #fff; }
+
+#rs-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem 1.3rem 2rem;
+  overscroll-behavior: contain;
+}
+
+.rs-panel { display: none; }
+.rs-panel.rs-active { display: block; }
+
+/* Inside rs-body — remove max-width containers, reset margins */
+#rs-body .container { max-width: 100% !important; padding: 0 !important; }
+#rs-body #help-panel-offer { display: block !important; grid-template-columns: 1fr !important; gap: 1rem !important; }
+#rs-body #profile-login,
+#rs-body #profile-main { padding: .5rem 0 !important; }
+/* Strip the help-money-modal chrome since we're in the sidebar already */
+#rs-body .help-panel-inner { padding: 0; box-shadow: none; border-radius: 0; max-height: none; overflow: visible; }
+#rs-body .help-panel-x { display: none; }
+
+/* Hide on mobile — everything stays in mobile tabs */
+@media (max-width: 768px) {
+  #right-sidebar, #rs-backdrop { display: none !important; }
+}

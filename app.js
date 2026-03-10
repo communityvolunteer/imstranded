@@ -1677,6 +1677,12 @@ function filterMap(type) {
 // VIEW SWITCHING
 // ============================================================
 function showView(name) {
+  // On PC, help and profile open as right sidebar fly-ins
+  if (!isMob() && (name === 'help' || name === 'profile')) {
+    const panel = name === 'profile' ? 'profile' : 'offer';
+    openRightSidebar(panel);
+    return;
+  }
   document.querySelectorAll('.view').forEach(v => {
     v.classList.remove('active');
     v.style.display = '';
@@ -1689,8 +1695,43 @@ function showView(name) {
   if (name === 'resources' && navBtns[1]) navBtns[1].classList.add('active');
   if (name === 'map' && !window._mapInit) initMap();
   if (name === 'resources') renderResources();
-  if (name === 'help') { renderPosts(); }
-  if (name === 'profile') { renderProfileView(); }
+  if (name === 'map') closeRightSidebar();
+}
+
+// ── RIGHT SIDEBAR ─────────────────────────────────────────────────────────
+const _rsTitles = {
+  offer:    'OFFER A SPARE ROOM',
+  stranded: "I'M STRANDED",
+  help:     '$HELP · COMMUNITY TIPS',
+  profile:  'MY PROFILE',
+};
+
+function openRightSidebar(which) {
+  const sidebar  = document.getElementById('right-sidebar');
+  const backdrop = document.getElementById('rs-backdrop');
+  const title    = document.getElementById('rs-title');
+  if (!sidebar) return;
+
+  // Hide all panels, show requested
+  document.querySelectorAll('.rs-panel').forEach(p => p.classList.remove('rs-active'));
+  const panel = document.getElementById('rs-panel-' + which);
+  if (panel) panel.classList.add('rs-active');
+
+  if (title) title.textContent = _rsTitles[which] || which.toUpperCase();
+  sidebar.classList.add('open');
+  if (backdrop) backdrop.classList.add('open');
+
+  // Trigger any needed renders
+  if (which === 'profile')  renderProfileView();
+  if (which === 'offer')    renderPosts();
+  if (which === 'stranded') renderPosts();
+}
+
+function closeRightSidebar() {
+  const sidebar  = document.getElementById('right-sidebar');
+  const backdrop = document.getElementById('rs-backdrop');
+  if (sidebar)  sidebar.classList.remove('open');
+  if (backdrop) backdrop.classList.remove('open');
 }
 
 // ============================================================
@@ -2990,7 +3031,7 @@ function renderPosts() {
 }
 
 async function submitPost(type) {
-  if (!isLoggedIn()) { alert('Please sign in first to post.'); showView('profile'); return; }
+  if (!isLoggedIn()) { alert('Please sign in first to post.'); isMob()?mTab('profile',null):openRightSidebar('profile'); return; }
   if (type === 'offer') {
     const roleErr = await checkUserRole('offer');
     if (roleErr) { alert(roleErr); return; }
@@ -3618,8 +3659,7 @@ async function initAuth() {
     // Check if we just came back from OAuth
     if (sessionStorage.getItem('postLogin') === 'profile') {
       sessionStorage.removeItem('postLogin');
-      if (!isMob()) showView('profile');
-      else mTab('profile', document.getElementById('mtab-help'));
+      if (!isMob()) openRightSidebar('profile'); else mTab('profile', document.getElementById('mtab-help'));
     }
   }
   // Listen for auth changes (login, logout, token refresh)
@@ -3645,7 +3685,7 @@ async function initAuth() {
 
       if (sessionStorage.getItem('postLogin') === 'profile') {
         sessionStorage.removeItem('postLogin');
-        if (!isMob()) showView('profile');
+        if (!isMob()) openRightSidebar('profile');
         else mTab('profile', document.getElementById('mtab-help'));
       }
     } else if (event === 'SIGNED_OUT') {
@@ -3886,7 +3926,7 @@ async function checkXRedirect() {
     window.location.hash = '';
     if (isLoggedIn()) {
       await loadProfile();
-      if (!isMob()) showView('profile');
+      if (!isMob()) openRightSidebar('profile');
       else mTab('profile', document.getElementById('mtab-help'));
     }
     return;
@@ -3936,7 +3976,7 @@ async function checkXRedirect() {
     window.location.hash = '';
     if (isLoggedIn()) {
       await loadProfile();
-      if (!isMob()) showView('profile');
+      if (!isMob()) openRightSidebar('profile');
       else mTab('profile', document.getElementById('mtab-help'));
     }
   }
@@ -3983,7 +4023,7 @@ async function finishXLink(userId, accessToken) {
   }).eq('id', userId);
   if (error) { alert('Failed to link X: ' + error.message); return; }
   await loadProfile();
-  if (!isMob()) showView('profile');
+  if (!isMob()) openRightSidebar('profile');
   else mTab('profile', document.getElementById('mtab-help'));
 }
 
@@ -4169,8 +4209,7 @@ async function profileEditPost(id) {
   document.getElementById('offer-body').value = data.body || '';
   document.getElementById('offer-name').value = data.name || '';
   // Switch to help view, offer panel
-  showView('help');
-  switchHelpMode('helper');
+  if(!isMob()) openRightSidebar('offer'); else { showView('help'); switchHelpMode('helper'); }
   // Change button
   const btn = document.querySelector('.submit-btn--offer');
   if (btn) { btn.textContent = 'Update Post'; btn.onclick = () => submitEditPost('offer'); }
@@ -4216,7 +4255,7 @@ async function submitEditPost(type) {
     cancelEdit('offer');
     loadPosts();
     renderProfilePosts();
-    showView('profile');
+    if(!isMob()) openRightSidebar('profile'); else mTab('profile',null);
   } catch (e) { alert('Failed to update: ' + e.message); if (btn) { btn.textContent = 'Update Post'; btn.disabled = false; } }
 }
 
@@ -4432,8 +4471,7 @@ async function editStrandedPost(id) {
   if (isMobile) {
     mTab('stranded', null);
   } else {
-    showView('help');
-    switchHelpMode('stranded');
+    if(!isMob()) openRightSidebar('stranded'); else { showView('help'); switchHelpMode('stranded'); }
   }
 
   // Change submit button
@@ -4486,7 +4524,7 @@ async function submitStrandedEdit(prefix) {
     renderProfileStranded();
     loadStranded();
     if (prefix.startsWith('m-')) mTab('profile', null);
-    else showView('profile');
+    else { if(!isMob()) openRightSidebar('profile'); else mTab('profile',null); }
   } catch (e) {
     alert('Failed to update: ' + e.message);
     if (btn) { btn.textContent = 'Update Registration'; btn.disabled = false; }
@@ -4621,7 +4659,7 @@ function refreshHelpPanel() {
     if (s1btn) {
       s1btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Connect X in Profile`;
       s1btn.className = 'hstep-btn hstep-btn--x';
-      s1btn.onclick = () => { toggleHelpPanel(); isMob() ? mTab('profile', null) : showView('profile'); };
+      s1btn.onclick = () => { isMob()?mTab('profile',null):openRightSidebar('profile'); };
     }
   }
 
@@ -4686,7 +4724,7 @@ function helpFilterVerifiedOnly() {
 
 function openStrandedForm() {
   if (isMob()) { mTab('stranded', null); }
-  else { showView('help'); switchHelpMode('stranded'); }
+  else { if(!isMob()) openRightSidebar('stranded'); else { showView('help'); switchHelpMode('stranded'); } }
 }
 
 function closeStrandedForm() {
@@ -5365,3 +5403,18 @@ window.addEventListener('DOMContentLoaded',()=>{
   }
 });
 window.addEventListener('resize',()=>{if(isMob()&&!window._mobileInit)initMobile();});
+// ── RS-PANEL $HELP tab switcher (sidebar copy has rs- prefixed IDs) ──────
+function rsSwitchHelpTab(tab) {
+  const send = document.getElementById('rs-help-send-panel');
+  const recv = document.getElementById('rs-help-receive-panel');
+  const bSend = document.getElementById('rs-htab-send');
+  const bRecv = document.getElementById('rs-htab-receive');
+  if (!send) return;
+  if (tab === 'send') {
+    send.style.display = 'block'; recv.style.display = 'none';
+    bSend?.classList.add('active'); bRecv?.classList.remove('active');
+  } else {
+    send.style.display = 'none'; recv.style.display = 'block';
+    bSend?.classList.remove('active'); bRecv?.classList.add('active');
+  }
+}
