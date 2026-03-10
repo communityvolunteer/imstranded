@@ -3270,7 +3270,7 @@ function flyAndDismissOverlay() {
 async function refreshSitrep() {
   const icon=document.getElementById('refresh-icon');
   if(icon) icon.classList.add('spinning');
-
+  try {
   const liveStats = await fetchSitrepFromSupabase();
   const totalCancelled = AIRPORT_DATA.reduce((s,a)=>s+a.cancelled,0);
   const totalStranded  = AIRPORT_DATA.reduce((s,a)=>s+a.stranded,0);
@@ -3385,6 +3385,12 @@ async function refreshSitrep() {
       }
     }, 1600);
   });
+  } catch(e) {
+    console.error('[refreshSitrep] uncaught error:', e);
+  } finally {
+    flyAndDismissOverlay();
+    if(icon) icon.classList.remove('spinning');
+  }
 }
 
 // ============================================================
