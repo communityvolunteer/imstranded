@@ -1707,8 +1707,10 @@ function openFormSidebar(which) {
   const sb    = document.getElementById('form-sidebar');
   const title = document.getElementById('form-sidebar-title');
   if (!sb) return;
+  // 'stranded' lives inside the 'offer' panel — map accordingly
+  const panelId = (which === 'stranded') ? 'offer' : which;
   document.querySelectorAll('.fs-panel').forEach(p => p.classList.remove('fs-active'));
-  const panel = document.getElementById('fs-panel-' + which);
+  const panel = document.getElementById('fs-panel-' + panelId);
   if (panel) panel.classList.add('fs-active');
   if (title) title.textContent = _fsTitles[which] || which.toUpperCase();
   sb.classList.add('open');

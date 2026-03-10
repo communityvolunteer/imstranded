@@ -446,7 +446,7 @@ function googleTranslateInit() {
   <div class="help-panel-inner">
 
     <!-- Close -->
-    <button onclick="toggleHelpPanel()" class="help-panel-x" aria-label="Close">
+    <button onclick="closeFormSidebar()" class="help-panel-x" aria-label="Close">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
 
@@ -474,7 +474,7 @@ function googleTranslateInit() {
         <div class="hstep-body">
           <div class="hstep-title">Connect X / Twitter</div>
           <div class="hstep-desc" id="fs-hs-s1-desc">Link your X account so @bankrbot can process your tips.</div>
-          <button class="hstep-btn hstep-btn--blue" id="fs-hs-s1-btn" onclick="toggleHelpPanel();isMob()?mTab('profile',null):showView('profile')">
+          <button class="hstep-btn hstep-btn--blue" id="fs-hs-s1-btn" onclick="closeFormSidebar();isMob()?mTab('profile',null):openFormSidebar('profile')">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
             Connect X in Profile
           </button>
@@ -497,7 +497,7 @@ function googleTranslateInit() {
             </span>
             profiles on the map.
           </div>
-          <button class="hstep-btn hstep-btn--purple" onclick="toggleHelpPanel();helpFilterVerifiedOnly()">
+          <button class="hstep-btn hstep-btn--purple" onclick="closeFormSidebar();helpFilterVerifiedOnly()">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
             Try it — Show Verified Profiles
           </button>
@@ -539,17 +539,17 @@ function googleTranslateInit() {
             <div class="hstep-social-row" id="fs-hr-check-x">
               <span class="hstep-social-dot" id="fs-hr-dot-x"></span>
               <span>X / Twitter</span>
-              <button class="hstep-link-btn" id="fs-hr-btn-x" onclick="toggleHelpPanel();isMob()?mTab('profile',null):showView('profile')">Connect</button>
+              <button class="hstep-link-btn" id="fs-hr-btn-x" onclick="closeFormSidebar();isMob()?mTab('profile',null):openFormSidebar('profile')">Connect</button>
             </div>
             <div class="hstep-social-row" id="fs-hr-check-tg">
               <span class="hstep-social-dot" id="fs-hr-dot-tg"></span>
               <span>Telegram</span>
-              <button class="hstep-link-btn" id="fs-hr-btn-tg" onclick="toggleHelpPanel();isMob()?mTab('profile',null):showView('profile')">Connect</button>
+              <button class="hstep-link-btn" id="fs-hr-btn-tg" onclick="closeFormSidebar();isMob()?mTab('profile',null):openFormSidebar('profile')">Connect</button>
             </div>
             <div class="hstep-social-row" id="fs-hr-check-g">
               <span class="hstep-social-dot" id="fs-hr-dot-g"></span>
               <span>Google</span>
-              <button class="hstep-link-btn" id="fs-hr-btn-g" onclick="toggleHelpPanel();isMob()?mTab('profile',null):showView('profile')">Connect</button>
+              <button class="hstep-link-btn" id="fs-hr-btn-g" onclick="closeFormSidebar();isMob()?mTab('profile',null):openFormSidebar('profile')">Connect</button>
             </div>
           </div>
           <div class="hstep-bankr-note">
