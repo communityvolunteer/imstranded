@@ -442,7 +442,7 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 .post-form-header--offer{color:#fff;background:#3498ec;border-left:3px solid #3498ec;}
 .post-form-header--live{color:#fff;background:#3498ec;border-left:3px solid #3498ec;}
 
-.post-form{background:#000;padding:1.25rem;margin-bottom:1.25rem;}
+.post-form{background:#000;border:1px solid #2e2e2f;border-radius:0 var(--radius-sm) var(--radius-sm);border-top:none;padding:1.25rem;margin-bottom:1.25rem;}
 .form-note{font-size:.78rem;color:#1c1e22;line-height:1.5;margin-bottom:1rem;background:#c9d5ed;border-radius:6px;padding:.6rem .75rem;border-left:3px solid var(--accent);}
 .form-row{margin-bottom:.9rem;}
 .form-row label{display:block;font-size:.72rem;font-weight:600;color:#c9d5ed;margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.04em;}
@@ -1405,9 +1405,7 @@ html.translated-ltr body,html.translated-rtl body{top:0 !important;}
   top: 0; right: 0; bottom: 0;
   width: 320px;
   z-index: 950;
-  background: rgba(7,7,12,.97);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  background: rgba(7,7,12,1);
   border-left: 1px solid rgba(255,255,255,.08);
   box-shadow: -8px 0 40px rgba(0,0,0,.6);
   transform: translateX(100%);
@@ -1775,9 +1773,7 @@ font-size: clamp(.45rem, 1.2vw, .58rem);
   top: 0; right: 0; bottom: 0;
   width: 400px;
   z-index: 1050;
-  background: rgba(7,7,12,.97);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  background: rgba(7,7,12,1);
   border-left: 1px solid rgba(255,255,255,.08);
   box-shadow: -8px 0 40px rgba(0,0,0,.6);
   transform: translateX(100%);
