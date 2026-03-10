@@ -568,6 +568,8 @@ let _mHelpCluster = null;
 let _postMarkers = [];
 let posts = [];
 let _globalPins = [];
+let _globalCluster = null;
+let _mGlobalCluster = null;
 let _activeFilter = 'all';
 
 function timeAgo(dateStr) {
@@ -1410,6 +1412,9 @@ function clearGlobalArcs() {
     [window._crisisMap, window._mobileMap].forEach(m => { if (m) try { m.removeLayer(line); } catch(e) {} });
   });
   _meArcLines = [];
+  // Remove global disruption cluster layers
+  if (window._globalCluster && window._crisisMap)  { try { window._crisisMap.removeLayer(window._globalCluster);  } catch(e) {} window._globalCluster = null; }
+  if (window._mGlobalCluster && window._mobileMap) { try { window._mobileMap.removeLayer(window._mGlobalCluster); } catch(e) {} window._mGlobalCluster = null; }
 }
 
 // ── INTRA-ME ROUTE ARCS (orange/amber) ─────────────────
@@ -1969,6 +1974,18 @@ function initAccent() {
 // ============================================================
 // INIT MAP
 // ============================================================
+// Applies leaflet-zoom-level-N class to map container so CSS can show/hide labels
+function applyZoomClass(map, container) {
+  if (!container) return;
+  function setClass() {
+    const z = map.getZoom();
+    container.className = container.className.replace(/leaflet-zoom-level-\d+/g, '').trim();
+    container.classList.add('leaflet-zoom-level-' + z);
+  }
+  map.on('zoomend', setClass);
+  setTimeout(setClass, 400);
+}
+
 function initMap() {
   window._mapInit = true;
   const map = L.map('crisis-map',{zoomControl:false,attributionControl:false}).setView([28,45],5);
@@ -1978,6 +1995,7 @@ function initMap() {
   }).addTo(map);
 
   // Custom panes — layered for proper visibility
+  applyZoomClass(map, document.getElementById('crisis-map'));
   map.createPane('worldwidePane');
   map.getPane('worldwidePane').style.zIndex = 580;
   map.createPane('airportGlowPane');
@@ -2247,6 +2265,19 @@ function buildDualPopup(iata) {
     '<div id="gph-' + uid + '" style="display:none">' + buildPanel(hCancelled, hStranded, hRoutes, hAirlines, homeMode, hHubCities) + '</div>' +
     
     embBtn +
+
+    // ── CTA: Offer a Spare Room ──
+    '<div style="margin-top:1rem;padding-top:.85rem;border-top:1px solid rgba(255,255,255,.07)">' +
+      '<button onclick="(document.getElementById(\'offer-btn\') || document.getElementById(\'m-offer-btn\'))?.click()" ' +
+        'style="width:100%;padding:.65rem .8rem;border-radius:10px;cursor:pointer;font-family:Inter,sans-serif;font-size:.76rem;font-weight:800;letter-spacing:.02em;' +
+        'background:rgba(52,152,236,.12);color:#3498ec;border:1px solid rgba(52,152,236,.28);' +
+        'display:flex;align-items:center;justify-content:center;gap:.45rem;transition:background .15s" ' +
+        'onmouseover="this.style.background=\'rgba(52,152,236,.22)\'" onmouseout="this.style.background=\'rgba(52,152,236,.12)\'">' +
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>' +
+        'Offer a Spare Room' +
+      '</button>' +
+    '</div>' +
+
   '</div>';
 }
 
@@ -2585,55 +2616,106 @@ function renderGlobalDisruptions(map, data) {
   if (!map) return;
   const disruptions = data || _globalDisruptions;
   if (!disruptions || !disruptions.length) return;
-  
+
+  const isMobileMap = (map === window._mobileMap);
+
+  // Remove existing cluster for this map
+  const existingCluster = isMobileMap ? window._mGlobalCluster : window._globalCluster;
+  if (existingCluster) { try { map.removeLayer(existingCluster); } catch(e) {} }
+
+  const cluster = L.markerClusterGroup({
+    maxClusterRadius: function(zoom) {
+      // Wide radius zoomed out = continent blobs; tight zoomed in = per-airport
+      if (zoom <= 2)  return 220;
+      if (zoom <= 3)  return 160;
+      if (zoom <= 4)  return 100;
+      if (zoom <= 5)  return 60;
+      return 30;
+    },
+    spiderfyOnMaxZoom: false,
+    showCoverageOnHover: false,
+    zoomToBoundsOnClick: true,
+    disableClusteringAtZoom: 7,
+    animate: true,
+    iconCreateFunction: function(c) {
+      const markers = c.getAllChildMarkers();
+      const totalStranded = markers.reduce((s, m) => s + (m.options.strandedEst || 0), 0);
+      const label = totalStranded >= 1000000
+        ? (totalStranded / 1000000).toFixed(1) + 'M'
+        : totalStranded >= 1000
+          ? Math.round(totalStranded / 1000) + 'k'
+          : Math.round(totalStranded).toLocaleString();
+      const count = markers.length;
+      // Size tiers based on stranded estimate
+      let sz, ring;
+      if (totalStranded >= 5000000)      { sz = 110; ring = 16; }
+      else if (totalStranded >= 1000000) { sz = 90;  ring = 12; }
+      else if (totalStranded >= 500000)  { sz = 74;  ring = 10; }
+      else if (totalStranded >= 100000)  { sz = 60;  ring = 8;  }
+      else if (totalStranded >= 10000)   { sz = 48;  ring = 6;  }
+      else                               { sz = 36;  ring = 4;  }
+      const html =
+        '<div class="gd-cluster" style="width:'+sz+'px;height:'+sz+'px">' +
+          '<div class="gd-cluster-ring" style="inset:-'+ring+'px"></div>' +
+          '<div class="gd-cluster-inner">' +
+            '<div class="gd-cluster-num">~'+label+'</div>' +
+            '<div class="gd-cluster-lbl">stranded</div>' +
+          '</div>' +
+        '</div>';
+      return L.divIcon({ html, className: '', iconSize: [sz, sz], iconAnchor: [sz/2, sz/2] });
+    }
+  });
+
   for (const g of disruptions) {
     const ap = typeof findAirport === 'function' ? findAirport(g.iata) : null;
     if (!ap) continue;
-    
-    // Tiered sizing based on cancelled flights — hard-coded, always dramatic
+
     const c = g.cancelled || 0;
+    const strandedEst = Math.round(c * 185 * 0.20);
+
+    // Size tiers for individual dot
     let radius, opacity, borderW;
-    if (c >= 5000)      { radius = 22; opacity = 0.55; borderW = 3; }    // DOH, DXB
-    else if (c >= 1000) { radius = 16; opacity = 0.45; borderW = 2.5; }  // AUH, BAH, TLV, RUH, JED
-    else if (c >= 500)  { radius = 13; opacity = 0.4;  borderW = 2; }    // DMM, AMM, MCT, CMB, BKK, LHR
-    else if (c >= 200)  { radius = 10; opacity = 0.35; borderW = 1.5; }  // JFK, SIN, AMS, CDG
-    else if (c >= 50)   { radius = 7;  opacity = 0.3;  borderW = 1.5; }  // mid-tier airports
-    else                { radius = 5;  opacity = 0.25; borderW = 1; }    // small airports
-    
-    const strandedEst = Math.round((g.cancelled || 0) * 185 * 0.20);
-    const circle = L.circleMarker([ap.lat, ap.lng], {
-      radius,
-      pane: 'airportPane',
-      fillColor: accentHex(),
-      color: '#fff',
-      weight: borderW,
-      fillOpacity: opacity,
-      className: 'global-disruption-dot',
-      strandedEst,
-    }).addTo(map);
+    if (c >= 5000)      { radius = 22; opacity = 0.55; borderW = 3;   }
+    else if (c >= 1000) { radius = 16; opacity = 0.45; borderW = 2.5; }
+    else if (c >= 500)  { radius = 13; opacity = 0.4;  borderW = 2;   }
+    else if (c >= 200)  { radius = 10; opacity = 0.35; borderW = 1.5; }
+    else if (c >= 50)   { radius = 7;  opacity = 0.3;  borderW = 1.5; }
+    else                { radius = 5;  opacity = 0.25; borderW = 1;   }
 
-    // Zoom-dependent stranded label — shown at zoom >= 5
-    const labelK = strandedEst >= 1000 ? (strandedEst >= 1000000 ? (strandedEst/1000000).toFixed(1)+'M' : Math.round(strandedEst/1000)+'k') : strandedEst.toLocaleString();
-    const labelIcon = L.divIcon({
+    const labelK = strandedEst >= 1000000
+      ? (strandedEst / 1000000).toFixed(1) + 'M'
+      : strandedEst >= 1000
+        ? Math.round(strandedEst / 1000) + 'k'
+        : strandedEst.toLocaleString();
+
+    // Single-airport icon: circle dot + stranded label beneath
+    const dotHtml =
+      '<div class="gd-single" style="width:'+( radius*2)+'px;height:'+(radius*2)+'px">' +
+        '<div class="gd-single-dot" style="' +
+          'width:100%;height:100%;border-radius:50%;' +
+          'background:var(--accent);' +
+          'border:'+borderW+'px solid rgba(255,255,255,'+opacity+');' +
+          'box-shadow:0 0 '+(radius*2)+'px var(--accent-glow),0 2px 8px rgba(0,0,0,.5);' +
+        '"></div>' +
+        '<div class="gd-single-label">~'+labelK+' stranded</div>' +
+      '</div>';
+
+    const icon = L.divIcon({
+      html: dotHtml,
       className: '',
-      html: '<div class="airport-stranded-label">~' + labelK + ' stranded</div>',
-      iconSize: [0, 0],
-      iconAnchor: [0, radius + 4],
+      iconSize: [radius*2, radius*2],
+      iconAnchor: [radius, radius],
     });
-    const labelMarker = L.marker([ap.lat, ap.lng], { icon: labelIcon, interactive: false, pane: 'airportPane' });
-    const currentZoom = map.getZoom ? map.getZoom() : 3;
-    if (currentZoom >= 5) labelMarker.addTo(map);
-    // Track label for zoom toggling
-    if (!map._strandedLabels) map._strandedLabels = [];
-    map._strandedLabels.push({ marker: labelMarker, added: currentZoom >= 5 });
-    _globalPins.push(labelMarker);
 
-    const isMobileMap = (map === window._mobileMap);
+    const marker = L.marker([ap.lat, ap.lng], {
+      icon,
+      strandedEst,
+      pane: 'airportPane',
+    });
 
     if (isMobileMap) {
-      // Mobile: skip Leaflet popup, open pin sheet on click
-      circle.on('click', function() {
-        _activePopupCircle = circle;
+      marker.on('click', function() {
+        _activePopupCircle = marker;
         _activePopupIata = g.iata;
         _activePopupMode = 'leave';
         clearGlobalArcs();
@@ -2641,33 +2723,26 @@ function renderGlobalDisruptions(map, data) {
         drawPopupArcs(g.iata, 'leave');
       });
     } else {
-      // PC: click opens right-side info panel. Drag detection prevents accidental opens.
-      let _pcPinDragged = false;
-      circle.on('mousedown', function() { _pcPinDragged = false; });
-      circle.on('mousemove', function() { _pcPinDragged = true; });
-      circle.on('click', function(e) {
-        if (_pcPinDragged) { _pcPinDragged = false; return; }
+      let _dragged = false;
+      marker.on('mousedown', function() { _dragged = false; });
+      marker.on('mousemove', function() { _dragged = true; });
+      marker.on('click', function(e) {
+        if (_dragged) { _dragged = false; return; }
         L.DomEvent.stopPropagation(e);
+        closePostSidebar();
         openPinSidebar(g.iata);
       });
     }
-    
-    _globalPins.push(circle);
+
+    cluster.addLayer(marker);
+    _globalPins.push(marker);
   }
 
-  // Toggle stranded labels based on zoom level
-  if (!map._strandedLabelZoomBound) {
-    map._strandedLabelZoomBound = true;
-    map.on('zoomend', function() {
-      const z = map.getZoom();
-      if (!map._strandedLabels) return;
-      map._strandedLabels.forEach(function(l) {
-        if (z >= 5 && !l.added) { l.marker.addTo(map); l.added = true; }
-        else if (z < 5 && l.added) { map.removeLayer(l.marker); l.added = false; }
-      });
-    });
-  }
+  map.addLayer(cluster);
+  if (isMobileMap) window._mGlobalCluster = cluster;
+  else window._globalCluster = cluster;
 }
+
 
 // ============================================================
 // CONTACT BUTTONS + TIP TWEET HELPERS

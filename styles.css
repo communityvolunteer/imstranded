@@ -1683,3 +1683,104 @@ html.translated-ltr body,html.translated-rtl body{top:0 !important;}
   box-shadow: 0 0 0 4px rgba(236,52,82,.15), 0 2px 8px rgba(0,0,0,.4);
   letter-spacing: -.01em;
 }
+
+/* ── GLOBAL DISRUPTION CLUSTERS ────────────────────────────── */
+.gd-cluster {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, rgba(var(--accent-r),var(--accent-g),var(--accent-b),.45), rgba(var(--accent-r),var(--accent-g),var(--accent-b),.18));
+  border: 2px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.5);
+  box-shadow:
+    0 0 0 6px rgba(var(--accent-r),var(--accent-g),var(--accent-b),.08),
+    0 0 32px rgba(var(--accent-r),var(--accent-g),var(--accent-b),.25),
+    0 4px 20px rgba(0,0,0,.5);
+  cursor: pointer;
+  transition: transform .15s, box-shadow .15s;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.gd-cluster:hover {
+  transform: scale(1.06);
+  box-shadow:
+    0 0 0 8px rgba(var(--accent-r),var(--accent-g),var(--accent-b),.12),
+    0 0 48px rgba(var(--accent-r),var(--accent-g),var(--accent-b),.4),
+    0 4px 24px rgba(0,0,0,.6);
+}
+.gd-cluster-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.2);
+  pointer-events: none;
+  animation: gdPulse 3s ease-in-out infinite;
+}
+@keyframes gdPulse {
+  0%, 100% { opacity: .5; transform: scale(1); }
+  50%       { opacity: .15; transform: scale(1.08); }
+}
+.gd-cluster-inner {
+  text-align: center;
+  line-height: 1.1;
+}
+.gd-cluster-num {
+  font-family: Inter, sans-serif;
+  font-size: clamp(.7rem, 2.5vw, 1.1rem);
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -.03em;
+  line-height: 1;
+}
+.gd-cluster-lbl {
+  font-family: Inter, sans-serif;
+  font-size: clamp(.45rem, 1.2vw, .58rem);
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.5);
+  margin-top: .15rem;
+}
+
+/* ── SINGLE AIRPORT DOT + LABEL ─────────────────────────────── */
+.gd-single {
+  position: relative;
+}
+.gd-single-dot {
+  transition: transform .15s, box-shadow .15s;
+}
+.gd-single:hover .gd-single-dot {
+  transform: scale(1.2);
+}
+.gd-single-label {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 4px;
+  font-family: Inter, sans-serif;
+  font-size: .55rem;
+  font-weight: 800;
+  color: #ec3452;
+  background: rgba(7,7,12,.85);
+  border: 1px solid rgba(236,52,82,.25);
+  border-radius: 4px;
+  padding: .1rem .35rem;
+  white-space: nowrap;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0;
+  transition: opacity .2s;
+}
+.leaflet-zoom-level-5 .gd-single-label,
+.leaflet-zoom-level-6 .gd-single-label,
+.leaflet-zoom-level-7 .gd-single-label,
+.leaflet-zoom-level-8 .gd-single-label,
+.leaflet-zoom-level-9 .gd-single-label,
+.leaflet-zoom-level-10 .gd-single-label {
+  opacity: 1;
+}
+.gd-single:hover .gd-single-label {
+  opacity: 1;
+}
