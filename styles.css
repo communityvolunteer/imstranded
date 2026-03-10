@@ -3757,7 +3757,7 @@ font-size: clamp(.45rem, 1.2vw, .58rem);
 /* ── MOBILE: larger dot text + bubbles ────────────────────── */
 @media (max-width: 600px) {
   .gd-cluster-num {
-    font-size: clamp(1rem, 5vw, 2.2rem) !important;
+    font-size: 1.5rem !important;
   }
   .gd-cluster-lbl {
     font-size: clamp(.6rem, 2.2vw, .9rem) !important;

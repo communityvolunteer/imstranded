@@ -2326,9 +2326,10 @@ function buildDualPopup(iata) {
       '<div style="font-size:.56rem;color:rgba(255,255,255,.3);margin-top:.25rem">active stranded estimate · updated live</div>' +
     '</div>';
 
-  // CTA: Offer a Spare Room
+  // CTA: Can You Help?
   var ctaOffer =
-    '<div style="margin-top:.6rem">' +
+    '<div style="margin-top:.6rem;padding-top:.75rem;border-top:1px solid rgba(255,255,255,.07)">' +
+      '<div class="popup-section-title" style="font-size:.99rem;font-weight:800;color:#fff;margin-bottom:.5rem;text-align:center">Can You Help?</div>' +
       '<button onclick="isMob()?mTab(\'offer\',null):openFormSidebar(\'offer\')" ' +
         'style="width:100%;padding:.65rem .8rem;border-radius:10px;cursor:pointer;font-family:Inter,sans-serif;font-size:.76rem;font-weight:800;letter-spacing:.02em;' +
         'background:rgba(52,152,236,.12);color:#3498ec;border:1px solid rgba(52,152,236,.28);' +
@@ -2337,6 +2338,7 @@ function buildDualPopup(iata) {
         '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>' +
         'Offer a Spare Room' +
       '</button>' +
+      '<div style="font-size:.62rem;color:rgba(255,255,255,.35);text-align:center;margin-top:.45rem;line-height:1.5">Help folks providing rooms by tweeting $HELP to <a href="https://x.com/intent/tweet?text=%40bankrbot%20send%201000000%20%24HELP%20to%20%40imstrandedorg" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:600">@imstrandedorg</a></div>' +
     '</div>';
 
   // CTA: Are You Stranded Here?
