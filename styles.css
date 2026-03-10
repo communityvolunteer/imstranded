@@ -3754,3 +3754,12 @@ font-size: clamp(.45rem, 1.2vw, .58rem);
 #form-sidebar-body #help-panel-offer > div:first-child { width: 100%; max-width: 100%; }
 /* Stranded panel: remove centering max-width constraint in sidebar */
 #form-sidebar-body #help-panel-stranded { max-width: 100% !important; margin: 0 !important; }
+/* ── MOBILE: larger dot text + bubbles ────────────────────── */
+@media (max-width: 600px) {
+  .gd-cluster-num {
+    font-size: clamp(1rem, 5vw, 2.2rem) !important;
+  }
+  .gd-cluster-lbl {
+    font-size: clamp(.6rem, 2.2vw, .9rem) !important;
+  }
+}

@@ -421,16 +421,12 @@ async function fetchSitrepFromSupabase() {
     try { renderNationsPanel(); } catch(e) { console.warn('[Pipeline] renderNationsPanel error:', e.message); }
 
     // ── 5. Build _globalDisruptions ───────────────────────────
-    // ME airports as isME dots — use DEPARTURE-only cancellations for stranded estimate
-    // (arrivals are stranded elsewhere, not at this airport)
-    const meAsDots = AIRPORT_DATA.filter(a => a.cancelled > 0).map(a => {
-      const outbound = (window._meAllOutbound && window._meAllOutbound[a.iata]) || [];
-      const depCancelled = outbound.reduce((s, r) => s + (r.cancelled || 0), 0);
-      return {
-        iata: a.iata, cancelled: depCancelled, stranded: depCancelled * AVG_PAX,
-        airlines: [], me_hubs: [], isME: true,
-      };
-    });
+    // ME airports: full airport_daily cancelled (both directions, includes intra-ME)
+    // This captures the complete disruption footprint at each hub.
+    const meAsDots = AIRPORT_DATA.filter(a => a.cancelled > 0).map(a => ({
+      iata: a.iata, cancelled: a.cancelled, stranded: a.stranded,
+      airlines: [], me_hubs: [], isME: true,
+    }));
 
     // Global airports: sum of cancelled DEPARTURES from this airport to any ME hub
     // (global→ME direction = flights leaving this airport)
@@ -459,10 +455,8 @@ async function fetchSitrepFromSupabase() {
     console.log(`[Pipeline] _globalDisruptions: ${meAsDots.length} ME + ${globalDots.length} global lets go`);
 
     // ── 6. Totals ─────────────────────────────────────────────
-    // Total = sum of all disruption dots (departure-only per airport)
-    // Ensures sitrep bar matches the cluster total when fully zoomed out
-    const allDotStranded = _globalDisruptions.reduce((s, g) => s + (g.stranded || 0), 0);
-    const allDotCancelled = _globalDisruptions.reduce((s, g) => s + (g.cancelled || 0), 0);
+    // Headline uses full airport_daily totals (includes intra-ME)
+    const totalCancelled = AIRPORT_DATA.reduce((s, a) => s + a.cancelled, 0);
     const todayCancelled = AIRPORT_DATA.reduce((s, a) => s + (a.todayCancelled || 0), 0);
     const airportsClosed = AIRPORT_DATA.filter(a => a.status === 'CLOSED').length;
 
@@ -470,8 +464,8 @@ async function fetchSitrepFromSupabase() {
     window._todayStrandedPeople  = todayCancelled * AVG_PAX;
 
     return {
-      stranded:  allDotStranded,
-      cancelled: allDotCancelled,
+      stranded:  totalCancelled * AVG_PAX,
+      cancelled: totalCancelled,
       airports:  airportsClosed,
       airspace:  4,
     };
@@ -2332,9 +2326,9 @@ function buildDualPopup(iata) {
       '<div style="font-size:.56rem;color:rgba(255,255,255,.3);margin-top:.25rem">active stranded estimate · updated live</div>' +
     '</div>';
 
-  // CTA button HTML — reused inside each panel
-  var ctaBtn =
-    '<div style="margin-top:.85rem;padding-top:.75rem;border-top:1px solid rgba(255,255,255,.07)">' +
+  // CTA: Offer a Spare Room
+  var ctaOffer =
+    '<div style="margin-top:.6rem">' +
       '<button onclick="isMob()?mTab(\'offer\',null):openFormSidebar(\'offer\')" ' +
         'style="width:100%;padding:.65rem .8rem;border-radius:10px;cursor:pointer;font-family:Inter,sans-serif;font-size:.76rem;font-weight:800;letter-spacing:.02em;' +
         'background:rgba(52,152,236,.12);color:#3498ec;border:1px solid rgba(52,152,236,.28);' +
@@ -2345,13 +2339,37 @@ function buildDualPopup(iata) {
       '</button>' +
     '</div>';
 
+  // CTA: Are You Stranded Here?
+  var ctaStranded =
+    '<div style="margin-top:1rem;padding-top:.85rem;border-top:1px solid rgba(255,255,255,.07)">' +
+      '<div style="font-size:.82rem;font-weight:800;color:#fff;margin-bottom:.5rem">Are You Stranded Here?</div>' +
+      '<button onclick="isMob()?mTab(\'stranded\',null):openFormSidebar(\'stranded\')" ' +
+        'style="width:100%;padding:.65rem .8rem;border-radius:10px;cursor:pointer;font-family:Inter,sans-serif;font-size:.76rem;font-weight:800;letter-spacing:.02em;' +
+        'background:rgba(236,52,82,.12);color:#ec3452;border:1px solid rgba(236,52,82,.28);' +
+        'display:flex;align-items:center;justify-content:center;gap:.45rem;transition:background .15s" ' +
+        'onmouseover="this.style.background=\'rgba(236,52,82,.22)\'" onmouseout="this.style.background=\'rgba(236,52,82,.12)\'">' +
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>' +
+        'Add Yourself to the Map' +
+      '</button>' +
+    '</div>';
+
+  // Section header: The Full Impact
+  var fullImpactHeader =
+    '<div style="margin-top:1rem;padding-top:.85rem;border-top:1px solid rgba(255,255,255,.07);margin-bottom:.6rem">' +
+      '<div style="font-size:.82rem;font-weight:800;color:#fff">The Full Impact</div>' +
+    '</div>';
+
   return '<div style="width:100%;font-family:Inter,sans-serif" id="gpop-' + uid + '">' +
     
-    // Est. stranded (departure-only) — above toggle, hidden on arrivals tab
+    // Est. stranded — above toggle, hidden on arrivals tab
     estBlock +
     
-    // CTA: Offer a Spare Room — right under est stranded
-    ctaBtn +
+    // CTA buttons
+    ctaOffer +
+    ctaStranded +
+    
+    // Section: The Full Impact
+    fullImpactHeader +
     
     // Toggle — both tabs always present
     '<div style="' + tWrap + '">' +
@@ -2753,7 +2771,8 @@ function renderGlobalDisruptions(map, data) {
           ? Math.round(totalStranded / 1000) + 'k'
           : Math.round(totalStranded).toLocaleString();
       const count = markers.length;
-      // Size tiers based on stranded estimate
+      // Size tiers based on stranded estimate — larger on mobile
+      const mob = (typeof isMob === 'function' && isMob());
       let sz, ring;
       if (totalStranded >= 5000000)      { sz = 110; ring = 16; }
       else if (totalStranded >= 1000000) { sz = 90;  ring = 12; }
@@ -2761,6 +2780,7 @@ function renderGlobalDisruptions(map, data) {
       else if (totalStranded >= 100000)  { sz = 60;  ring = 8;  }
       else if (totalStranded >= 10000)   { sz = 48;  ring = 6;  }
       else                               { sz = 36;  ring = 4;  }
+      if (mob) { sz = Math.round(sz * 1.5); ring = Math.round(ring * 1.5); }
       const html =
         '<div class="gd-cluster" style="width:'+sz+'px;height:'+sz+'px">' +
           '<div class="gd-cluster-ring" style="inset:-'+ring+'px"></div>' +
@@ -2796,8 +2816,10 @@ function renderGlobalDisruptions(map, data) {
         : strandedEst.toLocaleString();
 
     // All airports show their impact number
-    const sz = Math.max(radius * 2, 42);
-    const ringInset = c >= 200 ? 6 : 4;
+    const mob = isMobileMap;
+    if (mob) radius = Math.round(radius * 1.4);
+    const sz = Math.max(radius * 2, mob ? 60 : 42);
+    const ringInset = mob ? (c >= 200 ? 8 : 6) : (c >= 200 ? 6 : 4);
     const dotHtml =
       '<div class="gd-cluster" style="width:'+sz+'px;height:'+sz+'px">' +
         '<div class="gd-cluster-ring" style="inset:-'+ringInset+'px"></div>' +
@@ -3757,6 +3779,9 @@ async function initAuth() {
       sessionStorage.removeItem('postLogin');
       if (!isMob()) openFormSidebar('profile');
       else mTab('profile', document.getElementById('mtab-help'));
+    } else if (sessionStorage.getItem('postLogin') === 'help') {
+      sessionStorage.removeItem('postLogin');
+      toggleHelpPanel();
     }
   }
   // Listen for auth changes (login, logout, token refresh)
@@ -3784,6 +3809,9 @@ async function initAuth() {
         sessionStorage.removeItem('postLogin');
         if (!isMob()) openFormSidebar('profile');
         else mTab('profile', document.getElementById('mtab-help'));
+      } else if (sessionStorage.getItem('postLogin') === 'help') {
+        sessionStorage.removeItem('postLogin');
+        toggleHelpPanel();
       }
     } else if (event === 'SIGNED_OUT') {
       _currentUser = null;
@@ -3816,6 +3844,8 @@ async function loadProfile() {
   updateLinkedFields();
   renderProfileView();
   renderMobileProfileView();
+  // Keep $HELP modal in sync with live auth state
+  refreshHelpPanel();
 }
 
 function updateLinkedFields() {
@@ -4777,9 +4807,9 @@ function refreshHelpPanel() {
     s1num?.classList.remove('done');
     if (s1desc) s1desc.textContent = 'Link your X account so @bankrbot can process your tips.';
     if (s1btn) {
-      s1btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Connect X in Profile`;
+      s1btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Connect X`;
       s1btn.className = 'hstep-btn hstep-btn--x';
-      s1btn.onclick = () => { isMob()?mTab('profile',null):openFormSidebar('profile'); };
+      s1btn.onclick = () => { helpConnectX(); };
     }
   }
 
@@ -4807,6 +4837,9 @@ function refreshHelpPanel() {
     if (!btn) return;
     btn.textContent = linked ? '✓ Connected' : 'Connect';
     btn.classList.toggle('linked', linked);
+    btn.disabled = linked;
+    if (linked) btn.style.opacity = '.6';
+    else btn.style.opacity = '';
   }
   setDot('hr-dot-x', xOk);  setLinkBtn('hr-btn-x', xOk);
   setDot('hr-dot-tg', tgOk); setLinkBtn('hr-btn-tg', tgOk);
@@ -4815,6 +4848,37 @@ function refreshHelpPanel() {
   // Step 1 num — green if at least X connected (required for tipping)
   const r1num = document.getElementById('hr-s1-num');
   if (r1num) r1num.classList.toggle('done', xOk);
+}
+
+// ── $HELP modal self-contained connect functions ─────────────
+// These handle auth directly without navigating to the profile sidebar.
+// If user isn't signed in, Google sign-in is triggered first.
+function helpConnectX() {
+  if (!isLoggedIn()) {
+    sessionStorage.setItem('postLogin', 'help');
+    authAction('google', 'signin');
+    return;
+  }
+  linkX();
+}
+function helpConnectTg() {
+  if (!isLoggedIn()) {
+    sessionStorage.setItem('postLogin', 'help');
+    authAction('google', 'signin');
+    return;
+  }
+  linkTelegram();
+}
+function helpConnectGoogle() {
+  if (!isLoggedIn()) {
+    authAction('google', 'signin');
+    return;
+  }
+  // Already signed in via Google — mark as verified
+  if (_currentProfile && !_currentProfile.google_verified) {
+    _sb.from('profiles').update({ google_verified: true }).eq('id', _currentUser.id)
+      .then(() => { loadProfile(); });
+  }
 }
 
 // Filter map to verified stranded + offers only

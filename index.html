@@ -534,7 +534,7 @@ function googleTranslateInit() {
             <svg width="22" height="22" viewBox="0 0 24 24" fill="rgba(255,255,255,.15)" style="display:block;transition:fill .2s"><path d="M12 22c-1.1 0-2-.2-2.7-.6L3.5 18.2c-.4-.3-.7-.7-.9-1.1-.2-.5-.3-1-.3-1.5V8.4c0-.5.1-1 .3-1.5.2-.4.5-.8.9-1.1l5.8-3.2C10 2.2 11 2 12 2s2 .2 2.7.6l5.8 3.2c.4.3.7.7.9 1.1.2.5.3 1 .3 1.5v7.2c0 .5-.1 1-.3 1.5-.2.4-.5.8-.9 1.1l-5.8 3.2c-.7.4-1.6.6-2.7.6z"/><path d="M9 12l2 2 4-4" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="profile-badge-check"/></svg>
           </span>
         </div>
-          <div style="font-size:.78rem;color:rgba(255,255,255,.4)" id="profile-email"></div>
+          <div style="font-size:.78rem;color:rgba(255,255,255,.4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px" id="profile-email"></div>
         </div>
         <button onclick="doSignOut()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);border-radius:8px;padding:.35rem .9rem;font-size:.72rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;transition:all .15s">Sign Out</button>
       </div>
@@ -1038,9 +1038,9 @@ function googleTranslateInit() {
         <div class="hstep-body">
           <div class="hstep-title">Connect X / Twitter</div>
           <div class="hstep-desc" id="hs-s1-desc">Link your X account so @bankrbot can process your tips.</div>
-          <button class="hstep-btn hstep-btn--blue" id="hs-s1-btn" onclick="toggleHelpPanel();isMob()?mTab('profile',null):openFormSidebar('profile')">
+          <button class="hstep-btn hstep-btn--blue" id="hs-s1-btn" onclick="helpConnectX()">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-            Connect X in Profile
+            Connect X
           </button>
           <div class="hstep-bankr-note">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -1103,17 +1103,17 @@ function googleTranslateInit() {
             <div class="hstep-social-row" id="hr-check-x">
               <span class="hstep-social-dot" id="hr-dot-x"></span>
               <span>X / Twitter</span>
-              <button class="hstep-link-btn" id="hr-btn-x" onclick="toggleHelpPanel();isMob()?mTab('profile',null):openFormSidebar('profile')">Connect</button>
+              <button class="hstep-link-btn" id="hr-btn-x" onclick="helpConnectX()">Connect</button>
             </div>
             <div class="hstep-social-row" id="hr-check-tg">
               <span class="hstep-social-dot" id="hr-dot-tg"></span>
               <span>Telegram</span>
-              <button class="hstep-link-btn" id="hr-btn-tg" onclick="toggleHelpPanel();isMob()?mTab('profile',null):openFormSidebar('profile')">Connect</button>
+              <button class="hstep-link-btn" id="hr-btn-tg" onclick="helpConnectTg()">Connect</button>
             </div>
             <div class="hstep-social-row" id="hr-check-g">
               <span class="hstep-social-dot" id="hr-dot-g"></span>
               <span>Google</span>
-              <button class="hstep-link-btn" id="hr-btn-g" onclick="toggleHelpPanel();isMob()?mTab('profile',null):openFormSidebar('profile')">Connect</button>
+              <button class="hstep-link-btn" id="hr-btn-g" onclick="helpConnectGoogle()">Connect</button>
             </div>
           </div>
           <div class="hstep-bankr-note">
