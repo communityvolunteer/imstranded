@@ -1774,8 +1774,22 @@ function openFormSidebar(which) {
   if (node) node.style.display = 'block';
 
   // Panel-specific init
-  if (which === 'stranded') switchHelpMode('stranded');
-  if (which === 'offer')    { switchHelpMode('helper'); renderPosts(); }
+  if (which === 'stranded') {
+    switchHelpMode('stranded');
+    // Hide toggle bar and offer panel so only stranded form shows
+    const toggleWrap = node?.querySelector('.help-toggle-wrap');
+    if (toggleWrap) toggleWrap.style.display = 'none';
+    const offerPanel = document.getElementById('help-panel-offer');
+    if (offerPanel) offerPanel.style.display = 'none';
+  }
+  if (which === 'offer') {
+    switchHelpMode('helper'); renderPosts();
+    // Hide toggle bar and stranded panel so only offer form shows
+    const toggleWrap = node?.querySelector('.help-toggle-wrap');
+    if (toggleWrap) toggleWrap.style.display = 'none';
+    const strandedPanel = document.getElementById('help-panel-stranded');
+    if (strandedPanel) strandedPanel.style.display = 'none';
+  }
   if (which === 'profile')  renderProfileView();
   if (which === 'help')     {
     // Ensure modal shows inline
@@ -1787,6 +1801,9 @@ function openFormSidebar(which) {
 function _fsReturnMounted() {
   const body = document.getElementById('form-sidebar-body');
   if (!body) return;
+  // Restore toggle bar visibility before moving content back
+  const toggleWrap = body.querySelector('.help-toggle-wrap');
+  if (toggleWrap) toggleWrap.style.display = '';
   // Move any child nodes back to their original homes
   [...body.children].forEach(child => {
     const homeId = child.dataset.fsHome;
@@ -2366,9 +2383,9 @@ function buildDualPopup(iata) {
       '<div class="popup-section-title" style="font-size:.99rem;font-weight:800;color:#fff;margin-bottom:.5rem;text-align:center">Can You Help?</div>' +
       '<button onclick="isMob()?mTab(\'offer\',null):openFormSidebar(\'offer\')" ' +
         'style="width:100%;padding:.65rem .8rem;border-radius:10px;cursor:pointer;font-family:Inter,sans-serif;font-size:.76rem;font-weight:800;letter-spacing:.02em;' +
-        'background:rgba(52,152,236,.12);color:#3498ec;border:1px solid rgba(52,152,236,.28);' +
+        'background:'+accentRgba(.12)+';color:'+accentHex()+';border:1px solid '+accentRgba(.28)+';' +
         'display:flex;align-items:center;justify-content:center;gap:.45rem;transition:background .15s" ' +
-        'onmouseover="this.style.background=\'rgba(52,152,236,.22)\'" onmouseout="this.style.background=\'rgba(52,152,236,.12)\'">' +
+        'onmouseover="this.style.background=\''+accentRgba(.22)+'\'" onmouseout="this.style.background=\''+accentRgba(.12)+'\'">' +
         '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>' +
         'Offer a Spare Room' +
       '</button>' +
@@ -2381,9 +2398,9 @@ function buildDualPopup(iata) {
       '<div class="popup-section-title" style="font-size:.99rem;font-weight:800;color:#fff;margin-bottom:.5rem;text-align:center">Are You Stranded Here?</div>' +
       '<button onclick="isMob()?mTab(\'stranded\',null):openFormSidebar(\'stranded\')" ' +
         'style="width:100%;padding:.65rem .8rem;border-radius:10px;cursor:pointer;font-family:Inter,sans-serif;font-size:.76rem;font-weight:800;letter-spacing:.02em;' +
-        'background:rgba(236,52,82,.12);color:#ec3452;border:1px solid rgba(236,52,82,.28);' +
+        'background:'+accentRgba(.12)+';color:'+accentHex()+';border:1px solid '+accentRgba(.28)+';' +
         'display:flex;align-items:center;justify-content:center;gap:.45rem;transition:background .15s" ' +
-        'onmouseover="this.style.background=\'rgba(236,52,82,.22)\'" onmouseout="this.style.background=\'rgba(236,52,82,.12)\'">' +
+        'onmouseover="this.style.background=\''+accentRgba(.22)+'\'" onmouseout="this.style.background=\''+accentRgba(.12)+'\'">' +
         '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>' +
         'Add Yourself to the Map' +
       '</button>' +
@@ -2863,8 +2880,8 @@ function renderGlobalDisruptions(map, data) {
     // All airports show their impact number
     const mob = isMobileMap;
     if (mob) radius = Math.round(radius * 1.2);
-    const sz = Math.max(radius * 2, mob ? 50 : 42);
-    const ringInset = mob ? (c >= 200 ? 8 : 6) : (c >= 200 ? 6 : 4);
+    const sz = Math.max(radius * 2, mob ? 50 : 54);
+    const ringInset = mob ? (c >= 200 ? 8 : 6) : 6;
     const dotHtml =
       '<div class="gd-cluster" style="width:'+sz+'px;height:'+sz+'px">' +
         '<div class="gd-cluster-ring" style="inset:-'+ringInset+'px"></div>' +
