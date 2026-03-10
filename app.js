@@ -994,7 +994,7 @@ function getFilterState() {
   const strandedNeeds   = chk('stranded-needs');
   const groupSize       = v('group-size')      || '';
   const showWorldwide   = v('show-worldwide')  ?? true;
-  const showArcs        = v('worldwide-arcs')  ?? true;
+  const showArcs        = v('worldwide-arcs')  ?? false;
   const showSuccess     = v('show-success')    ?? true;
   const showSuccessArcs = v('show-success-arcs') ?? true;
   const showHome        = v('show-home')       ?? true;
@@ -1299,7 +1299,7 @@ function clearAllFilters() {
   document.querySelectorAll('.fp-chip input').forEach(cb => cb.checked = false);
   document.querySelectorAll('[id$="-show-offers"],[id$="-show-stranded"],[id$="-show-worldwide"]').forEach(cb => cb.checked = true);
   document.querySelectorAll('[id$="-offers-verified"],[id$="-stranded-verified"]').forEach(cb => cb.checked = false);
-  document.querySelectorAll('[id$="-worldwide-arcs"]').forEach(cb => cb.checked = true);
+  document.querySelectorAll('[id$="-worldwide-arcs"]').forEach(cb => cb.checked = false);
   document.querySelectorAll('.fp-select').forEach(s => { if (s.tagName === 'SELECT') s.value = ''; else if (s.type === 'text') s.value = ''; });
   document.querySelectorAll('[id$="filter-dest-country"],[id$="filter-dest-airport"]').forEach(h => h.value = '');
   document.querySelectorAll('.sitrep-stat,.m-stat').forEach(s => s.classList.remove('active-filter'));
@@ -2664,23 +2664,32 @@ function renderGlobalDisruptions(map, data) {
         ? Math.round(strandedEst / 1000) + 'k'
         : strandedEst.toLocaleString();
 
-    // Single-airport icon: circle dot + stranded label beneath
-    const dotHtml =
-      '<div class="gd-single" style="width:'+( radius*2)+'px;height:'+(radius*2)+'px">' +
-        '<div class="gd-single-dot" style="' +
-          'width:100%;height:100%;border-radius:50%;' +
-          'background:var(--accent);' +
-          'border:'+borderW+'px solid rgba(255,255,255,'+opacity+');' +
-          'box-shadow:0 0 '+(radius*2)+'px var(--accent-glow),0 2px 8px rgba(0,0,0,.5);' +
-        '"></div>' +
-        '<div class="gd-single-label">~'+labelK+' stranded</div>' +
-      '</div>';
+    // For airports with enough cancellations, show text inside the bubble like clusters
+    // Small airports (c < 200) stay as plain dots
+    const showInner = c >= 200;
+    const sz = showInner ? Math.max(radius * 2, 54) : radius * 2;
+    const dotHtml = showInner
+      ? '<div class="gd-cluster" style="width:'+sz+'px;height:'+sz+'px">' +
+          '<div class="gd-cluster-ring" style="inset:-6px"></div>' +
+          '<div class="gd-cluster-inner">' +
+            '<div class="gd-cluster-num">~'+labelK+'</div>' +
+            '<div class="gd-cluster-lbl">stranded</div>' +
+          '</div>' +
+        '</div>'
+      : '<div class="gd-single" style="width:'+sz+'px;height:'+sz+'px">' +
+          '<div class="gd-single-dot" style="' +
+            'width:100%;height:100%;border-radius:50%;' +
+            'background:var(--accent);' +
+            'border:'+borderW+'px solid rgba(255,255,255,'+opacity+');' +
+            'box-shadow:0 0 '+(sz)+'px var(--accent-glow),0 2px 8px rgba(0,0,0,.5);' +
+          '"></div>' +
+        '</div>';
 
     const icon = L.divIcon({
       html: dotHtml,
       className: '',
-      iconSize: [radius*2, radius*2],
-      iconAnchor: [radius, radius],
+      iconSize: [sz, sz],
+      iconAnchor: [sz/2, sz/2],
     });
 
     const marker = L.marker([ap.lat, ap.lng], {
