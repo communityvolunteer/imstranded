@@ -455,8 +455,10 @@ async function fetchSitrepFromSupabase() {
     console.log(`[Pipeline] _globalDisruptions: ${meAsDots.length} ME + ${globalDots.length} global lets go`);
 
     // ── 6. Totals ─────────────────────────────────────────────
-    // Headline uses full airport_daily totals (includes intra-ME)
-    const totalCancelled = AIRPORT_DATA.reduce((s, a) => s + a.cancelled, 0);
+    // Headline uses sum of ALL dot stranded values (ME + global)
+    // so when the map clusters everything together, the number matches.
+    const totalStranded = _globalDisruptions.reduce((s, g) => s + (g.stranded || 0), 0);
+    const totalCancelled = _globalDisruptions.reduce((s, g) => s + (g.cancelled || 0), 0);
     const todayCancelled = AIRPORT_DATA.reduce((s, a) => s + (a.todayCancelled || 0), 0);
     const airportsClosed = AIRPORT_DATA.filter(a => a.status === 'CLOSED').length;
 
@@ -464,7 +466,7 @@ async function fetchSitrepFromSupabase() {
     window._todayStrandedPeople  = todayCancelled * AVG_PAX;
 
     return {
-      stranded:  totalCancelled * AVG_PAX,
+      stranded:  totalStranded,
       cancelled: totalCancelled,
       airports:  airportsClosed,
       airspace:  4,
@@ -820,11 +822,14 @@ function _drawChart(canvasEl, metric, accentOverride) {
 function _attachChartHover(canvasEl, metric, peakLabelId) {
   if (canvasEl._hoverHandler) {
     canvasEl.removeEventListener('mousemove', canvasEl._hoverHandler);
-    canvasEl.removeEventListener('touchmove', canvasEl._hoverHandler);
   }
   if (canvasEl._leaveHandler) {
     canvasEl.removeEventListener('mouseleave', canvasEl._leaveHandler);
-    canvasEl.removeEventListener('touchend', canvasEl._leaveHandler);
+  }
+  if (canvasEl._touchStartHandler) {
+    canvasEl.removeEventListener('touchstart', canvasEl._touchStartHandler);
+    canvasEl.removeEventListener('touchmove', canvasEl._touchMoveHandler);
+    canvasEl.removeEventListener('touchend', canvasEl._touchEndHandler);
   }
 
   // Snapshot the freshly-drawn chart pixels — restore these on every hover frame
@@ -911,10 +916,35 @@ function _attachChartHover(canvasEl, metric, peakLabelId) {
     canvasEl.getContext('2d').putImageData(snapshot, 0, 0);
   };
 
+  canvasEl._touchActive = false;
+
+  canvasEl._touchStartHandler = (e) => {
+    const rect = canvasEl.getBoundingClientRect();
+    const t = e.touches[0];
+    const mx = t.clientX - rect.left;
+    const my = t.clientY - rect.top;
+    if (mx >= 0 && mx <= rect.width && my >= 0 && my <= rect.height) {
+      canvasEl._touchActive = true;
+      canvasEl._hoverHandler(e);
+    }
+  };
+
+  canvasEl._touchMoveHandler = (e) => {
+    if (!canvasEl._touchActive) return;
+    e.preventDefault(); // prevent sheet scroll while dragging on chart
+    canvasEl._hoverHandler(e);
+  };
+
+  canvasEl._touchEndHandler = () => {
+    canvasEl._touchActive = false;
+    canvasEl._leaveHandler();
+  };
+
   canvasEl.addEventListener('mousemove', canvasEl._hoverHandler);
   canvasEl.addEventListener('mouseleave', canvasEl._leaveHandler);
-  canvasEl.addEventListener('touchmove', canvasEl._hoverHandler, { passive: true });
-  canvasEl.addEventListener('touchend', canvasEl._leaveHandler);
+  canvasEl.addEventListener('touchstart', canvasEl._touchStartHandler, { passive: false });
+  canvasEl.addEventListener('touchmove', canvasEl._touchMoveHandler, { passive: false });
+  canvasEl.addEventListener('touchend', canvasEl._touchEndHandler);
 }
 
 
@@ -2860,7 +2890,7 @@ function renderGlobalDisruptions(map, data) {
     if (!ap) continue;
 
     const c = g.cancelled || 0;
-    const strandedEst = Math.round(c * 185);
+    const strandedEst = g.stranded || Math.round(c * 185);
 
     // Size tiers for individual dot
     let radius, opacity, borderW;
@@ -4874,7 +4904,11 @@ function refreshHelpPanel() {
   const s1btn  = document.getElementById('hs-s1-btn');
   if (xOk) {
     s1num?.classList.add('done');
-    if (s1desc) s1desc.innerHTML = `Connected as <strong style="color:#fff">@${p.x_handle}</strong> ✓`;
+    const isVerified = xOk && tgOk && gOk;
+    const badge = isVerified
+      ? '<span style="display:inline-flex;align-items:center;gap:.2rem;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);border-radius:6px;padding:.1rem .35rem;font-size:.55rem;font-weight:700;color:#22c55e;margin-left:.35rem;vertical-align:middle">🟢 Verified</span>'
+      : '<span style="display:inline-flex;align-items:center;gap:.2rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.1rem .35rem;font-size:.55rem;font-weight:700;color:rgba(255,255,255,.35);margin-left:.35rem;vertical-align:middle">⚪ Unverified</span>';
+    if (s1desc) s1desc.innerHTML = `Connected as <strong style="color:#fff">@${p.x_handle}</strong> ${badge}`;
     if (s1btn) {
       s1btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> X Connected`;
       s1btn.className = 'hstep-btn hstep-btn--x done';
