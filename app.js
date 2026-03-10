@@ -915,7 +915,7 @@ function renderMobileNations() {
 }
 
 function renderNationsPanel() {
-  renderTimelineChart();
+  if (typeof renderTimelineChart === 'function') renderTimelineChart();
   const el = document.getElementById('fp-nations-list');
   if (!el || !window._countryImpact || !window._countryImpact.length) return;
 
@@ -1960,7 +1960,7 @@ function setAccent(name) {
   }
 
   // Repaint timeline charts with new accent color
-  renderTimelineChart();
+  if (typeof renderTimelineChart === 'function') renderTimelineChart();
   renderImpactSheetChart();
 
   // Sweep inline-style elements that hardcode #3498ec / rgba(52,152,236,...)
