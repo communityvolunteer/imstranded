@@ -1047,7 +1047,7 @@ function googleTranslateInit() {
   <div class="help-panel-inner">
 
     <!-- Close -->
-    <button onclick="toggleHelpPanel()" class="help-panel-x" aria-label="Close">
+    <button onclick="dismissHelp()" class="help-panel-x" aria-label="Close">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
 
@@ -1208,11 +1208,11 @@ function googleTranslateInit() {
           <div class="hstep-title">Get on the map</div>
           <div class="hstep-desc">Offer a spare room to someone in need — even just a couch for a week helps. Or, if you're stranded, add yourself to the map.</div>
           <div style="display:flex;gap:.4rem;flex-wrap:wrap">
-            <button class="hstep-btn hstep-btn--blue" onclick="toggleHelpPanel();setTimeout(function(){isMob()?mTab('offer',null):openFormSidebar('offer')},100)">
+            <button class="hstep-btn hstep-btn--blue" onclick="dismissHelp();setTimeout(function(){isMob()?mTab('offer',null):openFormSidebar('offer')},150)">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
               Offer a Room
             </button>
-            <button class="hstep-btn hstep-btn--red" onclick="toggleHelpPanel();closeFormSidebar();setTimeout(function(){isMob()?mTab('stranded',null):openFormSidebar('stranded')},100)">
+            <button class="hstep-btn hstep-btn--red" onclick="dismissHelp();setTimeout(function(){isMob()?mTab('stranded',null):openFormSidebar('stranded')},150)">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               I'm Stranded
             </button>
