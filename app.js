@@ -3621,7 +3621,7 @@ async function refreshSitrep() {
 async function loadPosts() {
   if(!SB_ON)return;
   const{data}=await _sb.from('help_posts').select('id,type,post_type,location,body,name,contact,xhandle,lat,lng,user_id,created_at,avatar_url').eq('flagged',false).eq('type','offer').order('created_at',{ascending:false}).limit(100);
-  if(data){posts=data;renderPosts();renderPostsOnMap(window._crisisMap||window._mobileMap);}
+  if(data){posts=data;renderPosts();renderPostsOnMap(window._crisisMap||window._mobileMap);updateActionButtons();}
 }
 function subscribeStream(){
   if(!SB_ON)return;
@@ -4008,6 +4008,8 @@ async function loadProfile() {
   renderMobileProfileView();
   // Keep $HELP modal in sync with live auth state
   refreshHelpPanel();
+  // Update offer/stranded buttons based on active posts
+  updateActionButtons();
 }
 
 function updateLinkedFields() {
@@ -4356,6 +4358,7 @@ async function doSignOut() {
   updateLinkedFields();
   renderProfileView();
   renderMobileProfileView();
+  updateActionButtons();
   showView('map');
 }
 
@@ -5268,6 +5271,7 @@ async function loadStranded() {
 
     renderStrandedOnMap(window._crisisMap, false);
     renderStrandedOnMap(window._mobileMap, true);
+    updateActionButtons();
   } catch (e) { console.error('Load stranded error:', e); }
 }
 
@@ -5814,6 +5818,108 @@ async function downloadPoolCSV() {
   console.log(`Downloaded ${data.length} confirmed matches for this week's $HELP pool.`);
 }
 window.downloadPoolCSV = downloadPoolCSV;
+
+// ── Context-aware action buttons ──────────────────────────
+let _hasActiveOffer = false;
+let _hasActiveStranded = false;
+
+async function updateActionButtons() {
+  if (!isLoggedIn() || !SB_ON) {
+    _hasActiveOffer = false;
+    _hasActiveStranded = false;
+    resetActionButtons();
+    return;
+  }
+  // Use already-loaded data if available, else query
+  _hasActiveOffer = posts.some(p => p.user_id === _currentUser.id);
+  _hasActiveStranded = _strandedPeople.some(p => p.user_id === _currentUser.id);
+  
+  // If data hasn't loaded yet, check DB
+  if (!posts.length && !_strandedPeople.length) {
+    try {
+      const [offerRes, strandedRes] = await Promise.all([
+        _sb.from('help_posts').select('id', { count: 'exact', head: true }).eq('user_id', _currentUser.id).eq('type', 'offer').eq('flagged', false),
+        _sb.from('stranded_people').select('id', { count: 'exact', head: true }).eq('user_id', _currentUser.id).eq('status', 'active')
+      ]);
+      _hasActiveOffer = (offerRes.count || 0) > 0;
+      _hasActiveStranded = (strandedRes.count || 0) > 0;
+    } catch(e) { return; }
+  }
+
+  // ── PC buttons ──
+  const pcOffer = document.getElementById('ss-offer-room');
+  const pcStranded = document.getElementById('ss-im-stranded');
+  if (pcOffer) {
+    if (_hasActiveOffer) {
+      pcOffer.querySelector('.sitrep-label').textContent = 'My Room';
+      pcOffer.querySelector('.sitrep-sub').textContent = 'tap · manage';
+      pcOffer.querySelector('svg').outerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
+      pcOffer.onclick = () => openFormSidebar('profile');
+    } else {
+      pcOffer.querySelector('.sitrep-label').textContent = 'Offer Spare Room';
+      pcOffer.querySelector('.sitrep-sub').textContent = 'tap · help someone';
+      pcOffer.onclick = () => isMob() ? mTab('offer', null) : openFormSidebar('offer');
+    }
+  }
+  if (pcStranded) {
+    if (_hasActiveStranded) {
+      pcStranded.querySelector('.sitrep-label').textContent = 'My Status';
+      pcStranded.querySelector('.sitrep-sub').textContent = 'tap · manage';
+      pcStranded.onclick = () => openFormSidebar('profile');
+    } else {
+      pcStranded.querySelector('.sitrep-label').textContent = "I'm Stranded";
+      pcStranded.querySelector('.sitrep-sub').textContent = 'tap · register';
+      pcStranded.onclick = () => isMob() ? mTab('stranded', null) : openFormSidebar('stranded');
+    }
+  }
+
+  // ── Mobile buttons ──
+  const mOffer = document.getElementById('mss-offer');
+  const mTabSpare = document.getElementById('mtab-spare');
+  if (mOffer) {
+    if (_hasActiveStranded) {
+      mOffer.querySelector('.m-stat-label').innerHTML = '<span style="color:#ec3452">MY<br>STATUS</span>';
+      mOffer.onclick = () => mTab('profile', null);
+    } else {
+      mOffer.querySelector('.m-stat-label').innerHTML = '<span style="color:#ec3452">HELP<br>I\'M STRANDED</span>';
+      mOffer.onclick = () => mTab('stranded', null);
+    }
+  }
+  if (mTabSpare) {
+    if (_hasActiveOffer) {
+      mTabSpare.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> MY ROOM';
+      mTabSpare.onclick = () => mTab('profile', null);
+    } else {
+      mTabSpare.innerHTML = '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> OFFER A SPARE ROOM';
+      mTabSpare.onclick = () => mTab('offer', null);
+    }
+  }
+}
+
+function resetActionButtons() {
+  const pcOffer = document.getElementById('ss-offer-room');
+  const pcStranded = document.getElementById('ss-im-stranded');
+  if (pcOffer) {
+    pcOffer.querySelector('.sitrep-label').textContent = 'Offer Spare Room';
+    pcOffer.querySelector('.sitrep-sub').textContent = 'tap · help someone';
+    pcOffer.onclick = () => isMob() ? mTab('offer', null) : openFormSidebar('offer');
+  }
+  if (pcStranded) {
+    pcStranded.querySelector('.sitrep-label').textContent = "I'm Stranded";
+    pcStranded.querySelector('.sitrep-sub').textContent = 'tap · register';
+    pcStranded.onclick = () => isMob() ? mTab('stranded', null) : openFormSidebar('stranded');
+  }
+  const mOffer = document.getElementById('mss-offer');
+  if (mOffer) {
+    mOffer.querySelector('.m-stat-label').innerHTML = '<span style="color:#ec3452">HELP<br>I\'M STRANDED</span>';
+    mOffer.onclick = () => mTab('stranded', null);
+  }
+  const mTabSpare = document.getElementById('mtab-spare');
+  if (mTabSpare) {
+    mTabSpare.innerHTML = '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> OFFER A SPARE ROOM';
+    mTabSpare.onclick = () => mTab('offer', null);
+  }
+}
 
 window.addEventListener('DOMContentLoaded',()=>{
   console.log('[INIT] DOMContentLoaded fired');
