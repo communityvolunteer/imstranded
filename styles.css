@@ -3807,3 +3807,5 @@ font-size: clamp(.45rem, 1.2vw, .58rem);
 .map-light .gd-cluster--offer .gd-cluster-lbl { color: rgba(26,95,180,.6); text-shadow: 0 0 4px rgba(255,255,255,.6); }
 .map-light .gd-cluster--stranded .gd-cluster-num { color: #c0392b; text-shadow: 0 0 6px rgba(255,255,255,.7); }
 .map-light .gd-cluster--stranded .gd-cluster-lbl { color: rgba(192,57,43,.6); text-shadow: 0 0 4px rgba(255,255,255,.6); }
+.map-light .gd-cluster--success .gd-cluster-num { color: #15803d; text-shadow: 0 0 6px rgba(255,255,255,.7); }
+.map-light .gd-cluster--success .gd-cluster-lbl { color: rgba(21,128,61,.6); text-shadow: 0 0 4px rgba(255,255,255,.6); }

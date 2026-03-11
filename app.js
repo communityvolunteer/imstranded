@@ -1229,8 +1229,8 @@ function renderFilteredPosts(map, cluster, filteredPosts) {
     if (!p.lat || !p.lng) continue;
     const helpIcon = L.divIcon({
       className:'',
-      html:'<div class="gd-cluster gd-cluster--offer" style="width:28px;height:28px;background:rgba(52,152,236,.2);border:1.5px solid rgba(52,152,236,.35)"><div class="gd-cluster-ring" style="inset:-4px;border-color:rgba(52,152,236,.1)"></div><div class="gd-cluster-inner"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div></div>',
-      iconSize:[28,28],iconAnchor:[14,14]
+      html: buildUserDot('offer', 1, 'room', 42).html,
+      iconSize:[42,42],iconAnchor:[21,21]
     });
     const popupHtml = `<div style="font-family:Inter,sans-serif">
         <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#93c5fd;margin-bottom:.25rem">SPARE ROOM</div>
@@ -1260,10 +1260,9 @@ function renderFilteredStranded(map, isMobile, filteredData) {
   const cluster = L.markerClusterGroup({
     maxClusterRadius: 60, spiderfyOnMaxZoom: true, showCoverageOnHover: false, zoomToBoundsOnClick: true,
     iconCreateFunction: function(c) {
-      const est = c.getAllChildMarkers().reduce((sum, m) => sum + ((m.options.groupSize || 1) * 185 * 0.20), 0);
-      const label = est >= 1000000 ? (est/1000000).toFixed(1)+'M' : est >= 1000 ? Math.round(est/1000)+'k' : Math.round(est).toString();
-      const size = est > 50000 ? 52 : est > 10000 ? 44 : est > 1000 ? 36 : 28;
-      return L.divIcon({ html: '<div class="stranded-cluster" style="width:'+size+'px;height:'+size+'px;background:rgba(236,52,82,.85);border-color:rgba(236,52,82,.4)">~'+label+'</div>', className: '', iconSize: [size, size] });
+      const total = c.getAllChildMarkers().reduce((sum, m) => sum + (m.options.groupSize || 1), 0);
+      const d = buildUserDot('stranded', total, 'stranded', 42);
+      return L.divIcon({ html: d.html, className: '', iconSize: [d.sz, d.sz], iconAnchor: [d.sz/2, d.sz/2] });
     }
   });
 
@@ -1272,7 +1271,8 @@ function renderFilteredStranded(map, isMobile, filteredData) {
     const age = timeAgo(p.created_at);
     const needsList = (p.needs || []).map(n => NEED_LABELS[n] || n).join(', ');
     const sinceTxt = p.stranded_since ? 'Since ' + new Date(p.stranded_since).toLocaleDateString() : '';
-    const icon = L.divIcon({ className: '', html: '<div class="gd-cluster gd-cluster--stranded" style="width:28px;height:28px;background:rgba(236,52,82,.2);border:1.5px solid rgba(236,52,82,.35)"><div class="gd-cluster-ring" style="inset:-4px;border-color:rgba(236,52,82,.1)"></div><div class="gd-cluster-inner"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div></div>', iconSize: [28, 28], iconAnchor: [14, 14] });
+    const _sd = buildUserDot('stranded', p.group_size || 1, 'stranded', 42);
+    const icon = L.divIcon({ className: '', html: _sd.html, iconSize: [_sd.sz, _sd.sz], iconAnchor: [_sd.sz/2, _sd.sz/2] });
     const marker = L.marker([p.current_lat, p.current_lng], { icon, groupSize: p.group_size || 1 });
     const popupHtml = `
       <div style="font-family:Inter,sans-serif">
@@ -2207,15 +2207,8 @@ function initMap() {
     disableClusteringAtZoom: 16,
     iconCreateFunction: function(c) {
       const count = c.getChildCount();
-      const label = count >= 1000 ? Math.round(count/1000)+'k' : count.toString();
-      const sz = count >= 50 ? 56 : count >= 10 ? 48 : 40;
-      const ring = count >= 50 ? 8 : 6;
-      return L.divIcon({
-        html: '<div class="gd-cluster gd-cluster--offer" style="width:'+sz+'px;height:'+sz+'px;background:rgba(52,152,236,.18);border:1.5px solid rgba(52,152,236,.35)">' +
-          '<div class="gd-cluster-ring" style="inset:-'+ring+'px;border-color:rgba(52,152,236,.12)"></div>' +
-          '<div class="gd-cluster-inner"><div class="gd-cluster-num" style="color:#3498ec">'+label+'</div><div class="gd-cluster-lbl" style="color:rgba(52,152,236,.6)">rooms</div></div></div>',
-        className: '', iconSize: [sz, sz], iconAnchor: [sz/2, sz/2]
-      });
+      const d = buildUserDot('offer', count, count === 1 ? 'room' : 'rooms', 42);
+      return L.divIcon({ html: d.html, className: '', iconSize: [d.sz, d.sz], iconAnchor: [d.sz/2, d.sz/2] });
     }
   });
   map.addLayer(_helpCluster);
@@ -3035,6 +3028,25 @@ function buildSendHelpButton(xhandle, hasUserId) {
   return `<a href="https://x.com/intent/tweet?text=${tweetText}" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:4px;margin-top:.4rem;padding:.32rem .65rem;background:#ec3452;color:#fff;font-size:.66rem;font-weight:700;border-radius:6px;text-decoration:none;font-family:Inter,sans-serif">${tipIcon} Send $HELP</a>`;
 }
 
+// ── User dot builder (matches IMPACTED dot style) ────────────
+function buildUserDot(type, num, subtitle, minSz) {
+  // type: 'offer' (blue), 'stranded' (red), 'success' (green)
+  const colors = {
+    offer:    { bg:'rgba(52,152,236,.18)', border:'rgba(52,152,236,.35)', ring:'rgba(52,152,236,.12)', text:'#3498ec', sub:'rgba(52,152,236,.6)' },
+    stranded: { bg:'rgba(236,52,82,.18)',  border:'rgba(236,52,82,.35)',  ring:'rgba(236,52,82,.12)',  text:'#ec3452', sub:'rgba(236,52,82,.6)' },
+    success:  { bg:'rgba(34,197,94,.18)',  border:'rgba(34,197,94,.35)',  ring:'rgba(34,197,94,.12)',  text:'#22c55e', sub:'rgba(34,197,94,.6)' },
+  };
+  const c = colors[type] || colors.offer;
+  const label = num >= 1000000 ? (num/1000000).toFixed(1)+'M' : num >= 1000 ? Math.round(num/1000)+'k' : num.toString();
+  const sz = Math.max(minSz || 42, num >= 100 ? 56 : num >= 10 ? 48 : 42);
+  const ring = num >= 100 ? 8 : 6;
+  const html = '<div class="gd-cluster gd-cluster--'+type+'" style="width:'+sz+'px;height:'+sz+'px;background:'+c.bg+';border:1.5px solid '+c.border+'">' +
+    '<div class="gd-cluster-ring" style="inset:-'+ring+'px;border-color:'+c.ring+'"></div>' +
+    '<div class="gd-cluster-inner"><div class="gd-cluster-num" style="color:'+c.text+'">'+label+'</div>' +
+    '<div class="gd-cluster-lbl" style="color:'+c.sub+'">'+subtitle+'</div></div></div>';
+  return { html, sz };
+}
+
 function buildBadge(verified) {
   if (verified) {
     return `<svg width="18" height="18" viewBox="0 0 24 24" fill="#3498ec" style="vertical-align:middle;margin-left:3px" title="Verified"><path d="M12 22c-1.1 0-2-.2-2.7-.6L3.5 18.2c-.4-.3-.7-.7-.9-1.1-.2-.5-.3-1-.3-1.5V8.4c0-.5.1-1 .3-1.5.2-.4.5-.8.9-1.1l5.8-3.2C10 2.2 11 2 12 2s2 .2 2.7.6l5.8 3.2c.4.3.7.7.9 1.1.2.5.3 1 .3 1.5v7.2c0 .5-.1 1-.3 1.5-.2.4-.5.8-.9 1.1l-5.8 3.2c-.7.4-1.6.6-2.7.6z"/><path d="M9 12l2 2 4-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
@@ -3061,8 +3073,8 @@ async function renderPostsOnMap(map) {
     if (!geo) continue;
     const helpIcon = L.divIcon({
       className:'',
-      html:'<div class="gd-cluster gd-cluster--offer" style="width:28px;height:28px;background:rgba(52,152,236,.2);border:1.5px solid rgba(52,152,236,.35)"><div class="gd-cluster-ring" style="inset:-4px;border-color:rgba(52,152,236,.1)"></div><div class="gd-cluster-inner"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div></div>',
-      iconSize:[28,28],iconAnchor:[14,14]
+      html: buildUserDot('offer', 1, 'room', 42).html,
+      iconSize:[42,42],iconAnchor:[21,21]
     });
     const isMobileM = (map === window._mobileMap);
     const story = _successByOffer[p.id];
@@ -3669,15 +3681,8 @@ function initMobile(){
         disableClusteringAtZoom: 16,
         iconCreateFunction: function(c) {
           const count = c.getChildCount();
-          const label = count >= 1000 ? Math.round(count/1000)+'k' : count.toString();
-          const sz = count >= 50 ? 56 : count >= 10 ? 48 : 40;
-          const ring = count >= 50 ? 8 : 6;
-          return L.divIcon({
-            html: '<div class="gd-cluster gd-cluster--offer" style="width:'+sz+'px;height:'+sz+'px;background:rgba(52,152,236,.18);border:1.5px solid rgba(52,152,236,.35)">' +
-              '<div class="gd-cluster-ring" style="inset:-'+ring+'px;border-color:rgba(52,152,236,.12)"></div>' +
-              '<div class="gd-cluster-inner"><div class="gd-cluster-num" style="color:#3498ec">'+label+'</div><div class="gd-cluster-lbl" style="color:rgba(52,152,236,.6)">rooms</div></div></div>',
-            className: '', iconSize: [sz, sz], iconAnchor: [sz/2, sz/2]
-          });
+          const d = buildUserDot('offer', count, count === 1 ? 'room' : 'rooms', 42);
+          return L.divIcon({ html: d.html, className: '', iconSize: [d.sz, d.sz], iconAnchor: [d.sz/2, d.sz/2] });
         }
       });
       mmap.addLayer(_mHelpCluster);
@@ -5267,15 +5272,8 @@ function renderStrandedOnMap(map, isMobile) {
     zoomToBoundsOnClick: true,
     iconCreateFunction: function(c) {
       const total = c.getAllChildMarkers().reduce((sum, m) => sum + (m.options.groupSize || 1), 0);
-      const label = total >= 1000 ? Math.round(total/1000)+'k' : total.toString();
-      const sz = total >= 50 ? 56 : total >= 10 ? 48 : 40;
-      const ring = total >= 50 ? 8 : 6;
-      return L.divIcon({
-        html: '<div class="gd-cluster gd-cluster--stranded" style="width:'+sz+'px;height:'+sz+'px;background:rgba(236,52,82,.18);border:1.5px solid rgba(236,52,82,.35)">' +
-          '<div class="gd-cluster-ring" style="inset:-'+ring+'px;border-color:rgba(236,52,82,.12)"></div>' +
-          '<div class="gd-cluster-inner"><div class="gd-cluster-num" style="color:#ec3452">'+label+'</div><div class="gd-cluster-lbl" style="color:rgba(236,52,82,.6)">stranded</div></div></div>',
-        className: '', iconSize: [sz, sz], iconAnchor: [sz/2, sz/2]
-      });
+      const d = buildUserDot('stranded', total, 'stranded', 42);
+      return L.divIcon({ html: d.html, className: '', iconSize: [d.sz, d.sz], iconAnchor: [d.sz/2, d.sz/2] });
     }
   });
 
@@ -5284,7 +5282,8 @@ function renderStrandedOnMap(map, isMobile) {
     const age = timeAgo(p.created_at);
     const needsList = (p.needs || []).map(n => NEED_LABELS[n] || n).join(', ');
     const sinceTxt = p.stranded_since ? 'Since ' + new Date(p.stranded_since).toLocaleDateString() : '';
-    const icon = L.divIcon({ className: '', html: '<div class="gd-cluster gd-cluster--stranded" style="width:28px;height:28px;background:rgba(236,52,82,.2);border:1.5px solid rgba(236,52,82,.35)"><div class="gd-cluster-ring" style="inset:-4px;border-color:rgba(236,52,82,.1)"></div><div class="gd-cluster-inner"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div></div>', iconSize: [28, 28], iconAnchor: [14, 14] });
+    const _sd = buildUserDot('stranded', p.group_size || 1, 'stranded', 42);
+    const icon = L.divIcon({ className: '', html: _sd.html, iconSize: [_sd.sz, _sd.sz], iconAnchor: [_sd.sz/2, _sd.sz/2] });
     const marker = L.marker([p.current_lat, p.current_lng], { icon, groupSize: p.group_size || 1 });
     const story = _successByStranded[p.id];
     const uid = p.id.slice(0,8);
@@ -5484,7 +5483,8 @@ function renderSuccessOnMap(map, showHome = true) {
     // Green pin at room location
     if (s.lat && s.lng) {
       const uid = s.id.slice(0,8);
-      const icon = L.divIcon({ className: '', html: '<div class="success-pin"></div>', iconSize: [16,16], iconAnchor: [8,8] });
+      const _sucD = buildUserDot('success', 1, 'story', 42);
+      const icon = L.divIcon({ className: '', html: _sucD.html, iconSize: [_sucD.sz, _sucD.sz], iconAnchor: [_sucD.sz/2, _sucD.sz/2] });
       const popHtml = `<div class="spt-wrap-${uid}" style="font-family:Inter,sans-serif">${buildSuccessTab(s, uid)}</div>`;
       const marker = L.marker([s.lat, s.lng], { icon });
       if (isMobileM) marker.on('click', e => { L.DomEvent.stopPropagation(e); openMPinSheet(popHtml); });
@@ -5493,7 +5493,8 @@ function renderSuccessOnMap(map, showHome = true) {
     }
     // Extra pin at home location if they made it
     if (showHome && s.home_lat && s.home_lng) {
-      const homeIcon = L.divIcon({ className: '', html: '<div style="width:14px;height:14px;background:#22c55e;border:2.5px solid #fff;border-radius:50%;font-size:8px;display:flex;align-items:center;justify-content:center;">🏠</div>', iconSize:[14,14], iconAnchor:[7,7] });
+      const _homeD = buildUserDot('success', 1, 'home', 42);
+      const homeIcon = L.divIcon({ className: '', html: _homeD.html, iconSize: [_homeD.sz, _homeD.sz], iconAnchor: [_homeD.sz/2, _homeD.sz/2] });
       const homePop = `<div style="font-family:Inter,sans-serif"><div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">🏠 Made it home</div><div style="font-size:.82rem;font-weight:700;color:#fff;margin-bottom:.15rem">${s.stranded_name||'Stranded person'}</div><div style="font-size:.73rem;color:rgba(255,255,255,.45)">${s.home_location||''}</div>${s.home_story?`<div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:.35rem;line-height:1.5;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.4)">"${s.home_story}"</div>`:''}</div>`;
       const hm = L.marker([s.home_lat, s.home_lng], { icon: homeIcon });
       if (isMobileM) hm.on('click', e => { L.DomEvent.stopPropagation(e); openMPinSheet(homePop); });
