@@ -3952,6 +3952,10 @@ async function initAuth() {
   }
   // Listen for auth changes (login, logout, token refresh)
   _sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'TOKEN_REFRESHED' && session?.user) {
+      _currentUser = session.user;
+      console.log('[Auth] Token refreshed');
+    }
     if (event === 'SIGNED_IN' && session?.user) {
       _currentUser = session.user;
       // Check if profile already exists before loading (for mode enforcement)
@@ -4368,6 +4372,20 @@ async function doSignOut() {
 
 function isLoggedIn() { return !!_currentUser; }
 
+// Refresh Supabase session if _currentUser is stale — returns true if session is valid
+async function ensureSession() {
+  if (_currentUser) return true;
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (session?.user) {
+      _currentUser = session.user;
+      if (!_currentProfile) await loadProfile();
+      return true;
+    }
+  } catch(e) { console.warn('[ensureSession]', e.message); }
+  return false;
+}
+
 // ── Desktop Profile ──────────────────────────────────────
 function renderProfileView() {
   const loginEl = document.getElementById('profile-login');
@@ -4535,6 +4553,9 @@ async function profileEditPost(id) {
 }
 
 async function mProfileEditPost(id) {
+  if (!await ensureSession()) { alert('Please sign in first.'); return; }
+  // Close manage sidebar/sheet first
+  closeFormSidebar();
   const { data } = await _sb.from('help_posts').select('*').eq('id', id).eq('user_id', _currentUser.id).single();
   if (!data) { alert('Post not found.'); return; }
   _editingPostId = id;
@@ -4645,16 +4666,7 @@ async function renderMobileProfileView() {
   const loginEl = document.getElementById('m-profile-login');
   const mainEl = document.getElementById('m-profile-main');
   if (!loginEl || !mainEl) return;
-  // Refresh session if _currentUser is stale
-  if (!_currentUser) {
-    try {
-      const { data: { session } } = await _sb.auth.getSession();
-      if (session?.user) {
-        _currentUser = session.user;
-        if (!_currentProfile) await loadProfile();
-      }
-    } catch(e) {}
-  }
+  await ensureSession();
   if (isLoggedIn()) {
     loginEl.style.display = 'none';
     mainEl.style.display = 'block';
@@ -4674,13 +4686,8 @@ async function renderMobileProfileView() {
 async function mRenderProfilePosts() {
   const list = document.getElementById('m-my-posts-list');
   if (!list) return;
-  if (!_currentUser) {
-    // Try refreshing session
-    try {
-      const { data: { session } } = await _sb.auth.getSession();
-      if (session?.user) { _currentUser = session.user; }
-      else { list.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:.82rem;padding:.5rem 0">Please sign in.</div>'; return; }
-    } catch(e) { list.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:.82rem;padding:.5rem 0">Please sign in.</div>'; return; }
+  if (!await ensureSession()) {
+    list.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:.82rem;padding:.5rem 0">Please sign in.</div>'; return;
   }
   list.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:.82rem;padding:.5rem 0">Loading...</div>';
   try {
@@ -4713,6 +4720,8 @@ async function mProfileDeletePost(id) {
   try {
     const { error } = await _sb.from('help_posts').delete().eq('id', id).eq('user_id', _currentUser.id);
     if (error) throw error;
+    closeFormSidebar();
+    if (isMob()) mTab('map', null);
     mRenderProfilePosts();
     loadPosts();
   } catch (e) { alert('Failed to delete: ' + e.message); }
@@ -4722,14 +4731,7 @@ async function mProfileDeletePost(id) {
 async function renderProfileStranded() {
   const el = document.getElementById('profile-stranded-list');
   const mel = document.getElementById('m-stranded-posts-list');
-  if (!_currentUser) {
-    // Try refreshing session
-    try {
-      const { data: { session } } = await _sb.auth.getSession();
-      if (session?.user) { _currentUser = session.user; }
-      else return;
-    } catch(e) { return; }
-  }
+  if (!await ensureSession()) return;
   [el, mel].forEach(list => {
     if (list) list.innerHTML = '<div style="font-size:.82rem;color:rgba(255,255,255,.4);padding:.3rem 0">Loading...</div>';
   });
@@ -4803,6 +4805,9 @@ async function renderProfileStranded() {
 let _editingStrandedId = null;
 
 async function editStrandedPost(id) {
+  if (!await ensureSession()) { alert('Please sign in first.'); return; }
+  // Close manage sidebar/sheet first
+  closeFormSidebar();
   const { data } = await _sb.from('stranded_people').select('*').eq('id', id).eq('user_id', _currentUser.id).single();
   if (!data) { alert('Registration not found.'); return; }
   _editingStrandedId = id;
@@ -4912,6 +4917,8 @@ async function deleteStrandedPost(id) {
   try {
     const { error } = await _sb.from('stranded_people').delete().eq('id', id).eq('user_id', _currentUser.id);
     if (error) throw error;
+    closeFormSidebar();
+    if (isMob()) mTab('map', null);
     renderProfileStranded();
     loadStranded();
   } catch (e) { alert('Failed: ' + e.message); }
@@ -5572,13 +5579,7 @@ async function checkUserRole(attemptingType) {
 let _matchPickerStrandedId = null;
 
 async function openMatchPicker(strandedPostId, strandedLat, strandedLng, strandedName, strandedLocation) {
-  if (!isLoggedIn()) {
-    try {
-      const { data: { session } } = await _sb.auth.getSession();
-      if (session?.user) { _currentUser = session.user; }
-      else { alert('Please sign in first.'); return; }
-    } catch(e) { alert('Please sign in first.'); return; }
-  }
+  if (!await ensureSession()) { alert('Please sign in first.'); return; }
   _matchPickerStrandedId = strandedPostId;
 
   const { data: existing } = await _sb.from('success_stories')
@@ -5738,13 +5739,7 @@ function closeStoryModal() { document.getElementById('story-modal').classList.re
 let _goHomeStoryId = null;
 
 async function checkAndOpenGoHome(strandedPostId) {
-  if (!isLoggedIn()) {
-    try {
-      const { data: { session } } = await _sb.auth.getSession();
-      if (session?.user) { _currentUser = session.user; }
-      else { alert('Please sign in first.'); return; }
-    } catch(e) { alert('Please sign in first.'); return; }
-  }
+  if (!await ensureSession()) { alert('Please sign in first.'); return; }
   try {
     const { data, error } = await _sb.from('success_stories')
       .select('id,offer_confirmed,home_lat')
@@ -5922,7 +5917,7 @@ function openManageSidebar(type) {
 async function renderManageDashboard(type) {
   const container = isMob() ? document.getElementById('m-manage-content') : document.getElementById('pc-manage-content');
   if (!container) return;
-  if (!isLoggedIn()) { container.innerHTML = '<div style="text-align:center;padding:2rem 0;color:rgba(255,255,255,.4)">Please sign in first.</div>'; return; }
+  if (!await ensureSession()) { container.innerHTML = '<div style="text-align:center;padding:2rem 0;color:rgba(255,255,255,.4)">Please sign in first.</div>'; return; }
 
   container.innerHTML = '<div style="text-align:center;padding:1rem 0;color:rgba(255,255,255,.4)">Loading...</div>';
 
@@ -6145,6 +6140,12 @@ window.addEventListener('DOMContentLoaded',()=>{
   initLocationAutocomplete('offer-location','offer-lat','offer-lng','offer-location-ac');
   initLocationAutocomplete('m-offer-location','m-offer-lat','m-offer-lng','m-offer-location-ac');
   initAuth();
+  // Keep session alive — refresh every 4 minutes to prevent token expiry
+  setInterval(async () => {
+    if (_currentUser) {
+      try { await _sb.auth.getSession(); } catch(e) {}
+    }
+  }, 4 * 60 * 1000);
   checkTelegramRedirect();
   checkXRedirect();
   initStrandedRealtime();
