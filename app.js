@@ -3838,6 +3838,8 @@ function mTab(tab,btn){
   else if(tab==='stranded')  mShowSheetContent('stranded','I\'M STRANDED');
   else if(tab==='offer')     mShowSheetContent('offer','OFFER A SPARE ROOM');
   else if(tab==='profile')   { mShowSheetContent('profile','MY PROFILE'); renderMobileProfileView(); }
+  else if(tab==='manage-room')     { mShowSheetContent('manage','MY ROOM'); renderManageDashboard('offer'); }
+  else if(tab==='manage-stranded') { mShowSheetContent('manage','MY STATUS'); renderManageDashboard('stranded'); }
 }
 
 function mShowSheetContent(which,title){
@@ -3847,6 +3849,8 @@ function mShowSheetContent(which,title){
   document.getElementById('m-stranded-content').style.display=which==='stranded'?'block':'none';
   document.getElementById('m-offer-content').style.display=which==='offer'?'block':'none';
   document.getElementById('m-edit-content').style.display=which==='profile'?'block':'none';
+  const manageEl = document.getElementById('m-manage-content');
+  if (manageEl) manageEl.style.display = which==='manage'?'block':'none';
   const titleEl = document.getElementById('m-sheet-title-text');
   if (titleEl) titleEl.textContent = title;
   _mSheetOpen=true;document.getElementById('m-sheet').classList.add('open');
@@ -5854,7 +5858,7 @@ async function updateActionButtons() {
       pcOffer.querySelector('.sitrep-label').textContent = 'My Room';
       pcOffer.querySelector('.sitrep-sub').textContent = 'tap · manage';
       pcOffer.querySelector('svg').outerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
-      pcOffer.onclick = () => openFormSidebar('profile');
+      pcOffer.onclick = () => openManageSidebar('offer');
     } else {
       pcOffer.querySelector('.sitrep-label').textContent = 'Offer Spare Room';
       pcOffer.querySelector('.sitrep-sub').textContent = 'tap · help someone';
@@ -5865,7 +5869,7 @@ async function updateActionButtons() {
     if (_hasActiveStranded) {
       pcStranded.querySelector('.sitrep-label').textContent = 'My Status';
       pcStranded.querySelector('.sitrep-sub').textContent = 'tap · manage';
-      pcStranded.onclick = () => openFormSidebar('profile');
+      pcStranded.onclick = () => openManageSidebar('stranded');
     } else {
       pcStranded.querySelector('.sitrep-label').textContent = "I'm Stranded";
       pcStranded.querySelector('.sitrep-sub').textContent = 'tap · register';
@@ -5879,7 +5883,7 @@ async function updateActionButtons() {
   if (mOffer) {
     if (_hasActiveStranded) {
       mOffer.querySelector('.m-stat-label').innerHTML = '<span style="color:#ec3452">MY<br>STATUS</span>';
-      mOffer.onclick = () => mTab('profile', null);
+      mOffer.onclick = () => mTab('manage-stranded', null);
     } else {
       mOffer.querySelector('.m-stat-label').innerHTML = '<span style="color:#ec3452">HELP<br>I\'M STRANDED</span>';
       mOffer.onclick = () => mTab('stranded', null);
@@ -5888,12 +5892,175 @@ async function updateActionButtons() {
   if (mTabSpare) {
     if (_hasActiveOffer) {
       mTabSpare.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> MY ROOM';
-      mTabSpare.onclick = () => mTab('profile', null);
+      mTabSpare.onclick = () => mTab('manage-room', null);
     } else {
       mTabSpare.innerHTML = '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> OFFER A SPARE ROOM';
       mTabSpare.onclick = () => mTab('offer', null);
     }
   }
+}
+
+// ── Manage Dashboard ─────────────────────────────────────
+function openManageSidebar(type) {
+  if (isMob()) { mTab(type === 'offer' ? 'manage-room' : 'manage-stranded', null); return; }
+  // PC: render into form sidebar body directly
+  const sb = document.getElementById('form-sidebar');
+  const body = document.getElementById('form-sidebar-body');
+  const title = document.getElementById('form-sidebar-title');
+  if (!sb || !body) return;
+  if (sb.classList.contains('open')) closeFormSidebar();
+  setTimeout(() => {
+    body.innerHTML = '<div id="pc-manage-content"></div>';
+    if (title) title.textContent = type === 'offer' ? 'MY ROOM' : 'MY STATUS';
+    sb.classList.add('open');
+    sb.dataset.panel = 'manage';
+    document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '350px');
+    renderManageDashboard(type);
+  }, 50);
+}
+
+async function renderManageDashboard(type) {
+  const container = isMob() ? document.getElementById('m-manage-content') : document.getElementById('pc-manage-content');
+  if (!container) return;
+  if (!isLoggedIn()) { container.innerHTML = '<div style="text-align:center;padding:2rem 0;color:rgba(255,255,255,.4)">Please sign in first.</div>'; return; }
+
+  container.innerHTML = '<div style="text-align:center;padding:1rem 0;color:rgba(255,255,255,.4)">Loading...</div>';
+
+  try {
+    if (type === 'stranded') {
+      const { data, error } = await _sb.from('stranded_people')
+        .select('id,name,current_location,current_lat,current_lng,destination,dest_airport,needs,group_size,stranded_since,details,created_at')
+        .eq('user_id', _currentUser.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1);
+      if (error) throw error;
+      const p = data?.[0];
+      if (!p) { container.innerHTML = '<div style="text-align:center;padding:2rem 0;color:rgba(255,255,255,.4)">No active registration.</div>'; return; }
+
+      // Check match status
+      const { data: match } = await _sb.from('success_stories')
+        .select('id,offer_confirmed,offer_name,offer_location,home_lat,home_location,stranded_story,offer_story,confirmed_at')
+        .eq('stranded_post_id', p.id).eq('stranded_user_id', _currentUser.id).maybeSingle();
+
+      const step = match?.home_lat ? 3 : match?.offer_confirmed ? 2 : 1;
+      const stepLabels = ['Registered', 'Matched', 'Home'];
+
+      container.innerHTML = buildProgressTracker(step, stepLabels, '#ec3452') +
+        buildStrandedCard(p, match, step);
+
+    } else {
+      const { data, error } = await _sb.from('help_posts')
+        .select('id,location,body,name,lat,lng,created_at')
+        .eq('user_id', _currentUser.id).eq('type', 'offer').eq('flagged', false).order('created_at', { ascending: false }).limit(1);
+      if (error) throw error;
+      const p = data?.[0];
+      if (!p) { container.innerHTML = '<div style="text-align:center;padding:2rem 0;color:rgba(255,255,255,.4)">No active listing.</div>'; return; }
+
+      const { data: match } = await _sb.from('success_stories')
+        .select('id,offer_confirmed,stranded_name,stranded_location,offer_story,stranded_story,confirmed_at')
+        .eq('offer_post_id', p.id).eq('offer_user_id', _currentUser.id).eq('offer_confirmed', true).maybeSingle();
+
+      const step = match ? 2 : 1;
+      const stepLabels = ['Listed', 'Matched', 'Success'];
+
+      // Check for pending matches
+      const { data: pending } = await _sb.from('success_stories')
+        .select('id,stranded_name').eq('offer_post_id', p.id).eq('offer_confirmed', false);
+
+      container.innerHTML = buildProgressTracker(step, stepLabels, '#3498ec') +
+        buildOfferCard(p, match, pending, step);
+    }
+  } catch(e) {
+    container.innerHTML = `<div style="color:#ec3452;padding:1rem 0">Error: ${e.message} <button onclick="renderManageDashboard('${type}')" style="background:rgba(52,152,236,.15);color:#3498ec;border:none;border-radius:5px;padding:.2rem .5rem;font-size:.7rem;font-weight:600;cursor:pointer;margin-left:.3rem">Retry</button></div>`;
+  }
+}
+
+function buildProgressTracker(currentStep, labels, color) {
+  return `<div style="display:flex;align-items:center;justify-content:center;gap:0;padding:.8rem 0 1rem;margin-bottom:.8rem;border-bottom:1px solid rgba(255,255,255,.06)">
+    ${labels.map((l, i) => {
+      const step = i + 1;
+      const active = step <= currentStep;
+      const dotColor = active ? color : 'rgba(255,255,255,.15)';
+      const textColor = active ? '#fff' : 'rgba(255,255,255,.25)';
+      const lineColor = step <= currentStep ? color : 'rgba(255,255,255,.1)';
+      return (i > 0 ? `<div style="width:30px;height:2px;background:${lineColor};margin:0 .2rem"></div>` : '') +
+        `<div style="display:flex;flex-direction:column;align-items:center;gap:.25rem">
+          <div style="width:28px;height:28px;border-radius:50%;background:${active ? color : 'transparent'};border:2px solid ${dotColor};display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;color:${active ? '#fff' : 'rgba(255,255,255,.3)'}">${step}</div>
+          <span style="font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:${textColor}">${l}</span>
+        </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function buildStrandedCard(p, match, step) {
+  const t = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
+  const needsList = (p.needs || []).join(', ');
+  let html = `<div style="padding:.4rem 0">
+    <div style="font-size:.82rem;font-weight:700;color:#fff;margin-bottom:.3rem">${p.name || 'Anonymous'} <span style="font-size:.6rem;color:rgba(255,255,255,.3);font-weight:400">${t}</span></div>
+    <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">📍 ${p.current_location}</div>
+    <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">🏠 ${p.destination}${p.dest_airport ? ' ('+p.dest_airport+')' : ''}</div>
+    ${needsList ? '<div style="font-size:.7rem;color:#e67e22;margin-top:.2rem;margin-bottom:.3rem">Needs: '+needsList+'</div>' : ''}
+    ${p.details ? '<div style="font-size:.72rem;color:rgba(255,255,255,.4);line-height:1.4;margin-bottom:.5rem">'+p.details.slice(0,150)+'</div>' : ''}`;
+
+  if (step >= 2 && match) {
+    html += `<div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:.65rem;margin:.5rem 0">
+      <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.25rem">✓ Matched${match.confirmed_at ? ' · ' + new Date(match.confirmed_at).toLocaleDateString() : ''}</div>
+      <div style="font-size:.78rem;color:#fff;font-weight:600">${match.offer_name || 'A host'} in ${match.offer_location || 'nearby'}</div>
+      ${match.offer_story ? '<div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-top:.25rem;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.3)">"'+match.offer_story+'"</div>' : ''}
+    </div>`;
+  }
+
+  if (step >= 3 && match?.home_lat) {
+    html += `<div style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);border-radius:10px;padding:.65rem;margin:.5rem 0">
+      <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.25rem">🏠 Made it home</div>
+      <div style="font-size:.78rem;color:#fff">${match.home_location || ''}</div>
+    </div>`;
+  }
+
+  // Action buttons
+  html += '<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.6rem">';
+  if (step === 1) {
+    html += `<button onclick="openMatchPicker('${p.id}','${p.current_lat||0}','${p.current_lng||0}','${(p.name||'').replace(/'/g,"\\'")}','${(p.current_location||'').replace(/'/g,"\\'")}')" style="flex:1;padding:.5rem;background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.25);border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Found a place? →</button>`;
+  }
+  if (step === 2 && !match?.home_lat) {
+    html += `<button onclick="checkAndOpenGoHome('${p.id}')" style="flex:1;padding:.5rem;background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.25);border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Made it home? →</button>`;
+  }
+  html += `<button onclick="editStrandedPost('${p.id}')" style="padding:.5rem .8rem;background:rgba(52,152,236,.12);color:#3498ec;border:1px solid rgba(52,152,236,.2);border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Edit</button>`;
+  html += `<button onclick="deleteStrandedPost('${p.id}')" style="padding:.5rem .8rem;background:rgba(236,52,82,.12);color:#ec3452;border:1px solid rgba(236,52,82,.2);border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Remove</button>`;
+  html += '</div></div>';
+  return html;
+}
+
+function buildOfferCard(p, match, pending, step) {
+  const t = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
+  let html = `<div style="padding:.4rem 0">
+    <div style="font-size:.82rem;font-weight:700;color:#fff;margin-bottom:.3rem">${p.name || 'Anonymous'} <span style="font-size:.6rem;color:rgba(255,255,255,.3);font-weight:400">${t}</span></div>
+    <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">📍 ${p.location}</div>
+    ${p.body ? '<div style="font-size:.72rem;color:rgba(255,255,255,.4);line-height:1.4;margin-bottom:.5rem">'+p.body.slice(0,150)+'</div>' : ''}`;
+
+  // Pending match requests
+  if (pending?.length) {
+    html += `<div style="background:rgba(255,165,0,.08);border:1px solid rgba(255,165,0,.2);border-radius:10px;padding:.65rem;margin:.5rem 0">
+      <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#f59e0b;margin-bottom:.35rem">Pending Match Request${pending.length > 1 ? 's' : ''}</div>
+      ${pending.map(s => `<div style="display:flex;justify-content:space-between;align-items:center;padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
+        <span style="font-size:.75rem;color:#fff;font-weight:600">${s.stranded_name || 'Someone'}</span>
+        <button onclick="approveMatch('${s.id}')" style="background:#22c55e;color:#000;border:none;border-radius:6px;padding:.25rem .6rem;font-size:.65rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Approve ✓</button>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  if (step >= 2 && match) {
+    html += `<div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:.65rem;margin:.5rem 0">
+      <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.25rem">✓ Matched${match.confirmed_at ? ' · ' + new Date(match.confirmed_at).toLocaleDateString() : ''}</div>
+      <div style="font-size:.78rem;color:#fff;font-weight:600">Helped ${match.stranded_name || 'someone'} from ${match.stranded_location || 'nearby'}</div>
+      ${match.stranded_story ? '<div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-top:.25rem;padding-left:.5rem;border-left:2px solid rgba(236,52,82,.3)">"'+match.stranded_story+'"</div>' : ''}
+    </div>`;
+  }
+
+  // Actions
+  html += '<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.6rem">';
+  html += `<button onclick="mProfileEditPost('${p.id}')" style="padding:.5rem .8rem;background:rgba(52,152,236,.12);color:#3498ec;border:1px solid rgba(52,152,236,.2);border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Edit</button>`;
+  html += `<button onclick="mProfileDeletePost('${p.id}')" style="padding:.5rem .8rem;background:rgba(236,52,82,.12);color:#ec3452;border:1px solid rgba(236,52,82,.2);border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Remove</button>`;
+  html += '</div></div>';
+  return html;
 }
 
 function resetActionButtons() {
