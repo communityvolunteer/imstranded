@@ -5974,29 +5974,33 @@ async function renderManageDashboard(type) {
 }
 
 function buildProgressTracker(currentStep, labels, color) {
-  return `<div style="display:flex;align-items:center;justify-content:center;gap:0;padding:.8rem 0 1rem;margin-bottom:.8rem;border-bottom:1px solid rgba(255,255,255,.06)">
+  return `<div style="display:flex;align-items:center;padding:.8rem .5rem 1rem;margin-bottom:.8rem;border-bottom:1px solid rgba(255,255,255,.06)">
     ${labels.map((l, i) => {
       const step = i + 1;
       const active = step <= currentStep;
       const dotColor = active ? color : 'rgba(255,255,255,.15)';
       const textColor = active ? '#fff' : 'rgba(255,255,255,.25)';
       const lineColor = step <= currentStep ? color : 'rgba(255,255,255,.1)';
-      return (i > 0 ? `<div style="width:30px;height:2px;background:${lineColor};margin:0 .2rem"></div>` : '') +
-        `<div style="display:flex;flex-direction:column;align-items:center;gap:.25rem">
-          <div style="width:28px;height:28px;border-radius:50%;background:${active ? color : 'transparent'};border:2px solid ${dotColor};display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;color:${active ? '#fff' : 'rgba(255,255,255,.3)'}">${step}</div>
-          <span style="font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:${textColor}">${l}</span>
+      return (i > 0 ? `<div style="flex:1;height:2px;background:${lineColor}"></div>` : '') +
+        `<div style="display:flex;flex-direction:column;align-items:center;gap:.25rem;min-width:60px">
+          <div style="width:30px;height:30px;border-radius:50%;background:${active ? color : 'transparent'};border:2px solid ${dotColor};display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;color:${active ? '#fff' : 'rgba(255,255,255,.3)'}">${step}</div>
+          <span style="font-size:.52rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:${textColor};text-align:center">${l}</span>
         </div>`;
     }).join('')}
   </div>`;
 }
+
+const _svgPin = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+const _svgHome = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
+const _svgPerson = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
 
 function buildStrandedCard(p, match, step) {
   const t = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
   const needsList = (p.needs || []).join(', ');
   let html = `<div style="padding:.4rem 0">
     <div style="font-size:.82rem;font-weight:700;color:#fff;margin-bottom:.3rem">${p.name || 'Anonymous'} <span style="font-size:.6rem;color:rgba(255,255,255,.3);font-weight:400">${t}</span></div>
-    <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">📍 ${p.current_location}</div>
-    <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">🏠 ${p.destination}${p.dest_airport ? ' ('+p.dest_airport+')' : ''}</div>
+    <div style="display:flex;align-items:center;gap:.3rem;font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">${_svgPin} ${p.current_location}</div>
+    <div style="display:flex;align-items:center;gap:.3rem;font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">${_svgHome} ${p.destination}${p.dest_airport ? ' ('+p.dest_airport+')' : ''}</div>
     ${needsList ? '<div style="font-size:.7rem;color:#e67e22;margin-top:.2rem;margin-bottom:.3rem">Needs: '+needsList+'</div>' : ''}
     ${p.details ? '<div style="font-size:.72rem;color:rgba(255,255,255,.4);line-height:1.4;margin-bottom:.5rem">'+p.details.slice(0,150)+'</div>' : ''}`;
 
@@ -6010,12 +6014,11 @@ function buildStrandedCard(p, match, step) {
 
   if (step >= 3 && match?.home_lat) {
     html += `<div style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);border-radius:10px;padding:.65rem;margin:.5rem 0">
-      <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.25rem">🏠 Made it home</div>
+      <div style="display:flex;align-items:center;gap:.3rem;font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.25rem">${_svgHome.replace('opacity:.5','opacity:1;stroke:#22c55e')} Made it home</div>
       <div style="font-size:.78rem;color:#fff">${match.home_location || ''}</div>
     </div>`;
   }
 
-  // Action buttons
   html += '<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.6rem">';
   if (step === 1) {
     html += `<button onclick="openMatchPicker('${p.id}','${p.current_lat||0}','${p.current_lng||0}','${(p.name||'').replace(/'/g,"\\'")}','${(p.current_location||'').replace(/'/g,"\\'")}')" style="flex:1;padding:.5rem;background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.25);border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Found a place? →</button>`;
@@ -6025,7 +6028,25 @@ function buildStrandedCard(p, match, step) {
   }
   html += `<button onclick="editStrandedPost('${p.id}')" style="padding:.5rem .8rem;background:rgba(52,152,236,.12);color:#3498ec;border:1px solid rgba(52,152,236,.2);border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Edit</button>`;
   html += `<button onclick="deleteStrandedPost('${p.id}')" style="padding:.5rem .8rem;background:rgba(236,52,82,.12);color:#ec3452;border:1px solid rgba(236,52,82,.2);border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Remove</button>`;
-  html += '</div></div>';
+  html += '</div>';
+
+  // Discovery: nearby rooms
+  const lat = p.current_lat, lng = p.current_lng;
+  let nearby = posts.filter(o => o.lat && o.lng && o.user_id);
+  if (lat && lng) nearby = nearby.map(o => ({...o, _d: haversineKm(lat, lng, o.lat, o.lng)})).sort((a,b) => a._d - b._d);
+  if (nearby.length) {
+    html += `<div style="margin-top:1.2rem;padding-top:.8rem;border-top:1px solid rgba(255,255,255,.06)">
+      <div style="font-size:1rem;font-weight:800;color:#fff;margin-bottom:.15rem">Spare Rooms Nearby</div>
+      <div style="font-size:.65rem;color:rgba(255,255,255,.35);margin-bottom:.6rem">Someone near you is offering help</div>`;
+    html += nearby.slice(0, 5).map(o => `<div style="display:flex;justify-content:space-between;align-items:center;padding:.45rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
+        <div><div style="font-size:.78rem;font-weight:600;color:#fff">${o.name || 'Anonymous'} ${buildBadge(!!o.user_id)}</div>
+          <div style="font-size:.65rem;color:rgba(255,255,255,.4)">${o.location}${o._d != null ? ' · '+Math.round(o._d)+'km' : ''}</div></div>
+        <button onclick="openMatchPicker('${p.id}','${lat||0}','${lng||0}','${(p.name||'').replace(/'/g,"\\'")}','${(p.current_location||'').replace(/'/g,"\\'")}')" style="background:rgba(52,152,236,.12);color:#3498ec;border:1px solid rgba(52,152,236,.2);border-radius:6px;padding:.25rem .5rem;font-size:.62rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;white-space:nowrap">Select →</button>
+      </div>`).join('');
+    html += '</div>';
+  }
+
+  html += '</div>';
   return html;
 }
 
@@ -6033,10 +6054,9 @@ function buildOfferCard(p, match, pending, step) {
   const t = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
   let html = `<div style="padding:.4rem 0">
     <div style="font-size:.82rem;font-weight:700;color:#fff;margin-bottom:.3rem">${p.name || 'Anonymous'} <span style="font-size:.6rem;color:rgba(255,255,255,.3);font-weight:400">${t}</span></div>
-    <div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">📍 ${p.location}</div>
+    <div style="display:flex;align-items:center;gap:.3rem;font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">${_svgPin} ${p.location}</div>
     ${p.body ? '<div style="font-size:.72rem;color:rgba(255,255,255,.4);line-height:1.4;margin-bottom:.5rem">'+p.body.slice(0,150)+'</div>' : ''}`;
 
-  // Pending match requests
   if (pending?.length) {
     html += `<div style="background:rgba(255,165,0,.08);border:1px solid rgba(255,165,0,.2);border-radius:10px;padding:.65rem;margin:.5rem 0">
       <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#f59e0b;margin-bottom:.35rem">Pending Match Request${pending.length > 1 ? 's' : ''}</div>
@@ -6055,11 +6075,35 @@ function buildOfferCard(p, match, pending, step) {
     </div>`;
   }
 
-  // Actions
   html += '<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.6rem">';
   html += `<button onclick="mProfileEditPost('${p.id}')" style="padding:.5rem .8rem;background:rgba(52,152,236,.12);color:#3498ec;border:1px solid rgba(52,152,236,.2);border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Edit</button>`;
   html += `<button onclick="mProfileDeletePost('${p.id}')" style="padding:.5rem .8rem;background:rgba(236,52,82,.12);color:#ec3452;border:1px solid rgba(236,52,82,.2);border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Remove</button>`;
-  html += '</div></div>';
+  html += '</div>';
+
+  // Discovery: stranded people nearby
+  const lat = p.lat, lng = p.lng;
+  let nearby = _strandedPeople.filter(s => s.current_lat && s.current_lng);
+  if (lat && lng) nearby = nearby.map(s => ({...s, _d: haversineKm(lat, lng, s.current_lat, s.current_lng)})).sort((a,b) => a._d - b._d);
+  if (nearby.length) {
+    html += `<div style="margin-top:1.2rem;padding-top:.8rem;border-top:1px solid rgba(255,255,255,.06)">
+      <div style="font-size:1rem;font-weight:800;color:#fff;margin-bottom:.15rem">Offer Room</div>
+      <div style="font-size:.65rem;color:rgba(255,255,255,.35);margin-bottom:.6rem">To someone stranded nearby</div>`;
+    html += nearby.slice(0, 8).map(s => {
+      const needs = (s.needs || []).slice(0,3).join(', ');
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:.45rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
+        <div><div style="font-size:.78rem;font-weight:600;color:#fff">${s.name || 'Anonymous'} <span style="font-size:.6rem;color:rgba(255,255,255,.25)">${s.group_size > 1 ? s.group_size + ' people' : ''}</span></div>
+          <div style="font-size:.65rem;color:rgba(255,255,255,.4)">${s.current_location}${s._d != null ? ' · '+Math.round(s._d)+'km' : ''}</div>
+          ${needs ? '<div style="font-size:.6rem;color:#e67e22">'+needs+'</div>' : ''}</div>
+        <div style="display:flex;flex-direction:column;gap:.2rem;align-items:flex-end">
+          ${s.contact ? '<a href="mailto:'+s.contact+'" style="font-size:.58rem;color:var(--accent);text-decoration:none;font-weight:600">Contact →</a>' : ''}
+          ${s.xhandle ? '<a href="https://x.com/'+s.xhandle+'" target="_blank" style="font-size:.58rem;color:var(--accent);text-decoration:none;font-weight:600">@'+s.xhandle+'</a>' : ''}
+        </div>
+      </div>`;
+    }).join('');
+    html += '</div>';
+  }
+
+  html += '</div>';
   return html;
 }
 
