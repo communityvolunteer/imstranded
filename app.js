@@ -1227,10 +1227,15 @@ function renderFilteredPosts(map, cluster, filteredPosts) {
   cluster.clearLayers();
   for (const p of filteredPosts) {
     if (!p.lat || !p.lng) continue;
+    const fStory = _successByOffer[p.id];
+    const fMatched = !!fStory;
+    const fDotType = fMatched ? 'success' : 'offer';
+    const fDotLabel = fMatched ? 'story' : 'room';
+    const _fd = buildUserDot(fDotType, 1, fDotLabel, 42);
     const helpIcon = L.divIcon({
       className:'',
-      html: buildUserDot('offer', 1, 'room', 42).html,
-      iconSize:[42,42],iconAnchor:[21,21]
+      html: _fd.html,
+      iconSize:[_fd.sz,_fd.sz],iconAnchor:[_fd.sz/2,_fd.sz/2]
     });
     const popupHtml = `<div style="font-family:Inter,sans-serif">
         <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#93c5fd;margin-bottom:.25rem">SPARE ROOM</div>
@@ -1271,7 +1276,12 @@ function renderFilteredStranded(map, isMobile, filteredData) {
     const age = timeAgo(p.created_at);
     const needsList = (p.needs || []).map(n => NEED_LABELS[n] || n).join(', ');
     const sinceTxt = p.stranded_since ? 'Since ' + new Date(p.stranded_since).toLocaleDateString() : '';
-    const _sd = buildUserDot('stranded', p.group_size || 1, 'stranded', 42);
+    const fStory = _successByStranded[p.id];
+    const fMatched = !!fStory;
+    const fHome = fMatched && fStory?.home_lat;
+    const fDotType = fMatched ? 'success' : 'stranded';
+    const fDotLabel = fHome ? 'home' : fMatched ? 'story' : 'stranded';
+    const _sd = buildUserDot(fDotType, p.group_size || 1, fDotLabel, 42);
     const icon = L.divIcon({ className: '', html: _sd.html, iconSize: [_sd.sz, _sd.sz], iconAnchor: [_sd.sz/2, _sd.sz/2] });
     const marker = L.marker([p.current_lat, p.current_lng], { icon, groupSize: p.group_size || 1 });
     const popupHtml = `
@@ -3032,9 +3042,9 @@ function buildSendHelpButton(xhandle, hasUserId) {
 function buildUserDot(type, num, subtitle, minSz) {
   // type: 'offer' (blue), 'stranded' (red), 'success' (green)
   const colors = {
-    offer:    { bg:'rgba(52,152,236,.18)', border:'rgba(52,152,236,.35)', ring:'rgba(52,152,236,.12)', text:'#3498ec', sub:'rgba(52,152,236,.6)' },
-    stranded: { bg:'rgba(236,52,82,.18)',  border:'rgba(236,52,82,.35)',  ring:'rgba(236,52,82,.12)',  text:'#ec3452', sub:'rgba(236,52,82,.6)' },
-    success:  { bg:'rgba(34,197,94,.18)',  border:'rgba(34,197,94,.35)',  ring:'rgba(34,197,94,.12)',  text:'#22c55e', sub:'rgba(34,197,94,.6)' },
+    offer:    { bg:'rgba(52,152,236,.18)',  border:'rgba(52,152,236,.35)',  ring:'rgba(52,152,236,.12)' },
+    stranded: { bg:'rgba(236,52,82,.18)',   border:'rgba(236,52,82,.35)',   ring:'rgba(236,52,82,.12)' },
+    success:  { bg:'rgba(34,197,94,.18)',   border:'rgba(34,197,94,.35)',   ring:'rgba(34,197,94,.12)' },
   };
   const c = colors[type] || colors.offer;
   const label = num >= 1000000 ? (num/1000000).toFixed(1)+'M' : num >= 1000 ? Math.round(num/1000)+'k' : num.toString();
@@ -3042,8 +3052,8 @@ function buildUserDot(type, num, subtitle, minSz) {
   const ring = num >= 100 ? 8 : 6;
   const html = '<div class="gd-cluster gd-cluster--'+type+'" style="width:'+sz+'px;height:'+sz+'px;background:'+c.bg+';border:1.5px solid '+c.border+'">' +
     '<div class="gd-cluster-ring" style="inset:-'+ring+'px;border-color:'+c.ring+'"></div>' +
-    '<div class="gd-cluster-inner"><div class="gd-cluster-num" style="color:'+c.text+'">'+label+'</div>' +
-    '<div class="gd-cluster-lbl" style="color:'+c.sub+'">'+subtitle+'</div></div></div>';
+    '<div class="gd-cluster-inner"><div class="gd-cluster-num">'+label+'</div>' +
+    '<div class="gd-cluster-lbl">'+subtitle+'</div></div></div>';
   return { html, sz };
 }
 
@@ -3071,13 +3081,17 @@ async function renderPostsOnMap(map) {
       geo = await geocodeCity(p.location);
     }
     if (!geo) continue;
+    const story = _successByOffer[p.id];
+    const isMatched = !!story; // story only exists if offer_confirmed=true
+    const dotType = isMatched ? 'success' : 'offer';
+    const dotLabel = isMatched ? 'story' : 'room';
+    const _d = buildUserDot(dotType, 1, dotLabel, 42);
     const helpIcon = L.divIcon({
       className:'',
-      html: buildUserDot('offer', 1, 'room', 42).html,
-      iconSize:[42,42],iconAnchor:[21,21]
+      html: _d.html,
+      iconSize:[_d.sz,_d.sz],iconAnchor:[_d.sz/2,_d.sz/2]
     });
     const isMobileM = (map === window._mobileMap);
-    const story = _successByOffer[p.id];
     const uid = p.id.slice(0,8);
     const toggleBar = story ? `
       <div class="success-popup-toggle spt-wrap-${uid}" style="margin-bottom:.5rem">
@@ -5282,10 +5296,14 @@ function renderStrandedOnMap(map, isMobile) {
     const age = timeAgo(p.created_at);
     const needsList = (p.needs || []).map(n => NEED_LABELS[n] || n).join(', ');
     const sinceTxt = p.stranded_since ? 'Since ' + new Date(p.stranded_since).toLocaleDateString() : '';
-    const _sd = buildUserDot('stranded', p.group_size || 1, 'stranded', 42);
+    const story = _successByStranded[p.id];
+    const isMatched = !!story; // story only exists if offer_confirmed=true
+    const hasHome = isMatched && story?.home_lat;
+    const dotType = isMatched ? 'success' : 'stranded';
+    const dotLabel = hasHome ? 'home' : isMatched ? 'story' : 'stranded';
+    const _sd = buildUserDot(dotType, p.group_size || 1, dotLabel, 42);
     const icon = L.divIcon({ className: '', html: _sd.html, iconSize: [_sd.sz, _sd.sz], iconAnchor: [_sd.sz/2, _sd.sz/2] });
     const marker = L.marker([p.current_lat, p.current_lng], { icon, groupSize: p.group_size || 1 });
-    const story = _successByStranded[p.id];
     const uid = p.id.slice(0,8);
     const toggleBar = story ? `
       <div class="success-popup-toggle spt-wrap-${uid}" style="margin-bottom:.5rem">
@@ -5458,7 +5476,7 @@ function buildSuccessTab(s, uid) {
 async function loadSuccessStories() {
   if (!SB_ON) return;
   const { data } = await _sb.from('success_stories')
-    .select('id,stranded_post_id,offer_post_id,stranded_lat,stranded_lng,stranded_location,stranded_name,lat,lng,offer_location,offer_xhandle,offer_name,stranded_story,offer_story,home_lat,home_lng,home_location,home_story,confirmed_at')
+    .select('id,stranded_post_id,offer_post_id,offer_confirmed,stranded_lat,stranded_lng,stranded_location,stranded_name,lat,lng,offer_location,offer_xhandle,offer_name,stranded_story,offer_story,home_lat,home_lng,home_location,home_story,confirmed_at')
     .eq('offer_confirmed', true)
     .order('confirmed_at', { ascending: false })
     .limit(500);
