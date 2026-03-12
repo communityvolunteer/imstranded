@@ -4398,27 +4398,28 @@ async function doSignOut() {
 
 function isLoggedIn() { return !!_currentUser; }
 
-// Refresh Supabase session — always validates token freshness
+// Fast session check — never hangs, never blocks UI
 async function ensureSession() {
+  // Fast path: we have a user in memory — trust it, validate in background
+  if (_currentUser) {
+    // Fire-and-forget token refresh (don't await, don't block)
+    _sb.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) _currentUser = session.user;
+    }).catch(() => {});
+    return true;
+  }
+  // Cold path: no user, try to restore
   try {
-    const { data: { session }, error } = await withTimeout(_sb.auth.getSession(), 5000);
-    if (error) throw error;
-    if (session?.user) {
-      _currentUser = session.user;
+    const result = await Promise.race([
+      _sb.auth.getSession(),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 3000))
+    ]);
+    if (result?.data?.session?.user) {
+      _currentUser = result.data.session.user;
       return true;
     }
-    _currentUser = null;
-    return false;
-  } catch(e) {
-    console.warn('[ensureSession]', e.message);
-    // Try one forced refresh
-    try {
-      const { data: { session } } = await withTimeout(_sb.auth.refreshSession(), 5000);
-      if (session?.user) { _currentUser = session.user; return true; }
-    } catch(e2) {}
-    // If we had a user before, keep it (might just be a network blip)
-    return !!_currentUser;
-  }
+  } catch(e) {}
+  return false;
 }
 
 // Wrap a promise with a timeout — prevents infinite hangs on stale connections
@@ -6029,65 +6030,86 @@ function openManageSidebar(type) {
 async function renderManageDashboard(type) {
   const container = isMob() ? document.getElementById('m-manage-content') : document.getElementById('pc-manage-content');
   if (!container) return;
-  if (!await ensureSession()) { container.innerHTML = '<div style="text-align:center;padding:2rem 0;color:rgba(255,255,255,.4)">Please sign in first.</div>'; return; }
-
-  container.innerHTML = '<div style="text-align:center;padding:1rem 0;color:rgba(255,255,255,.4)">Loading...</div>';
-
-  try {
-    if (type === 'stranded') {
-      // Try cached data first for instant render
-      let p = _strandedPeople.find(s => s.user_id === _currentUser.id);
-      if (!p) {
-        const { data, error } = await withTimeout(_sb.from('stranded_people')
-          .select('id,name,current_location,current_lat,current_lng,destination,dest_airport,needs,group_size,stranded_since,details,created_at')
-          .eq('user_id', _currentUser.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1));
-        if (error) throw error;
-        p = data?.[0];
-      }
-      if (!p) { container.innerHTML = '<div style="text-align:center;padding:2rem 0;color:rgba(255,255,255,.4)">No active registration.</div>'; return; }
-
-      // Check match status
-      const matchResult = await withTimeout(_sb.from('success_stories')
-        .select('id,offer_confirmed,offer_name,offer_location,home_lat,home_location,stranded_story,offer_story,confirmed_at')
-        .eq('stranded_post_id', p.id).eq('stranded_user_id', _currentUser.id).maybeSingle());
-      const match = matchResult.data;
-
-      const step = match?.home_lat ? 3 : match?.offer_confirmed ? 2 : 1;
-      const stepLabels = ['Registered', 'Matched', 'Home'];
-
-      container.innerHTML = buildProgressTracker(step, stepLabels, '#ec3452') +
-        buildStrandedCard(p, match, step);
-
-    } else {
-      // Try cached data first
-      let p = posts.find(o => o.user_id === _currentUser.id);
-      if (!p) {
-        const { data, error } = await withTimeout(_sb.from('help_posts')
-          .select('id,location,body,name,lat,lng,created_at')
-          .eq('user_id', _currentUser.id).eq('type', 'offer').eq('flagged', false).order('created_at', { ascending: false }).limit(1));
-        if (error) throw error;
-        p = data?.[0];
-      }
-      if (!p) { container.innerHTML = '<div style="text-align:center;padding:2rem 0;color:rgba(255,255,255,.4)">No active listing.</div>'; return; }
-
-      const matchResult = await withTimeout(_sb.from('success_stories')
-        .select('id,offer_confirmed,stranded_name,stranded_location,offer_story,stranded_story,confirmed_at')
-        .eq('offer_post_id', p.id).eq('offer_user_id', _currentUser.id).eq('offer_confirmed', true).maybeSingle());
-      const match = matchResult.data;
-
-      const step = match ? 2 : 1;
-      const stepLabels = ['Listed', 'Matched', 'Success'];
-
-      // Check for pending matches
-      const pendingResult = await withTimeout(_sb.from('success_stories')
-        .select('id,stranded_name').eq('offer_post_id', p.id).eq('offer_confirmed', false));
-      const pending = pendingResult.data;
-
-      container.innerHTML = buildProgressTracker(step, stepLabels, '#3498ec') +
-        buildOfferCard(p, match, pending, step);
+  if (!_currentUser) {
+    if (!await ensureSession()) {
+      container.innerHTML = '<div style="text-align:center;padding:2rem 0;color:rgba(255,255,255,.4)">Please sign in first.</div>';
+      return;
     }
-  } catch(e) {
-    container.innerHTML = `<div style="text-align:center;padding:1.5rem 0"><div style="color:rgba(255,255,255,.4);font-size:.82rem;margin-bottom:.5rem">${e.message === 'Request timed out' ? 'Connection timed out' : 'Error: ' + e.message}</div><button onclick="renderManageDashboard('${type}')" style="${btnStyle('accent')}">Try Again</button></div>`;
+  }
+
+  // ── STRANDED ──
+  if (type === 'stranded') {
+    // 1. Try cache (instant, no network)
+    let p = _strandedPeople.find(s => s.user_id === _currentUser.id);
+    let match = p ? (_successByStranded[p.id] || null) : null;
+
+    // 2. If cache empty, try network with tight timeout
+    if (!p) {
+      container.innerHTML = '<div style="text-align:center;padding:1rem 0;color:rgba(255,255,255,.4)">Loading...</div>';
+      try {
+        const { data } = await withTimeout(_sb.from('stranded_people')
+          .select('id,name,current_location,current_lat,current_lng,destination,dest_airport,needs,group_size,stranded_since,details,created_at')
+          .eq('user_id', _currentUser.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1), 6000);
+        p = data?.[0];
+        if (p) {
+          try {
+            const mr = await withTimeout(_sb.from('success_stories')
+              .select('id,offer_confirmed,offer_name,offer_location,home_lat,home_location,stranded_story,offer_story,confirmed_at')
+              .eq('stranded_post_id', p.id).eq('stranded_user_id', _currentUser.id).maybeSingle(), 6000);
+            match = mr.data;
+          } catch(e) {}
+        }
+      } catch(e) {
+        container.innerHTML = `<div style="text-align:center;padding:1.5rem 0"><div style="color:rgba(255,255,255,.5);font-size:.85rem;margin-bottom:.6rem">Connection timed out</div><button onclick="renderManageDashboard('stranded')" style="${btnStyle('accent')}">Try Again</button></div>`;
+        return;
+      }
+    }
+
+    if (!p) { container.innerHTML = '<div style="text-align:center;padding:2rem 0;color:rgba(255,255,255,.4)">No active registration.</div>'; return; }
+
+    const step = match?.home_lat ? 3 : match?.offer_confirmed ? 2 : 1;
+    container.innerHTML = buildProgressTracker(step, ['Registered', 'Matched', 'Home'], '#ec3452') + buildStrandedCard(p, match, step);
+
+  // ── OFFER ──
+  } else {
+    // 1. Try cache
+    let p = posts.find(o => o.user_id === _currentUser.id);
+    let match = p ? (_successByOffer[p.id] || null) : null;
+    let pending = null;
+
+    // 2. If cache empty, try network
+    if (!p) {
+      container.innerHTML = '<div style="text-align:center;padding:1rem 0;color:rgba(255,255,255,.4)">Loading...</div>';
+      try {
+        const { data } = await withTimeout(_sb.from('help_posts')
+          .select('id,location,body,name,lat,lng,created_at')
+          .eq('user_id', _currentUser.id).eq('type', 'offer').eq('flagged', false).order('created_at', { ascending: false }).limit(1), 6000);
+        p = data?.[0];
+      } catch(e) {
+        container.innerHTML = `<div style="text-align:center;padding:1.5rem 0"><div style="color:rgba(255,255,255,.5);font-size:.85rem;margin-bottom:.6rem">Connection timed out</div><button onclick="renderManageDashboard('offer')" style="${btnStyle('accent')}">Try Again</button></div>`;
+        return;
+      }
+    }
+
+    if (!p) { container.innerHTML = '<div style="text-align:center;padding:2rem 0;color:rgba(255,255,255,.4)">No active listing.</div>'; return; }
+
+    // Fetch match + pending (non-blocking — render what we have if these fail)
+    if (!match) {
+      try {
+        const mr = await withTimeout(_sb.from('success_stories')
+          .select('id,offer_confirmed,stranded_name,stranded_location,offer_story,stranded_story,confirmed_at')
+          .eq('offer_post_id', p.id).eq('offer_user_id', _currentUser.id).eq('offer_confirmed', true).maybeSingle(), 6000);
+        match = mr.data;
+      } catch(e) {}
+    }
+    try {
+      const pr = await withTimeout(_sb.from('success_stories')
+        .select('id,stranded_name').eq('offer_post_id', p.id).eq('offer_confirmed', false), 6000);
+      pending = pr.data;
+    } catch(e) {}
+
+    const step = match ? 2 : 1;
+    container.innerHTML = buildProgressTracker(step, ['Listed', 'Matched', 'Success'], '#3498ec') + buildOfferCard(p, match, pending, step);
   }
 }
 
@@ -6271,12 +6293,29 @@ window.addEventListener('DOMContentLoaded',()=>{
   setInterval(async () => {
     if (_currentUser) {
       try {
-        const { data: { session } } = await _sb.auth.getSession();
+        const { data: { session } } = await withTimeout(_sb.auth.getSession(), 5000);
         if (session?.user) _currentUser = session.user;
-        else { _currentUser = null; console.warn('[Keepalive] Session expired'); }
-      } catch(e) { console.warn('[Keepalive]', e.message); }
+      } catch(e) { /* silent — don't null out user on timeout */ }
     }
   }, 2 * 60 * 1000);
+  // Recover from phone sleep / tab background — refresh everything on return
+  let _lastVisible = Date.now();
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      const gone = Date.now() - _lastVisible;
+      if (gone > 60000 && _currentUser) { // Been away > 1 minute
+        console.log('[Visibility] Tab returned after', Math.round(gone/1000), 's — refreshing session');
+        _sb.auth.getSession().then(({ data: { session } }) => {
+          if (session?.user) _currentUser = session.user;
+        }).catch(() => {});
+        // Reload data silently
+        loadPosts();
+        loadStranded();
+      }
+    } else {
+      _lastVisible = Date.now();
+    }
+  });
   checkTelegramRedirect();
   checkXRedirect();
   initStrandedRealtime();
