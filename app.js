@@ -1816,8 +1816,13 @@ function openFormSidebar(which) {
     sb.dataset.panel = which;
   }
 
-  if (title) title.textContent = _fsTitles[which] || which.toUpperCase();
+  if (title) {
+    title.textContent = _fsTitles[which] || which.toUpperCase();
+    title.style.color = '';
+    title.style.fontSize = '';
+  }
   sb.classList.add('open');
+  document.getElementById('sidebar-overlay')?.classList.add('active');
   document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '400px');
 
   // Click outside form sidebar to close
@@ -1893,6 +1898,7 @@ function closeFormSidebar() {
   if (!sb) return;
   sb.classList.remove('open');
   sb.dataset.panel = '';
+  document.getElementById('sidebar-overlay')?.classList.remove('active');
   document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '0px');
   if (window._fsBackdropClose) {
     document.removeEventListener('mousedown', window._fsBackdropClose);
@@ -5964,9 +5970,18 @@ function openManageSidebar(type) {
   if (sb.classList.contains('open')) closeFormSidebar();
   setTimeout(() => {
     body.innerHTML = '<div id="pc-manage-content"></div>';
-    if (title) title.textContent = type === 'offer' ? 'MY ROOM' : 'MY STATUS';
+    const heroColor = type === 'offer' ? '#3498ec' : '#ec3452';
+    const heroIcon = type === 'stranded'
+      ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:.3rem"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
+      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:.3rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
+    if (title) {
+      title.innerHTML = heroIcon + (type === 'offer' ? 'MY ROOM' : 'MY STATUS');
+      title.style.color = heroColor;
+      title.style.fontSize = '.85rem';
+    }
     sb.classList.add('open');
     sb.dataset.panel = 'manage';
+    document.getElementById('sidebar-overlay')?.classList.add('active');
     document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '350px');
     renderManageDashboard(type);
   }, 50);
@@ -6051,25 +6066,25 @@ const _svgPerson = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" 
 function buildStrandedCard(p, match, step) {
   const t = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
   const needsList = (p.needs || []).join(', ');
-  let html = `<div style="padding:.4rem 0">
-    <div style="font-size:1.05rem;font-weight:800;color:#fff;margin-bottom:.4rem">${p.name || 'Anonymous'} <span style="font-size:.65rem;color:rgba(255,255,255,.35);font-weight:400">${t}</span></div>
-    <div style="display:flex;align-items:center;gap:.3rem;font-size:.8rem;color:rgba(255,255,255,.8);margin-bottom:.2rem">${_svgPin} ${p.current_location}</div>
-    <div style="display:flex;align-items:center;gap:.3rem;font-size:.8rem;color:rgba(255,255,255,.8);margin-bottom:.2rem">${_svgHome} ${p.destination}${p.dest_airport ? ' ('+p.dest_airport+')' : ''}</div>
-    ${needsList ? '<div style="font-size:.75rem;color:#f59e0b;margin-top:.25rem;margin-bottom:.35rem">Needs: '+needsList+'</div>' : ''}
-    ${p.details ? '<div style="font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.45;margin-bottom:.5rem">'+p.details.slice(0,150)+'</div>' : ''}`;
+  let html = `<div style="padding:.5rem 0">
+    <div style="font-size:1.35rem;font-weight:800;color:#fff;margin-bottom:.5rem;line-height:1.2">${p.name || 'Anonymous'} <span style="font-size:.7rem;color:rgba(255,255,255,.4);font-weight:400">${t}</span></div>
+    <div style="display:flex;align-items:center;gap:.35rem;font-size:.9rem;color:rgba(255,255,255,.85);margin-bottom:.25rem">${_svgPin} ${p.current_location}</div>
+    <div style="display:flex;align-items:center;gap:.35rem;font-size:.9rem;color:rgba(255,255,255,.85);margin-bottom:.25rem">${_svgHome} ${p.destination}${p.dest_airport ? ' ('+p.dest_airport+')' : ''}</div>
+    ${needsList ? '<div style="font-size:.8rem;color:#f59e0b;margin-top:.3rem;margin-bottom:.4rem">Needs: '+needsList+'</div>' : ''}
+    ${p.details ? '<div style="font-size:.85rem;color:rgba(255,255,255,.65);line-height:1.5;margin-bottom:.6rem">'+p.details.slice(0,150)+'</div>' : ''}`;
 
   if (step >= 2 && match) {
     html += `<div style="background:rgba(34,197,94,.08);border:none;border-radius:10px;padding:.65rem;margin:.5rem 0">
-      <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.25rem">✓ Matched${match.confirmed_at ? ' · ' + new Date(match.confirmed_at).toLocaleDateString() : ''}</div>
-      <div style="font-size:.85rem;color:#fff;font-weight:700">${match.offer_name || 'A host'} in ${match.offer_location || 'nearby'}</div>
-      ${match.offer_story ? '<div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-top:.3rem;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.3)">"'+match.offer_story+'"</div>' : ''}
+      <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">✓ Matched${match.confirmed_at ? ' · ' + new Date(match.confirmed_at).toLocaleDateString() : ''}</div>
+      <div style="font-size:.95rem;color:#fff;font-weight:700">${match.offer_name || 'A host'} in ${match.offer_location || 'nearby'}</div>
+      ${match.offer_story ? '<div style="font-size:.8rem;color:rgba(255,255,255,.65);margin-top:.3rem;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.3)">"'+match.offer_story+'"</div>' : ''}
     </div>`;
   }
 
   if (step >= 3 && match?.home_lat) {
-    html += `<div style="background:rgba(34,197,94,.12);border:none;border-radius:10px;padding:.65rem;margin:.5rem 0">
-      <div style="display:flex;align-items:center;gap:.3rem;font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.25rem">${_svgHome} Made it home</div>
-      <div style="font-size:.85rem;color:#fff;font-weight:600">${match.home_location || ''}</div>
+    html += `<div style="background:rgba(34,197,94,.12);border:none;border-radius:10px;padding:.75rem;margin:.5rem 0">
+      <div style="display:flex;align-items:center;gap:.35rem;font-size:.65rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">${_svgHome} Made it home</div>
+      <div style="font-size:.95rem;color:#fff;font-weight:600">${match.home_location || ''}</div>
     </div>`;
   }
 
@@ -6090,10 +6105,10 @@ function buildStrandedCard(p, match, step) {
   if (lat && lng) nearby = nearby.map(o => ({...o, _d: haversineKm(lat, lng, o.lat, o.lng)})).sort((a,b) => a._d - b._d);
   if (nearby.length) {
     html += `<div style="margin-top:1.2rem;padding-top:.8rem;border-top:1px solid rgba(255,255,255,.06)">
-      <div style="font-size:1rem;font-weight:800;color:#fff;margin-bottom:.15rem">Spare Rooms Nearby</div>
+      <div style="font-size:1.15rem;font-weight:800;color:#fff;margin-bottom:.2rem">Spare Rooms Nearby</div>
       <div style="font-size:.7rem;color:rgba(255,255,255,.45);margin-bottom:.6rem">Someone near you is offering help</div>`;
     html += nearby.slice(0, 5).map(o => `<div style="display:flex;justify-content:space-between;align-items:center;padding:.45rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
-        <div><div style="font-size:.78rem;font-weight:600;color:#fff">${o.name || 'Anonymous'} ${buildBadge(!!o.user_id)}</div>
+        <div><div style="font-size:.85rem;font-weight:700;color:#fff">${o.name || 'Anonymous'} ${buildBadge(!!o.user_id)}</div>
           <div style="font-size:.7rem;color:rgba(255,255,255,.5)">${o.location}${o._d != null ? ' · '+Math.round(o._d)+'km' : ''}</div></div>
         <button onclick="openMatchPicker('${p.id}','${lat||0}','${lng||0}','${(p.name||'').replace(/'/g,"\\'")}','${(p.current_location||'').replace(/'/g,"\\'")}')" style="white-space:nowrap;${btnStyle('accent','sm')}">Select →</button>
       </div>`).join('');
@@ -6106,10 +6121,10 @@ function buildStrandedCard(p, match, step) {
 
 function buildOfferCard(p, match, pending, step) {
   const t = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
-  let html = `<div style="padding:.4rem 0">
-    <div style="font-size:1.05rem;font-weight:800;color:#fff;margin-bottom:.4rem">${p.name || 'Anonymous'} <span style="font-size:.65rem;color:rgba(255,255,255,.35);font-weight:400">${t}</span></div>
-    <div style="display:flex;align-items:center;gap:.3rem;font-size:.8rem;color:rgba(255,255,255,.8);margin-bottom:.2rem">${_svgPin} ${p.location}</div>
-    ${p.body ? '<div style="font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.45;margin-bottom:.5rem">'+p.body.slice(0,150)+'</div>' : ''}`;
+  let html = `<div style="padding:.5rem 0">
+    <div style="font-size:1.35rem;font-weight:800;color:#fff;margin-bottom:.5rem;line-height:1.2">${p.name || 'Anonymous'} <span style="font-size:.7rem;color:rgba(255,255,255,.4);font-weight:400">${t}</span></div>
+    <div style="display:flex;align-items:center;gap:.35rem;font-size:.9rem;color:rgba(255,255,255,.85);margin-bottom:.25rem">${_svgPin} ${p.location}</div>
+    ${p.body ? '<div style="font-size:.85rem;color:rgba(255,255,255,.65);line-height:1.5;margin-bottom:.6rem">'+p.body.slice(0,150)+'</div>' : ''}`;
 
   if (pending?.length) {
     html += `<div style="background:rgba(255,165,0,.08);border:none;border-radius:10px;padding:.65rem;margin:.5rem 0">
@@ -6123,9 +6138,9 @@ function buildOfferCard(p, match, pending, step) {
 
   if (step >= 2 && match) {
     html += `<div style="background:rgba(34,197,94,.08);border:none;border-radius:10px;padding:.65rem;margin:.5rem 0">
-      <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.25rem">✓ Matched${match.confirmed_at ? ' · ' + new Date(match.confirmed_at).toLocaleDateString() : ''}</div>
-      <div style="font-size:.85rem;color:#fff;font-weight:700">Helped ${match.stranded_name || 'someone'} from ${match.stranded_location || 'nearby'}</div>
-      ${match.stranded_story ? '<div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-top:.3rem;padding-left:.5rem;border-left:2px solid rgba(236,52,82,.3)">"'+match.stranded_story+'"</div>' : ''}
+      <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">✓ Matched${match.confirmed_at ? ' · ' + new Date(match.confirmed_at).toLocaleDateString() : ''}</div>
+      <div style="font-size:.95rem;color:#fff;font-weight:700">Helped ${match.stranded_name || 'someone'} from ${match.stranded_location || 'nearby'}</div>
+      ${match.stranded_story ? '<div style="font-size:.8rem;color:rgba(255,255,255,.65);margin-top:.3rem;padding-left:.5rem;border-left:2px solid rgba(236,52,82,.3)">"'+match.stranded_story+'"</div>' : ''}
     </div>`;
   }
 
@@ -6140,12 +6155,12 @@ function buildOfferCard(p, match, pending, step) {
   if (lat && lng) nearby = nearby.map(s => ({...s, _d: haversineKm(lat, lng, s.current_lat, s.current_lng)})).sort((a,b) => a._d - b._d);
   if (nearby.length) {
     html += `<div style="margin-top:1.2rem;padding-top:.8rem;border-top:1px solid rgba(255,255,255,.06)">
-      <div style="font-size:1rem;font-weight:800;color:#fff;margin-bottom:.15rem">Offer Room</div>
+      <div style="font-size:1.15rem;font-weight:800;color:#fff;margin-bottom:.2rem">Offer Room</div>
       <div style="font-size:.7rem;color:rgba(255,255,255,.45);margin-bottom:.6rem">To someone stranded nearby</div>`;
     html += nearby.slice(0, 8).map(s => {
       const needs = (s.needs || []).slice(0,3).join(', ');
       return `<div style="display:flex;justify-content:space-between;align-items:center;padding:.45rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
-        <div><div style="font-size:.78rem;font-weight:600;color:#fff">${s.name || 'Anonymous'} <span style="font-size:.6rem;color:rgba(255,255,255,.25)">${s.group_size > 1 ? s.group_size + ' people' : ''}</span></div>
+        <div><div style="font-size:.85rem;font-weight:700;color:#fff">${s.name || 'Anonymous'} <span style="font-size:.6rem;color:rgba(255,255,255,.25)">${s.group_size > 1 ? s.group_size + ' people' : ''}</span></div>
           <div style="font-size:.7rem;color:rgba(255,255,255,.5)">${s.current_location}${s._d != null ? ' · '+Math.round(s._d)+'km' : ''}</div>
           ${needs ? '<div style="font-size:.6rem;color:#e67e22">'+needs+'</div>' : ''}</div>
         <div style="display:flex;flex-direction:column;gap:.2rem;align-items:flex-end">
