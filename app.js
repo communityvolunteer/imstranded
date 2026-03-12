@@ -5885,11 +5885,13 @@ async function updateActionButtons() {
   if (pcOffer) {
     if (_hasActiveOffer) {
       pcOffer.querySelector('.sitrep-label').textContent = 'My Room';
+      pcOffer.querySelector('.sitrep-label').style.color = '#fff';
       pcOffer.querySelector('.sitrep-sub').textContent = 'tap · manage';
       pcOffer.querySelector('svg').outerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
       pcOffer.onclick = () => openManageSidebar('offer');
     } else {
       pcOffer.querySelector('.sitrep-label').textContent = 'Offer Spare Room';
+      pcOffer.querySelector('.sitrep-label').style.color = '#3498ec';
       pcOffer.querySelector('.sitrep-sub').textContent = 'tap · help someone';
       pcOffer.onclick = () => isMob() ? mTab('offer', null) : openFormSidebar('offer');
     }
@@ -5897,10 +5899,12 @@ async function updateActionButtons() {
   if (pcStranded) {
     if (_hasActiveStranded) {
       pcStranded.querySelector('.sitrep-label').textContent = 'My Status';
+      pcStranded.querySelector('.sitrep-label').style.color = '#fff';
       pcStranded.querySelector('.sitrep-sub').textContent = 'tap · manage';
       pcStranded.onclick = () => openManageSidebar('stranded');
     } else {
       pcStranded.querySelector('.sitrep-label').textContent = "I'm Stranded";
+      pcStranded.querySelector('.sitrep-label').style.color = '#ec3452';
       pcStranded.querySelector('.sitrep-sub').textContent = 'tap · register';
       pcStranded.onclick = () => isMob() ? mTab('stranded', null) : openFormSidebar('stranded');
     }
@@ -5911,7 +5915,7 @@ async function updateActionButtons() {
   const mTabSpare = document.getElementById('mtab-spare');
   if (mOffer) {
     if (_hasActiveStranded) {
-      mOffer.querySelector('.m-stat-label').innerHTML = '<span style="color:#ec3452">MY<br>STATUS</span>';
+      mOffer.querySelector('.m-stat-label').innerHTML = '<span style="color:#fff">MY<br>STATUS</span>';
       mOffer.onclick = () => mTab('manage-stranded', null);
     } else {
       mOffer.querySelector('.m-stat-label').innerHTML = '<span style="color:#ec3452">HELP<br>I\'M STRANDED</span>';
@@ -5920,10 +5924,12 @@ async function updateActionButtons() {
   }
   if (mTabSpare) {
     if (_hasActiveOffer) {
-      mTabSpare.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> MY ROOM';
+      mTabSpare.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a1a2e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> MY ROOM';
+      mTabSpare.style.color = '#1a1a2e';
       mTabSpare.onclick = () => mTab('manage-room', null);
     } else {
       mTabSpare.innerHTML = '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> OFFER A SPARE ROOM';
+      mTabSpare.style.color = '';
       mTabSpare.onclick = () => mTab('offer', null);
     }
   }
@@ -6038,32 +6044,32 @@ function buildProgressTracker(currentStep, labels, color) {
   </div>`;
 }
 
-const _svgPin = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
-const _svgHome = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
-const _svgPerson = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+const _svgPin = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+const _svgHome = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
+const _svgPerson = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
 
 function buildStrandedCard(p, match, step) {
   const t = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
   const needsList = (p.needs || []).join(', ');
   let html = `<div style="padding:.4rem 0">
-    <div style="font-size:.82rem;font-weight:700;color:#fff;margin-bottom:.3rem">${p.name || 'Anonymous'} <span style="font-size:.6rem;color:rgba(255,255,255,.3);font-weight:400">${t}</span></div>
-    <div style="display:flex;align-items:center;gap:.3rem;font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">${_svgPin} ${p.current_location}</div>
-    <div style="display:flex;align-items:center;gap:.3rem;font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">${_svgHome} ${p.destination}${p.dest_airport ? ' ('+p.dest_airport+')' : ''}</div>
-    ${needsList ? '<div style="font-size:.7rem;color:#e67e22;margin-top:.2rem;margin-bottom:.3rem">Needs: '+needsList+'</div>' : ''}
-    ${p.details ? '<div style="font-size:.72rem;color:rgba(255,255,255,.4);line-height:1.4;margin-bottom:.5rem">'+p.details.slice(0,150)+'</div>' : ''}`;
+    <div style="font-size:1.05rem;font-weight:800;color:#fff;margin-bottom:.4rem">${p.name || 'Anonymous'} <span style="font-size:.65rem;color:rgba(255,255,255,.35);font-weight:400">${t}</span></div>
+    <div style="display:flex;align-items:center;gap:.3rem;font-size:.8rem;color:rgba(255,255,255,.8);margin-bottom:.2rem">${_svgPin} ${p.current_location}</div>
+    <div style="display:flex;align-items:center;gap:.3rem;font-size:.8rem;color:rgba(255,255,255,.8);margin-bottom:.2rem">${_svgHome} ${p.destination}${p.dest_airport ? ' ('+p.dest_airport+')' : ''}</div>
+    ${needsList ? '<div style="font-size:.75rem;color:#f59e0b;margin-top:.25rem;margin-bottom:.35rem">Needs: '+needsList+'</div>' : ''}
+    ${p.details ? '<div style="font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.45;margin-bottom:.5rem">'+p.details.slice(0,150)+'</div>' : ''}`;
 
   if (step >= 2 && match) {
     html += `<div style="background:rgba(34,197,94,.08);border:none;border-radius:10px;padding:.65rem;margin:.5rem 0">
       <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.25rem">✓ Matched${match.confirmed_at ? ' · ' + new Date(match.confirmed_at).toLocaleDateString() : ''}</div>
-      <div style="font-size:.78rem;color:#fff;font-weight:600">${match.offer_name || 'A host'} in ${match.offer_location || 'nearby'}</div>
-      ${match.offer_story ? '<div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-top:.25rem;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.3)">"'+match.offer_story+'"</div>' : ''}
+      <div style="font-size:.85rem;color:#fff;font-weight:700">${match.offer_name || 'A host'} in ${match.offer_location || 'nearby'}</div>
+      ${match.offer_story ? '<div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-top:.3rem;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.3)">"'+match.offer_story+'"</div>' : ''}
     </div>`;
   }
 
   if (step >= 3 && match?.home_lat) {
     html += `<div style="background:rgba(34,197,94,.12);border:none;border-radius:10px;padding:.65rem;margin:.5rem 0">
-      <div style="display:flex;align-items:center;gap:.3rem;font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.25rem">${_svgHome.replace('opacity:.5','opacity:1;stroke:#22c55e')} Made it home</div>
-      <div style="font-size:.78rem;color:#fff">${match.home_location || ''}</div>
+      <div style="display:flex;align-items:center;gap:.3rem;font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.25rem">${_svgHome} Made it home</div>
+      <div style="font-size:.85rem;color:#fff;font-weight:600">${match.home_location || ''}</div>
     </div>`;
   }
 
@@ -6085,10 +6091,10 @@ function buildStrandedCard(p, match, step) {
   if (nearby.length) {
     html += `<div style="margin-top:1.2rem;padding-top:.8rem;border-top:1px solid rgba(255,255,255,.06)">
       <div style="font-size:1rem;font-weight:800;color:#fff;margin-bottom:.15rem">Spare Rooms Nearby</div>
-      <div style="font-size:.65rem;color:rgba(255,255,255,.35);margin-bottom:.6rem">Someone near you is offering help</div>`;
+      <div style="font-size:.7rem;color:rgba(255,255,255,.45);margin-bottom:.6rem">Someone near you is offering help</div>`;
     html += nearby.slice(0, 5).map(o => `<div style="display:flex;justify-content:space-between;align-items:center;padding:.45rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
         <div><div style="font-size:.78rem;font-weight:600;color:#fff">${o.name || 'Anonymous'} ${buildBadge(!!o.user_id)}</div>
-          <div style="font-size:.65rem;color:rgba(255,255,255,.4)">${o.location}${o._d != null ? ' · '+Math.round(o._d)+'km' : ''}</div></div>
+          <div style="font-size:.7rem;color:rgba(255,255,255,.5)">${o.location}${o._d != null ? ' · '+Math.round(o._d)+'km' : ''}</div></div>
         <button onclick="openMatchPicker('${p.id}','${lat||0}','${lng||0}','${(p.name||'').replace(/'/g,"\\'")}','${(p.current_location||'').replace(/'/g,"\\'")}')" style="white-space:nowrap;${btnStyle('accent','sm')}">Select →</button>
       </div>`).join('');
     html += '</div>';
@@ -6101,9 +6107,9 @@ function buildStrandedCard(p, match, step) {
 function buildOfferCard(p, match, pending, step) {
   const t = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
   let html = `<div style="padding:.4rem 0">
-    <div style="font-size:.82rem;font-weight:700;color:#fff;margin-bottom:.3rem">${p.name || 'Anonymous'} <span style="font-size:.6rem;color:rgba(255,255,255,.3);font-weight:400">${t}</span></div>
-    <div style="display:flex;align-items:center;gap:.3rem;font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">${_svgPin} ${p.location}</div>
-    ${p.body ? '<div style="font-size:.72rem;color:rgba(255,255,255,.4);line-height:1.4;margin-bottom:.5rem">'+p.body.slice(0,150)+'</div>' : ''}`;
+    <div style="font-size:1.05rem;font-weight:800;color:#fff;margin-bottom:.4rem">${p.name || 'Anonymous'} <span style="font-size:.65rem;color:rgba(255,255,255,.35);font-weight:400">${t}</span></div>
+    <div style="display:flex;align-items:center;gap:.3rem;font-size:.8rem;color:rgba(255,255,255,.8);margin-bottom:.2rem">${_svgPin} ${p.location}</div>
+    ${p.body ? '<div style="font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.45;margin-bottom:.5rem">'+p.body.slice(0,150)+'</div>' : ''}`;
 
   if (pending?.length) {
     html += `<div style="background:rgba(255,165,0,.08);border:none;border-radius:10px;padding:.65rem;margin:.5rem 0">
@@ -6118,8 +6124,8 @@ function buildOfferCard(p, match, pending, step) {
   if (step >= 2 && match) {
     html += `<div style="background:rgba(34,197,94,.08);border:none;border-radius:10px;padding:.65rem;margin:.5rem 0">
       <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.25rem">✓ Matched${match.confirmed_at ? ' · ' + new Date(match.confirmed_at).toLocaleDateString() : ''}</div>
-      <div style="font-size:.78rem;color:#fff;font-weight:600">Helped ${match.stranded_name || 'someone'} from ${match.stranded_location || 'nearby'}</div>
-      ${match.stranded_story ? '<div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-top:.25rem;padding-left:.5rem;border-left:2px solid rgba(236,52,82,.3)">"'+match.stranded_story+'"</div>' : ''}
+      <div style="font-size:.85rem;color:#fff;font-weight:700">Helped ${match.stranded_name || 'someone'} from ${match.stranded_location || 'nearby'}</div>
+      ${match.stranded_story ? '<div style="font-size:.75rem;color:rgba(255,255,255,.6);margin-top:.3rem;padding-left:.5rem;border-left:2px solid rgba(236,52,82,.3)">"'+match.stranded_story+'"</div>' : ''}
     </div>`;
   }
 
@@ -6135,12 +6141,12 @@ function buildOfferCard(p, match, pending, step) {
   if (nearby.length) {
     html += `<div style="margin-top:1.2rem;padding-top:.8rem;border-top:1px solid rgba(255,255,255,.06)">
       <div style="font-size:1rem;font-weight:800;color:#fff;margin-bottom:.15rem">Offer Room</div>
-      <div style="font-size:.65rem;color:rgba(255,255,255,.35);margin-bottom:.6rem">To someone stranded nearby</div>`;
+      <div style="font-size:.7rem;color:rgba(255,255,255,.45);margin-bottom:.6rem">To someone stranded nearby</div>`;
     html += nearby.slice(0, 8).map(s => {
       const needs = (s.needs || []).slice(0,3).join(', ');
       return `<div style="display:flex;justify-content:space-between;align-items:center;padding:.45rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
         <div><div style="font-size:.78rem;font-weight:600;color:#fff">${s.name || 'Anonymous'} <span style="font-size:.6rem;color:rgba(255,255,255,.25)">${s.group_size > 1 ? s.group_size + ' people' : ''}</span></div>
-          <div style="font-size:.65rem;color:rgba(255,255,255,.4)">${s.current_location}${s._d != null ? ' · '+Math.round(s._d)+'km' : ''}</div>
+          <div style="font-size:.7rem;color:rgba(255,255,255,.5)">${s.current_location}${s._d != null ? ' · '+Math.round(s._d)+'km' : ''}</div>
           ${needs ? '<div style="font-size:.6rem;color:#e67e22">'+needs+'</div>' : ''}</div>
         <div style="display:flex;flex-direction:column;gap:.2rem;align-items:flex-end">
           ${s.contact ? '<a href="mailto:'+s.contact+'" style="font-size:.58rem;color:var(--accent);text-decoration:none;font-weight:600">Contact →</a>' : ''}
@@ -6160,11 +6166,13 @@ function resetActionButtons() {
   const pcStranded = document.getElementById('ss-im-stranded');
   if (pcOffer) {
     pcOffer.querySelector('.sitrep-label').textContent = 'Offer Spare Room';
+    pcOffer.querySelector('.sitrep-label').style.color = '#3498ec';
     pcOffer.querySelector('.sitrep-sub').textContent = 'tap · help someone';
     pcOffer.onclick = () => isMob() ? mTab('offer', null) : openFormSidebar('offer');
   }
   if (pcStranded) {
     pcStranded.querySelector('.sitrep-label').textContent = "I'm Stranded";
+    pcStranded.querySelector('.sitrep-label').style.color = '#ec3452';
     pcStranded.querySelector('.sitrep-sub').textContent = 'tap · register';
     pcStranded.onclick = () => isMob() ? mTab('stranded', null) : openFormSidebar('stranded');
   }
@@ -6176,6 +6184,7 @@ function resetActionButtons() {
   const mTabSpare = document.getElementById('mtab-spare');
   if (mTabSpare) {
     mTabSpare.innerHTML = '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> OFFER A SPARE ROOM';
+    mTabSpare.style.color = '';
     mTabSpare.onclick = () => mTab('offer', null);
   }
 }
