@@ -21,6 +21,13 @@ function accentHex() { return ACCENT_THEMES[_currentAccent]?.hex || '#a855f7'; }
 function accentRgba(a) { const t = ACCENT_THEMES[_currentAccent] || ACCENT_THEMES.purple; return `rgba(${t.r},${t.g},${t.b},${a})`; }
 
 // Solid button style helpers (accent-aware)
+// HTML escape — prevents XSS from user input in innerHTML
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// Solid button style helpers (accent-aware)
 function btnStyle(type, size) {
   const pad = size === 'sm' ? '.25rem .5rem' : '.5rem .8rem';
   const fs = size === 'sm' ? '.62rem' : '.72rem';
@@ -1250,9 +1257,9 @@ function renderFilteredPosts(map, cluster, filteredPosts) {
     });
     const popupHtml = `<div style="font-family:Inter,sans-serif">
         <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#93c5fd;margin-bottom:.25rem">SPARE ROOM</div>
-        <div style="font-weight:600;font-size:.95rem;margin-bottom:.2rem;color:#fff">${p.name} ${buildBadge(!!p.user_id)}</div>
-        <div style="font-size:.82rem;color:rgba(255,255,255,.75);line-height:1.55;margin-bottom:.4rem">${p.body||''}</div>
-        <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:.4rem">📍 ${p.location}</div>
+        <div style="font-weight:600;font-size:.95rem;margin-bottom:.2rem;color:#fff">${esc(p.name)} ${buildBadge(!!p.user_id)}</div>
+        <div style="font-size:.82rem;color:rgba(255,255,255,.75);line-height:1.55;margin-bottom:.4rem">${esc(p.body)||''}</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:.4rem">📍 ${esc(p.location)}</div>
         ${buildContactButtons(p.contact, p.xhandle, p.name)}
         ${buildTipButton(p.xhandle, !!p.user_id)}
         ${buildFlagButton('help_posts', p.id)}
@@ -1299,13 +1306,13 @@ function renderFilteredStranded(map, isMobile, filteredData) {
     const popupHtml = `
       <div style="font-family:Inter,sans-serif">
         <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:#ec3452;margin-bottom:.3rem">STRANDED · ${age}</div>
-        ${p.name ? '<div style="font-size:.95rem;font-weight:800;color:#fff;margin-bottom:.15rem">'+p.name+'</div>' : ''}
+        ${p.name ? '<div style="font-size:.95rem;font-weight:800;color:#fff;margin-bottom:.15rem">'+esc(p.name)+'</div>' : ''}
         <div style="font-size:.82rem;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:.2rem">${p.group_size > 1 ? p.group_size + ' people' : '1 person'}${p.nationality ? ' · ' + p.nationality : ''}</div>
-        <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">From: ${p.current_location}</div>
-        <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.35rem">Need to reach: <strong style="color:#fff">${p.destination}</strong>${p.dest_airport ? ' <span style="background:rgba(255,255,255,.1);padding:.1rem .4rem;border-radius:4px;font-size:.65rem;font-weight:600">✈ '+p.dest_airport+'</span>' : ''}</div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">From: ${esc(p.current_location)}</div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.35rem">Need to reach: <strong style="color:#fff">${esc(p.destination)}</strong>${p.dest_airport ? ' <span style="background:rgba(255,255,255,.1);padding:.1rem .4rem;border-radius:4px;font-size:.65rem;font-weight:600">✈ '+p.dest_airport+'</span>' : ''}</div>
         ${needsList ? '<div style="font-size:.72rem;color:#e67e22;margin-bottom:.25rem">Needs: '+needsList+'</div>' : ''}
         ${sinceTxt ? '<div style="font-size:.68rem;color:rgba(255,255,255,.35);margin-bottom:.25rem">'+sinceTxt+'</div>' : ''}
-        ${p.details ? '<div style="font-size:.78rem;color:rgba(255,255,255,.5);line-height:1.45;margin-top:.35rem">'+p.details+'</div>' : ''}
+        ${p.details ? '<div style="font-size:.78rem;color:rgba(255,255,255,.5);line-height:1.45;margin-top:.35rem">'+esc(p.details)+'</div>' : ''}
         ${buildContactButtons(p.contact, p.xhandle, p.name)}
         ${buildSendHelpButton(p.xhandle, !!p.user_id)}
         ${buildFlagButton('stranded_people', p.id)}
@@ -3151,9 +3158,9 @@ async function renderPostsOnMap(map) {
         ${storyTab}
         <div data-sptab="original" style="${originalStyle}">
         <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#93c5fd;margin-bottom:.25rem">SPARE ROOM</div>
-        <div style="font-weight:600;font-size:.95rem;margin-bottom:.2rem;color:#fff">${p.name} ${buildBadge(!!p.user_id)}</div>
-        <div style="font-size:.82rem;color:rgba(255,255,255,.75);line-height:1.55;margin-bottom:.4rem">${p.body||''}</div>
-        <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:.4rem">📍 ${p.location}</div>
+        <div style="font-weight:600;font-size:.95rem;margin-bottom:.2rem;color:#fff">${esc(p.name)} ${buildBadge(!!p.user_id)}</div>
+        <div style="font-size:.82rem;color:rgba(255,255,255,.75);line-height:1.55;margin-bottom:.4rem">${esc(p.body)||''}</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:.4rem">📍 ${esc(p.location)}</div>
         ${buildContactButtons(p.contact, p.xhandle, p.name)}
         ${buildTipButton(p.xhandle, !!p.user_id)}
         ${buildFlagButton('help_posts', p.id)}
@@ -3309,10 +3316,10 @@ function renderPosts() {
     const t = p.created_at ? new Date(p.created_at).toLocaleString() : '';
     return `<div class="post-card">
       <div class="post-header"><span class="post-type">Offering</span><span class="post-time">${t}</span></div>
-      <div class="post-loc">📍 ${p.location}</div>
-      <div class="post-body">${p.body}</div>
+      <div class="post-loc">📍 ${esc(p.location)}</div>
+      <div class="post-body">${esc(p.body)}</div>
       <div class="post-footer">
-        <span style="font-size:.77rem;color:var(--muted)">${p.name} ${buildBadge(!!p.user_id)}</span>
+        <span style="font-size:.77rem;color:var(--muted)">${esc(p.name)} ${buildBadge(!!p.user_id)}</span>
       </div>
       ${buildContactButtons(p.contact, p.xhandle, p.name)}
       ${buildTipButton(p.xhandle, !!p.user_id)}
@@ -4582,10 +4589,10 @@ async function renderProfilePosts() {
     const t = p.created_at ? new Date(p.created_at).toLocaleString() : '';
     return `<div class="profile-post-card" data-post-id="${p.id}">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">
-        <span style="font-size:.82rem;font-weight:600;color:#fff">${p.name} ${buildBadge(verified)}</span>
+        <span style="font-size:.82rem;font-weight:600;color:#fff">${esc(p.name)} ${buildBadge(verified)}</span>
         <span style="font-size:.63rem;color:rgba(255,255,255,.35)">${t}</span>
       </div>
-      <div style="font-size:.78rem;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:.2rem">📍 ${p.location}</div>
+      <div style="font-size:.78rem;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:.2rem">📍 ${esc(p.location)}</div>
       <div style="font-size:.82rem;color:rgba(255,255,255,.55);line-height:1.5">${(p.body || '').slice(0, 150)}${(p.body || '').length > 150 ? '...' : ''}</div>
       ${buildContactButtons(p.contact, p.xhandle, p.name)}
       <div class="profile-post-actions">
@@ -4795,7 +4802,7 @@ async function mRenderProfilePosts() {
       const t = p.created_at ? new Date(p.created_at).toLocaleString() : '';
       return `<div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.75rem;margin-bottom:.6rem" data-post-id="${p.id}">
         <div style="font-size:.7rem;color:rgba(255,255,255,.45);margin-bottom:.2rem">${t}</div>
-        <div style="font-size:.85rem;font-weight:600;color:#fff;margin-bottom:.15rem">📍 ${p.location}</div>
+        <div style="font-size:.85rem;font-weight:600;color:#fff;margin-bottom:.15rem">📍 ${esc(p.location)}</div>
         <div style="font-size:.8rem;color:rgba(255,255,255,.7);line-height:1.5;margin-bottom:.6rem">${(p.body || '').slice(0, 120)}${(p.body || '').length > 120 ? '...' : ''}</div>
         <div style="display:flex;gap:.5rem">
           <button onclick="mProfileEditPost('${p.id}')" style="background:rgba(52,152,236,.15);color:#3498ec;border:1px solid rgba(52,152,236,.25);border-radius:7px;padding:.35rem .8rem;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Edit</button>
@@ -4865,14 +4872,14 @@ async function renderProfileStranded() {
       : match?.offer_confirmed ? 'border-color:rgba(34,197,94,.25);color:rgba(34,197,94,.6)' : 'border-color:rgba(255,255,255,.1);color:rgba(255,255,255,.2);cursor:default';
     html.push(`<div class="profile-post-card" style="border-color:rgba(236,52,82,.15)">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">
-        <span style="font-size:.82rem;font-weight:700;color:#ec3452">${p.name || 'Anonymous'}</span>
+        <span style="font-size:.82rem;font-weight:700;color:#ec3452">${esc(p.name) || 'Anonymous'}</span>
         <span style="font-size:.63rem;color:rgba(255,255,255,.35)">${t}</span>
       </div>
-      <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">📍 ${p.current_location}</div>
-      <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">🏠 ${p.destination}${p.dest_airport ? ' ('+p.dest_airport+')' : ''}</div>
+      <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">📍 ${esc(p.current_location)}</div>
+      <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">🏠 ${esc(p.destination)}${p.dest_airport ? ' ('+p.dest_airport+')' : ''}</div>
       ${p.group_size > 1 ? '<div style="font-size:.75rem;color:rgba(255,255,255,.5)">Group: '+p.group_size+' people</div>' : ''}
       ${needsList ? '<div style="font-size:.72rem;color:#e67e22;margin-top:.2rem">Needs: '+needsList+'</div>' : ''}
-      ${p.details ? '<div style="font-size:.78rem;color:rgba(255,255,255,.45);line-height:1.4;margin-top:.2rem">'+p.details.slice(0,120)+'</div>' : ''}
+      ${p.details ? '<div style="font-size:.78rem;color:rgba(255,255,255,.45);line-height:1.4;margin-top:.2rem">'+esc(p.details).slice(0,120)+'</div>' : ''}
       <div class="profile-post-actions">
         <button class="found-place-btn" style="${matchedStyle}" onclick="openMatchPicker('${p.id}','${p.current_lat||0}','${p.current_lng||0}','${(p.name||'').replace(/'/g,"\\'")}','${(p.current_location||'').replace(/'/g,"\\'")}')">
           ${matchedLabel}
@@ -5431,13 +5438,13 @@ function renderStrandedOnMap(map, isMobile) {
         ${storyTab}
         <div data-sptab="original" style="${originalStyle}">
         <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:#ec3452;margin-bottom:.3rem">STRANDED · ${age}</div>
-        ${p.name ? '<div style="font-size:.95rem;font-weight:800;color:#fff;margin-bottom:.15rem">'+p.name+'</div>' : ''}
+        ${p.name ? '<div style="font-size:.95rem;font-weight:800;color:#fff;margin-bottom:.15rem">'+esc(p.name)+'</div>' : ''}
         <div style="font-size:.82rem;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:.2rem">${p.group_size > 1 ? p.group_size + ' people' : '1 person'}${p.nationality ? ' · ' + p.nationality : ''}</div>
-        <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">From: ${p.current_location}</div>
-        <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.35rem">Need to reach: <strong style="color:#fff">${p.destination}</strong>${p.dest_airport ? ' <span style="background:rgba(255,255,255,.1);padding:.1rem .4rem;border-radius:4px;font-size:.65rem;font-weight:600">✈ '+p.dest_airport+'</span>' : ''}</div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.15rem">From: ${esc(p.current_location)}</div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.35rem">Need to reach: <strong style="color:#fff">${esc(p.destination)}</strong>${p.dest_airport ? ' <span style="background:rgba(255,255,255,.1);padding:.1rem .4rem;border-radius:4px;font-size:.65rem;font-weight:600">✈ '+p.dest_airport+'</span>' : ''}</div>
         ${needsList ? `<div style="font-size:.72rem;color:#e67e22;margin-bottom:.25rem">Needs: ${needsList}</div>` : ''}
         ${sinceTxt ? `<div style="font-size:.68rem;color:rgba(255,255,255,.35);margin-bottom:.25rem">${sinceTxt}</div>` : ''}
-        ${p.details ? `<div style="font-size:.78rem;color:rgba(255,255,255,.5);line-height:1.45;margin-top:.35rem">${p.details}</div>` : ''}
+        ${p.details ? `<div style="font-size:.78rem;color:rgba(255,255,255,.5);line-height:1.45;margin-top:.35rem">${esc(p.details)}</div>` : ''}
         ${buildContactButtons(p.contact, p.xhandle, p.name)}
         ${buildSendHelpButton(p.xhandle, !!p.user_id)}
         ${buildFlagButton('stranded_people', p.id)}
@@ -5573,13 +5580,13 @@ function showSuccessTab(btn, tab, uid) {
 
 // ── Build success story tab HTML for a popup ─────────────────
 function buildSuccessTab(s, uid) {
-  const sStory = s.stranded_story ? `<div style="font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.5;margin:.3rem 0;padding-left:.5rem;border-left:2px solid rgba(236,52,82,.4)">"${s.stranded_story}"<div style="font-size:.63rem;color:rgba(255,255,255,.25);margin-top:.15rem">— ${s.stranded_name||'Stranded person'}</div></div>` : '';
-  const oStory = s.offer_story ? `<div style="font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.5;margin:.3rem 0;padding-left:.5rem;border-left:2px solid rgba(52,152,236,.4)">"${s.offer_story}"<div style="font-size:.63rem;color:rgba(255,255,255,.25);margin-top:.15rem">— ${s.offer_name||'Host'}</div></div>` : '';
+  const sStory = s.stranded_story ? `<div style="font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.5;margin:.3rem 0;padding-left:.5rem;border-left:2px solid rgba(236,52,82,.4)">"${esc(s.stranded_story)}"<div style="font-size:.63rem;color:rgba(255,255,255,.25);margin-top:.15rem">— ${s.stranded_name||'Stranded person'}</div></div>` : '';
+  const oStory = s.offer_story ? `<div style="font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.5;margin:.3rem 0;padding-left:.5rem;border-left:2px solid rgba(52,152,236,.4)">"${esc(s.offer_story)}"<div style="font-size:.63rem;color:rgba(255,255,255,.25);margin-top:.15rem">— ${s.offer_name||'Host'}</div></div>` : '';
   const homeNote = s.home_location ? `<div style="font-size:.68rem;color:#22c55e;margin-top:.35rem">🏠 Made it home to ${s.home_location}</div>` : '';
   const date = s.confirmed_at ? new Date(s.confirmed_at).toLocaleDateString() : '';
   return `<div data-sptab="story">
     <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#22c55e;margin-bottom:.3rem">✓ Matched · ${date}</div>
-    <div style="font-size:.88rem;font-weight:700;color:#fff;margin-bottom:.2rem">${s.offer_name||'A helper'} welcomed ${s.stranded_name||'someone stranded'}</div>
+    <div style="font-size:.88rem;font-weight:700;color:#fff;margin-bottom:.2rem">${esc(s.offer_name)||'A helper'} welcomed ${esc(s.stranded_name)||'someone stranded'}</div>
     ${sStory}${oStory}
     ${!sStory&&!oStory ? '<div style="font-size:.72rem;color:rgba(255,255,255,.22);font-style:italic;margin-bottom:.2rem">No story shared yet.</div>' : ''}
     ${homeNote}
@@ -5629,7 +5636,7 @@ function renderSuccessOnMap(map, showHome = true) {
     if (showHome && s.home_lat && s.home_lng) {
       const _homeD = buildUserDot('success', 1, 'home', 42);
       const homeIcon = L.divIcon({ className: '', html: _homeD.html, iconSize: [_homeD.sz, _homeD.sz], iconAnchor: [_homeD.sz/2, _homeD.sz/2] });
-      const homePop = `<div style="font-family:Inter,sans-serif"><div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">🏠 Made it home</div><div style="font-size:.82rem;font-weight:700;color:#fff;margin-bottom:.15rem">${s.stranded_name||'Stranded person'}</div><div style="font-size:.73rem;color:rgba(255,255,255,.45)">${s.home_location||''}</div>${s.home_story?`<div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:.35rem;line-height:1.5;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.4)">"${s.home_story}"</div>`:''}</div>`;
+      const homePop = `<div style="font-family:Inter,sans-serif"><div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">🏠 Made it home</div><div style="font-size:.82rem;font-weight:700;color:#fff;margin-bottom:.15rem">${s.stranded_name||'Stranded person'}</div><div style="font-size:.73rem;color:rgba(255,255,255,.45)">${esc(s.home_location)||''}</div>${s.home_story?`<div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:.35rem;line-height:1.5;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.4)">"${esc(s.home_story)}"</div>`:''}</div>`;
       const hm = L.marker([s.home_lat, s.home_lng], { icon: homeIcon });
       if (isMobileM) hm.on('click', e => { L.DomEvent.stopPropagation(e); openMPinSheet(homePop); });
       else hm.bindPopup(homePop, { className: 'dark-popup', maxWidth: 260 });
@@ -5704,10 +5711,10 @@ async function openMatchPicker(strandedPostId, strandedLat, strandedLng, strande
         ? '<div style="color:rgba(255,255,255,.35);font-size:.8rem;padding:1rem 0 .5rem">No spare room posts found near you.</div>'
         : offerList.slice(0, 15).map(p => `
         <div class="match-offer-card" onclick="selectMatchOffer(this,'${p.id}','${p.user_id||''}','${(p.location||'').replace(/'/g,"\\'")}','${p.xhandle||''}','${p.lat||0}','${p.lng||0}','${(p.name||'').replace(/'/g,"\\'")}')">
-          <div class="match-offer-name">${p.name||'Anonymous'}</div>
-          <div class="match-offer-loc">📍 ${p.location||'Unknown'}</div>
+          <div class="match-offer-name">${esc(p.name)||'Anonymous'}</div>
+          <div class="match-offer-loc">📍 ${esc(p.location)||'Unknown'}</div>
           ${p._dist != null ? `<div class="match-offer-dist">${p._dist < 1 ? '<1' : Math.round(p._dist)} km away</div>` : ''}
-          ${p.body ? `<div class="match-offer-body">${p.body.slice(0,100)}${p.body.length>100?'…':''}</div>` : ''}
+          ${p.body ? `<div class="match-offer-body">${esc(p.body).slice(0,100)}${p.body.length>100?'…':''}</div>` : ''}
         </div>`).join('')}
     </div>
     <div style="display:flex;gap:.5rem;margin-top:.9rem">
@@ -5781,7 +5788,7 @@ async function injectMatchNotifications(listElId) {
     const banner = document.createElement('div');
     banner.className = 'match-notif-banner';
     banner.innerHTML = `<div class="match-notif-dot"></div>
-      <div class="match-notif-text"><strong style="color:#22c55e">${s.stranded_name||'Someone'}</strong> says you helped them. Approve to enter the weekly $HELP pool!</div>
+      <div class="match-notif-text"><strong style="color:#22c55e">${esc(s.stranded_name)||'Someone'}</strong> says you helped them. Approve to enter the weekly $HELP pool!</div>
       <button class="match-notif-btn" onclick="approveMatch('${s.id}')">Approve ✓</button>`;
     card.appendChild(banner);
   }
@@ -6213,16 +6220,16 @@ function buildStrandedCard(p, match, step) {
   const t = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
   const needsList = (p.needs || []).join(', ');
   let html = `<div style="padding:.5rem 0">
-    <div style="font-size:1.35rem;font-weight:800;color:#fff;margin-bottom:.5rem;line-height:1.2">${p.name || 'Anonymous'} <span style="font-size:.7rem;color:rgba(255,255,255,.4);font-weight:400">${t}</span></div>
-    <div style="display:flex;align-items:center;gap:.35rem;font-size:.9rem;color:rgba(255,255,255,.85);margin-bottom:.25rem">${_svgPin} ${p.current_location}</div>
-    <div style="display:flex;align-items:center;gap:.35rem;font-size:.9rem;color:rgba(255,255,255,.85);margin-bottom:.25rem">${_svgHome} ${p.destination}${p.dest_airport ? ' ('+p.dest_airport+')' : ''}</div>
+    <div style="font-size:1.35rem;font-weight:800;color:#fff;margin-bottom:.5rem;line-height:1.2">${esc(p.name) || 'Anonymous'} <span style="font-size:.7rem;color:rgba(255,255,255,.4);font-weight:400">${t}</span></div>
+    <div style="display:flex;align-items:center;gap:.35rem;font-size:.9rem;color:rgba(255,255,255,.85);margin-bottom:.25rem">${_svgPin} ${esc(p.current_location)}</div>
+    <div style="display:flex;align-items:center;gap:.35rem;font-size:.9rem;color:rgba(255,255,255,.85);margin-bottom:.25rem">${_svgHome} ${esc(p.destination)}${p.dest_airport ? ' ('+p.dest_airport+')' : ''}</div>
     ${needsList ? '<div style="font-size:.8rem;color:#f59e0b;margin-top:.3rem;margin-bottom:.4rem">Needs: '+needsList+'</div>' : ''}
-    ${p.details ? '<div style="font-size:.85rem;color:rgba(255,255,255,.65);line-height:1.5;margin-bottom:.6rem">'+p.details.slice(0,150)+'</div>' : ''}`;
+    ${p.details ? '<div style="font-size:.85rem;color:rgba(255,255,255,.65);line-height:1.5;margin-bottom:.6rem">'+esc(p.details).slice(0,150)+'</div>' : ''}`;
 
   if (step >= 2 && match) {
     html += `<div style="background:#22c55e4a;border:none;border-radius:10px;padding:.75rem;margin:.5rem 0">
       <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">✓ Matched${match.confirmed_at ? ' · ' + new Date(match.confirmed_at).toLocaleDateString() : ''}</div>
-      <div style="font-size:.95rem;color:#fff;font-weight:700">${match.offer_name || 'A host'} in ${match.offer_location || 'nearby'}</div>
+      <div style="font-size:.95rem;color:#fff;font-weight:700">${esc(match.offer_name) || 'A host'} in ${esc(match.offer_location) || 'nearby'}</div>
       ${match.offer_story ? '<div style="font-size:.8rem;color:rgba(255,255,255,.65);margin-top:.3rem;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.3)">"'+match.offer_story+'"</div>' : ''}
     </div>`;
   }
@@ -6230,7 +6237,7 @@ function buildStrandedCard(p, match, step) {
   if (step >= 3 && match?.home_lat) {
     html += `<div style="background:#22c55e87;border:none;border-radius:10px;padding:.75rem;margin:.5rem 0">
       <div style="display:flex;align-items:center;gap:.35rem;font-size:.65rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">${_svgHome} Made it home</div>
-      <div style="font-size:.95rem;color:#fff;font-weight:600">${match.home_location || ''}</div>
+      <div style="font-size:.95rem;color:#fff;font-weight:600">${esc(match.home_location) || ''}</div>
     </div>`;
   }
 
@@ -6255,8 +6262,8 @@ function buildStrandedCard(p, match, step) {
       <div style="font-size:.7rem;color:rgba(255,255,255,.45);margin-bottom:.6rem">Someone near you is offering help</div>`;
     html += nearby.slice(0, 5).map(o => `<div style="padding:.55rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.25rem">
-          <div><div style="font-size:.85rem;font-weight:700;color:#fff">${o.name || 'Anonymous'} ${buildBadge(!!o.user_id)}</div>
-            <div style="font-size:.7rem;color:rgba(255,255,255,.5)">${o.location}${o._d != null ? ' · '+Math.round(o._d)+'km' : ''}</div></div>
+          <div><div style="font-size:.85rem;font-weight:700;color:#fff">${esc(o.name) || 'Anonymous'} ${buildBadge(!!o.user_id)}</div>
+            <div style="font-size:.7rem;color:rgba(255,255,255,.5)">${esc(o.location)}${o._d != null ? ' · '+Math.round(o._d)+'km' : ''}</div></div>
           <button onclick="openMatchPicker('${p.id}','${lat||0}','${lng||0}','${(p.name||'').replace(/'/g,"\\'")}','${(p.current_location||'').replace(/'/g,"\\'")}')" style="white-space:nowrap;${btnStyle('accent','sm')}">Select →</button>
         </div>
         ${buildContactIcons(o.contact, o.xhandle, o.name)}
@@ -6271,9 +6278,9 @@ function buildStrandedCard(p, match, step) {
 function buildOfferCard(p, match, pending, step) {
   const t = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
   let html = `<div style="padding:.5rem 0">
-    <div style="font-size:1.35rem;font-weight:800;color:#fff;margin-bottom:.5rem;line-height:1.2">${p.name || 'Anonymous'} <span style="font-size:.7rem;color:rgba(255,255,255,.4);font-weight:400">${t}</span></div>
-    <div style="display:flex;align-items:center;gap:.35rem;font-size:.9rem;color:rgba(255,255,255,.85);margin-bottom:.25rem">${_svgPin} ${p.location}</div>
-    ${p.body ? '<div style="font-size:.85rem;color:rgba(255,255,255,.65);line-height:1.5;margin-bottom:.6rem">'+p.body.slice(0,150)+'</div>' : ''}`;
+    <div style="font-size:1.35rem;font-weight:800;color:#fff;margin-bottom:.5rem;line-height:1.2">${esc(p.name) || 'Anonymous'} <span style="font-size:.7rem;color:rgba(255,255,255,.4);font-weight:400">${t}</span></div>
+    <div style="display:flex;align-items:center;gap:.35rem;font-size:.9rem;color:rgba(255,255,255,.85);margin-bottom:.25rem">${_svgPin} ${esc(p.location)}</div>
+    ${p.body ? '<div style="font-size:.85rem;color:rgba(255,255,255,.65);line-height:1.5;margin-bottom:.6rem">'+esc(p.body).slice(0,150)+'</div>' : ''}`;
 
   if (pending?.length) {
     html += `<div style="background:rgba(255,165,0,.12);border:none;border-radius:10px;padding:.75rem;margin:.5rem 0">
@@ -6288,7 +6295,7 @@ function buildOfferCard(p, match, pending, step) {
   if (step >= 2 && match) {
     html += `<div style="background:#22c55e4a;border:none;border-radius:10px;padding:.75rem;margin:.5rem 0">
       <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">✓ Matched${match.confirmed_at ? ' · ' + new Date(match.confirmed_at).toLocaleDateString() : ''}</div>
-      <div style="font-size:.95rem;color:#fff;font-weight:700">Helped ${match.stranded_name || 'someone'} from ${match.stranded_location || 'nearby'}</div>
+      <div style="font-size:.95rem;color:#fff;font-weight:700">Helped ${esc(match.stranded_name) || 'someone'} from ${esc(match.stranded_location) || 'nearby'}</div>
       ${match.stranded_story ? '<div style="font-size:.8rem;color:rgba(255,255,255,.65);margin-top:.3rem;padding-left:.5rem;border-left:2px solid rgba(236,52,82,.3)">"'+match.stranded_story+'"</div>' : ''}
     </div>`;
   }
@@ -6310,8 +6317,8 @@ function buildOfferCard(p, match, pending, step) {
       const needs = (s.needs || []).slice(0,3).join(', ');
       return `<div style="padding:.55rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.25rem">
-          <div><div style="font-size:.85rem;font-weight:700;color:#fff">${s.name || 'Anonymous'} ${buildBadge(!!s.user_id)} <span style="font-size:.6rem;color:rgba(255,255,255,.25)">${s.group_size > 1 ? s.group_size + ' people' : ''}</span></div>
-            <div style="font-size:.7rem;color:rgba(255,255,255,.5)">${s.current_location}${s._d != null ? ' · '+Math.round(s._d)+'km' : ''}</div>
+          <div><div style="font-size:.85rem;font-weight:700;color:#fff">${esc(s.name) || 'Anonymous'} ${buildBadge(!!s.user_id)} <span style="font-size:.6rem;color:rgba(255,255,255,.25)">${s.group_size > 1 ? s.group_size + ' people' : ''}</span></div>
+            <div style="font-size:.7rem;color:rgba(255,255,255,.5)">${esc(s.current_location)}${s._d != null ? ' · '+Math.round(s._d)+'km' : ''}</div>
             ${needs ? '<div style="font-size:.6rem;color:#f59e0b">'+needs+'</div>' : ''}</div>
           <button onclick="alert('Room offered! They will see this in their dashboard.')" style="white-space:nowrap;${btnStyle('green','sm')}">Offer Room</button>
         </div>
@@ -6493,9 +6500,9 @@ async function renderAdminPanel(container) {
       return `<div style="padding:.5rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
         <div style="display:flex;justify-content:space-between;align-items:flex-start">
           <div style="flex:1;min-width:0">
-            <div style="font-size:.75rem;font-weight:700;color:#fff">${p.name || 'Anonymous'} <span style="font-size:.55rem;color:rgba(255,255,255,.3)">${p._type} · ${t}</span>${flagBadge}</div>
-            <div style="font-size:.65rem;color:rgba(255,255,255,.4)">${p.location || ''}</div>
-            ${p.body ? `<div style="font-size:.65rem;color:rgba(255,255,255,.3);margin-top:.15rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.body.slice(0,100)}</div>` : ''}
+            <div style="font-size:.75rem;font-weight:700;color:#fff">${esc(p.name) || 'Anonymous'} <span style="font-size:.55rem;color:rgba(255,255,255,.3)">${p._type} · ${t}</span>${flagBadge}</div>
+            <div style="font-size:.65rem;color:rgba(255,255,255,.4)">${esc(p.location) || ''}</div>
+            ${p.body ? `<div style="font-size:.65rem;color:rgba(255,255,255,.3);margin-top:.15rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.body).slice(0,100)}</div>` : ''}
           </div>
           <div style="display:flex;gap:.3rem;flex-shrink:0;margin-left:.5rem">
             ${p.flagged ? `<button onclick="adminUnflag('${p._table}','${p.id}')" style="${btnStyle('accent','sm')}">Unflag</button>` : ''}
