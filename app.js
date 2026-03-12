@@ -6001,15 +6001,14 @@ async function updateActionButtons() {
   if (mOffer) {
     const mSvg = mOffer.querySelector('svg');
     if (_hasActiveStranded) {
-      if (mSvg) mSvg.setAttribute('stroke', '#1a1a2e');
-      const mBadge = _roomsOfferedCount > 0
-        ? `<span style="display:inline-block;background:#22c55e;color:#000;font-size:.5rem;font-weight:800;border-radius:8px;padding:.05rem .3rem;margin-left:.15rem">${_roomsOfferedCount}</span>`
-        : '';
-      mOffer.querySelector('.m-stat-label').innerHTML = `<span style="color:#1a1a2e">MY<br>STATUS</span><div style="font-size:.5rem;color:rgba(0,0,0,.4);margin-top:.1rem">${_roomsOfferedCount} Room${_roomsOfferedCount !== 1 ? 's' : ''} Offered${mBadge}</div>`;
+      if (mSvg) mSvg.outerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+      const rBubble = `<span style="display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;border-radius:8px;font-size:.5rem;font-weight:800;padding:0 .25rem;${_roomsOfferedCount > 0 ? 'background:#22c55e;color:#000' : 'background:rgba(0,0,0,.12);color:rgba(0,0,0,.35)'}">${_roomsOfferedCount}</span>`;
+      const qBubble = `<span style="display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;border-radius:8px;font-size:.5rem;font-weight:800;padding:0 .25rem;${_pendingRequestCount > 0 ? 'background:#ec3452;color:#fff' : 'background:rgba(0,0,0,.12);color:rgba(0,0,0,.35)'}">${_pendingRequestCount}</span>`;
+      mOffer.querySelector('.m-stat-label').innerHTML = `<span style="color:#1a1a2e;font-size:.55rem">MY STATUS</span><div style="display:flex;gap:.5rem;margin-top:.15rem"><span style="font-size:.45rem;color:rgba(0,0,0,.45);display:flex;align-items:center;gap:.2rem">Rooms Offered ${rBubble}</span><span style="font-size:.45rem;color:rgba(0,0,0,.45);display:flex;align-items:center;gap:.2rem">Requests ${qBubble}</span></div>`;
       mOffer.onclick = () => mTab('manage-stranded', null);
     } else {
-      if (mSvg) mSvg.setAttribute('stroke', '#1a1a2e');
-      mOffer.querySelector('.m-stat-label').innerHTML = '<span style="color:#1a1a2e">HELP<br>I\'M STRANDED</span>';
+      if (mSvg) mSvg.outerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+      mOffer.querySelector('.m-stat-label').innerHTML = '<span style="color:#1a1a2e">HELP · I\'M STRANDED</span>';
       mOffer.onclick = () => mTab('stranded', null);
     }
   }
@@ -6331,8 +6330,8 @@ function resetActionButtons() {
   const mOffer = document.getElementById('mss-offer');
   if (mOffer) {
     const mSvg = mOffer.querySelector('svg');
-    if (mSvg) mSvg.setAttribute('stroke', '#1a1a2e');
-    mOffer.querySelector('.m-stat-label').innerHTML = '<span style="color:#1a1a2e">HELP<br>I\'M STRANDED</span>';
+    if (mSvg) mSvg.outerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+    mOffer.querySelector('.m-stat-label').innerHTML = '<span style="color:#1a1a2e">HELP · I\'M STRANDED</span>';
     mOffer.onclick = () => mTab('stranded', null);
   }
   const mTabSpare = document.getElementById('mtab-spare');
