@@ -743,6 +743,12 @@ function googleTranslateInit() {
       Back Home
     </a>
 
+    <!-- Admin pill (center, hidden by default) -->
+    <a class="m-map-pill" id="m-admin-pill" href="#" onclick="toggleAdminPanel();return false;" style="display:none;position:absolute;left:50%;transform:translateX(-50%);bottom:12px;background:#ec3452;color:#fff;border-color:rgba(236,52,82,.3);z-index:10">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Admin
+    </a>
+
     <!-- My Profile pill (right) -->
     <a class="m-map-pill m-map-pill--right" href="#" onclick="mTab('profile',document.getElementById('mtab-help'));return false;" id="m-profile-pill">
       <svg id="m-profile-avatar-default" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>

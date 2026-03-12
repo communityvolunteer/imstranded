@@ -6391,7 +6391,7 @@ async function flagPost(table, id) {
 function toggleAdminPanel() {
   if (!isModOrAdmin()) return;
   if (isMob()) {
-    mTab('manage', null);
+    mShowSheetContent('manage', 'ADMIN');
     setTimeout(() => {
       const c = document.getElementById('m-manage-content');
       if (c) { c.innerHTML = ''; renderAdminPanel(c); }
@@ -6462,15 +6462,19 @@ async function renderAdminPanel(container) {
         withTimeout(_sb.from('help_posts').select('id,name,location,body,created_at,flagged,user_id').eq('flagged', true).order('created_at', { ascending: false }).limit(50), 6000),
         withTimeout(_sb.from('stranded_people').select('id,name,current_location,details,created_at,flagged,user_id').eq('flagged', true).order('created_at', { ascending: false }).limit(50), 6000)
       ]);
+      if (r1.error) throw new Error('help_posts: ' + r1.error.message);
+      if (r2.error) throw new Error('stranded_people: ' + r2.error.message);
       items = [
         ...(r1.data || []).map(p => ({ ...p, _table: 'help_posts', _type: 'Room' })),
         ...(r2.data || []).map(p => ({ ...p, _table: 'stranded_people', _type: 'Stranded', location: p.current_location, body: p.details }))
       ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     } else if (_adminTab === 'rooms') {
-      const { data } = await withTimeout(_sb.from('help_posts').select('id,name,location,body,created_at,flagged,user_id').eq('type', 'offer').order('created_at', { ascending: false }).limit(100), 6000);
+      const { data, error } = await withTimeout(_sb.from('help_posts').select('id,name,location,body,created_at,flagged,user_id').eq('type', 'offer').order('created_at', { ascending: false }).limit(100), 6000);
+      if (error) throw new Error(error.message);
       items = (data || []).map(p => ({ ...p, _table: 'help_posts', _type: 'Room' }));
     } else {
-      const { data } = await withTimeout(_sb.from('stranded_people').select('id,name,current_location,details,created_at,flagged,user_id').order('created_at', { ascending: false }).limit(100), 6000);
+      const { data, error } = await withTimeout(_sb.from('stranded_people').select('id,name,current_location,details,created_at,flagged,user_id').order('created_at', { ascending: false }).limit(100), 6000);
+      if (error) throw new Error(error.message);
       items = (data || []).map(p => ({ ...p, _table: 'stranded_people', _type: 'Stranded', location: p.current_location, body: p.details }));
     }
 
@@ -6497,7 +6501,7 @@ async function renderAdminPanel(container) {
       </div>`;
     }).join('');
   } catch(e) {
-    container.innerHTML = toggleHtml + `<div style="text-align:center;padding:1rem 0;color:rgba(255,255,255,.4)">${e.message}</div>`;
+    container.innerHTML = toggleHtml + `<div style="text-align:center;padding:1rem 0"><div style="color:#ec3452;font-size:.78rem;margin-bottom:.4rem">${e.message}</div><div style="color:rgba(255,255,255,.3);font-size:.6rem;line-height:1.6">If this is an RLS error, run the SQL policies in your browser console (press F12 → Console).</div><button onclick="renderAdminPanel(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="margin-top:.5rem;${btnStyle('accent','sm')}">Retry</button></div>`;
   }
 }
 
@@ -6505,7 +6509,12 @@ async function adminDelete(table, id) {
   if (!isModOrAdmin()) return;
   if (!confirm('Permanently delete this post?')) return;
   try {
-    await withTimeout(_sb.from(table).delete().eq('id', id), 5000);
+    const { error } = await withTimeout(_sb.from(table).delete().eq('id', id), 5000);
+    if (error) {
+      console.error('[Admin Delete] Error:', error);
+      alert('Delete failed — likely RLS policy. Error: ' + error.message + '\n\nRun in Supabase SQL editor:\nCREATE POLICY "admin_delete_' + table + '" ON ' + table + ' FOR DELETE USING (auth.jwt()->>\'email\' = \'' + ADMIN_EMAIL + '\' OR (SELECT role FROM profiles WHERE id = auth.uid()) = \'mod\');');
+      return;
+    }
     loadPosts(); loadStranded();
     const c = document.getElementById('pc-manage-content') || document.getElementById('m-manage-content');
     if (c) renderAdminPanel(c);
@@ -6568,23 +6577,29 @@ async function adminSearchUsers(q) {
   const results = document.getElementById('admin-search-results');
   if (!results || !isAdmin()) return;
   if (q.length < 2) { results.innerHTML = ''; return; }
-  try {
-    const { data } = await withTimeout(_sb.from('profiles').select('id,display_name,email,role')
-      .or(`display_name.ilike.%${q}%,email.ilike.%${q}%`)
-      .limit(8), 4000);
-    if (!data?.length) { results.innerHTML = '<div style="font-size:.65rem;color:rgba(255,255,255,.25);padding:.3rem 0">No users found.</div>'; return; }
-    results.innerHTML = data.map(u => {
-      const isSelf = u.email === ADMIN_EMAIL;
-      const isAlreadyMod = u.role === 'mod';
-      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,.03)">
-        <div><span style="font-size:.72rem;font-weight:600;color:#fff">${u.display_name || 'No name'}</span>
-        <span style="font-size:.55rem;color:rgba(255,255,255,.25);margin-left:.3rem">${u.email || ''}</span>
-        ${isAlreadyMod ? '<span style="font-size:.5rem;background:#a855f7;color:#fff;border-radius:4px;padding:.05rem .25rem;margin-left:.2rem;font-weight:700">MOD</span>' : ''}
-        ${isSelf ? '<span style="font-size:.5rem;background:#ec3452;color:#fff;border-radius:4px;padding:.05rem .25rem;margin-left:.2rem;font-weight:700">ADMIN</span>' : ''}</div>
-        ${!isSelf && !isAlreadyMod ? `<button onclick="adminMakeMod('${u.id}')" style="${btnStyle('green','sm')}">Make Mod</button>` : ''}
-      </div>`;
-    }).join('');
-  } catch(e) { results.innerHTML = ''; }
+  // Debounce
+  clearTimeout(window._adminSearchTimer);
+  window._adminSearchTimer = setTimeout(async () => {
+    try {
+      results.innerHTML = '<div style="font-size:.6rem;color:rgba(255,255,255,.25);padding:.2rem 0">Searching...</div>';
+      const { data, error } = await withTimeout(_sb.from('profiles').select('id,display_name,email,role')
+        .or(`display_name.ilike.%${q}%,email.ilike.%${q}%`)
+        .limit(8), 4000);
+      if (error) { results.innerHTML = `<div style="font-size:.6rem;color:#ec3452;padding:.3rem 0">RLS error: ${error.message}. See console for RLS fix.</div>`; console.error('[Admin Search] RLS policy needed. Run in Supabase SQL editor:\nCREATE POLICY "admin_read_profiles" ON profiles FOR SELECT USING (auth.jwt()->>\'email\' = \'' + ADMIN_EMAIL + '\' OR (SELECT role FROM profiles WHERE id = auth.uid()) = \'mod\');'); return; }
+      if (!data?.length) { results.innerHTML = '<div style="font-size:.65rem;color:rgba(255,255,255,.25);padding:.3rem 0">No users found.</div>'; return; }
+      results.innerHTML = data.map(u => {
+        const isSelf = u.email === ADMIN_EMAIL;
+        const isAlreadyMod = u.role === 'mod';
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,.03)">
+          <div><span style="font-size:.72rem;font-weight:600;color:#fff">${u.display_name || 'No name'}</span>
+          <span style="font-size:.55rem;color:rgba(255,255,255,.25);margin-left:.3rem">${u.email || ''}</span>
+          ${isAlreadyMod ? '<span style="font-size:.5rem;background:#a855f7;color:#fff;border-radius:4px;padding:.05rem .25rem;margin-left:.2rem;font-weight:700">MOD</span>' : ''}
+          ${isSelf ? '<span style="font-size:.5rem;background:#ec3452;color:#fff;border-radius:4px;padding:.05rem .25rem;margin-left:.2rem;font-weight:700">ADMIN</span>' : ''}</div>
+          ${!isSelf && !isAlreadyMod ? `<button onclick="adminMakeMod('${u.id}')" style="${btnStyle('green','sm')}">Make Mod</button>` : ''}
+        </div>`;
+      }).join('');
+    } catch(e) { results.innerHTML = `<div style="font-size:.6rem;color:#ec3452">${e.message}</div>`; }
+  }, 300);
 }
 
 async function adminMakeMod(userId) {
@@ -6610,8 +6625,58 @@ async function adminRemoveMod(userId) {
 
 // ── Show/hide admin button based on role ─────────────────
 function updateAdminButton() {
+  const show = isModOrAdmin();
   const btn = document.getElementById('admin-nav-btn');
-  if (btn) btn.style.display = isModOrAdmin() ? '' : 'none';
+  if (btn) btn.style.display = show ? '' : 'none';
+  const mBtn = document.getElementById('m-admin-pill');
+  if (mBtn) mBtn.style.display = show ? '' : 'none';
+  // Log RLS SQL for admin setup
+  if (isAdmin() && !window._adminSqlLogged) {
+    window._adminSqlLogged = true;
+    console.log('%c[ADMIN] Required Supabase RLS policies — run these in SQL Editor:', 'color:#ec3452;font-weight:bold');
+    console.log(`
+-- Add role column if not exists
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS role text;
+
+-- Admin/mod can read all profiles (for user search)
+CREATE POLICY "admin_mod_read_profiles" ON profiles FOR SELECT
+  USING (true);
+
+-- Admin can update any profile (for mod management)
+CREATE POLICY "admin_update_profiles" ON profiles FOR UPDATE
+  USING (auth.jwt()->>'email' = '${ADMIN_EMAIL}');
+
+-- Admin/mod can delete any help_posts
+CREATE POLICY "admin_mod_delete_posts" ON help_posts FOR DELETE
+  USING (
+    auth.jwt()->>'email' = '${ADMIN_EMAIL}'
+    OR (SELECT role FROM profiles WHERE id = auth.uid()) = 'mod'
+  );
+
+-- Admin/mod can update help_posts (unflag)
+CREATE POLICY "admin_mod_update_posts" ON help_posts FOR UPDATE
+  USING (
+    auth.uid() = user_id
+    OR auth.jwt()->>'email' = '${ADMIN_EMAIL}'
+    OR (SELECT role FROM profiles WHERE id = auth.uid()) = 'mod'
+  );
+
+-- Admin/mod can delete any stranded_people
+CREATE POLICY "admin_mod_delete_stranded" ON stranded_people FOR DELETE
+  USING (
+    auth.jwt()->>'email' = '${ADMIN_EMAIL}'
+    OR (SELECT role FROM profiles WHERE id = auth.uid()) = 'mod'
+  );
+
+-- Admin/mod can update stranded_people (unflag)
+CREATE POLICY "admin_mod_update_stranded" ON stranded_people FOR UPDATE
+  USING (
+    auth.uid() = user_id
+    OR auth.jwt()->>'email' = '${ADMIN_EMAIL}'
+    OR (SELECT role FROM profiles WHERE id = auth.uid()) = 'mod'
+  );
+    `);
+  }
 }
 
 window.addEventListener('DOMContentLoaded',()=>{
