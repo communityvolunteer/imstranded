@@ -1832,7 +1832,7 @@ function openFormSidebar(which) {
         const sb = document.getElementById('form-sidebar');
         if (sb && sb.classList.contains('open') && !sb.contains(e.target)) {
           // Don't close if clicking a button that opens the sidebar
-          if (e.target.closest('[onclick*="openFormSidebar"]') || e.target.closest('[onclick*="mTab"]')) return;
+          if (e.target.closest('[onclick*="openFormSidebar"]') || e.target.closest('[onclick*="openManageSidebar"]') || e.target.closest('[onclick*="mTab"]')) return;
           closeFormSidebar();
         }
       };
@@ -5983,6 +5983,20 @@ function openManageSidebar(type) {
     sb.dataset.panel = 'manage';
     document.getElementById('sidebar-overlay')?.classList.add('active');
     document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '350px');
+    // Click outside to close
+    setTimeout(() => {
+      if (!window._fsBackdropClose) {
+        window._fsBackdropClose = function(e) {
+          const sb = document.getElementById('form-sidebar');
+          if (sb && sb.classList.contains('open') && !sb.contains(e.target)) {
+            if (e.target.closest('[onclick*="openFormSidebar"]') || e.target.closest('[onclick*="openManageSidebar"]') || e.target.closest('[onclick*="mTab"]')) return;
+            closeFormSidebar();
+          }
+        };
+      }
+      document.removeEventListener('mousedown', window._fsBackdropClose);
+      document.addEventListener('mousedown', window._fsBackdropClose);
+    }, 100);
     renderManageDashboard(type);
   }, 50);
 }
@@ -6074,7 +6088,7 @@ function buildStrandedCard(p, match, step) {
     ${p.details ? '<div style="font-size:.85rem;color:rgba(255,255,255,.65);line-height:1.5;margin-bottom:.6rem">'+p.details.slice(0,150)+'</div>' : ''}`;
 
   if (step >= 2 && match) {
-    html += `<div style="background:rgba(34,197,94,.08);border:none;border-radius:10px;padding:.65rem;margin:.5rem 0">
+    html += `<div style="background:rgba(34,197,94,.14);border:none;border-radius:10px;padding:.75rem;margin:.5rem 0">
       <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">✓ Matched${match.confirmed_at ? ' · ' + new Date(match.confirmed_at).toLocaleDateString() : ''}</div>
       <div style="font-size:.95rem;color:#fff;font-weight:700">${match.offer_name || 'A host'} in ${match.offer_location || 'nearby'}</div>
       ${match.offer_story ? '<div style="font-size:.8rem;color:rgba(255,255,255,.65);margin-top:.3rem;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.3)">"'+match.offer_story+'"</div>' : ''}
@@ -6082,7 +6096,7 @@ function buildStrandedCard(p, match, step) {
   }
 
   if (step >= 3 && match?.home_lat) {
-    html += `<div style="background:rgba(34,197,94,.12);border:none;border-radius:10px;padding:.75rem;margin:.5rem 0">
+    html += `<div style="background:rgba(34,197,94,.18);border:none;border-radius:10px;padding:.75rem;margin:.5rem 0">
       <div style="display:flex;align-items:center;gap:.35rem;font-size:.65rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">${_svgHome} Made it home</div>
       <div style="font-size:.95rem;color:#fff;font-weight:600">${match.home_location || ''}</div>
     </div>`;
@@ -6127,7 +6141,7 @@ function buildOfferCard(p, match, pending, step) {
     ${p.body ? '<div style="font-size:.85rem;color:rgba(255,255,255,.65);line-height:1.5;margin-bottom:.6rem">'+p.body.slice(0,150)+'</div>' : ''}`;
 
   if (pending?.length) {
-    html += `<div style="background:rgba(255,165,0,.08);border:none;border-radius:10px;padding:.65rem;margin:.5rem 0">
+    html += `<div style="background:rgba(255,165,0,.12);border:none;border-radius:10px;padding:.75rem;margin:.5rem 0">
       <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#f59e0b;margin-bottom:.35rem">Pending Match Request${pending.length > 1 ? 's' : ''}</div>
       ${pending.map(s => `<div style="display:flex;justify-content:space-between;align-items:center;padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
         <span style="font-size:.75rem;color:#fff;font-weight:600">${s.stranded_name || 'Someone'}</span>
@@ -6137,7 +6151,7 @@ function buildOfferCard(p, match, pending, step) {
   }
 
   if (step >= 2 && match) {
-    html += `<div style="background:rgba(34,197,94,.08);border:none;border-radius:10px;padding:.65rem;margin:.5rem 0">
+    html += `<div style="background:rgba(34,197,94,.14);border:none;border-radius:10px;padding:.75rem;margin:.5rem 0">
       <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">✓ Matched${match.confirmed_at ? ' · ' + new Date(match.confirmed_at).toLocaleDateString() : ''}</div>
       <div style="font-size:.95rem;color:#fff;font-weight:700">Helped ${match.stranded_name || 'someone'} from ${match.stranded_location || 'nearby'}</div>
       ${match.stranded_story ? '<div style="font-size:.8rem;color:rgba(255,255,255,.65);margin-top:.3rem;padding-left:.5rem;border-left:2px solid rgba(236,52,82,.3)">"'+match.stranded_story+'"</div>' : ''}
