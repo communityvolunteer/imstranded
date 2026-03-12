@@ -1793,6 +1793,9 @@ function openFormSidebar(which) {
   // Return any previously mounted node back to its home
   _fsReturnMounted();
 
+  // Clear any leftover content (e.g. manage dashboard HTML)
+  body.innerHTML = '';
+
   // Get the source node and move it into the sidebar body
   const getNode = _fsSourceMap[which];
   const node = getNode ? getNode() : null;
@@ -4553,22 +4556,35 @@ async function profileEditPost(id) {
 
 async function mProfileEditPost(id) {
   if (!await ensureSession()) { alert('Please sign in first.'); return; }
-  // Close manage sidebar/sheet first
   closeFormSidebar();
   const { data } = await _sb.from('help_posts').select('*').eq('id', id).eq('user_id', _currentUser.id).single();
   if (!data) { alert('Post not found.'); return; }
   _editingPostId = id;
-  // Populate mobile form
-  document.getElementById('m-offer-location').value = data.location || '';
-  document.getElementById('m-offer-lat').value = data.lat || '';
-  document.getElementById('m-offer-lng').value = data.lng || '';
-  document.getElementById('m-offer-body').value = data.body || '';
-  document.getElementById('m-offer-name').value = data.name || '';
-  // Switch to offer tab
-  mTab('offer', document.querySelector('#mtab-spare'));
-  // Change button
-  const btn = document.querySelector('#m-offer-content .m-submit');
-  if (btn) { btn.textContent = 'Update Post'; btn.onclick = () => mSubmitEditPost(); }
+  const mob = isMob();
+  const prefix = mob ? 'm-offer' : 'offer';
+
+  // Populate form fields
+  const setVal = (fid, v) => { const el = document.getElementById(fid); if (el) el.value = v || ''; };
+  setVal(prefix + '-location', data.location);
+  setVal(prefix + '-lat', data.lat);
+  setVal(prefix + '-lng', data.lng);
+  setVal(prefix + '-body', data.body);
+  setVal(prefix + '-name', data.name);
+
+  // Open the form (delay to let manage sidebar fully close)
+  setTimeout(() => {
+    if (mob) {
+      mTab('offer', document.querySelector('#mtab-spare'));
+      const btn = document.querySelector('#m-offer-content .m-submit');
+      if (btn) { btn.textContent = 'Update Post'; btn.onclick = () => mSubmitEditPost(); }
+    } else {
+      openFormSidebar('offer');
+      setTimeout(() => {
+        const btn = document.querySelector('.submit-btn--offer');
+        if (btn) { btn.textContent = 'Update Post'; btn.onclick = () => submitEditPost('offer'); }
+      }, 200);
+    }
+  }, 200);
 }
 
 async function submitEditPost(type) {
@@ -4844,21 +4860,23 @@ async function editStrandedPost(id) {
     needsContainer.querySelectorAll('input').forEach(cb => cb.checked = (data.needs || []).includes(cb.value));
   }
 
-  // Navigate to stranded form
-  if (isMobile) {
-    mTab('stranded', null);
-  } else {
-    openFormSidebar('stranded');
-  }
-
-  // Change submit button (slight delay to ensure form is rendered)
+  // Navigate to stranded form (delay to let sidebar close first)
   setTimeout(() => {
-    const btn = document.getElementById(prefix + '-submit-btn');
-    if (btn) {
-      btn.textContent = 'Update Registration';
-      btn._origOnclick = btn.onclick;
-      btn.onclick = () => submitStrandedEdit(prefix);
+    if (isMobile) {
+      mTab('stranded', null);
+    } else {
+      openFormSidebar('stranded');
     }
+
+    // Change submit button (slight delay to ensure form is rendered)
+    setTimeout(() => {
+      const btn = document.getElementById(prefix + '-submit-btn');
+      if (btn) {
+        btn.textContent = 'Update Registration';
+        btn._origOnclick = btn.onclick;
+        btn.onclick = () => submitStrandedEdit(prefix);
+      }
+    }, 200);
   }, 150);
 }
 
