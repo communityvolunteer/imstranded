@@ -3861,7 +3861,7 @@ font-size: clamp(.45rem, 1.2vw, .58rem);
 .sidebar-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,.56);
+  background: rgba(0,0,0,.69);
   z-index: 999;
   pointer-events: none;
   opacity: 0;
