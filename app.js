@@ -4556,7 +4556,6 @@ async function profileEditPost(id) {
 
 async function mProfileEditPost(id) {
   if (!await ensureSession()) { alert('Please sign in first.'); return; }
-  closeFormSidebar();
   const { data } = await _sb.from('help_posts').select('*').eq('id', id).eq('user_id', _currentUser.id).single();
   if (!data) { alert('Post not found.'); return; }
   _editingPostId = id;
@@ -4571,20 +4570,28 @@ async function mProfileEditPost(id) {
   setVal(prefix + '-body', data.body);
   setVal(prefix + '-name', data.name);
 
-  // Open the form (delay to let manage sidebar fully close)
-  setTimeout(() => {
-    if (mob) {
-      mTab('offer', document.querySelector('#mtab-spare'));
-      const btn = document.querySelector('#m-offer-content .m-submit');
-      if (btn) { btn.textContent = 'Update Post'; btn.onclick = () => mSubmitEditPost(); }
-    } else {
+  if (mob) {
+    mTab('offer', document.querySelector('#mtab-spare'));
+    const btn = document.querySelector('#m-offer-content .m-submit');
+    if (btn) { btn.textContent = 'Update Post'; btn.onclick = () => mSubmitEditPost(); }
+  } else {
+    // Directly swap: clear sidebar, then immediately open offer form
+    const sb = document.getElementById('form-sidebar');
+    const body = document.getElementById('form-sidebar-body');
+    if (sb && body) {
+      _fsReturnMounted();
+      body.innerHTML = '';
+      sb.dataset.panel = '';
+      sb.classList.remove('open');
+    }
+    requestAnimationFrame(() => {
       openFormSidebar('offer');
       setTimeout(() => {
         const btn = document.querySelector('.submit-btn--offer');
         if (btn) { btn.textContent = 'Update Post'; btn.onclick = () => submitEditPost('offer'); }
       }, 200);
-    }
-  }, 200);
+    });
+  }
 }
 
 async function submitEditPost(type) {
@@ -4820,8 +4827,6 @@ let _editingStrandedId = null;
 
 async function editStrandedPost(id) {
   if (!await ensureSession()) { alert('Please sign in first.'); return; }
-  // Close manage sidebar/sheet first
-  closeFormSidebar();
   const { data } = await _sb.from('stranded_people').select('*').eq('id', id).eq('user_id', _currentUser.id).single();
   if (!data) { alert('Registration not found.'); return; }
   _editingStrandedId = id;
@@ -4829,7 +4834,7 @@ async function editStrandedPost(id) {
   const prefix = isMobile ? 'm-stranded' : 'stranded';
 
   // Populate fields
-  const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
+  const setVal = (fid, v) => { const el = document.getElementById(fid); if (el) el.value = v || ''; };
   setVal(prefix + '-name', data.name);
   setVal(prefix + '-location', data.current_location);
   setVal(prefix + '-lat', data.current_lat);
@@ -4842,42 +4847,44 @@ async function editStrandedPost(id) {
   setVal(prefix + '-details', data.details);
   setVal(prefix + '-since', data.stranded_since);
   setVal(prefix + '-phone', data.contact?.match(/\+?[\d\s\-().]{7,}/)?.[0]?.trim() || '');
-
-  // Group size
   setVal(prefix + '-group', data.group_size || 1);
 
-  // Nationality
   const natEl = document.getElementById(prefix + '-nationality');
   if (natEl && data.nationality) {
     for (let i = 0; i < natEl.options.length; i++) {
       if (natEl.options[i].value === data.nationality || natEl.options[i].text === data.nationality) { natEl.selectedIndex = i; break; }
     }
   }
-
-  // Needs checkboxes
   const needsContainer = document.getElementById(prefix + '-needs');
   if (needsContainer && data.needs) {
     needsContainer.querySelectorAll('input').forEach(cb => cb.checked = (data.needs || []).includes(cb.value));
   }
 
-  // Navigate to stranded form (delay to let sidebar close first)
-  setTimeout(() => {
-    if (isMobile) {
-      mTab('stranded', null);
-    } else {
-      openFormSidebar('stranded');
+  if (isMobile) {
+    mTab('stranded', null);
+  } else {
+    // Directly swap: close+clear, then immediately open stranded form (no delay needed)
+    const sb = document.getElementById('form-sidebar');
+    const body = document.getElementById('form-sidebar-body');
+    if (sb && body) {
+      _fsReturnMounted();
+      body.innerHTML = '';
+      sb.dataset.panel = '';
+      sb.classList.remove('open');
     }
+    // Small frame delay so DOM settles, then open fresh
+    requestAnimationFrame(() => { openFormSidebar('stranded'); });
+  }
 
-    // Change submit button (slight delay to ensure form is rendered)
-    setTimeout(() => {
-      const btn = document.getElementById(prefix + '-submit-btn');
-      if (btn) {
-        btn.textContent = 'Update Registration';
-        btn._origOnclick = btn.onclick;
-        btn.onclick = () => submitStrandedEdit(prefix);
-      }
-    }, 200);
-  }, 150);
+  // Change submit button
+  setTimeout(() => {
+    const btn = document.getElementById(prefix + '-submit-btn');
+    if (btn) {
+      btn.textContent = 'Update Registration';
+      btn._origOnclick = btn.onclick;
+      btn.onclick = () => submitStrandedEdit(prefix);
+    }
+  }, 400);
 }
 
 async function submitStrandedEdit(prefix) {
@@ -6003,16 +6010,17 @@ async function renderManageDashboard(type) {
 }
 
 function buildProgressTracker(currentStep, labels, color) {
+  const green = '#22c55e';
   return `<div style="display:flex;align-items:center;padding:.8rem .5rem 1rem;margin-bottom:.8rem;border-bottom:1px solid rgba(255,255,255,.06)">
     ${labels.map((l, i) => {
       const step = i + 1;
       const active = step <= currentStep;
-      const dotColor = active ? color : 'rgba(255,255,255,.15)';
+      const stepColor = active ? (step >= 2 ? green : color) : 'rgba(255,255,255,.15)';
+      const lineColor = step <= currentStep ? (step >= 2 ? green : color) : 'rgba(255,255,255,.1)';
       const textColor = active ? '#fff' : 'rgba(255,255,255,.25)';
-      const lineColor = step <= currentStep ? color : 'rgba(255,255,255,.1)';
       return (i > 0 ? `<div style="flex:1;height:2px;background:${lineColor}"></div>` : '') +
         `<div style="display:flex;flex-direction:column;align-items:center;gap:.25rem;min-width:60px">
-          <div style="width:30px;height:30px;border-radius:50%;background:${active ? color : 'transparent'};border:2px solid ${dotColor};display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;color:${active ? '#fff' : 'rgba(255,255,255,.3)'}">${step}</div>
+          <div style="width:30px;height:30px;border-radius:50%;background:${active ? stepColor : 'transparent'};border:2px solid ${stepColor};display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;color:${active ? '#fff' : 'rgba(255,255,255,.3)'}">${step}</div>
           <span style="font-size:.52rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:${textColor};text-align:center">${l}</span>
         </div>`;
     }).join('')}
