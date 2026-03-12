@@ -5999,14 +5999,17 @@ async function updateActionButtons() {
   const mOffer = document.getElementById('mss-offer');
   const mTabSpare = document.getElementById('mtab-spare');
   if (mOffer) {
+    const mSvg = mOffer.querySelector('svg');
     if (_hasActiveStranded) {
+      if (mSvg) mSvg.setAttribute('stroke', '#1a1a2e');
       const mBadge = _roomsOfferedCount > 0
         ? `<span style="display:inline-block;background:#22c55e;color:#000;font-size:.5rem;font-weight:800;border-radius:8px;padding:.05rem .3rem;margin-left:.15rem">${_roomsOfferedCount}</span>`
         : '';
-      mOffer.querySelector('.m-stat-label').innerHTML = `<span style="color:#fff">MY<br>STATUS</span><div style="font-size:.5rem;color:rgba(255,255,255,.5);margin-top:.1rem">${_roomsOfferedCount} Room${_roomsOfferedCount !== 1 ? 's' : ''} Offered${mBadge}</div>`;
+      mOffer.querySelector('.m-stat-label').innerHTML = `<span style="color:#1a1a2e">MY<br>STATUS</span><div style="font-size:.5rem;color:rgba(0,0,0,.4);margin-top:.1rem">${_roomsOfferedCount} Room${_roomsOfferedCount !== 1 ? 's' : ''} Offered${mBadge}</div>`;
       mOffer.onclick = () => mTab('manage-stranded', null);
     } else {
-      mOffer.querySelector('.m-stat-label').innerHTML = '<span style="color:#ec3452">HELP<br>I\'M STRANDED</span>';
+      if (mSvg) mSvg.setAttribute('stroke', '#1a1a2e');
+      mOffer.querySelector('.m-stat-label').innerHTML = '<span style="color:#1a1a2e">HELP<br>I\'M STRANDED</span>';
       mOffer.onclick = () => mTab('stranded', null);
     }
   }
@@ -6327,7 +6330,9 @@ function resetActionButtons() {
   }
   const mOffer = document.getElementById('mss-offer');
   if (mOffer) {
-    mOffer.querySelector('.m-stat-label').innerHTML = '<span style="color:#ec3452">HELP<br>I\'M STRANDED</span>';
+    const mSvg = mOffer.querySelector('svg');
+    if (mSvg) mSvg.setAttribute('stroke', '#1a1a2e');
+    mOffer.querySelector('.m-stat-label').innerHTML = '<span style="color:#1a1a2e">HELP<br>I\'M STRANDED</span>';
     mOffer.onclick = () => mTab('stranded', null);
   }
   const mTabSpare = document.getElementById('mtab-spare');
