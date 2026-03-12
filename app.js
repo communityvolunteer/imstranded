@@ -3058,6 +3058,27 @@ function buildSendHelpButton(xhandle, hasUserId) {
   return `<a href="https://x.com/intent/tweet?text=${tweetText}" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:4px;margin-top:.4rem;padding:.32rem .65rem;background:#ec3452;color:#fff;font-size:.66rem;font-weight:700;border-radius:6px;text-decoration:none;font-family:Inter,sans-serif">${tipIcon} Send $HELP</a>`;
 }
 
+// Compact inline contact icons for discovery cards
+function buildContactIcons(contact, xhandle, name) {
+  const c = (contact || '').trim();
+  const icons = [];
+  const is = 'display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;text-decoration:none;background:rgba(255,255,255,.08);';
+  const emailIco = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 7L2 7"/></svg>';
+  const phoneIco = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>';
+  const tgIco = '<svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>';
+  const xIco = '<svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>';
+  const emailMatch = c.match(/[\w.-]+@[\w.-]+\.\w+/);
+  if (emailMatch) icons.push(`<a href="mailto:${emailMatch[0]}" style="${is}" title="${emailMatch[0]}">${emailIco}</a>`);
+  const phoneMatch = c.match(/\+?[\d\s\-().]{7,}/);
+  if (phoneMatch) icons.push(`<a href="tel:${phoneMatch[0].replace(/[\s\-().]/g,'')}" style="${is}" title="Call">${phoneIco}</a>`);
+  const tgMatch = c.match(/@([A-Za-z0-9_]{3,})/);
+  if (tgMatch) icons.push(`<a href="https://t.me/${tgMatch[1]}" target="_blank" style="${is}" title="@${tgMatch[1]}">${tgIco}</a>`);
+  if (xhandle) icons.push(`<a href="https://x.com/${xhandle}" target="_blank" style="${is}" title="@${xhandle}">${xIco}</a>`);
+  if (!icons.length) return '';
+  const firstName = (name || 'them').split(' ')[0];
+  return `<div style="font-size:.55rem;color:rgba(255,255,255,.35);margin-top:.2rem">Contact ${firstName} via <span style="display:inline-flex;gap:3px;vertical-align:middle;margin-left:2px">${icons.join('')}</span></div>`;
+}
+
 // ── User dot builder (matches IMPACTED dot style) ────────────
 function buildUserDot(type, num, subtitle, minSz) {
   // type: 'offer' (blue), 'stranded' (red), 'success' (green)
@@ -6146,7 +6167,7 @@ function buildStrandedCard(p, match, step) {
     ${p.details ? '<div style="font-size:.85rem;color:rgba(255,255,255,.65);line-height:1.5;margin-bottom:.6rem">'+p.details.slice(0,150)+'</div>' : ''}`;
 
   if (step >= 2 && match) {
-    html += `<div style="background:rgba(34,197,94,.14);border:none;border-radius:10px;padding:.75rem;margin:.5rem 0">
+    html += `<div style="background:#22c55e4a;border:none;border-radius:10px;padding:.75rem;margin:.5rem 0">
       <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">✓ Matched${match.confirmed_at ? ' · ' + new Date(match.confirmed_at).toLocaleDateString() : ''}</div>
       <div style="font-size:.95rem;color:#fff;font-weight:700">${match.offer_name || 'A host'} in ${match.offer_location || 'nearby'}</div>
       ${match.offer_story ? '<div style="font-size:.8rem;color:rgba(255,255,255,.65);margin-top:.3rem;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.3)">"'+match.offer_story+'"</div>' : ''}
@@ -6154,7 +6175,7 @@ function buildStrandedCard(p, match, step) {
   }
 
   if (step >= 3 && match?.home_lat) {
-    html += `<div style="background:rgba(34,197,94,.18);border:none;border-radius:10px;padding:.75rem;margin:.5rem 0">
+    html += `<div style="background:#22c55e87;border:none;border-radius:10px;padding:.75rem;margin:.5rem 0">
       <div style="display:flex;align-items:center;gap:.35rem;font-size:.65rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">${_svgHome} Made it home</div>
       <div style="font-size:.95rem;color:#fff;font-weight:600">${match.home_location || ''}</div>
     </div>`;
@@ -6179,10 +6200,13 @@ function buildStrandedCard(p, match, step) {
     html += `<div style="margin-top:1.2rem;padding-top:.8rem;border-top:1px solid rgba(255,255,255,.06)">
       <div style="font-size:1.15rem;font-weight:800;color:#fff;margin-bottom:.2rem">Spare Rooms Nearby</div>
       <div style="font-size:.7rem;color:rgba(255,255,255,.45);margin-bottom:.6rem">Someone near you is offering help</div>`;
-    html += nearby.slice(0, 5).map(o => `<div style="display:flex;justify-content:space-between;align-items:center;padding:.45rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
-        <div><div style="font-size:.85rem;font-weight:700;color:#fff">${o.name || 'Anonymous'} ${buildBadge(!!o.user_id)}</div>
-          <div style="font-size:.7rem;color:rgba(255,255,255,.5)">${o.location}${o._d != null ? ' · '+Math.round(o._d)+'km' : ''}</div></div>
-        <button onclick="openMatchPicker('${p.id}','${lat||0}','${lng||0}','${(p.name||'').replace(/'/g,"\\'")}','${(p.current_location||'').replace(/'/g,"\\'")}')" style="white-space:nowrap;${btnStyle('accent','sm')}">Select →</button>
+    html += nearby.slice(0, 5).map(o => `<div style="padding:.55rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.25rem">
+          <div><div style="font-size:.85rem;font-weight:700;color:#fff">${o.name || 'Anonymous'} ${buildBadge(!!o.user_id)}</div>
+            <div style="font-size:.7rem;color:rgba(255,255,255,.5)">${o.location}${o._d != null ? ' · '+Math.round(o._d)+'km' : ''}</div></div>
+          <button onclick="openMatchPicker('${p.id}','${lat||0}','${lng||0}','${(p.name||'').replace(/'/g,"\\'")}','${(p.current_location||'').replace(/'/g,"\\'")}')" style="white-space:nowrap;${btnStyle('accent','sm')}">Select →</button>
+        </div>
+        ${buildContactIcons(o.contact, o.xhandle, o.name)}
       </div>`).join('');
     html += '</div>';
   }
@@ -6209,7 +6233,7 @@ function buildOfferCard(p, match, pending, step) {
   }
 
   if (step >= 2 && match) {
-    html += `<div style="background:rgba(34,197,94,.14);border:none;border-radius:10px;padding:.75rem;margin:.5rem 0">
+    html += `<div style="background:#22c55e4a;border:none;border-radius:10px;padding:.75rem;margin:.5rem 0">
       <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">✓ Matched${match.confirmed_at ? ' · ' + new Date(match.confirmed_at).toLocaleDateString() : ''}</div>
       <div style="font-size:.95rem;color:#fff;font-weight:700">Helped ${match.stranded_name || 'someone'} from ${match.stranded_location || 'nearby'}</div>
       ${match.stranded_story ? '<div style="font-size:.8rem;color:rgba(255,255,255,.65);margin-top:.3rem;padding-left:.5rem;border-left:2px solid rgba(236,52,82,.3)">"'+match.stranded_story+'"</div>' : ''}
@@ -6231,14 +6255,14 @@ function buildOfferCard(p, match, pending, step) {
       <div style="font-size:.7rem;color:rgba(255,255,255,.45);margin-bottom:.6rem">To someone stranded nearby</div>`;
     html += nearby.slice(0, 8).map(s => {
       const needs = (s.needs || []).slice(0,3).join(', ');
-      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:.45rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
-        <div><div style="font-size:.85rem;font-weight:700;color:#fff">${s.name || 'Anonymous'} <span style="font-size:.6rem;color:rgba(255,255,255,.25)">${s.group_size > 1 ? s.group_size + ' people' : ''}</span></div>
-          <div style="font-size:.7rem;color:rgba(255,255,255,.5)">${s.current_location}${s._d != null ? ' · '+Math.round(s._d)+'km' : ''}</div>
-          ${needs ? '<div style="font-size:.6rem;color:#e67e22">'+needs+'</div>' : ''}</div>
-        <div style="display:flex;flex-direction:column;gap:.2rem;align-items:flex-end">
-          ${s.contact ? '<a href="mailto:'+s.contact+'" style="font-size:.58rem;color:var(--accent);text-decoration:none;font-weight:600">Contact →</a>' : ''}
-          ${s.xhandle ? '<a href="https://x.com/'+s.xhandle+'" target="_blank" style="font-size:.58rem;color:var(--accent);text-decoration:none;font-weight:600">@'+s.xhandle+'</a>' : ''}
+      return `<div style="padding:.55rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.25rem">
+          <div><div style="font-size:.85rem;font-weight:700;color:#fff">${s.name || 'Anonymous'} ${buildBadge(!!s.user_id)} <span style="font-size:.6rem;color:rgba(255,255,255,.25)">${s.group_size > 1 ? s.group_size + ' people' : ''}</span></div>
+            <div style="font-size:.7rem;color:rgba(255,255,255,.5)">${s.current_location}${s._d != null ? ' · '+Math.round(s._d)+'km' : ''}</div>
+            ${needs ? '<div style="font-size:.6rem;color:#f59e0b">'+needs+'</div>' : ''}</div>
+          <button onclick="alert('Room offered! They will see this in their dashboard.')" style="white-space:nowrap;${btnStyle('green','sm')}">Offer Room</button>
         </div>
+        ${buildContactIcons(s.contact, s.xhandle, s.name)}
       </div>`;
     }).join('');
     html += '</div>';
