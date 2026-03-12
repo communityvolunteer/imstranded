@@ -615,16 +615,16 @@ function googleTranslateInit() {
         </div>
       </div>
 
-      <!-- My Posts -->
-      <div style="background:#000;border:none;border-radius:14px;padding:0">
-        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);margin-bottom:.75rem">My Listings</div>
-        <div id="profile-posts-list"></div>
-      </div>
-
-      <!-- My Stranded Post -->
-      <div style="background:rgba(236,52,82,.06);border:1px solid rgba(236,52,82,.15);border-radius:14px;padding:1.3rem;margin-top:1rem">
-        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(236,52,82,.5);margin-bottom:.75rem">My Stranded Registration</div>
-        <div id="profile-stranded-list"></div>
+      <!-- Action buttons -->
+      <div style="display:flex;gap:.6rem;margin-top:1rem" id="pc-profile-actions">
+        <button id="pc-profile-btn-offer" onclick="_hasActiveOffer?openManageSidebar('offer'):openFormSidebar('offer')" style="flex:1;padding:.7rem;border-radius:10px;font-family:Inter,sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;background:rgba(52,152,236,.12);color:#3498ec;border:1px solid rgba(52,152,236,.2)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span id="pc-profile-btn-offer-text">Offer a Room</span>
+        </button>
+        <button id="pc-profile-btn-stranded" onclick="_hasActiveStranded?openManageSidebar('stranded'):openFormSidebar('stranded')" style="flex:1;padding:.7rem;border-radius:10px;font-family:Inter,sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;background:rgba(236,52,82,.12);color:#ec3452;border:1px solid rgba(236,52,82,.2)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span id="pc-profile-btn-stranded-text">I'm Stranded</span>
+        </button>
       </div>
 
       <!-- Delete Account -->
@@ -1012,13 +1012,17 @@ function googleTranslateInit() {
             <div style="font-size:.7rem;color:#fff;line-height:1.5"><span style="color:#3498ec;font-weight:700">Why verify?</span> Get a <svg width="16" height="16" viewBox="0 0 24 24" fill="#3498ec" style="vertical-align:middle"><path d="M12 22c-1.1 0-2-.2-2.7-.6L3.5 18.2c-.4-.3-.7-.7-.9-1.1-.2-.5-.3-1-.3-1.5V8.4c0-.5.1-1 .3-1.5.2-.4.5-.8.9-1.1l5.8-3.2C10 2.2 11 2 12 2s2 .2 2.7.6l5.8 3.2c.4.3.7.7.9 1.1.2.5.3 1 .3 1.5v7.2c0 .5-.1 1-.3 1.5-.2.4-.5.8-.9 1.1l-5.8 3.2c-.7.4-1.6.6-2.7.6z"/><path d="M9 12l2 2 4-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> on your posts. Link X to enable $HELP tips.</div>
           </div>
 
-          <!-- My posts -->
-          <div style="font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fff;margin-bottom:.5rem">My Listings</div>
-          <div id="m-my-posts-list" style="margin-top:.25rem"></div>
-
-          <!-- My Stranded Post -->
-          <div style="font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fff;margin-top:1rem;margin-bottom:.5rem">My Stranded Registration</div>
-          <div id="m-stranded-posts-list"></div>
+          <!-- Action buttons -->
+          <div style="display:flex;gap:.5rem;margin-bottom:.8rem" id="m-profile-actions">
+            <button id="m-profile-btn-offer" onclick="isMob()?(_hasActiveOffer?mTab('manage-room',null):mTab('offer',null)):(_hasActiveOffer?openManageSidebar('offer'):openFormSidebar('offer'))" style="flex:1;padding:.6rem;border-radius:10px;font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.35rem;background:rgba(52,152,236,.12);color:#3498ec;border:1px solid rgba(52,152,236,.2)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              <span id="m-profile-btn-offer-text">Offer a Room</span>
+            </button>
+            <button id="m-profile-btn-stranded" onclick="isMob()?(_hasActiveStranded?mTab('manage-stranded',null):mTab('stranded',null)):(_hasActiveStranded?openManageSidebar('stranded'):openFormSidebar('stranded'))" style="flex:1;padding:.6rem;border-radius:10px;font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.35rem;background:rgba(236,52,82,.12);color:#ec3452;border:1px solid rgba(236,52,82,.2)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <span id="m-profile-btn-stranded-text">I'm Stranded</span>
+            </button>
+          </div>
 
           <!-- Delete Account -->
           <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,.06);text-align:center">

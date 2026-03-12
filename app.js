@@ -4405,8 +4405,7 @@ function renderProfileView() {
     updateVerifyStatus('tg', _currentProfile?.tg_verified);
     // Big badge next to name — accent if any verified, gray if not
     _updateProfileNameBadge();
-    renderProfilePosts();
-    renderProfileStranded();
+    updateActionButtons();
   } else {
     loginEl.style.display = 'block';
     mainEl.style.display = 'none';
@@ -4675,8 +4674,7 @@ async function renderMobileProfileView() {
     updateVerifyStatus('google', _currentProfile?.google_verified);
     updateVerifyStatus('x', _currentProfile?.x_verified);
     updateVerifyStatus('tg', _currentProfile?.tg_verified);
-    mRenderProfilePosts();
-    renderProfileStranded();
+    updateActionButtons();
   } else {
     loginEl.style.display = 'block';
     mainEl.style.display = 'none';
@@ -5893,6 +5891,24 @@ async function updateActionButtons() {
       mTabSpare.onclick = () => mTab('offer', null);
     }
   }
+
+  // ── Profile page buttons (both PC and mobile) ──
+  ['m-profile', 'pc-profile'].forEach(prefix => {
+    const offerText = document.getElementById(prefix + '-btn-offer-text');
+    const strandedText = document.getElementById(prefix + '-btn-stranded-text');
+    const offerBtn = document.getElementById(prefix + '-btn-offer');
+    const strandedBtn = document.getElementById(prefix + '-btn-stranded');
+    if (offerText) offerText.textContent = _hasActiveOffer ? 'My Room' : 'Offer a Room';
+    if (strandedText) strandedText.textContent = _hasActiveStranded ? 'My Status' : "I'm Stranded";
+    if (offerBtn) {
+      offerBtn.style.opacity = _hasActiveStranded && !_hasActiveOffer ? '.3' : '1';
+      offerBtn.style.pointerEvents = _hasActiveStranded && !_hasActiveOffer ? 'none' : '';
+    }
+    if (strandedBtn) {
+      strandedBtn.style.opacity = _hasActiveOffer && !_hasActiveStranded ? '.3' : '1';
+      strandedBtn.style.pointerEvents = _hasActiveOffer && !_hasActiveStranded ? 'none' : '';
+    }
+  });
 }
 
 // ── Manage Dashboard ─────────────────────────────────────
