@@ -3640,8 +3640,10 @@ async function refreshSitrep() {
 // ============================================================
 async function loadPosts() {
   if(!SB_ON)return;
-  const{data}=await _sb.from('help_posts').select('id,type,post_type,location,body,name,contact,xhandle,lat,lng,user_id,created_at,avatar_url').eq('flagged',false).eq('type','offer').order('created_at',{ascending:false}).limit(100);
-  if(data){posts=data;renderPosts();renderPostsOnMap(window._crisisMap||window._mobileMap);updateActionButtons();}
+  try {
+    const{data}=await withTimeout(_sb.from('help_posts').select('id,type,post_type,location,body,name,contact,xhandle,lat,lng,user_id,created_at,avatar_url').eq('flagged',false).eq('type','offer').order('created_at',{ascending:false}).limit(100));
+    if(data){posts=data;renderPosts();renderPostsOnMap(window._crisisMap||window._mobileMap);updateActionButtons();}
+  } catch(e) { console.warn('[loadPosts]', e.message); }
 }
 function subscribeStream(){
   if(!SB_ON)return;
@@ -4015,21 +4017,25 @@ async function initAuth() {
 
 async function loadProfile() {
   if (!_currentUser) return;
-  let { data, error } = await _sb.from('profiles').select('*').eq('id', _currentUser.id).single();
-  if (!data) {
-    const meta = _currentUser.user_metadata || {};
-    const insertRes = await _sb.from('profiles').insert({
-      id: _currentUser.id,
-      email: _currentUser.email,
-      display_name: meta.full_name || meta.name || '',
-      avatar_url: meta.avatar_url || meta.picture || '',
-      google_verified: true
-    });
-    if (insertRes.error) console.error('Profile insert failed:', insertRes.error);
-    const res = await _sb.from('profiles').select('*').eq('id', _currentUser.id).single();
-    data = res.data;
+  try {
+    let { data, error } = await withTimeout(_sb.from('profiles').select('*').eq('id', _currentUser.id).single());
+    if (!data) {
+      const meta = _currentUser.user_metadata || {};
+      await withTimeout(_sb.from('profiles').insert({
+        id: _currentUser.id,
+        email: _currentUser.email,
+        display_name: meta.full_name || meta.name || '',
+        avatar_url: meta.avatar_url || meta.picture || '',
+        google_verified: true
+      }));
+      const res = await withTimeout(_sb.from('profiles').select('*').eq('id', _currentUser.id).single());
+      data = res.data;
+    }
+    _currentProfile = data;
+  } catch(e) {
+    console.warn('[loadProfile]', e.message);
+    // Use what we have
   }
-  _currentProfile = data;
   if (_currentProfile?.avatar_url) setProfileAvatar(_currentProfile.avatar_url);
   updateLinkedFields();
   renderProfileView();
@@ -4392,18 +4398,35 @@ async function doSignOut() {
 
 function isLoggedIn() { return !!_currentUser; }
 
-// Refresh Supabase session if _currentUser is stale — returns true if session is valid
+// Refresh Supabase session — always validates token freshness
 async function ensureSession() {
-  if (_currentUser) return true;
   try {
-    const { data: { session } } = await _sb.auth.getSession();
+    const { data: { session }, error } = await withTimeout(_sb.auth.getSession(), 5000);
+    if (error) throw error;
     if (session?.user) {
       _currentUser = session.user;
-      if (!_currentProfile) await loadProfile();
       return true;
     }
-  } catch(e) { console.warn('[ensureSession]', e.message); }
-  return false;
+    _currentUser = null;
+    return false;
+  } catch(e) {
+    console.warn('[ensureSession]', e.message);
+    // Try one forced refresh
+    try {
+      const { data: { session } } = await withTimeout(_sb.auth.refreshSession(), 5000);
+      if (session?.user) { _currentUser = session.user; return true; }
+    } catch(e2) {}
+    // If we had a user before, keep it (might just be a network blip)
+    return !!_currentUser;
+  }
+}
+
+// Wrap a promise with a timeout — prevents infinite hangs on stale connections
+function withTimeout(promise, ms = 8000) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), ms))
+  ]);
 }
 
 // ── Desktop Profile ──────────────────────────────────────
@@ -5303,8 +5326,8 @@ async function submitStranded() {
 
 async function loadStranded() {
   try {
-    const { data } = await _sb.from('stranded_people').select('id,user_id,name,current_location,current_lat,current_lng,destination,dest_lat,dest_lng,dest_country,dest_airport,nationality,group_size,needs,stranded_since,details,contact,xhandle,status,created_at')
-      .eq('flagged', false).eq('status', 'active').order('created_at', { ascending: false }).limit(500);
+    const { data } = await withTimeout(_sb.from('stranded_people').select('id,user_id,name,current_location,current_lat,current_lng,destination,dest_lat,dest_lng,dest_country,dest_airport,nationality,group_size,needs,stranded_since,details,contact,xhandle,status,created_at')
+      .eq('flagged', false).eq('status', 'active').order('created_at', { ascending: false }).limit(500));
     _strandedPeople = data || [];
 
     // Update stranded count in sitrep bar
@@ -5530,12 +5553,14 @@ function buildSuccessTab(s, uid) {
 // ── Load confirmed stories, build lookups, render everything ─
 async function loadSuccessStories() {
   if (!SB_ON) return;
-  const { data } = await _sb.from('success_stories')
-    .select('id,stranded_post_id,offer_post_id,offer_confirmed,stranded_lat,stranded_lng,stranded_location,stranded_name,lat,lng,offer_location,offer_xhandle,offer_name,stranded_story,offer_story,home_lat,home_lng,home_location,home_story,confirmed_at')
-    .eq('offer_confirmed', true)
-    .order('confirmed_at', { ascending: false })
-    .limit(500);
-  _successStories = data || [];
+  try {
+    const { data } = await withTimeout(_sb.from('success_stories')
+      .select('id,stranded_post_id,offer_post_id,offer_confirmed,stranded_lat,stranded_lng,stranded_location,stranded_name,lat,lng,offer_location,offer_xhandle,offer_name,stranded_story,offer_story,home_lat,home_lng,home_location,home_story,confirmed_at')
+      .eq('offer_confirmed', true)
+      .order('confirmed_at', { ascending: false })
+      .limit(500));
+    _successStories = data || [];
+  } catch(e) { console.warn('[loadSuccessStories]', e.message); }
   buildSuccessLookups();
   renderSuccessOnMap(window._crisisMap, true);
   renderSuccessOnMap(window._mobileMap, true);
@@ -6010,17 +6035,22 @@ async function renderManageDashboard(type) {
 
   try {
     if (type === 'stranded') {
-      const { data, error } = await _sb.from('stranded_people')
-        .select('id,name,current_location,current_lat,current_lng,destination,dest_airport,needs,group_size,stranded_since,details,created_at')
-        .eq('user_id', _currentUser.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1);
-      if (error) throw error;
-      const p = data?.[0];
+      // Try cached data first for instant render
+      let p = _strandedPeople.find(s => s.user_id === _currentUser.id);
+      if (!p) {
+        const { data, error } = await withTimeout(_sb.from('stranded_people')
+          .select('id,name,current_location,current_lat,current_lng,destination,dest_airport,needs,group_size,stranded_since,details,created_at')
+          .eq('user_id', _currentUser.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1));
+        if (error) throw error;
+        p = data?.[0];
+      }
       if (!p) { container.innerHTML = '<div style="text-align:center;padding:2rem 0;color:rgba(255,255,255,.4)">No active registration.</div>'; return; }
 
       // Check match status
-      const { data: match } = await _sb.from('success_stories')
+      const matchResult = await withTimeout(_sb.from('success_stories')
         .select('id,offer_confirmed,offer_name,offer_location,home_lat,home_location,stranded_story,offer_story,confirmed_at')
-        .eq('stranded_post_id', p.id).eq('stranded_user_id', _currentUser.id).maybeSingle();
+        .eq('stranded_post_id', p.id).eq('stranded_user_id', _currentUser.id).maybeSingle());
+      const match = matchResult.data;
 
       const step = match?.home_lat ? 3 : match?.offer_confirmed ? 2 : 1;
       const stepLabels = ['Registered', 'Matched', 'Home'];
@@ -6029,29 +6059,35 @@ async function renderManageDashboard(type) {
         buildStrandedCard(p, match, step);
 
     } else {
-      const { data, error } = await _sb.from('help_posts')
-        .select('id,location,body,name,lat,lng,created_at')
-        .eq('user_id', _currentUser.id).eq('type', 'offer').eq('flagged', false).order('created_at', { ascending: false }).limit(1);
-      if (error) throw error;
-      const p = data?.[0];
+      // Try cached data first
+      let p = posts.find(o => o.user_id === _currentUser.id);
+      if (!p) {
+        const { data, error } = await withTimeout(_sb.from('help_posts')
+          .select('id,location,body,name,lat,lng,created_at')
+          .eq('user_id', _currentUser.id).eq('type', 'offer').eq('flagged', false).order('created_at', { ascending: false }).limit(1));
+        if (error) throw error;
+        p = data?.[0];
+      }
       if (!p) { container.innerHTML = '<div style="text-align:center;padding:2rem 0;color:rgba(255,255,255,.4)">No active listing.</div>'; return; }
 
-      const { data: match } = await _sb.from('success_stories')
+      const matchResult = await withTimeout(_sb.from('success_stories')
         .select('id,offer_confirmed,stranded_name,stranded_location,offer_story,stranded_story,confirmed_at')
-        .eq('offer_post_id', p.id).eq('offer_user_id', _currentUser.id).eq('offer_confirmed', true).maybeSingle();
+        .eq('offer_post_id', p.id).eq('offer_user_id', _currentUser.id).eq('offer_confirmed', true).maybeSingle());
+      const match = matchResult.data;
 
       const step = match ? 2 : 1;
       const stepLabels = ['Listed', 'Matched', 'Success'];
 
       // Check for pending matches
-      const { data: pending } = await _sb.from('success_stories')
-        .select('id,stranded_name').eq('offer_post_id', p.id).eq('offer_confirmed', false);
+      const pendingResult = await withTimeout(_sb.from('success_stories')
+        .select('id,stranded_name').eq('offer_post_id', p.id).eq('offer_confirmed', false));
+      const pending = pendingResult.data;
 
       container.innerHTML = buildProgressTracker(step, stepLabels, '#3498ec') +
         buildOfferCard(p, match, pending, step);
     }
   } catch(e) {
-    container.innerHTML = `<div style="color:#ec3452;padding:1rem 0">Error: ${e.message} <button onclick="renderManageDashboard('${type}')" style="background:rgba(52,152,236,.15);color:#3498ec;border:none;border-radius:5px;padding:.2rem .5rem;font-size:.7rem;font-weight:600;cursor:pointer;margin-left:.3rem">Retry</button></div>`;
+    container.innerHTML = `<div style="text-align:center;padding:1.5rem 0"><div style="color:rgba(255,255,255,.4);font-size:.82rem;margin-bottom:.5rem">${e.message === 'Request timed out' ? 'Connection timed out' : 'Error: ' + e.message}</div><button onclick="renderManageDashboard('${type}')" style="${btnStyle('accent')}">Try Again</button></div>`;
   }
 }
 
@@ -6231,12 +6267,16 @@ window.addEventListener('DOMContentLoaded',()=>{
   initLocationAutocomplete('offer-location','offer-lat','offer-lng','offer-location-ac');
   initLocationAutocomplete('m-offer-location','m-offer-lat','m-offer-lng','m-offer-location-ac');
   initAuth();
-  // Keep session alive — refresh every 4 minutes to prevent token expiry
+  // Keep session alive — refresh token every 2 minutes to prevent expiry
   setInterval(async () => {
     if (_currentUser) {
-      try { await _sb.auth.getSession(); } catch(e) {}
+      try {
+        const { data: { session } } = await _sb.auth.getSession();
+        if (session?.user) _currentUser = session.user;
+        else { _currentUser = null; console.warn('[Keepalive] Session expired'); }
+      } catch(e) { console.warn('[Keepalive]', e.message); }
     }
-  }, 4 * 60 * 1000);
+  }, 2 * 60 * 1000);
   checkTelegramRedirect();
   checkXRedirect();
   initStrandedRealtime();
