@@ -20,6 +20,17 @@ let _currentAccent = 'blue';
 function accentHex() { return ACCENT_THEMES[_currentAccent]?.hex || '#a855f7'; }
 function accentRgba(a) { const t = ACCENT_THEMES[_currentAccent] || ACCENT_THEMES.purple; return `rgba(${t.r},${t.g},${t.b},${a})`; }
 
+// Solid button style helpers (accent-aware)
+function btnStyle(type, size) {
+  const pad = size === 'sm' ? '.25rem .5rem' : '.5rem .8rem';
+  const fs = size === 'sm' ? '.62rem' : '.72rem';
+  const base = 'border:none;border-radius:8px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;padding:'+pad+';font-size:'+fs+';';
+  if (type === 'accent') return base + 'background:'+accentHex()+';color:#fff;';
+  if (type === 'green') return base + 'background:#22c55e;color:#000;';
+  if (type === 'danger') return base + 'background:#ec3452;color:#fff;';
+  return base + 'background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);';
+}
+
 const EMBASSY_META = {
   usa:{flag:'🇺🇸',role:'US Embassy'},uk:{flag:'🇬🇧',role:'UK Embassy'},
   aus:{flag:'🇦🇺',role:'Australian Embassy'},can:{flag:'🇨🇦',role:'Canadian Embassy'},
@@ -2431,7 +2442,7 @@ function buildDualPopup(iata) {
   
   var lEstStranded = Math.round(lCancelled * 185 * 0.20);
   var estBlock =
-    '<div id="gest-' + uid + '" style="background:rgba(236,52,82,.1);border:1px solid rgba(236,52,82,.25);border-radius:12px;padding:.8rem 1rem;margin-bottom:.6rem;text-align:center">' +
+    '<div id="gest-' + uid + '" style="background:rgba(236,52,82,.1);border:none;border-radius:12px;padding:.8rem 1rem;margin-bottom:.6rem;text-align:center">' +
       '<div style="font-size:.52rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(236,52,82,.7);margin-bottom:.2rem">Estimated Stranded in ' + city + '</div>' +
       '<div style="font-size:2rem;font-weight:900;color:#ec3452;line-height:1;letter-spacing:-.04em">' + lEstStranded.toLocaleString() + '</div>' +
       '<div style="font-size:.56rem;color:rgba(255,255,255,.3);margin-top:.25rem">active stranded estimate · updated live</div>' +
@@ -6042,7 +6053,7 @@ function buildStrandedCard(p, match, step) {
     ${p.details ? '<div style="font-size:.72rem;color:rgba(255,255,255,.4);line-height:1.4;margin-bottom:.5rem">'+p.details.slice(0,150)+'</div>' : ''}`;
 
   if (step >= 2 && match) {
-    html += `<div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:.65rem;margin:.5rem 0">
+    html += `<div style="background:rgba(34,197,94,.08);border:none;border-radius:10px;padding:.65rem;margin:.5rem 0">
       <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.25rem">✓ Matched${match.confirmed_at ? ' · ' + new Date(match.confirmed_at).toLocaleDateString() : ''}</div>
       <div style="font-size:.78rem;color:#fff;font-weight:600">${match.offer_name || 'A host'} in ${match.offer_location || 'nearby'}</div>
       ${match.offer_story ? '<div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-top:.25rem;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.3)">"'+match.offer_story+'"</div>' : ''}
@@ -6050,7 +6061,7 @@ function buildStrandedCard(p, match, step) {
   }
 
   if (step >= 3 && match?.home_lat) {
-    html += `<div style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);border-radius:10px;padding:.65rem;margin:.5rem 0">
+    html += `<div style="background:rgba(34,197,94,.12);border:none;border-radius:10px;padding:.65rem;margin:.5rem 0">
       <div style="display:flex;align-items:center;gap:.3rem;font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.25rem">${_svgHome.replace('opacity:.5','opacity:1;stroke:#22c55e')} Made it home</div>
       <div style="font-size:.78rem;color:#fff">${match.home_location || ''}</div>
     </div>`;
@@ -6058,13 +6069,13 @@ function buildStrandedCard(p, match, step) {
 
   html += '<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.6rem">';
   if (step === 1) {
-    html += `<button onclick="openMatchPicker('${p.id}','${p.current_lat||0}','${p.current_lng||0}','${(p.name||'').replace(/'/g,"\\'")}','${(p.current_location||'').replace(/'/g,"\\'")}')" style="flex:1;padding:.5rem;background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.25);border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Found a place? →</button>`;
+    html += `<button onclick="openMatchPicker('${p.id}','${p.current_lat||0}','${p.current_lng||0}','${(p.name||'').replace(/'/g,"\\'")}','${(p.current_location||'').replace(/'/g,"\\'")}')" style="flex:1;'+btnStyle('green')+'">Found a place? →</button>`;
   }
   if (step === 2 && !match?.home_lat) {
-    html += `<button onclick="checkAndOpenGoHome('${p.id}')" style="flex:1;padding:.5rem;background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.25);border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Made it home? →</button>`;
+    html += `<button onclick="checkAndOpenGoHome('${p.id}')" style="flex:1;'+btnStyle('green')+'">Made it home? →</button>`;
   }
-  html += `<button onclick="editStrandedPost('${p.id}')" style="padding:.5rem .8rem;background:rgba(52,152,236,.12);color:#3498ec;border:1px solid rgba(52,152,236,.2);border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Edit</button>`;
-  html += `<button onclick="deleteStrandedPost('${p.id}')" style="padding:.5rem .8rem;background:rgba(236,52,82,.12);color:#ec3452;border:1px solid rgba(236,52,82,.2);border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Remove</button>`;
+  html += `<button onclick="editStrandedPost('${p.id}')" style="'+btnStyle('accent')+'">Edit</button>`;
+  html += `<button onclick="deleteStrandedPost('${p.id}')" style="'+btnStyle('danger')+'">Remove</button>`;
   html += '</div>';
 
   // Discovery: nearby rooms
@@ -6078,7 +6089,7 @@ function buildStrandedCard(p, match, step) {
     html += nearby.slice(0, 5).map(o => `<div style="display:flex;justify-content:space-between;align-items:center;padding:.45rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
         <div><div style="font-size:.78rem;font-weight:600;color:#fff">${o.name || 'Anonymous'} ${buildBadge(!!o.user_id)}</div>
           <div style="font-size:.65rem;color:rgba(255,255,255,.4)">${o.location}${o._d != null ? ' · '+Math.round(o._d)+'km' : ''}</div></div>
-        <button onclick="openMatchPicker('${p.id}','${lat||0}','${lng||0}','${(p.name||'').replace(/'/g,"\\'")}','${(p.current_location||'').replace(/'/g,"\\'")}')" style="background:rgba(52,152,236,.12);color:#3498ec;border:1px solid rgba(52,152,236,.2);border-radius:6px;padding:.25rem .5rem;font-size:.62rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;white-space:nowrap">Select →</button>
+        <button onclick="openMatchPicker('${p.id}','${lat||0}','${lng||0}','${(p.name||'').replace(/'/g,"\\'")}','${(p.current_location||'').replace(/'/g,"\\'")}')" style="white-space:nowrap;'+btnStyle('accent','sm')+'">Select →</button>
       </div>`).join('');
     html += '</div>';
   }
@@ -6095,17 +6106,17 @@ function buildOfferCard(p, match, pending, step) {
     ${p.body ? '<div style="font-size:.72rem;color:rgba(255,255,255,.4);line-height:1.4;margin-bottom:.5rem">'+p.body.slice(0,150)+'</div>' : ''}`;
 
   if (pending?.length) {
-    html += `<div style="background:rgba(255,165,0,.08);border:1px solid rgba(255,165,0,.2);border-radius:10px;padding:.65rem;margin:.5rem 0">
+    html += `<div style="background:rgba(255,165,0,.08);border:none;border-radius:10px;padding:.65rem;margin:.5rem 0">
       <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#f59e0b;margin-bottom:.35rem">Pending Match Request${pending.length > 1 ? 's' : ''}</div>
       ${pending.map(s => `<div style="display:flex;justify-content:space-between;align-items:center;padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
         <span style="font-size:.75rem;color:#fff;font-weight:600">${s.stranded_name || 'Someone'}</span>
-        <button onclick="approveMatch('${s.id}')" style="background:#22c55e;color:#000;border:none;border-radius:6px;padding:.25rem .6rem;font-size:.65rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Approve ✓</button>
+        <button onclick="approveMatch('${s.id}')" style="'+btnStyle('green','sm')+'">Approve ✓</button>
       </div>`).join('')}
     </div>`;
   }
 
   if (step >= 2 && match) {
-    html += `<div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:.65rem;margin:.5rem 0">
+    html += `<div style="background:rgba(34,197,94,.08);border:none;border-radius:10px;padding:.65rem;margin:.5rem 0">
       <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.25rem">✓ Matched${match.confirmed_at ? ' · ' + new Date(match.confirmed_at).toLocaleDateString() : ''}</div>
       <div style="font-size:.78rem;color:#fff;font-weight:600">Helped ${match.stranded_name || 'someone'} from ${match.stranded_location || 'nearby'}</div>
       ${match.stranded_story ? '<div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-top:.25rem;padding-left:.5rem;border-left:2px solid rgba(236,52,82,.3)">"'+match.stranded_story+'"</div>' : ''}
@@ -6113,8 +6124,8 @@ function buildOfferCard(p, match, pending, step) {
   }
 
   html += '<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.6rem">';
-  html += `<button onclick="mProfileEditPost('${p.id}')" style="padding:.5rem .8rem;background:rgba(52,152,236,.12);color:#3498ec;border:1px solid rgba(52,152,236,.2);border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Edit</button>`;
-  html += `<button onclick="mProfileDeletePost('${p.id}')" style="padding:.5rem .8rem;background:rgba(236,52,82,.12);color:#ec3452;border:1px solid rgba(236,52,82,.2);border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Remove</button>`;
+  html += `<button onclick="mProfileEditPost('${p.id}')" style="'+btnStyle('accent')+'">Edit</button>`;
+  html += `<button onclick="mProfileDeletePost('${p.id}')" style="'+btnStyle('danger')+'">Remove</button>`;
   html += '</div>';
 
   // Discovery: stranded people nearby

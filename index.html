@@ -617,11 +617,11 @@ function googleTranslateInit() {
 
       <!-- Action buttons -->
       <div style="display:flex;gap:.6rem;margin-top:1rem" id="pc-profile-actions">
-        <button id="pc-profile-btn-offer" onclick="_hasActiveOffer?openManageSidebar('offer'):openFormSidebar('offer')" style="flex:1;padding:.7rem;border-radius:10px;font-family:Inter,sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;background:rgba(52,152,236,.12);color:#3498ec;border:1px solid rgba(52,152,236,.2)">
+        <button id="pc-profile-btn-offer" class="manage-action-btn manage-action-btn--accent" onclick="_hasActiveOffer?openManageSidebar('offer'):openFormSidebar('offer')">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           <span id="pc-profile-btn-offer-text">Offer a Room</span>
         </button>
-        <button id="pc-profile-btn-stranded" onclick="_hasActiveStranded?openManageSidebar('stranded'):openFormSidebar('stranded')" style="flex:1;padding:.7rem;border-radius:10px;font-family:Inter,sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;background:rgba(236,52,82,.12);color:#ec3452;border:1px solid rgba(236,52,82,.2)">
+        <button id="pc-profile-btn-stranded" class="manage-action-btn manage-action-btn--red" onclick="_hasActiveStranded?openManageSidebar('stranded'):openFormSidebar('stranded')">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           <span id="pc-profile-btn-stranded-text">I'm Stranded</span>
         </button>
@@ -1014,11 +1014,11 @@ function googleTranslateInit() {
 
           <!-- Action buttons -->
           <div style="display:flex;gap:.5rem;margin-bottom:.8rem" id="m-profile-actions">
-            <button id="m-profile-btn-offer" onclick="isMob()?(_hasActiveOffer?mTab('manage-room',null):mTab('offer',null)):(_hasActiveOffer?openManageSidebar('offer'):openFormSidebar('offer'))" style="flex:1;padding:.6rem;border-radius:10px;font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.35rem;background:rgba(52,152,236,.12);color:#3498ec;border:1px solid rgba(52,152,236,.2)">
+            <button id="m-profile-btn-offer" class="manage-action-btn manage-action-btn--accent" onclick="isMob()?(_hasActiveOffer?mTab('manage-room',null):mTab('offer',null)):(_hasActiveOffer?openManageSidebar('offer'):openFormSidebar('offer'))">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
               <span id="m-profile-btn-offer-text">Offer a Room</span>
             </button>
-            <button id="m-profile-btn-stranded" onclick="isMob()?(_hasActiveStranded?mTab('manage-stranded',null):mTab('stranded',null)):(_hasActiveStranded?openManageSidebar('stranded'):openFormSidebar('stranded'))" style="flex:1;padding:.6rem;border-radius:10px;font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.35rem;background:rgba(236,52,82,.12);color:#ec3452;border:1px solid rgba(236,52,82,.2)">
+            <button id="m-profile-btn-stranded" class="manage-action-btn manage-action-btn--red" onclick="isMob()?(_hasActiveStranded?mTab('manage-stranded',null):mTab('stranded',null)):(_hasActiveStranded?openManageSidebar('stranded'):openFormSidebar('stranded'))">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               <span id="m-profile-btn-stranded-text">I'm Stranded</span>
             </button>
