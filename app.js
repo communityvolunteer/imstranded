@@ -6069,13 +6069,13 @@ function buildStrandedCard(p, match, step) {
 
   html += '<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.6rem">';
   if (step === 1) {
-    html += `<button onclick="openMatchPicker('${p.id}','${p.current_lat||0}','${p.current_lng||0}','${(p.name||'').replace(/'/g,"\\'")}','${(p.current_location||'').replace(/'/g,"\\'")}')" style="flex:1;'+btnStyle('green')+'">Found a place? →</button>`;
+    html += `<button onclick="openMatchPicker('${p.id}','${p.current_lat||0}','${p.current_lng||0}','${(p.name||'').replace(/'/g,"\\'")}','${(p.current_location||'').replace(/'/g,"\\'")}')" style="flex:1;${btnStyle('green')}">Found a place? →</button>`;
   }
   if (step === 2 && !match?.home_lat) {
-    html += `<button onclick="checkAndOpenGoHome('${p.id}')" style="flex:1;'+btnStyle('green')+'">Made it home? →</button>`;
+    html += `<button onclick="checkAndOpenGoHome('${p.id}')" style="flex:1;${btnStyle('green')}">Made it home? →</button>`;
   }
-  html += `<button onclick="editStrandedPost('${p.id}')" style="'+btnStyle('accent')+'">Edit</button>`;
-  html += `<button onclick="deleteStrandedPost('${p.id}')" style="'+btnStyle('danger')+'">Remove</button>`;
+  html += `<button onclick="editStrandedPost('${p.id}')" style="${btnStyle('accent')}">Edit</button>`;
+  html += `<button onclick="deleteStrandedPost('${p.id}')" style="${btnStyle('danger')}">Remove</button>`;
   html += '</div>';
 
   // Discovery: nearby rooms
@@ -6089,7 +6089,7 @@ function buildStrandedCard(p, match, step) {
     html += nearby.slice(0, 5).map(o => `<div style="display:flex;justify-content:space-between;align-items:center;padding:.45rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
         <div><div style="font-size:.78rem;font-weight:600;color:#fff">${o.name || 'Anonymous'} ${buildBadge(!!o.user_id)}</div>
           <div style="font-size:.65rem;color:rgba(255,255,255,.4)">${o.location}${o._d != null ? ' · '+Math.round(o._d)+'km' : ''}</div></div>
-        <button onclick="openMatchPicker('${p.id}','${lat||0}','${lng||0}','${(p.name||'').replace(/'/g,"\\'")}','${(p.current_location||'').replace(/'/g,"\\'")}')" style="white-space:nowrap;'+btnStyle('accent','sm')+'">Select →</button>
+        <button onclick="openMatchPicker('${p.id}','${lat||0}','${lng||0}','${(p.name||'').replace(/'/g,"\\'")}','${(p.current_location||'').replace(/'/g,"\\'")}')" style="white-space:nowrap;${btnStyle('accent','sm')}">Select →</button>
       </div>`).join('');
     html += '</div>';
   }
@@ -6110,7 +6110,7 @@ function buildOfferCard(p, match, pending, step) {
       <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#f59e0b;margin-bottom:.35rem">Pending Match Request${pending.length > 1 ? 's' : ''}</div>
       ${pending.map(s => `<div style="display:flex;justify-content:space-between;align-items:center;padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
         <span style="font-size:.75rem;color:#fff;font-weight:600">${s.stranded_name || 'Someone'}</span>
-        <button onclick="approveMatch('${s.id}')" style="'+btnStyle('green','sm')+'">Approve ✓</button>
+        <button onclick="approveMatch('${s.id}')" style="${btnStyle('green','sm')}">Approve ✓</button>
       </div>`).join('')}
     </div>`;
   }
@@ -6124,8 +6124,8 @@ function buildOfferCard(p, match, pending, step) {
   }
 
   html += '<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.6rem">';
-  html += `<button onclick="mProfileEditPost('${p.id}')" style="'+btnStyle('accent')+'">Edit</button>`;
-  html += `<button onclick="mProfileDeletePost('${p.id}')" style="'+btnStyle('danger')+'">Remove</button>`;
+  html += `<button onclick="mProfileEditPost('${p.id}')" style="${btnStyle('accent')}">Edit</button>`;
+  html += `<button onclick="mProfileDeletePost('${p.id}')" style="${btnStyle('danger')}">Remove</button>`;
   html += '</div>';
 
   // Discovery: stranded people nearby
