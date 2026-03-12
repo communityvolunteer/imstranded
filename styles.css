@@ -3856,3 +3856,15 @@ font-size: clamp(.45rem, 1.2vw, .58rem);
 .manage-action-btn--red { background: #ec3452; }
 .manage-action-btn--green { background: #22c55e; color: #000; }
 .manage-action-btn svg { stroke: currentColor; }
+
+/* ── Dark overlay on map when sidebar is open ─────────── */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+  z-index: 999;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .25s ease;
+}
+.sidebar-overlay.active { opacity: 1; }
