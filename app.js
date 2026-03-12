@@ -1777,14 +1777,14 @@ const _fsTitles = {
 };
 // Map of which DOM element to move into the sidebar for each panel
 const _fsSourceMap = {
-  offer:    () => document.querySelector('#help-view .container'),
-  stranded: () => document.querySelector('#help-view .container'),
+  offer:    () => document.getElementById('help-panel-offer'),
+  stranded: () => document.getElementById('help-panel-stranded'),
   profile:  () => document.querySelector('#profile-view .container'),
   help:     () => document.getElementById('help-money-modal'),
 };
 const _fsReturnMap = {
-  offer:    () => document.getElementById('help-view'),
-  stranded: () => document.getElementById('help-view'),
+  offer:    () => document.getElementById('help-view-container'),
+  stranded: () => document.getElementById('help-view-container'),
   profile:  () => document.getElementById('profile-view'),
   help:     () => document.body,
 };
@@ -1846,20 +1846,12 @@ function openFormSidebar(which) {
 
   // Panel-specific init
   if (which === 'stranded') {
-    switchHelpMode('stranded');
-    // Hide toggle bar and offer panel so only stranded form shows
-    const toggleWrap = node?.querySelector('.help-toggle-wrap');
-    if (toggleWrap) toggleWrap.style.display = 'none';
-    const offerPanel = document.getElementById('help-panel-offer');
-    if (offerPanel) offerPanel.style.display = 'none';
+    // Panel moved individually — just ensure it's visible
+    if (node) node.style.display = 'block';
   }
   if (which === 'offer') {
-    switchHelpMode('helper'); renderPosts();
-    // Hide toggle bar and stranded panel so only offer form shows
-    const toggleWrap = node?.querySelector('.help-toggle-wrap');
-    if (toggleWrap) toggleWrap.style.display = 'none';
-    const strandedPanel = document.getElementById('help-panel-stranded');
-    if (strandedPanel) strandedPanel.style.display = 'none';
+    if (node) node.style.display = 'block';
+    renderPosts();
   }
   if (which === 'profile')  renderProfileView();
   if (which === 'help')     {
@@ -1880,7 +1872,13 @@ function _fsReturnMounted() {
     const homeId = child.dataset.fsHome;
     if (homeId) {
       const home = document.getElementById(homeId);
-      if (home) { child.style.display = ''; home.appendChild(child); delete child.dataset.fsHome; }
+      if (home) {
+        // Offer panel should return hidden (stranded is default view)
+        if (child.id === 'help-panel-offer') child.style.display = 'none';
+        else child.style.display = '';
+        home.appendChild(child);
+        delete child.dataset.fsHome;
+      }
     } else {
       // $HELP modal goes back to body
       if (child.id === 'help-money-modal') {
@@ -5908,11 +5906,15 @@ window.downloadPoolCSV = downloadPoolCSV;
 // ── Context-aware action buttons ──────────────────────────
 let _hasActiveOffer = false;
 let _hasActiveStranded = false;
+let _pendingRequestCount = 0;  // for room owners: how many stranded people requested your room
+let _roomsOfferedCount = 0;    // for stranded: how many rooms have been offered/matched
 
 async function updateActionButtons() {
   if (!isLoggedIn() || !SB_ON) {
     _hasActiveOffer = false;
     _hasActiveStranded = false;
+    _pendingRequestCount = 0;
+    _roomsOfferedCount = 0;
     resetActionButtons();
     return;
   }
@@ -5932,6 +5934,30 @@ async function updateActionButtons() {
     } catch(e) { return; }
   }
 
+  // Fetch notification counts (fire-and-forget, don't block rendering)
+  _pendingRequestCount = 0;
+  _roomsOfferedCount = 0;
+  if (_hasActiveOffer || _hasActiveStranded) {
+    try {
+      if (_hasActiveOffer) {
+        const myPost = posts.find(p => p.user_id === _currentUser.id);
+        if (myPost) {
+          const { count } = await withTimeout(_sb.from('success_stories').select('id', { count: 'exact', head: true })
+            .eq('offer_post_id', myPost.id).eq('offer_confirmed', false), 4000);
+          _pendingRequestCount = count || 0;
+        }
+      }
+      if (_hasActiveStranded) {
+        const myStranded = _strandedPeople.find(s => s.user_id === _currentUser.id);
+        if (myStranded) {
+          const { count } = await withTimeout(_sb.from('success_stories').select('id', { count: 'exact', head: true })
+            .eq('stranded_post_id', myStranded.id).eq('offer_confirmed', true), 4000);
+          _roomsOfferedCount = count || 0;
+        }
+      }
+    } catch(e) {}
+  }
+
   // ── PC buttons ──
   const pcOffer = document.getElementById('ss-offer-room');
   const pcStranded = document.getElementById('ss-im-stranded');
@@ -5939,7 +5965,10 @@ async function updateActionButtons() {
     if (_hasActiveOffer) {
       pcOffer.querySelector('.sitrep-label').textContent = 'My Room';
       pcOffer.querySelector('.sitrep-label').style.color = '#fff';
-      pcOffer.querySelector('.sitrep-sub').textContent = 'tap · manage';
+      const badge = _pendingRequestCount > 0
+        ? `<span style="display:inline-block;background:#ec3452;color:#fff;font-size:.55rem;font-weight:800;border-radius:10px;padding:.1rem .4rem;margin-left:.3rem;vertical-align:middle">${_pendingRequestCount}</span>`
+        : '';
+      pcOffer.querySelector('.sitrep-sub').innerHTML = _pendingRequestCount + ' Request' + (_pendingRequestCount !== 1 ? 's' : '') + badge;
       pcOffer.querySelector('svg').outerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
       pcOffer.onclick = () => openManageSidebar('offer');
     } else {
@@ -5953,7 +5982,10 @@ async function updateActionButtons() {
     if (_hasActiveStranded) {
       pcStranded.querySelector('.sitrep-label').textContent = 'My Status';
       pcStranded.querySelector('.sitrep-label').style.color = '#fff';
-      pcStranded.querySelector('.sitrep-sub').textContent = 'tap · manage';
+      const badge = _roomsOfferedCount > 0
+        ? `<span style="display:inline-block;background:#22c55e;color:#000;font-size:.55rem;font-weight:800;border-radius:10px;padding:.1rem .4rem;margin-left:.3rem;vertical-align:middle">${_roomsOfferedCount}</span>`
+        : '';
+      pcStranded.querySelector('.sitrep-sub').innerHTML = _roomsOfferedCount + ' Room' + (_roomsOfferedCount !== 1 ? 's' : '') + ' Offered' + badge;
       pcStranded.onclick = () => openManageSidebar('stranded');
     } else {
       pcStranded.querySelector('.sitrep-label').textContent = "I'm Stranded";
@@ -5968,7 +6000,10 @@ async function updateActionButtons() {
   const mTabSpare = document.getElementById('mtab-spare');
   if (mOffer) {
     if (_hasActiveStranded) {
-      mOffer.querySelector('.m-stat-label').innerHTML = '<span style="color:#fff">MY<br>STATUS</span>';
+      const mBadge = _roomsOfferedCount > 0
+        ? `<span style="display:inline-block;background:#22c55e;color:#000;font-size:.5rem;font-weight:800;border-radius:8px;padding:.05rem .3rem;margin-left:.15rem">${_roomsOfferedCount}</span>`
+        : '';
+      mOffer.querySelector('.m-stat-label').innerHTML = `<span style="color:#fff">MY<br>STATUS</span><div style="font-size:.5rem;color:rgba(255,255,255,.5);margin-top:.1rem">${_roomsOfferedCount} Room${_roomsOfferedCount !== 1 ? 's' : ''} Offered${mBadge}</div>`;
       mOffer.onclick = () => mTab('manage-stranded', null);
     } else {
       mOffer.querySelector('.m-stat-label').innerHTML = '<span style="color:#ec3452">HELP<br>I\'M STRANDED</span>';
@@ -5977,7 +6012,10 @@ async function updateActionButtons() {
   }
   if (mTabSpare) {
     if (_hasActiveOffer) {
-      mTabSpare.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a1a2e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> MY ROOM';
+      const mReqBadge = _pendingRequestCount > 0
+        ? ` <span style="display:inline-block;background:#ec3452;color:#fff;font-size:.5rem;font-weight:800;border-radius:8px;padding:.05rem .3rem">${_pendingRequestCount}</span>`
+        : '';
+      mTabSpare.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a1a2e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> MY ROOM' + mReqBadge;
       mTabSpare.style.color = '#1a1a2e';
       mTabSpare.onclick = () => mTab('manage-room', null);
     } else {
@@ -6198,7 +6236,7 @@ function buildStrandedCard(p, match, step) {
   if (lat && lng) nearby = nearby.map(o => ({...o, _d: haversineKm(lat, lng, o.lat, o.lng)})).sort((a,b) => a._d - b._d);
   if (nearby.length) {
     html += `<div style="margin-top:1.2rem;padding-top:.8rem;border-top:1px solid rgba(255,255,255,.06)">
-      <div style="font-size:1.15rem;font-weight:800;color:#fff;margin-bottom:.2rem">Spare Rooms Nearby</div>
+      <div style="font-size:1.15rem;font-weight:800;color:#fff;margin-bottom:.2rem">Request a Spare Room Nearby</div>
       <div style="font-size:.7rem;color:rgba(255,255,255,.45);margin-bottom:.6rem">Someone near you is offering help</div>`;
     html += nearby.slice(0, 5).map(o => `<div style="padding:.55rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.25rem">
@@ -6251,7 +6289,7 @@ function buildOfferCard(p, match, pending, step) {
   if (lat && lng) nearby = nearby.map(s => ({...s, _d: haversineKm(lat, lng, s.current_lat, s.current_lng)})).sort((a,b) => a._d - b._d);
   if (nearby.length) {
     html += `<div style="margin-top:1.2rem;padding-top:.8rem;border-top:1px solid rgba(255,255,255,.06)">
-      <div style="font-size:1.15rem;font-weight:800;color:#fff;margin-bottom:.2rem">Offer Room</div>
+      <div style="font-size:1.15rem;font-weight:800;color:#fff;margin-bottom:.2rem">Offer Spare Room Directly</div>
       <div style="font-size:.7rem;color:rgba(255,255,255,.45);margin-bottom:.6rem">To someone stranded nearby</div>`;
     html += nearby.slice(0, 8).map(s => {
       const needs = (s.needs || []).slice(0,3).join(', ');
