@@ -3077,6 +3077,10 @@ function buildContactIcons(contact, xhandle, name) {
   return `<div style="font-size:.55rem;color:rgba(255,255,255,.35);margin-top:.2rem">Contact ${firstName} via <span style="display:inline-flex;gap:3px;vertical-align:middle;margin-left:2px">${icons.join('')}</span></div>`;
 }
 
+function buildFlagButton(table, id) {
+  return `<button onclick="event.stopPropagation();flagPost('${table}','${id}')" style="display:inline-flex;align-items:center;gap:3px;margin-top:.35rem;padding:.2rem .5rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:5px;color:rgba(255,255,255,.3);font-size:.55rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif" title="Flag for review"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> Flag</button>`;
+}
+
 // ── User dot builder (matches IMPACTED dot style) ────────────
 function buildUserDot(type, num, subtitle, minSz) {
   // type: 'offer' (blue), 'stranded' (red), 'success' (green)
@@ -3149,6 +3153,7 @@ async function renderPostsOnMap(map) {
         <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:.4rem">📍 ${p.location}</div>
         ${buildContactButtons(p.contact, p.xhandle, p.name)}
         ${buildTipButton(p.xhandle, !!p.user_id)}
+        ${buildFlagButton('help_posts', p.id)}
         </div>
       </div>`;
     const m = L.marker([geo.lat,geo.lng],{icon:helpIcon});
@@ -3330,6 +3335,7 @@ async function submitPost(type) {
   // Combine contacts
   const c = [email, tgContact].filter(Boolean).join(' | ') || email || tgContact;
   if(!t||!l||!b||!n){alert('Please fill in all required fields.');return;}
+  if(containsLink(b)){alert('Links are not allowed in posts. Please remove any URLs.');return;}
   if(!c){alert('Please link at least one contact method (Google or Telegram).');return;}
   if(!lat||!lng){alert('Please select a location from the dropdown suggestions.');return;}
   const btn=document.querySelector(`.submit-btn--${type}`); if(!btn)return;
@@ -3932,6 +3938,7 @@ async function mSubmitOffer(){
     lng=parseFloat(document.getElementById('m-offer-lng')?.value)||null;
   const c = [email, tgContact].filter(Boolean).join(' | ') || email || tgContact;
   if(!l||!b||!n){alert('Please fill in all fields.');return;}
+  if(containsLink(b)){alert('Links are not allowed in posts. Please remove any URLs.');return;}
   if(!c){alert('Please link at least one contact method (Google or Telegram).');return;}
   if(!lat||!lng){alert('Please select a location from the dropdown suggestions.');return;}
   const btn=document.querySelector('#m-offer-content .m-submit');btn.textContent='Posting...';btn.disabled=true;
@@ -4063,6 +4070,7 @@ async function loadProfile() {
   refreshHelpPanel();
   // Update offer/stranded buttons based on active posts
   updateActionButtons();
+  updateAdminButton();
 }
 
 function updateLinkedFields() {
@@ -4412,6 +4420,7 @@ async function doSignOut() {
   renderProfileView();
   renderMobileProfileView();
   updateActionButtons();
+  updateAdminButton();
   showView('map');
 }
 
@@ -5270,6 +5279,7 @@ async function mSubmitStranded() {
   if (!loc) { alert('Please fill in your current location.'); return; }
   if (!lat || !lng) { alert('Please select your location or use GPS.'); return; }
   if (!dest) { alert('Please select where you need to get home to.'); return; }
+  if (containsLink(details)) { alert('Links are not allowed in posts. Please remove any URLs.'); return; }
   const email = _currentUser?.email || '';
   const tg = _currentProfile?.tg_handle ? '@' + _currentProfile.tg_handle : '';
   const xhandle = _currentProfile?.x_handle || document.getElementById('m-stranded-xhandle')?.value?.replace('@','') || '';
@@ -5315,6 +5325,7 @@ async function submitStranded() {
   if (!loc) { alert('Please fill in your current location.'); return; }
   if (!lat || !lng) { alert('Please select your location from suggestions or use GPS.'); return; }
   if (!dest) { alert('Please select where you need to get home to.'); return; }
+  if (containsLink(details)) { alert('Links are not allowed in posts. Please remove any URLs.'); return; }
 
   const email = _currentUser?.email || '';
   const tg = _currentProfile?.tg_handle ? '@' + _currentProfile.tg_handle : '';
@@ -5425,6 +5436,7 @@ function renderStrandedOnMap(map, isMobile) {
         ${p.details ? `<div style="font-size:.78rem;color:rgba(255,255,255,.5);line-height:1.45;margin-top:.35rem">${p.details}</div>` : ''}
         ${buildContactButtons(p.contact, p.xhandle, p.name)}
         ${buildSendHelpButton(p.xhandle, !!p.user_id)}
+        ${buildFlagButton('stranded_people', p.id)}
         </div>
       </div>
     `;
@@ -6003,8 +6015,7 @@ async function updateActionButtons() {
     if (_hasActiveStranded) {
       if (mSvg) mSvg.outerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
       const rBubble = `<span style="display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;border-radius:8px;font-size:.5rem;font-weight:800;padding:0 .25rem;${_roomsOfferedCount > 0 ? 'background:#22c55e;color:#000' : 'background:rgba(0,0,0,.12);color:rgba(0,0,0,.35)'}">${_roomsOfferedCount}</span>`;
-      const qBubble = `<span style="display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;border-radius:8px;font-size:.5rem;font-weight:800;padding:0 .25rem;${_pendingRequestCount > 0 ? 'background:#ec3452;color:#fff' : 'background:rgba(0,0,0,.12);color:rgba(0,0,0,.35)'}">${_pendingRequestCount}</span>`;
-      mOffer.querySelector('.m-stat-label').innerHTML = `<span style="color:#1a1a2e;font-size:.55rem">MY STATUS</span><div style="display:flex;gap:.5rem;margin-top:.15rem"><span style="font-size:.45rem;color:rgba(0,0,0,.45);display:flex;align-items:center;gap:.2rem">Rooms Offered ${rBubble}</span><span style="font-size:.45rem;color:rgba(0,0,0,.45);display:flex;align-items:center;gap:.2rem">Requests ${qBubble}</span></div>`;
+      mOffer.querySelector('.m-stat-label').innerHTML = `<span style="color:#1a1a2e;font-size:.55rem">MY STATUS</span><div style="display:flex;gap:.5rem;margin-top:.15rem"><span style="font-size:.45rem;color:rgba(0,0,0,.45);display:flex;align-items:center;gap:.2rem">Rooms Offered ${rBubble}</span></div>`;
       mOffer.onclick = () => mTab('manage-stranded', null);
     } else {
       if (mSvg) mSvg.outerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
@@ -6014,10 +6025,8 @@ async function updateActionButtons() {
   }
   if (mTabSpare) {
     if (_hasActiveOffer) {
-      const mReqBadge = _pendingRequestCount > 0
-        ? ` <span style="display:inline-block;background:#ec3452;color:#fff;font-size:.5rem;font-weight:800;border-radius:8px;padding:.05rem .3rem">${_pendingRequestCount}</span>`
-        : '';
-      mTabSpare.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a1a2e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> MY ROOM' + mReqBadge;
+      const reqBubble = `<span style="display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;border-radius:8px;font-size:.5rem;font-weight:800;padding:0 .25rem;${_pendingRequestCount > 0 ? 'background:#ec3452;color:#fff' : 'background:rgba(0,0,0,.15);color:rgba(0,0,0,.35)'}">${_pendingRequestCount}</span>`;
+      mTabSpare.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a1a2e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> MY ROOM <span style="font-size:.45rem;color:rgba(0,0,0,.45);display:inline-flex;align-items:center;gap:.2rem;margin-left:.2rem">Requests ' + reqBubble + '</span>';
       mTabSpare.style.color = '#1a1a2e';
       mTabSpare.onclick = () => mTab('manage-room', null);
     } else {
@@ -6340,6 +6349,269 @@ function resetActionButtons() {
     mTabSpare.style.color = '';
     mTabSpare.onclick = () => mTab('offer', null);
   }
+}
+
+// ============================================================
+// CONTENT MODERATION & ADMIN
+// ============================================================
+const ADMIN_EMAIL = 'dannymcglashing@gmail.com';
+
+function containsLink(text) {
+  if (!text) return false;
+  return /https?:\/\/|www\.|\.com\/|\.org\/|\.net\/|\.io\//i.test(text);
+}
+
+function isAdmin() {
+  return _currentUser?.email === ADMIN_EMAIL && _currentProfile?.google_verified;
+}
+
+function isMod() {
+  return isAdmin() || _currentProfile?.role === 'mod';
+}
+
+function isModOrAdmin() {
+  return isAdmin() || _currentProfile?.role === 'mod';
+}
+
+// ── Flag post (verified users only) ──────────────────────
+async function flagPost(table, id) {
+  if (!isLoggedIn()) { alert('Please sign in first.'); return; }
+  const verified = _currentProfile?.google_verified || _currentProfile?.x_verified || _currentProfile?.tg_verified;
+  if (!verified) { alert('Only verified users can flag posts. Link Google, X, or Telegram in your profile.'); return; }
+  if (!confirm('Flag this post for moderator review?')) return;
+  try {
+    await withTimeout(_sb.from(table).update({ flagged: true }).eq('id', id), 5000);
+    alert('Post flagged for review. Thank you.');
+    if (table === 'help_posts') loadPosts();
+    else loadStranded();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+// ── Admin panel toggle ───────────────────────────────────
+function toggleAdminPanel() {
+  if (!isModOrAdmin()) return;
+  if (isMob()) {
+    mTab('manage', null);
+    setTimeout(() => {
+      const c = document.getElementById('m-manage-content');
+      if (c) { c.innerHTML = ''; renderAdminPanel(c); }
+    }, 100);
+  } else {
+    openManageAdmin();
+  }
+}
+
+function openManageAdmin() {
+  const sb = document.getElementById('form-sidebar');
+  const body = document.getElementById('form-sidebar-body');
+  const title = document.getElementById('form-sidebar-title');
+  if (!sb || !body) return;
+  if (sb.classList.contains('open')) closeFormSidebar();
+  setTimeout(() => {
+    body.innerHTML = '<div id="pc-manage-content"></div>';
+    if (title) {
+      title.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:.3rem"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> ADMIN';
+      title.style.color = '#ec3452';
+      title.style.fontSize = '.85rem';
+    }
+    sb.classList.add('open');
+    sb.dataset.panel = 'admin';
+    document.getElementById('sidebar-overlay')?.classList.add('active');
+    document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '420px');
+    setTimeout(() => {
+      if (!window._fsBackdropClose) {
+        window._fsBackdropClose = function(e) {
+          const sb = document.getElementById('form-sidebar');
+          if (sb && sb.classList.contains('open') && !sb.contains(e.target)) {
+            if (e.target.closest('[onclick*="openFormSidebar"]') || e.target.closest('[onclick*="openManageSidebar"]') || e.target.closest('[onclick*="mTab"]') || e.target.closest('[onclick*="toggleAdminPanel"]')) return;
+            closeFormSidebar();
+          }
+        };
+      }
+      document.removeEventListener('mousedown', window._fsBackdropClose);
+      document.addEventListener('mousedown', window._fsBackdropClose);
+    }, 100);
+    renderAdminPanel(document.getElementById('pc-manage-content'));
+  }, 50);
+}
+
+let _adminTab = 'flagged';
+
+async function renderAdminPanel(container) {
+  if (!container || !isModOrAdmin()) return;
+
+  const toggleHtml = `<div style="display:flex;background:rgba(255,255,255,.06);border-radius:8px;padding:2px;margin-bottom:1rem;border:1px solid rgba(255,255,255,.08)">
+    <button onclick="_adminTab='flagged';renderAdminPanel(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="flex:1;padding:.4rem;border:none;border-radius:6px;font-family:Inter,sans-serif;font-size:.65rem;font-weight:700;cursor:pointer;${_adminTab==='flagged'?'background:rgba(236,52,82,.15);color:#ec3452':'background:transparent;color:rgba(255,255,255,.3)'}">Flagged</button>
+    <button onclick="_adminTab='rooms';renderAdminPanel(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="flex:1;padding:.4rem;border:none;border-radius:6px;font-family:Inter,sans-serif;font-size:.65rem;font-weight:700;cursor:pointer;${_adminTab==='rooms'?'background:rgba(52,152,236,.15);color:#3498ec':'background:transparent;color:rgba(255,255,255,.3)'}">Rooms</button>
+    <button onclick="_adminTab='stranded';renderAdminPanel(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="flex:1;padding:.4rem;border:none;border-radius:6px;font-family:Inter,sans-serif;font-size:.65rem;font-weight:700;cursor:pointer;${_adminTab==='stranded'?'background:rgba(236,52,82,.15);color:#ec3452':'background:transparent;color:rgba(255,255,255,.3)'}">Stranded</button>
+    ${isAdmin() ? `<button onclick="_adminTab='mods';renderAdminPanel(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="flex:1;padding:.4rem;border:none;border-radius:6px;font-family:Inter,sans-serif;font-size:.65rem;font-weight:700;cursor:pointer;${_adminTab==='mods'?'background:rgba(168,85,247,.15);color:#a855f7':'background:transparent;color:rgba(255,255,255,.3)'}">Mods</button>` : ''}
+  </div>`;
+
+  if (_adminTab === 'mods') {
+    container.innerHTML = toggleHtml + '<div style="text-align:center;padding:1rem 0;color:rgba(255,255,255,.4)">Loading mods...</div>';
+    await renderModPanel(container, toggleHtml);
+    return;
+  }
+
+  container.innerHTML = toggleHtml + '<div style="text-align:center;padding:1rem 0;color:rgba(255,255,255,.4)">Loading...</div>';
+
+  try {
+    let items = [];
+    if (_adminTab === 'flagged') {
+      const [r1, r2] = await Promise.all([
+        withTimeout(_sb.from('help_posts').select('id,name,location,body,created_at,flagged,user_id').eq('flagged', true).order('created_at', { ascending: false }).limit(50), 6000),
+        withTimeout(_sb.from('stranded_people').select('id,name,current_location,details,created_at,flagged,user_id').eq('flagged', true).order('created_at', { ascending: false }).limit(50), 6000)
+      ]);
+      items = [
+        ...(r1.data || []).map(p => ({ ...p, _table: 'help_posts', _type: 'Room' })),
+        ...(r2.data || []).map(p => ({ ...p, _table: 'stranded_people', _type: 'Stranded', location: p.current_location, body: p.details }))
+      ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    } else if (_adminTab === 'rooms') {
+      const { data } = await withTimeout(_sb.from('help_posts').select('id,name,location,body,created_at,flagged,user_id').eq('type', 'offer').order('created_at', { ascending: false }).limit(100), 6000);
+      items = (data || []).map(p => ({ ...p, _table: 'help_posts', _type: 'Room' }));
+    } else {
+      const { data } = await withTimeout(_sb.from('stranded_people').select('id,name,current_location,details,created_at,flagged,user_id').order('created_at', { ascending: false }).limit(100), 6000);
+      items = (data || []).map(p => ({ ...p, _table: 'stranded_people', _type: 'Stranded', location: p.current_location, body: p.details }));
+    }
+
+    if (!items.length) {
+      container.innerHTML = toggleHtml + '<div style="text-align:center;padding:2rem 0;color:rgba(255,255,255,.3)">No posts found.</div>';
+      return;
+    }
+
+    container.innerHTML = toggleHtml + items.map(p => {
+      const t = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
+      const flagBadge = p.flagged ? '<span style="background:#ec3452;color:#fff;font-size:.5rem;font-weight:800;border-radius:4px;padding:.1rem .3rem;margin-left:.3rem">FLAGGED</span>' : '';
+      return `<div style="padding:.5rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:.75rem;font-weight:700;color:#fff">${p.name || 'Anonymous'} <span style="font-size:.55rem;color:rgba(255,255,255,.3)">${p._type} · ${t}</span>${flagBadge}</div>
+            <div style="font-size:.65rem;color:rgba(255,255,255,.4)">${p.location || ''}</div>
+            ${p.body ? `<div style="font-size:.65rem;color:rgba(255,255,255,.3);margin-top:.15rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.body.slice(0,100)}</div>` : ''}
+          </div>
+          <div style="display:flex;gap:.3rem;flex-shrink:0;margin-left:.5rem">
+            ${p.flagged ? `<button onclick="adminUnflag('${p._table}','${p.id}')" style="${btnStyle('accent','sm')}">Unflag</button>` : ''}
+            <button onclick="adminDelete('${p._table}','${p.id}')" style="${btnStyle('danger','sm')}">Delete</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    container.innerHTML = toggleHtml + `<div style="text-align:center;padding:1rem 0;color:rgba(255,255,255,.4)">${e.message}</div>`;
+  }
+}
+
+async function adminDelete(table, id) {
+  if (!isModOrAdmin()) return;
+  if (!confirm('Permanently delete this post?')) return;
+  try {
+    await withTimeout(_sb.from(table).delete().eq('id', id), 5000);
+    loadPosts(); loadStranded();
+    const c = document.getElementById('pc-manage-content') || document.getElementById('m-manage-content');
+    if (c) renderAdminPanel(c);
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function adminUnflag(table, id) {
+  if (!isModOrAdmin()) return;
+  try {
+    await withTimeout(_sb.from(table).update({ flagged: false }).eq('id', id), 5000);
+    loadPosts(); loadStranded();
+    const c = document.getElementById('pc-manage-content') || document.getElementById('m-manage-content');
+    if (c) renderAdminPanel(c);
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+// ── Mod management (admin only) ──────────────────────────
+async function renderModPanel(container, toggleHtml) {
+  if (!isAdmin()) { container.innerHTML = toggleHtml + '<div style="padding:1rem 0;color:rgba(255,255,255,.3)">Admin only.</div>'; return; }
+
+  let html = toggleHtml;
+  html += `<div style="margin-bottom:1rem">
+    <div style="font-size:.9rem;font-weight:800;color:#fff;margin-bottom:.4rem">Add Moderator</div>
+    <div style="display:flex;gap:.3rem">
+      <input type="text" id="admin-mod-search" placeholder="Search by name or email..." style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.45rem .6rem;color:#fff;font-family:Inter,sans-serif;font-size:.75rem" oninput="adminSearchUsers(this.value)">
+    </div>
+    <div id="admin-search-results"></div>
+  </div>`;
+
+  // Current mods
+  html += '<div style="font-size:.9rem;font-weight:800;color:#fff;margin-bottom:.4rem;margin-top:1rem;padding-top:.8rem;border-top:1px solid rgba(255,255,255,.06)">Team</div>';
+
+  try {
+    // Admin
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
+      <div><span style="font-size:.78rem;font-weight:700;color:#fff">${_currentProfile?.display_name || ADMIN_EMAIL}</span>
+      <span style="font-size:.5rem;background:#ec3452;color:#fff;border-radius:4px;padding:.1rem .3rem;margin-left:.3rem;font-weight:800">ADMIN</span></div>
+      <span style="font-size:.6rem;color:rgba(255,255,255,.25)">You</span>
+    </div>`;
+
+    // Mods
+    const { data: mods } = await withTimeout(_sb.from('profiles').select('id,display_name,email,role').eq('role', 'mod'), 5000);
+    if (mods?.length) {
+      for (const m of mods) {
+        html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
+          <div><span style="font-size:.78rem;font-weight:700;color:#fff">${m.display_name || m.email}</span>
+          <span style="font-size:.5rem;background:#a855f7;color:#fff;border-radius:4px;padding:.1rem .3rem;margin-left:.3rem;font-weight:800">MOD</span></div>
+          <button onclick="adminRemoveMod('${m.id}')" style="${btnStyle('danger','sm')}">Remove</button>
+        </div>`;
+      }
+    } else {
+      html += '<div style="font-size:.7rem;color:rgba(255,255,255,.25);padding:.3rem 0">No moderators yet.</div>';
+    }
+  } catch(e) { html += `<div style="color:rgba(255,255,255,.3);font-size:.7rem">${e.message}</div>`; }
+
+  container.innerHTML = html;
+}
+
+async function adminSearchUsers(q) {
+  const results = document.getElementById('admin-search-results');
+  if (!results || !isAdmin()) return;
+  if (q.length < 2) { results.innerHTML = ''; return; }
+  try {
+    const { data } = await withTimeout(_sb.from('profiles').select('id,display_name,email,role')
+      .or(`display_name.ilike.%${q}%,email.ilike.%${q}%`)
+      .limit(8), 4000);
+    if (!data?.length) { results.innerHTML = '<div style="font-size:.65rem;color:rgba(255,255,255,.25);padding:.3rem 0">No users found.</div>'; return; }
+    results.innerHTML = data.map(u => {
+      const isSelf = u.email === ADMIN_EMAIL;
+      const isAlreadyMod = u.role === 'mod';
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,.03)">
+        <div><span style="font-size:.72rem;font-weight:600;color:#fff">${u.display_name || 'No name'}</span>
+        <span style="font-size:.55rem;color:rgba(255,255,255,.25);margin-left:.3rem">${u.email || ''}</span>
+        ${isAlreadyMod ? '<span style="font-size:.5rem;background:#a855f7;color:#fff;border-radius:4px;padding:.05rem .25rem;margin-left:.2rem;font-weight:700">MOD</span>' : ''}
+        ${isSelf ? '<span style="font-size:.5rem;background:#ec3452;color:#fff;border-radius:4px;padding:.05rem .25rem;margin-left:.2rem;font-weight:700">ADMIN</span>' : ''}</div>
+        ${!isSelf && !isAlreadyMod ? `<button onclick="adminMakeMod('${u.id}')" style="${btnStyle('green','sm')}">Make Mod</button>` : ''}
+      </div>`;
+    }).join('');
+  } catch(e) { results.innerHTML = ''; }
+}
+
+async function adminMakeMod(userId) {
+  if (!isAdmin()) return;
+  try {
+    await withTimeout(_sb.from('profiles').update({ role: 'mod' }).eq('id', userId), 5000);
+    document.getElementById('admin-mod-search').value = '';
+    document.getElementById('admin-search-results').innerHTML = '';
+    const c = document.getElementById('pc-manage-content') || document.getElementById('m-manage-content');
+    if (c) renderAdminPanel(c);
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function adminRemoveMod(userId) {
+  if (!isAdmin()) return;
+  if (!confirm('Remove moderator access?')) return;
+  try {
+    await withTimeout(_sb.from('profiles').update({ role: null }).eq('id', userId), 5000);
+    const c = document.getElementById('pc-manage-content') || document.getElementById('m-manage-content');
+    if (c) renderAdminPanel(c);
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+// ── Show/hide admin button based on role ─────────────────
+function updateAdminButton() {
+  const btn = document.getElementById('admin-nav-btn');
+  if (btn) btn.style.display = isModOrAdmin() ? '' : 'none';
 }
 
 window.addEventListener('DOMContentLoaded',()=>{
