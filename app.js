@@ -1255,6 +1255,7 @@ function renderFilteredPosts(map, cluster, filteredPosts) {
         <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:.4rem">📍 ${p.location}</div>
         ${buildContactButtons(p.contact, p.xhandle, p.name)}
         ${buildTipButton(p.xhandle, !!p.user_id)}
+        ${buildFlagButton('help_posts', p.id)}
       </div>`;
     const m = L.marker([p.lat, p.lng], {icon: helpIcon});
     if (isMobile) {
@@ -1307,6 +1308,7 @@ function renderFilteredStranded(map, isMobile, filteredData) {
         ${p.details ? '<div style="font-size:.78rem;color:rgba(255,255,255,.5);line-height:1.45;margin-top:.35rem">'+p.details+'</div>' : ''}
         ${buildContactButtons(p.contact, p.xhandle, p.name)}
         ${buildSendHelpButton(p.xhandle, !!p.user_id)}
+        ${buildFlagButton('stranded_people', p.id)}
       </div>
     `;
     if (isMobile) {
@@ -2734,6 +2736,7 @@ function openPostSidebar(post, postType) {
   html += postType === 'offer'
     ? buildTipButton(post.xhandle, !!post.user_id)
     : buildSendHelpButton(post.xhandle, !!post.user_id);
+  html += buildFlagButton(postType === 'offer' ? 'help_posts' : 'stranded_people', post.id);
   html += `</div>`;
 
   body.innerHTML = html;
@@ -3313,6 +3316,7 @@ function renderPosts() {
       </div>
       ${buildContactButtons(p.contact, p.xhandle, p.name)}
       ${buildTipButton(p.xhandle, !!p.user_id)}
+      ${buildFlagButton('help_posts', p.id)}
     </div>`;
   }).join('');
 }
@@ -6627,9 +6631,9 @@ async function adminRemoveMod(userId) {
 function updateAdminButton() {
   const show = isModOrAdmin();
   const btn = document.getElementById('admin-nav-btn');
-  if (btn) btn.style.display = show ? '' : 'none';
+  if (btn) btn.style.display = show ? 'inline-flex' : 'none';
   const mBtn = document.getElementById('m-admin-pill');
-  if (mBtn) mBtn.style.display = show ? '' : 'none';
+  if (mBtn) mBtn.style.display = show ? 'flex' : 'none';
   // Log RLS SQL for admin setup
   if (isAdmin() && !window._adminSqlLogged) {
     window._adminSqlLogged = true;
