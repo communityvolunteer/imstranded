@@ -937,36 +937,36 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
 .help-panel-head{margin-bottom:.9rem;padding-right:2rem;}
 .help-panel-ticker{
   display:flex;align-items:center;gap:.4rem;
-  font-size:2rem;font-weight:900;letter-spacing:-.03em;
+  font-size:2.6rem;font-weight:900;letter-spacing:-.04em;line-height:1;
   background:linear-gradient(135deg,var(--accent),#c084fc);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  margin-bottom:.18rem;
+  margin-bottom:.25rem;
 }
 .help-panel-sub{font-size:.7rem;color:rgba(255,255,255,.28);line-height:1.5;}
 
 /* Buy $HELP hero */
 .help-buy-hero{
-  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
-  border-radius:12px;padding:.8rem;margin-bottom:1rem;text-align:center;
+  background:none;border:none;
+  padding:.4rem 0;margin-bottom:.8rem;text-align:center;
 }
 .help-buy-label{
-  font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;
-  color:rgba(255,255,255,.35);margin-bottom:.6rem;
+  font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;
+  color:rgba(255,255,255,.7);margin-bottom:.75rem;
 }
 .help-buy-exchanges{
-  display:flex;justify-content:center;gap:1.2rem;margin-bottom:.6rem;
+  display:flex;justify-content:center;gap:1.4rem;margin-bottom:.65rem;
 }
 .help-buy-ex{
-  display:flex;flex-direction:column;align-items:center;gap:.3rem;
+  display:flex;flex-direction:column;align-items:center;gap:.35rem;
   text-decoration:none;transition:opacity .15s;
 }
 .help-buy-ex:hover{opacity:.7;}
 .help-buy-icon{
-  width:44px;height:44px;display:flex;align-items:center;justify-content:center;
-  background:var(--accent);border-radius:8px;border:1px solid rgba(255,255,255,.15);
+  width:54px;height:54px;display:flex;align-items:center;justify-content:center;
+  background:var(--accent);border-radius:10px;border:1px solid rgba(255,255,255,.15);
   transition:background .15s;
 }
-.help-buy-icon img{width:28px;height:28px;object-fit:contain;display:block;}
+.help-buy-icon img{width:34px;height:34px;object-fit:contain;display:block;}
 .help-buy-name{
   font-size:.6rem;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.01em;
 }
