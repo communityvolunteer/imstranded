@@ -4781,7 +4781,10 @@ async function renderMobileProfileView() {
     loginEl.style.display = 'none';
     mainEl.style.display = 'block';
     const nameEl = document.getElementById('m-profile-display-name');
-    if (nameEl) nameEl.textContent = _currentProfile?.display_name || _currentUser.email;
+    if (nameEl) {
+      const verified = _currentProfile?.google_verified || _currentProfile?.x_verified || _currentProfile?.tg_verified;
+      nameEl.innerHTML = esc(_currentProfile?.display_name || _currentUser.email) + ' ' + buildBadge(verified);
+    }
     updateVerifyStatus('google', _currentProfile?.google_verified);
     updateVerifyStatus('x', _currentProfile?.x_verified);
     updateVerifyStatus('tg', _currentProfile?.tg_verified);

@@ -896,7 +896,7 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
   max-height:90vh;overflow-y:auto;
 }
 .help-panel-x{
-  position:absolute;top:.8rem;right:.8rem;
+  position:absolute;top:.6rem;right:1rem;
   background:rgba(255,255,255,.08);border:none;border-radius:50%;
   width:28px;height:28px;display:flex;align-items:center;justify-content:center;
   cursor:pointer;transition:background .15s;z-index:1;
