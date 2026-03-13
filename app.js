@@ -1342,7 +1342,7 @@ function renderFilteredPosts(map, cluster, filteredPosts) {
     const fMatched = !!fStory;
     const fDotType = fMatched ? 'success' : 'offer';
     const fDotLabel = fMatched ? 'story' : 'room';
-    const _fd = buildUserDot(fDotType, 1, fDotLabel, 42);
+    const _fd = buildUserDot(fDotType, 1, fDotLabel, 50);
     const helpIcon = L.divIcon({
       className:'',
       html: _fd.html,
@@ -1378,7 +1378,7 @@ function renderFilteredStranded(map, isMobile, filteredData) {
     maxClusterRadius: 60, spiderfyOnMaxZoom: true, showCoverageOnHover: false, zoomToBoundsOnClick: true,
     iconCreateFunction: function(c) {
       const total = c.getAllChildMarkers().reduce((sum, m) => sum + (m.options.groupSize || 1), 0);
-      const d = buildUserDot('stranded', total, 'stranded', 42);
+      const d = buildUserDot('stranded', total, 'stranded', 50);
       return L.divIcon({ html: d.html, className: '', iconSize: [d.sz, d.sz], iconAnchor: [d.sz/2, d.sz/2] });
     }
   });
@@ -1393,7 +1393,7 @@ function renderFilteredStranded(map, isMobile, filteredData) {
     const fHome = fMatched && fStory?.home_lat;
     const fDotType = fMatched ? 'success' : 'stranded';
     const fDotLabel = fHome ? 'home' : fMatched ? 'story' : 'stranded';
-    const _sd = buildUserDot(fDotType, p.group_size || 1, fDotLabel, 42);
+    const _sd = buildUserDot(fDotType, p.group_size || 1, fDotLabel, 50);
     const icon = L.divIcon({ className: '', html: _sd.html, iconSize: [_sd.sz, _sd.sz], iconAnchor: [_sd.sz/2, _sd.sz/2] });
     const marker = L.marker([p.current_lat, p.current_lng], { icon, groupSize: p.group_size || 1 });
     const popupHtml = `
@@ -2387,7 +2387,7 @@ function initMap() {
     disableClusteringAtZoom: 16,
     iconCreateFunction: function(c) {
       const count = c.getChildCount();
-      const d = buildUserDot('offer', count, count === 1 ? 'room' : 'rooms', 42);
+      const d = buildUserDot('offer', count, count === 1 ? 'room' : 'rooms', 50);
       return L.divIcon({ html: d.html, className: '', iconSize: [d.sz, d.sz], iconAnchor: [d.sz/2, d.sz/2] });
     }
   });
@@ -3238,14 +3238,14 @@ function buildFlagButton(table, id) {
 function buildUserDot(type, num, subtitle, minSz) {
   // type: 'offer' (blue), 'stranded' (red), 'success' (green), 'pet' (amber)
   const colors = {
-    offer:    { bg:'rgba(52,152,236,.18)',  border:'rgba(52,152,236,.35)',  ring:'rgba(52,152,236,.12)' },
-    stranded: { bg:'rgba(236,52,82,.18)',   border:'rgba(236,52,82,.35)',   ring:'rgba(236,52,82,.12)' },
-    success:  { bg:'rgba(34,197,94,.18)',   border:'rgba(34,197,94,.35)',   ring:'rgba(34,197,94,.12)' },
-    pet:      { bg:'rgba(255,159,28,.18)',  border:'rgba(255,159,28,.40)',  ring:'rgba(255,159,28,.12)' },
+    offer:    { bg:'rgba(52,152,236,.36)',  border:'rgba(52,152,236,.70)',  ring:'rgba(52,152,236,.24)' },
+    stranded: { bg:'rgba(236,52,82,.36)',   border:'rgba(236,52,82,.70)',   ring:'rgba(236,52,82,.24)' },
+    success:  { bg:'rgba(34,197,94,.36)',   border:'rgba(34,197,94,.70)',   ring:'rgba(34,197,94,.24)' },
+    pet:      { bg:'rgba(255,159,28,.36)',  border:'rgba(255,159,28,.80)',  ring:'rgba(255,159,28,.24)' },
   };
   const c = colors[type] || colors.offer;
   const label = num >= 1000000 ? (num/1000000).toFixed(1)+'M' : num >= 1000 ? Math.round(num/1000)+'k' : num.toString();
-  const sz = Math.max(minSz || 42, num >= 100 ? 56 : num >= 10 ? 48 : 42);
+  const sz = Math.max(minSz || 50, num >= 100 ? 56 : num >= 10 ? 52 : 50);
   const ring = num >= 100 ? 8 : 6;
   const html = '<div class="gd-cluster gd-cluster--'+type+'" style="width:'+sz+'px;height:'+sz+'px;background:'+c.bg+';border:1.5px solid '+c.border+'">' +
     '<div class="gd-cluster-ring" style="inset:-'+ring+'px;border-color:'+c.ring+'"></div>' +
@@ -3282,7 +3282,7 @@ async function renderPostsOnMap(map) {
     const isMatched = !!story; // story only exists if offer_confirmed=true
     const dotType = isMatched ? 'success' : 'offer';
     const dotLabel = isMatched ? 'story' : 'room';
-    const _d = buildUserDot(dotType, 1, dotLabel, 42);
+    const _d = buildUserDot(dotType, 1, dotLabel, 50);
     const helpIcon = L.divIcon({
       className:'',
       html: _d.html,
@@ -4020,7 +4020,7 @@ function initMobile(){
         disableClusteringAtZoom: 16,
         iconCreateFunction: function(c) {
           const count = c.getChildCount();
-          const d = buildUserDot('offer', count, count === 1 ? 'room' : 'rooms', 42);
+          const d = buildUserDot('offer', count, count === 1 ? 'room' : 'rooms', 50);
           return L.divIcon({ html: d.html, className: '', iconSize: [d.sz, d.sz], iconAnchor: [d.sz/2, d.sz/2] });
         }
       });
@@ -5798,7 +5798,7 @@ function renderStrandedOnMap(map, isMobile) {
     zoomToBoundsOnClick: true,
     iconCreateFunction: function(c) {
       const total = c.getAllChildMarkers().reduce((sum, m) => sum + (m.options.groupSize || 1), 0);
-      const d = buildUserDot('stranded', total, 'stranded', 42);
+      const d = buildUserDot('stranded', total, 'stranded', 50);
       return L.divIcon({ html: d.html, className: '', iconSize: [d.sz, d.sz], iconAnchor: [d.sz/2, d.sz/2] });
     }
   });
@@ -5813,7 +5813,7 @@ function renderStrandedOnMap(map, isMobile) {
     const hasHome = isMatched && story?.home_lat;
     const dotType = isMatched ? 'success' : 'stranded';
     const dotLabel = hasHome ? 'home' : isMatched ? 'story' : 'stranded';
-    const _sd = buildUserDot(dotType, p.group_size || 1, dotLabel, 42);
+    const _sd = buildUserDot(dotType, p.group_size || 1, dotLabel, 50);
     const icon = L.divIcon({ className: '', html: _sd.html, iconSize: [_sd.sz, _sd.sz], iconAnchor: [_sd.sz/2, _sd.sz/2] });
     const marker = L.marker([p.current_lat, p.current_lng], { icon, groupSize: p.group_size || 1 });
     const uid = p.id.slice(0,8);
@@ -5893,7 +5893,7 @@ function renderPetsOnMap(map, isMobile) {
     maxClusterRadius: 60, spiderfyOnMaxZoom: true, showCoverageOnHover: false, zoomToBoundsOnClick: true,
     iconCreateFunction: function(c) {
       const count = c.getChildCount();
-      const d = buildUserDot('pet', count, 'pets', 42);
+      const d = buildUserDot('pet', count, 'pets', 50);
       return L.divIcon({ html: d.html, className: '', iconSize: [d.sz, d.sz], iconAnchor: [d.sz/2, d.sz/2] });
     }
   });
@@ -5905,7 +5905,7 @@ function renderPetsOnMap(map, isMobile) {
     const statusColor = PET_STATUS_COLORS[p.pet_status] || '#ff9f1c';
     const animalIcon = PET_ANIMAL_ICONS[p.animal_type] || '🐾';
     const _petIsMatched = !!_petMatchByPet[p.id];
-    const _pd = buildUserDot(_petIsMatched ? 'success' : 'pet', 1, _petIsMatched ? '✓' : animalIcon, 38);
+    const _pd = buildUserDot(_petIsMatched ? 'success' : 'pet', 1, _petIsMatched ? '✓' : animalIcon, 50);
     const icon = L.divIcon({ className: '', html: _pd.html, iconSize: [_pd.sz, _pd.sz], iconAnchor: [_pd.sz/2, _pd.sz/2] });
     const marker = L.marker([p.lat, p.lng], { icon });
     const popHtml = `
@@ -5946,7 +5946,7 @@ function renderFilteredPets(map, isMobile, filteredPets) {
     maxClusterRadius: 60, spiderfyOnMaxZoom: true, showCoverageOnHover: false, zoomToBoundsOnClick: true,
     iconCreateFunction: function(c) {
       const count = c.getChildCount();
-      const d = buildUserDot('pet', count, 'pets', 42);
+      const d = buildUserDot('pet', count, 'pets', 50);
       return L.divIcon({ html: d.html, className: '', iconSize: [d.sz, d.sz], iconAnchor: [d.sz/2, d.sz/2] });
     }
   });
@@ -5958,7 +5958,7 @@ function renderFilteredPets(map, isMobile, filteredPets) {
     const statusColor = PET_STATUS_COLORS[p.pet_status] || '#ff9f1c';
     const animalIcon = PET_ANIMAL_ICONS[p.animal_type] || '🐾';
     const _petIsMatched = !!_petMatchByPet[p.id];
-    const _pd = buildUserDot(_petIsMatched ? 'success' : 'pet', 1, _petIsMatched ? '✓' : animalIcon, 38);
+    const _pd = buildUserDot(_petIsMatched ? 'success' : 'pet', 1, _petIsMatched ? '✓' : animalIcon, 50);
     const icon = L.divIcon({ className: '', html: _pd.html, iconSize: [_pd.sz, _pd.sz], iconAnchor: [_pd.sz/2, _pd.sz/2] });
     const marker = L.marker([p.lat, p.lng], { icon });
     const popHtml = `
@@ -6316,7 +6316,7 @@ function renderSuccessOnMap(map, showHome = true) {
     // Green pin at room location
     if (s.lat && s.lng) {
       const uid = s.id.slice(0,8);
-      const _sucD = buildUserDot('success', 1, 'story', 42);
+      const _sucD = buildUserDot('success', 1, 'story', 50);
       const icon = L.divIcon({ className: '', html: _sucD.html, iconSize: [_sucD.sz, _sucD.sz], iconAnchor: [_sucD.sz/2, _sucD.sz/2] });
       const popHtml = `<div class="spt-wrap-${uid}" style="font-family:Inter,sans-serif">${buildSuccessTab(s, uid)}</div>`;
       const marker = L.marker([s.lat, s.lng], { icon });
@@ -6326,7 +6326,7 @@ function renderSuccessOnMap(map, showHome = true) {
     }
     // Extra pin at home location if they made it
     if (showHome && s.home_lat && s.home_lng) {
-      const _homeD = buildUserDot('success', 1, 'home', 42);
+      const _homeD = buildUserDot('success', 1, 'home', 50);
       const homeIcon = L.divIcon({ className: '', html: _homeD.html, iconSize: [_homeD.sz, _homeD.sz], iconAnchor: [_homeD.sz/2, _homeD.sz/2] });
       const homePop = `<div style="font-family:Inter,sans-serif"><div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">🏠 Made it home</div><div style="font-size:.82rem;font-weight:700;color:#fff;margin-bottom:.15rem">${s.stranded_name||'Stranded person'}</div><div style="font-size:.73rem;color:rgba(255,255,255,.45)">${esc(s.home_location)||''}</div>${s.home_story?`<div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:.35rem;line-height:1.5;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.4)">"${esc(s.home_story)}"</div>`:''}</div>`;
       const hm = L.marker([s.home_lat, s.home_lng], { icon: homeIcon });

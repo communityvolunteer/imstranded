@@ -1783,7 +1783,6 @@ html.translated-ltr body,html.translated-rtl body{top:0 !important;}
 font-size: clamp(.7rem, 2.5vw, 1.7rem);
   font-weight: 900;
   color: #fff;
-  letter-spacing: -.03em;
   line-height: 1;
 }
 .gd-cluster-lbl {
@@ -2014,42 +2013,40 @@ font-size: clamp(.45rem, 1.2vw, .58rem);
 
 /* Light theme adjustments for user clusters */
 /* ── User dot type colors (dark theme default) ─────────── */
-/* Numbers: white (inherited from .gd-cluster-num color:#fff) */
-/* Subtitles: colored per type */
-.gd-cluster--offer .gd-cluster-lbl { color: rgba(52,152,236,.7); }
-.gd-cluster--stranded .gd-cluster-lbl { color: rgba(236,52,82,.7); }
-.gd-cluster--success .gd-cluster-lbl { color: rgba(34,197,94,.7); }
-.gd-cluster--pet .gd-cluster-lbl { color: rgba(255,159,28,.7); }
+/* Numbers: white | Labels: white for user-posted dots */
+.gd-cluster--offer .gd-cluster-lbl,
+.gd-cluster--stranded .gd-cluster-lbl,
+.gd-cluster--success .gd-cluster-lbl,
+.gd-cluster--pet .gd-cluster-lbl { color: #fff; }
 
-/* ── Light theme: dark numbers, denser colored subtitles ── */
-.map-light .gd-cluster--offer .gd-cluster-num { color: #1a1a2e; text-shadow: 0 0 6px rgba(255,255,255,.7); }
-.map-light .gd-cluster--offer .gd-cluster-lbl { color: rgba(26,95,180,.85); text-shadow: 0 0 4px rgba(255,255,255,.5); }
-.map-light .gd-cluster--stranded .gd-cluster-num { color: #1a1a2e; text-shadow: 0 0 6px rgba(255,255,255,.7); }
-.map-light .gd-cluster--stranded .gd-cluster-lbl { color: rgba(192,57,43,.85); text-shadow: 0 0 4px rgba(255,255,255,.5); }
-.map-light .gd-cluster--success .gd-cluster-num { color: #1a1a2e; text-shadow: 0 0 6px rgba(255,255,255,.7); }
-.map-light .gd-cluster--success .gd-cluster-lbl { color: rgba(21,128,61,.85); text-shadow: 0 0 4px rgba(255,255,255,.5); }
+/* ── Light theme: dark numbers + labels ── */
+.map-light .gd-cluster--offer .gd-cluster-num,
+.map-light .gd-cluster--stranded .gd-cluster-num,
+.map-light .gd-cluster--success .gd-cluster-num,
 .map-light .gd-cluster--pet .gd-cluster-num { color: #1a1a2e; text-shadow: 0 0 6px rgba(255,255,255,.7); }
-.map-light .gd-cluster--pet .gd-cluster-lbl { color: rgba(200,120,10,.85); text-shadow: 0 0 4px rgba(255,255,255,.5); }
+.map-light .gd-cluster--offer .gd-cluster-lbl,
+.map-light .gd-cluster--stranded .gd-cluster-lbl,
+.map-light .gd-cluster--success .gd-cluster-lbl,
+.map-light .gd-cluster--pet .gd-cluster-lbl { color: #1a1a2e; text-shadow: 0 0 4px rgba(255,255,255,.5); }
 
-/* Mobile: user dot titles black on mobile (light default) */
+/* Mobile: light by default, dark override */
 @media (max-width: 600px) {
   .gd-cluster--offer .gd-cluster-num,
   .gd-cluster--stranded .gd-cluster-num,
   .gd-cluster--success .gd-cluster-num,
   .gd-cluster--pet .gd-cluster-num { color: #1a1a2e; }
-  .gd-cluster--offer .gd-cluster-lbl { color: rgba(26,95,180,.85); }
-  .gd-cluster--stranded .gd-cluster-lbl { color: rgba(192,57,43,.85); }
-  .gd-cluster--success .gd-cluster-lbl { color: rgba(21,128,61,.85); }
-  .gd-cluster--pet .gd-cluster-lbl { color: rgba(200,120,10,.85); }
-  /* If user switches to dark on mobile, revert to white */
+  .gd-cluster--offer .gd-cluster-lbl,
+  .gd-cluster--stranded .gd-cluster-lbl,
+  .gd-cluster--success .gd-cluster-lbl,
+  .gd-cluster--pet .gd-cluster-lbl { color: #1a1a2e; }
   body:not(.map-light) .gd-cluster--offer .gd-cluster-num,
   body:not(.map-light) .gd-cluster--stranded .gd-cluster-num,
   body:not(.map-light) .gd-cluster--success .gd-cluster-num,
   body:not(.map-light) .gd-cluster--pet .gd-cluster-num { color: #fff; }
-  body:not(.map-light) .gd-cluster--offer .gd-cluster-lbl { color: rgba(52,152,236,.7); }
-  body:not(.map-light) .gd-cluster--stranded .gd-cluster-lbl { color: rgba(236,52,82,.7); }
-  body:not(.map-light) .gd-cluster--success .gd-cluster-lbl { color: rgba(34,197,94,.7); }
-  body:not(.map-light) .gd-cluster--pet .gd-cluster-lbl { color: rgba(255,159,28,.7); }
+  body:not(.map-light) .gd-cluster--offer .gd-cluster-lbl,
+  body:not(.map-light) .gd-cluster--stranded .gd-cluster-lbl,
+  body:not(.map-light) .gd-cluster--success .gd-cluster-lbl,
+  body:not(.map-light) .gd-cluster--pet .gd-cluster-lbl { color: #fff; }
 }
 
 /* ── Solid action buttons (accent-aware) ─────────────── */
