@@ -963,7 +963,10 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
 .help-buy-ex:hover{opacity:.7;}
 .help-buy-icon{
   width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+  background:var(--accent);border-radius:8px;border:1px solid rgba(255,255,255,.15);
+  transition:background .15s;
 }
+.help-buy-icon img{width:28px;height:28px;object-fit:contain;display:block;}
 .help-buy-name{
   font-size:.6rem;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.01em;
 }
