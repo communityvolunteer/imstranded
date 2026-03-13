@@ -1467,6 +1467,48 @@ function toggleArcsFromStat() {
   applyFilters();
 }
 
+function updateFilterBadges() {
+  function setBadge(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val || '';
+  }
+  function fmt(n) {
+    if (!n && n !== 0) return '';
+    if (n >= 1000000) return (n / 1000000).toFixed(n >= 10000000 ? 0 : 1) + 'M';
+    if (n >= 1000) return Math.round(n / 1000) + 'k';
+    return n.toString();
+  }
+  // People impacted — use canonical stranded figure, shortened to M/k
+  const impacted = window._canonicalStranded || 0;
+  const impactedLabel = fmt(impacted);
+  setBadge('fp-badge-impacted', impactedLabel);
+  setBadge('mfp-badge-impacted', impactedLabel);
+
+  // Spare rooms
+  const roomCount = (typeof posts !== 'undefined') ? posts.filter(p => p.type === 'offer').length : 0;
+  setBadge('fp-badge-rooms', roomCount || '');
+  setBadge('mfp-badge-rooms', roomCount || '');
+
+  // People stranded (registered)
+  const strandedCount = _strandedPeople ? _strandedPeople.length : 0;
+  setBadge('fp-badge-stranded', strandedCount || '');
+  setBadge('mfp-badge-stranded', strandedCount || '');
+
+  // Success stories
+  const successCount = _successStories ? _successStories.length : 0;
+  setBadge('fp-badge-success', successCount || '');
+  setBadge('mfp-badge-success', successCount || '');
+
+  // Stranded pets
+  const petCount = _petPosts ? _petPosts.length : 0;
+  setBadge('pet-count-badge', petCount || '');
+  setBadge('m-pet-count-badge', petCount || '');
+
+  // Most impacted nations
+  const nationsCount = window._countryImpact ? window._countryImpact.length : 0;
+  setBadge('fp-badge-nations', nationsCount || '');
+}
+
 function clearAllFilters() {
   _mapFilterActive = '';
   clearGlobalFilter();
@@ -3799,6 +3841,7 @@ async function refreshSitrep() {
   animCount('stat-airspace',vals.airspace,500);
   animCount('m-stat-cancelled',vals.cancelled,800);
   window._sitrepLoaded = true; // subsequent refreshes can animate
+  updateFilterBadges();
 
   // Dismiss loading toast + shimmer
   const toast = document.getElementById('data-loading-toast');
@@ -3902,7 +3945,7 @@ async function loadPosts() {
   if(!SB_ON)return;
   try {
     const{data}=await withTimeout(_sb.from('help_posts').select('id,type,post_type,location,body,name,contact,xhandle,lat,lng,user_id,created_at,avatar_url').eq('flagged',false).eq('type','offer').order('created_at',{ascending:false}).limit(100));
-    if(data){posts=data;renderPosts();renderPostsOnMap(window._crisisMap||window._mobileMap);updateActionButtons();}
+    if(data){posts=data;renderPosts();renderPostsOnMap(window._crisisMap||window._mobileMap);updateActionButtons();updateFilterBadges();}
   } catch(e) { console.warn('[loadPosts]', e.message); }
 }
 function subscribeStream(){
@@ -5736,6 +5779,7 @@ async function loadStranded() {
     renderStrandedOnMap(window._crisisMap, false);
     renderStrandedOnMap(window._mobileMap, true);
     updateActionButtons();
+    updateFilterBadges();
   } catch (e) { console.error('Load stranded error:', e); }
 }
 
@@ -5836,11 +5880,7 @@ async function loadPets() {
     _petPosts = data || [];
     renderPetsOnMap(window._crisisMap, false);
     renderPetsOnMap(window._mobileMap, true);
-    // Update pet count badge
-    const badge = document.getElementById('pet-count-badge');
-    const mBadge = document.getElementById('m-pet-count-badge');
-    if (badge) badge.textContent = _petPosts.length;
-    if (mBadge) mBadge.textContent = _petPosts.length;
+    updateFilterBadges();
   } catch(e) { console.error('Load pets error:', e); }
 }
 
@@ -5864,7 +5904,8 @@ function renderPetsOnMap(map, isMobile) {
     const statusLabel = PET_STATUS_LABELS[p.pet_status] || p.pet_status;
     const statusColor = PET_STATUS_COLORS[p.pet_status] || '#ff9f1c';
     const animalIcon = PET_ANIMAL_ICONS[p.animal_type] || '🐾';
-    const _pd = buildUserDot('pet', 1, animalIcon, 38);
+    const _petIsMatched = !!_petMatchByPet[p.id];
+    const _pd = buildUserDot(_petIsMatched ? 'success' : 'pet', 1, _petIsMatched ? '✓' : animalIcon, 38);
     const icon = L.divIcon({ className: '', html: _pd.html, iconSize: [_pd.sz, _pd.sz], iconAnchor: [_pd.sz/2, _pd.sz/2] });
     const marker = L.marker([p.lat, p.lng], { icon });
     const popHtml = `
@@ -5880,6 +5921,7 @@ function renderPetsOnMap(map, isMobile) {
         <div style="font-size:.78rem;color:rgba(255,255,255,.5);line-height:1.5;margin-bottom:.4rem">${esc(p.description)}</div>
         <div style="font-size:.72rem;color:rgba(255,255,255,.45);margin-bottom:.3rem">Posted by <strong style="color:#fff">${esc(p.name)}</strong></div>
         ${buildContactButtons(p.contact, p.xhandle, p.name)}
+        ${buildPetMatchButton(p)}
         ${buildFlagButton('stranded_pets', p.id)}
       </div>`;
     if (isMobile) {
@@ -5915,7 +5957,8 @@ function renderFilteredPets(map, isMobile, filteredPets) {
     const statusLabel = PET_STATUS_LABELS[p.pet_status] || p.pet_status;
     const statusColor = PET_STATUS_COLORS[p.pet_status] || '#ff9f1c';
     const animalIcon = PET_ANIMAL_ICONS[p.animal_type] || '🐾';
-    const _pd = buildUserDot('pet', 1, animalIcon, 38);
+    const _petIsMatched = !!_petMatchByPet[p.id];
+    const _pd = buildUserDot(_petIsMatched ? 'success' : 'pet', 1, _petIsMatched ? '✓' : animalIcon, 38);
     const icon = L.divIcon({ className: '', html: _pd.html, iconSize: [_pd.sz, _pd.sz], iconAnchor: [_pd.sz/2, _pd.sz/2] });
     const marker = L.marker([p.lat, p.lng], { icon });
     const popHtml = `
@@ -5931,6 +5974,7 @@ function renderFilteredPets(map, isMobile, filteredPets) {
         <div style="font-size:.78rem;color:rgba(255,255,255,.5);line-height:1.5;margin-bottom:.4rem">${esc(p.description)}</div>
         <div style="font-size:.72rem;color:rgba(255,255,255,.45);margin-bottom:.3rem">Posted by <strong style="color:#fff">${esc(p.name)}</strong></div>
         ${buildContactButtons(p.contact, p.xhandle, p.name)}
+        ${buildPetMatchButton(p)}
         ${buildFlagButton('stranded_pets', p.id)}
       </div>`;
     if (isMobile) {
@@ -6000,6 +6044,125 @@ async function submitPet(prefix) {
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = 'Submit Pet Post'; }
   }
+}
+
+// ============================================================
+// PET MATCH SYSTEM — mirrors success_stories for rooms
+// ============================================================
+let _petMatches = [];
+let _petMatchByPet = {};     // pet_post_id → match
+let _petMatchByFoster = {};  // foster_post_id → match
+
+async function loadPetMatches() {
+  if (!SB_ON) return;
+  try {
+    const { data } = await withTimeout(_sb.from('pet_matches')
+      .select('*').eq('foster_confirmed', true)
+      .order('confirmed_at', { ascending: false }).limit(200));
+    _petMatches = data || [];
+  } catch(e) { /* table may not exist yet */ }
+  _petMatchByPet = {};
+  _petMatchByFoster = {};
+  for (const m of _petMatches) {
+    _petMatchByPet[m.pet_post_id] = m;
+    _petMatchByFoster[m.foster_post_id] = m;
+  }
+}
+
+function buildPetMatchButton(petPost) {
+  if (!isLoggedIn() || !petPost?.id || !petPost?.user_id) return '';
+  const myId = _currentUser?.id;
+  if (!myId) return '';
+
+  // Check if already matched
+  if (_petMatchByPet[petPost.id]) {
+    const m = _petMatchByPet[petPost.id];
+    const reunitedLabel = m.reunited ? '🏠 Reunited!' : '✅ Fostered';
+    return `<div style="margin-top:.5rem;padding:.45rem .6rem;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);border-radius:8px;text-align:center;font-size:.7rem;font-weight:700;color:#22c55e">${reunitedLabel}${m.foster_name ? ' by '+esc(m.foster_name) : ''}</div>`;
+  }
+
+  // If I'm the pet owner viewing someone else's can_foster, or I'm a foster viewing a need_foster/found_stray
+  if (petPost.pet_status === 'can_foster' && petPost.user_id !== myId) {
+    // I need a foster — check if I have an active need_foster or found_stray post
+    const myPetPost = _petPosts.find(p => p.user_id === myId && (p.pet_status === 'need_foster' || p.pet_status === 'found_stray'));
+    if (myPetPost) {
+      return `<button onclick="requestPetMatch('${myPetPost.id}','${petPost.id}')" style="margin-top:.5rem;width:100%;padding:.5rem;background:rgba(255,159,28,.12);border:1px solid rgba(255,159,28,.25);border-radius:8px;color:#ff9f1c;font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">🐾 Request This Foster</button>`;
+    }
+  } else if ((petPost.pet_status === 'need_foster' || petPost.pet_status === 'found_stray') && petPost.user_id !== myId) {
+    // I can foster — check if I have an active can_foster post
+    const myFosterPost = _petPosts.find(p => p.user_id === myId && p.pet_status === 'can_foster');
+    if (myFosterPost) {
+      return `<button onclick="requestPetMatch('${petPost.id}','${myFosterPost.id}')" style="margin-top:.5rem;width:100%;padding:.5rem;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);border-radius:8px;color:#22c55e;font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">🐾 Offer to Foster This Pet</button>`;
+    }
+  }
+  return '';
+}
+
+async function requestPetMatch(petPostId, fosterPostId) {
+  if (!isLoggedIn()) return;
+  // Check for existing match
+  try {
+    const { data: existing } = await _sb.from('pet_matches')
+      .select('id,foster_confirmed').eq('pet_post_id', petPostId).maybeSingle();
+    if (existing?.foster_confirmed) { alert('This pet already has a confirmed foster!'); return; }
+    if (existing) { alert('A match request is already pending for this pet.'); return; }
+  } catch(e) { /* table may not exist */ }
+
+  const petPost = _petPosts.find(p => p.id === petPostId);
+  const fosterPost = _petPosts.find(p => p.id === fosterPostId);
+  if (!petPost || !fosterPost) { alert('Could not find the posts.'); return; }
+
+  if (!confirm(`Match "${petPost.pet_name || petPost.animal_type}" with foster "${fosterPost.name}"?`)) return;
+
+  try {
+    const { error } = await _sb.from('pet_matches').insert({
+      pet_post_id: petPostId,
+      foster_post_id: fosterPostId,
+      pet_user_id: petPost.user_id || null,
+      foster_user_id: fosterPost.user_id || null,
+      pet_confirmed: true,
+      foster_confirmed: false,
+      pet_lat: petPost.lat, pet_lng: petPost.lng,
+      pet_location: petPost.location,
+      pet_name: petPost.pet_name || petPost.animal_type,
+      animal_type: petPost.animal_type,
+      foster_lat: fosterPost.lat, foster_lng: fosterPost.lng,
+      foster_location: fosterPost.location,
+      foster_name: fosterPost.name,
+    });
+    if (error) throw error;
+    alert('✅ Match request sent! The foster will see it in their notifications.');
+    loadPetMatches();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function confirmPetMatch(matchId) {
+  if (!isLoggedIn()) return;
+  if (!confirm('Confirm you are fostering this pet?')) return;
+  try {
+    const { error } = await _sb.from('pet_matches').update({
+      foster_confirmed: true,
+      confirmed_at: new Date().toISOString()
+    }).eq('id', matchId).eq('foster_user_id', _currentUser.id);
+    if (error) throw error;
+    alert('🎉 Confirmed! This match will appear as a green pin on the map.');
+    loadPetMatches();
+    loadPets();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function markPetReunited(matchId) {
+  if (!isLoggedIn()) return;
+  const story = prompt('How did the reunion go? (optional, 200 chars max)');
+  try {
+    const { error } = await _sb.from('pet_matches').update({
+      reunited: true,
+      reunited_story: story ? story.slice(0, 200) : null
+    }).eq('id', matchId);
+    if (error) throw error;
+    alert('🏠 Marked as reunited! Thank you for the update.');
+    loadPetMatches();
+  } catch(e) { alert('Error: ' + e.message); }
 }
 
 
@@ -6140,6 +6303,7 @@ async function loadSuccessStories() {
   // Refresh stranded + offer markers so toggles appear
   if (window._crisisMap) { renderPostsOnMap(window._crisisMap); renderStrandedOnMap(window._crisisMap, false); }
   if (window._mobileMap) { renderPostsOnMap(window._mobileMap); renderStrandedOnMap(window._mobileMap, true); }
+  updateFilterBadges();
 }
 
 function renderSuccessOnMap(map, showHome = true) {
@@ -7424,6 +7588,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   loadStranded();
   initPetRealtime();
   loadPets();
+  loadPetMatches();
   initLocationAutocomplete('pet-pet-location','pet-pet-lat','pet-pet-lng','pet-location-ac');
   initLocationAutocomplete('m-pet-pet-location','m-pet-pet-lat','m-pet-pet-lng','m-pet-location-ac');
   initLocationAutocomplete('stranded-location','stranded-lat','stranded-lng','stranded-location-ac');
