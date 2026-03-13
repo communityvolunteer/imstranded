@@ -407,11 +407,14 @@ function googleTranslateInit() {
     </div>
 
     <!-- Filter tabs -->
-    <div class="filter-bar">
+    <div class="filter-bar" style="flex-wrap:wrap">
       <button class="filter-btn active" onclick="filterResources('all',this)">All</button>
       <button class="filter-btn" onclick="filterResources('embassy',this)">Embassies</button>
-      <button class="filter-btn" onclick="filterResources('ngo',this)">NGOs</button>
-      <button class="filter-btn" onclick="filterResources('info',this)">Info &amp; Tools</button>
+      <button class="filter-btn" onclick="filterResources('relief',this)">Relief &amp; Airlines</button>
+      <button class="filter-btn" onclick="filterResources('ngo',this)">NGOs &amp; Aid</button>
+      <button class="filter-btn" onclick="filterResources('info',this)">Gov &amp; Info</button>
+      <button class="filter-btn" onclick="filterResources('legal',this)">Legal</button>
+      <button class="filter-btn" onclick="filterResources('tools',this)">Tools</button>
     </div>
     <div id="resources-grid" class="countries-grid"></div>
   </div>

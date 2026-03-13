@@ -99,18 +99,99 @@ const WORLDWIDE = [
 ];
 
 const NGOS = [
-  {type:'Government',name:'US STEP Program',desc:'Register for emergency alerts from US Embassy.',url:'https://step.state.gov'},
-  {type:'Government',name:'UK FCDO Travel Advice',desc:'Live advisories and consular support.',url:'https://www.gov.uk/foreign-travel-advice'},
-  {type:'Government',name:'Australia Smartraveller',desc:'DFAT advisories and emergency registration.',url:'https://www.smartraveller.gov.au'},
-  {type:'Government',name:'Canada ROCA',desc:'Register of Canadians Abroad.',url:'https://travel.gc.ca/travelling/registration'},
-  {type:'NGO',name:'UNHCR',desc:'UN Refugee Agency active in UAE, Iraq, Jordan.',url:'https://www.unhcr.org'},
-  {type:'NGO',name:'ICRC / Red Cross',desc:'Active across the conflict zone.',url:'https://www.icrc.org'},
-  {type:'NGO',name:'IOM',desc:'Emergency evacuation logistics.',url:'https://www.iom.int'},
-  {type:'NGO',name:'IRC',desc:'Emergency relief in Iraq and Jordan.',url:'https://www.rescue.org'},
-  {type:'NGO',name:'Medecins Sans Frontieres',desc:'Medical teams active in Iraq.',url:'https://www.msf.org'},
-  {type:'Info',name:'FlightAware',desc:'Live airspace and flight status.',url:'https://flightaware.com'},
-  {type:'Info',name:'ReliefWeb',desc:'Humanitarian news and NGO tracking.',url:'https://reliefweb.int'},
-  {type:'Community',name:'r/dubai Megathread',desc:'Real-time reports from expats.',url:'https://reddit.com/r/dubai'},
+  // ── GOVERNMENT TRAVEL REGISTRATION & ALERTS ─────────────
+  {type:'Government',name:'US STEP Program',desc:'Register for emergency alerts and evacuation notices from US Embassy. Essential for all US citizens abroad.',url:'https://step.state.gov',phone:'+1-888-407-4747'},
+  {type:'Government',name:'UK FCDO Travel Advice',desc:'Live advisories, consular support, and crisis registration for British nationals.',url:'https://www.gov.uk/foreign-travel-advice',phone:'+44-20-7008-5000'},
+  {type:'Government',name:'Australia Smartraveller',desc:'DFAT advisories, crisis registration, and 24/7 consular emergency line.',url:'https://www.smartraveller.gov.au',phone:'+61-2-6261-3305'},
+  {type:'Government',name:'Canada ROCA',desc:'Register of Canadians Abroad — register for crisis notifications and evacuation.',url:'https://travel.gc.ca/travelling/registration',phone:'+1-613-996-8885'},
+  {type:'Government',name:'India MADAD Portal',desc:'Consular grievance portal for Indian nationals abroad. Track complaints, request assistance.',url:'https://madad.gov.in',phone:'+91-11-2301-2113'},
+  {type:'Government',name:'Philippines OWWA',desc:'Overseas Workers Welfare Administration — emergency repatriation, financial aid, and shelter for OFWs.',url:'https://owwa.gov.ph',phone:'+632-1348'},
+  {type:'Government',name:'Pakistan CMU (24/7)',desc:'Crisis Management Unit — 24/7 helpline for Pakistanis stranded abroad.',url:'https://mofa.gov.pk',phone:'+92-51-9207887'},
+  {type:'Government',name:'Bangladesh MOFA Helpline',desc:'Ministry of Foreign Affairs emergency line for stranded Bangladeshi workers.',url:'https://mofa.gov.bd',phone:'+880-2-9554000'},
+  {type:'Government',name:'Nepal MOFA',desc:'Ministry of Foreign Affairs — emergency coordination for Nepali workers in Gulf states.',url:'https://mofa.gov.np',phone:'+977-1-4200182'},
+  {type:'Government',name:'Sri Lanka SLBFE',desc:'Sri Lanka Bureau of Foreign Employment — welfare and repatriation support.',url:'https://www.slbfe.lk',phone:'+94-11-2879900'},
+  {type:'Government',name:'Germany Crisis Hotline',desc:'Federal Foreign Office 24/7 crisis line for German nationals.',url:'https://www.auswaertiges-amt.de',phone:'+49-30-1817-0'},
+  {type:'Government',name:'France Centre de Crise',desc:'24/7 crisis center for French nationals abroad.',url:'https://www.diplomatie.gouv.fr',phone:'+33-1-5359-1100'},
+  {type:'Government',name:'Japan Emergency Contact',desc:'MOFA consular emergency line for Japanese nationals.',url:'https://www.anzen.mofa.go.jp',phone:'+81-3-3580-3311'},
+  {type:'Government',name:'South Korea Emergency',desc:'MOFA 24/7 consular emergency for Korean nationals abroad.',url:'https://www.0404.go.kr',phone:'+82-2-3210-0404'},
+  {type:'Government',name:'Ireland DFA',desc:'Department of Foreign Affairs 24/7 consular assistance for Irish citizens.',url:'https://www.ireland.ie',phone:'+353-1-408-2000'},
+  {type:'Government',name:'Netherlands 24/7 BZ',desc:'Ministry of Foreign Affairs crisis line for Dutch nationals.',url:'https://www.netherlandsandyou.nl',phone:'+31-247-247-247'},
+
+  // ── GOVERNMENT RELIEF PROGRAMS (HOTEL/REPATRIATION) ────
+  {type:'Relief',name:'UAE Tourist Support Fund',desc:'UAE government covering hotel costs for tourists stranded due to airspace closures. Apply through your hotel or airline.',url:'https://www.mohap.gov.ae',phone:'+971-800-11111'},
+  {type:'Relief',name:'Qatar Airways Rebooking',desc:'Free rebooking for affected passengers. No change fees on Gulf routes through crisis period.',url:'https://www.qatarairways.com/press-releases.html',phone:'+974-4023-0000'},
+  {type:'Relief',name:'Emirates Rebooking',desc:'Passengers on cancelled routes eligible for free rebooking or full refund. Lounge access for stranded passengers in Dubai.',url:'https://www.emirates.com/help',phone:'+971-600-555-555'},
+  {type:'Relief',name:'Etihad Guest Relief',desc:'Free rebooking, hotel stays for connecting passengers stranded in Abu Dhabi.',url:'https://www.etihad.com/en/manage',phone:'+971-600-555-666'},
+  {type:'Relief',name:'Air India Gulf Relief',desc:'Special repatriation flights and free rebooking for Indian nationals on cancelled Gulf routes.',url:'https://www.airindia.com',phone:'+91-11-2462-2220'},
+  {type:'Relief',name:'Philippine Airlines OFW Flights',desc:'Special repatriation flights coordinated with DFA/OWWA for stranded OFWs.',url:'https://www.philippineairlines.com',phone:'+632-8855-8888'},
+  {type:'Relief',name:'PIA Emergency Routes',desc:'Pakistan International Airlines special Gulf evacuation flights. Priority for workers and families.',url:'https://www.piac.com.pk',phone:'+92-21-111-786-786'},
+  {type:'Relief',name:'Biman Bangladesh Relief',desc:'Emergency repatriation flights for Bangladeshi workers from Gulf states.',url:'https://www.bfrbd.com',phone:'+880-2-8901600'},
+  {type:'Relief',name:'Jordan Hotel Assistance',desc:'Jordanian government providing accommodation support for transit passengers stranded at Amman airport.',url:'https://www.mota.gov.jo'},
+  {type:'Relief',name:'Bahrain Visitor Relief',desc:'Bahrain Tourism Authority assisting stranded tourists with hotel accommodations.',url:'https://www.btea.bh',phone:'+973-1758-8777'},
+  {type:'Relief',name:'Saudi GACA Assistance',desc:'General Authority of Civil Aviation passenger rights — compensation and hotel for delayed/cancelled flights.',url:'https://gaca.gov.sa',phone:'+966-920-000-999'},
+
+  // ── WORKER RIGHTS & LABOR ──────────────────────────────
+  {type:'Worker Rights',name:'ILO Migrant Workers',desc:'International Labour Organization — legal advice and rights protection for migrant workers in Gulf states.',url:'https://www.ilo.org/global/topics/labour-migration'},
+  {type:'Worker Rights',name:'Migrant-Rights.org',desc:'Advocacy and real-time reporting on migrant worker conditions in Gulf states. Know your rights resources.',url:'https://www.migrant-rights.org'},
+  {type:'Worker Rights',name:'POLO-OWWA UAE',desc:'Philippine Overseas Labor Office — on-the-ground assistance for Filipino workers in UAE.',url:'https://abudhabi.philembassy.net',phone:'+971-50-813-7836'},
+  {type:'Worker Rights',name:'OKUP Bangladesh',desc:'Ovibashi Karmi Unnayan Program — support for Bangladeshi migrant workers.',url:'https://www.okup.org.bd'},
+  {type:'Worker Rights',name:'PAFLA',desc:'Pan-African Federation of the Landless — legal aid for African workers in Gulf states.',url:'https://www.pafla.org'},
+  {type:'Worker Rights',name:'Pravasi Legal Cell India',desc:'Indian government legal assistance cell for Indian workers facing labor disputes abroad.',url:'https://www.mea.gov.in',phone:'+91-1800-11-3090'},
+
+  // ── HUMANITARIAN / NGO ─────────────────────────────────
+  {type:'NGO',name:'UNHCR',desc:'UN Refugee Agency — active in UAE, Iraq, Jordan. Protection and resettlement assistance.',url:'https://www.unhcr.org',phone:'+41-22-739-8111'},
+  {type:'NGO',name:'ICRC / Red Cross',desc:'Active across the conflict zone. Family tracing, medical support, emergency supplies.',url:'https://www.icrc.org'},
+  {type:'NGO',name:'IOM',desc:'International Organization for Migration — emergency evacuation logistics, stranded migrant support.',url:'https://www.iom.int'},
+  {type:'NGO',name:'IRC',desc:'International Rescue Committee — emergency relief in Iraq and Jordan. Medical and shelter support.',url:'https://www.rescue.org'},
+  {type:'NGO',name:'Médecins Sans Frontières',desc:'Medical teams active in Iraq, Yemen, and Jordan. Emergency healthcare for conflict-affected populations.',url:'https://www.msf.org'},
+  {type:'NGO',name:'World Food Programme',desc:'Emergency food distribution in conflict-affected areas. Active in Yemen, Iraq, Syria.',url:'https://www.wfp.org'},
+  {type:'NGO',name:'UNICEF Gulf Response',desc:'Child protection and family reunification support in crisis-affected Gulf states.',url:'https://www.unicef.org'},
+  {type:'NGO',name:'Doctors Without Borders',desc:'Emergency medical care in Iraq, Yemen, and surrounding conflict zones.',url:'https://www.doctorswithoutborders.org'},
+  {type:'NGO',name:'Amnesty International',desc:'Documenting human rights situations and advocating for stranded workers\' rights.',url:'https://www.amnesty.org'},
+  {type:'NGO',name:'Human Rights Watch',desc:'Monitoring labor rights and documenting conditions for migrant workers in Gulf states.',url:'https://www.hrw.org'},
+
+  // ── TRAVEL INSURANCE & FINANCIAL ───────────────────────
+  {type:'Financial',name:'Travel Insurance Claims',desc:'Most policies cover trip interruption due to armed conflict. File claims ASAP — document everything with photos and receipts.',url:'https://www.insuremytrip.com/travel-advice/travel-insurance-war-exclusion'},
+  {type:'Financial',name:'EU Air Passenger Rights',desc:'EU261 compensation may apply for EU-connected flights. Up to €600 for cancelled flights depending on distance.',url:'https://europa.eu/youreurope/citizens/travel/passenger-rights/air/index_en.htm'},
+  {type:'Financial',name:'US DOT Refund Rules',desc:'US airlines must refund cancelled flights. File complaints with DOT if airlines refuse.',url:'https://www.transportation.gov/airconsumer',phone:'+1-202-366-2220'},
+  {type:'Financial',name:'Chargeback Guide',desc:'If airlines won\'t refund, credit card chargebacks may be possible. Contact your bank within 120 days of transaction.',url:'https://www.consumerfinance.gov/ask-cfpb/'},
+  {type:'Financial',name:'Western Union Emergency',desc:'Send/receive emergency funds internationally when banking is disrupted.',url:'https://www.westernunion.com',phone:'+1-800-325-6000'},
+  {type:'Financial',name:'MoneyGram',desc:'Emergency money transfers to Gulf state locations for stranded travelers.',url:'https://www.moneygram.com',phone:'+1-800-926-9400'},
+
+  // ── MENTAL HEALTH & CRISIS SUPPORT ─────────────────────
+  {type:'Mental Health',name:'Crisis Text Line',desc:'Free 24/7 crisis counseling via text. Text HOME to 741741 (US) or 85258 (UK).',url:'https://www.crisistextline.org'},
+  {type:'Mental Health',name:'IASC Mental Health',desc:'Inter-Agency Standing Committee — mental health resources for humanitarian crises.',url:'https://interagencystandingcommittee.org/iasc-reference-group-mental-health-and-psychosocial-support'},
+  {type:'Mental Health',name:'Befrienders Worldwide',desc:'Emotional support in 30+ languages. Find local helpline numbers.',url:'https://www.befrienders.org'},
+  {type:'Mental Health',name:'iCall India',desc:'Psychosocial helpline for Indians abroad experiencing crisis-related distress.',url:'https://icallhelpline.org',phone:'+91-22-2556-3291'},
+
+  // ── LEGAL AID ──────────────────────────────────────────
+  {type:'Legal',name:'Gulf Immigration Lawyers',desc:'Directory of immigration attorneys specializing in Gulf state visa/labor issues.',url:'https://www.hg.org/law-firms/immigration/united-arab-emirates'},
+  {type:'Legal',name:'AILA Emergency Resources',desc:'American Immigration Lawyers Association — emergency resources for US citizens with visa issues abroad.',url:'https://www.aila.org'},
+  {type:'Legal',name:'UK Citizens Advice Abroad',desc:'Free legal guidance for British nationals facing legal issues overseas.',url:'https://www.citizensadvice.org.uk'},
+
+  // ── INFO & TOOLS ───────────────────────────────────────
+  {type:'Info',name:'FlightAware',desc:'Live airspace closures, flight tracking, and airline status updates.',url:'https://flightaware.com'},
+  {type:'Info',name:'Flightradar24',desc:'Real-time flight tracking. See which routes are active and which airspace is closed.',url:'https://www.flightradar24.com'},
+  {type:'Info',name:'ReliefWeb',desc:'UN humanitarian news, situation reports, and NGO coordination updates.',url:'https://reliefweb.int'},
+  {type:'Info',name:'NOTAM Search',desc:'Official Notice to Airmen — check airspace closures and restrictions by region.',url:'https://www.notams.faa.gov'},
+  {type:'Info',name:'Google Translate',desc:'Essential for communicating with locals, reading signs, and understanding official notices in Arabic/Farsi.',url:'https://translate.google.com'},
+  {type:'Info',name:'Maps.me Offline',desc:'Download offline maps before your data runs out. Works without internet for navigation.',url:'https://maps.me'},
+  {type:'Info',name:'XE Currency Converter',desc:'Live exchange rates. Critical when you\'re budgeting emergency funds in a foreign currency.',url:'https://www.xe.com'},
+  {type:'Info',name:'iOverlander',desc:'Crowd-sourced border crossing info, open roads, and safe rest stops.',url:'https://www.ioverlander.com'},
+  {type:'Info',name:'Skyscanner Everywhere',desc:'Find the cheapest available flights from your location to anywhere. Good for alternative routing.',url:'https://www.skyscanner.com/transport/flights-from/everywhere'},
+  {type:'Info',name:'Rome2Rio',desc:'Multi-modal route planner — shows bus, train, ferry, and flight alternatives when direct routes are cancelled.',url:'https://www.rome2rio.com'},
+  {type:'Info',name:'Hostelworld',desc:'Budget accommodation finder. Filter by price and location for emergency stays.',url:'https://www.hostelworld.com'},
+  {type:'Info',name:'Couchsurfing',desc:'Free accommodation from locals. Community-verified hosts. Emergency stays available in many Gulf cities.',url:'https://www.couchsurfing.com'},
+  {type:'Info',name:'What3Words',desc:'Precise location sharing without addresses. Useful for directing emergency services or meeting helpers.',url:'https://what3words.com'},
+  {type:'Info',name:'Wise (TransferWise)',desc:'Low-cost international money transfers. Get money sent to you quickly in local currency.',url:'https://wise.com'},
+
+  // ── COMMUNITY ──────────────────────────────────────────
+  {type:'Community',name:'r/dubai Megathread',desc:'Real-time reports from expats in Dubai. Verified information from people on the ground.',url:'https://reddit.com/r/dubai'},
+  {type:'Community',name:'r/saudiarabia',desc:'Community updates from expats and residents in Saudi Arabia.',url:'https://reddit.com/r/saudiarabia'},
+  {type:'Community',name:'ExpatWoman Forum',desc:'Active expat community with Gulf crisis threads. Housing, legal, and practical advice.',url:'https://www.expatwoman.com/forum'},
+  {type:'Community',name:'InterNations Gulf',desc:'Expat network with local chapters in UAE, Qatar, Bahrain. Emergency meetups and support.',url:'https://www.internations.org'},
+  {type:'Community',name:'ImStranded Telegram',desc:'Our official Telegram community. Real-time updates, mutual aid, and volunteer coordination.',url:'https://t.me/imstrandedorg'},
+  {type:'Community',name:'ImStranded X / Twitter',desc:'Live crisis updates, flight status, and community stories.',url:'https://x.com/imstrandedorg'},
 ];
 
 
@@ -3386,10 +3467,41 @@ function renderResources() {
       html += WORLDWIDE.map(r=>`<div class="country-card safe" id="card-${r.id}"><div class="card-name" style="margin-bottom:.5rem">Worldwide: ${r.name}</div><div class="card-advisory">${r.note}</div>${r.contacts.map(c=>`<div class="info-row"><span class="info-label">${c.label}</span><span>${c.value}</span></div>`).join('')}</div>`).join('');
     }
   }
-  if (_resFilter==='all'||_resFilter==='ngo'||_resFilter==='info') {
+  if (_resFilter==='all'||_resFilter==='ngo'||_resFilter==='info'||_resFilter==='relief'||_resFilter==='legal'||_resFilter==='tools') {
     if (!stuckIn && !from && !search) {
-      html += NGOS.filter(r=>_resFilter==='all'||(_resFilter==='ngo'&&r.type!=='Info'&&r.type!=='Government')||(_resFilter==='info'&&(r.type==='Info'||r.type==='Government')))
-        .map(r=>`<div class="resource-card"><div class="resource-type">${r.type}</div><div class="resource-name">${r.name}</div><div class="resource-desc">${r.desc}</div><a class="resource-link" href="${r.url}" target="_blank" rel="noopener">Open \u2192</a></div>`).join('');
+      const typeMap = {
+        'ngo':    ['NGO','Worker Rights','Mental Health','Community'],
+        'info':   ['Government','Info'],
+        'relief': ['Relief','Financial'],
+        'legal':  ['Legal'],
+        'tools':  ['Info','Community'],
+      };
+
+      let filtered = NGOS;
+      if (_resFilter !== 'all') {
+        const allowed = typeMap[_resFilter] || [];
+        filtered = NGOS.filter(r => allowed.includes(r.type));
+      }
+
+      // Group by type
+      const groups = {};
+      for (const r of filtered) {
+        if (!groups[r.type]) groups[r.type] = [];
+        groups[r.type].push(r);
+      }
+
+      for (const [type, items] of Object.entries(groups)) {
+        html += `<div style="grid-column:1/-1;margin-top:1rem;margin-bottom:.3rem"><div style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35)">${type}</div></div>`;
+        html += items.map(r => `<div class="resource-card">
+          <div class="resource-type">${r.type}</div>
+          <div class="resource-name">${r.name}</div>
+          <div class="resource-desc">${r.desc}</div>
+          <div style="display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;margin-top:.4rem">
+            <a class="resource-link" href="${r.url}" target="_blank" rel="noopener">Open \u2192</a>
+            ${r.phone ? `<a href="tel:${r.phone.replace(/[\s\-()]/g,'')}" style="font-size:.7rem;color:#22c55e;text-decoration:none;font-weight:600;display:inline-flex;align-items:center;gap:.2rem"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${r.phone}</a>` : ''}
+          </div>
+        </div>`).join('');
+      }
     }
   }
   grid.innerHTML = html || '<div class="empty-state" style="min-height:50vh;display:flex;align-items:center;justify-content:center">No items match this filter.</div>';
@@ -4120,8 +4232,13 @@ function mFilterResources() {
           return `<div class="m-emb-row"><div class="m-emb-who"><span class="m-emb-country">${M.flag} ${M.role}</span>${info.note?`<span class="m-emb-role">${info.note}</span>`:''}</div>${phone?`<a class="m-call-btn" href="tel:${phone.replace(/[\s\-()]/g,'')}">${PHONE_SVG} Call</a>`:''}</div>`;
         }).join('')}
       </div>`).join('');
-    html += '<div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.3);margin:.6rem 0 .4rem">NGOs & Info</div>';
-    html += NGOS.map(r=>`<div class="m-res-row"><div><div class="m-res-name">${r.name}<span class="m-res-type">${r.type}</span></div></div><a class="m-res-go" href="${r.url}" target="_blank">Open</a></div>`).join('');
+    html += '<div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.3);margin:.6rem 0 .4rem">Resources & Support</div>';
+    const mGroups = {};
+    for (const r of NGOS) { if (!mGroups[r.type]) mGroups[r.type] = []; mGroups[r.type].push(r); }
+    for (const [type, items] of Object.entries(mGroups)) {
+      html += `<div style="font-size:.5rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.2);margin:.5rem 0 .2rem;padding-top:.3rem;border-top:1px solid rgba(255,255,255,.04)">${type}</div>`;
+      html += items.map(r => `<div class="m-res-row"><div style="flex:1"><div class="m-res-name">${r.name}<span class="m-res-type">${r.type}</span></div><div style="font-size:.6rem;color:rgba(255,255,255,.35);line-height:1.4;margin-top:.15rem">${r.desc}</div></div><div style="display:flex;flex-direction:column;gap:.2rem;align-items:flex-end;flex-shrink:0">${r.phone ? `<a href="tel:${r.phone.replace(/[\s\-()]/g,'')}" style="font-size:.55rem;color:#22c55e;text-decoration:none;font-weight:600;white-space:nowrap">Call</a>` : ''}<a class="m-res-go" href="${r.url}" target="_blank">Open</a></div></div>`).join('');
+    }
   }
 
   results.innerHTML = html || '<div style="text-align:center;padding:3rem 0;min-height:40vh;color:rgba(255,255,255,.25);font-size:.78rem">No results found</div>';
