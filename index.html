@@ -169,22 +169,22 @@ function googleTranslateInit() {
   </div>
   <div class="sitrep-stat sitrep-stat--offer-room" id="ss-offer-room" onclick="isMob()?mTab('offer',null):openFormSidebar('offer')">
     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    <div class="sitrep-label">Offer Spare Room</div>
+    <div class="sitrep-label" style="color:#fff">Offer Spare Room</div>
     <div class="sitrep-sub">tap · help someone</div>
   </div>
   <div class="sitrep-stat sitrep-stat--im-stranded" id="ss-im-stranded" onclick="isMob()?mTab('stranded',null):openFormSidebar('stranded')">
     <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-    <div class="sitrep-label">I'm Stranded</div>
+    <div class="sitrep-label" style="color:#fff">I'm Stranded</div>
     <div class="sitrep-sub">tap · register</div>
   </div>
   <div class="sitrep-stat" id="ss-pets" onclick="isMob()?mTab('pets',null):openFormSidebar('pets')" style="cursor:pointer">
     <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#ff9f1c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="#ff9f1c" stroke="none"/><circle cx="6.5" cy="10" r="2" fill="#ff9f1c" stroke="none"/><circle cx="17.5" cy="10" r="2" fill="#ff9f1c" stroke="none"/><circle cx="10" cy="6.5" r="1.8" fill="#ff9f1c" stroke="none"/><circle cx="14" cy="6.5" r="1.8" fill="#ff9f1c" stroke="none"/></svg>
-    <div class="sitrep-label">Pets</div>
+    <div class="sitrep-label" style="color:#fff">Pets</div>
     <div class="sitrep-sub">tap · report</div>
   </div>
   <div class="sitrep-stat sitrep-stat--help-money" id="ss-help-money" onclick="isMob()?toggleHelpPanel():openFormSidebar('help')">
     <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-    <div class="sitrep-label">$HELP</div>
+    <div class="sitrep-label" style="color:#fff">$HELP</div>
     <div class="sitrep-sub">tap · donate</div>
   </div>
 </div>
@@ -286,7 +286,7 @@ function googleTranslateInit() {
       <div class="fp-section-head" onclick="toggleFpSection(this)">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
         <span style="font-size:.95rem">SPARE ROOMS</span>
-        <span id="fp-badge-rooms" class="fp-badge fp-badge--lg" style="--badge-c:var(--accent)"></span>
+        <span id="fp-badge-rooms" class="fp-badge fp-badge--lg" style="--badge-c:#3498ec"></span>
         <svg class="fp-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
       <div class="fp-section-body">
@@ -301,7 +301,7 @@ function googleTranslateInit() {
       <div class="fp-section-head" onclick="toggleFpSection(this)">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         <span style="font-size:.95rem">PEOPLE STRANDED</span>
-        <span id="fp-badge-stranded" class="fp-badge fp-badge--lg" style="--badge-c:var(--accent)"></span>
+        <span id="fp-badge-stranded" class="fp-badge fp-badge--lg" style="--badge-c:#ec3452"></span>
         <svg class="fp-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
       <div class="fp-section-body">
@@ -342,7 +342,7 @@ function googleTranslateInit() {
       <div class="fp-section-head" onclick="toggleFpSection(this)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>
         <span style="font-size:.95rem">SUCCESS STORIES</span>
-        <span id="fp-badge-success" class="fp-badge fp-badge--lg" style="--badge-c:var(--accent)"></span>
+        <span id="fp-badge-success" class="fp-badge fp-badge--lg" style="--badge-c:#22c55e"></span>
         <svg class="fp-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
       <div class="fp-section-body">
@@ -357,7 +357,7 @@ function googleTranslateInit() {
       <div class="fp-section-head" onclick="toggleFpSection(this)">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff9f1c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="#ff9f1c" stroke="none"/><circle cx="6.5" cy="10" r="2" fill="#ff9f1c" stroke="none"/><circle cx="17.5" cy="10" r="2" fill="#ff9f1c" stroke="none"/><circle cx="10" cy="6.5" r="1.8" fill="#ff9f1c" stroke="none"/><circle cx="14" cy="6.5" r="1.8" fill="#ff9f1c" stroke="none"/></svg>
         <span style="font-size:.95rem">STRANDED PETS</span>
-        <span id="pet-count-badge" class="fp-badge fp-badge--lg" style="--badge-c:var(--accent)"></span>
+        <span id="pet-count-badge" class="fp-badge fp-badge--lg" style="--badge-c:#ff9f1c"></span>
         <svg class="fp-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
       <div class="fp-section-body">
@@ -590,7 +590,34 @@ function googleTranslateInit() {
           </div>
         </div>
         <div class="form-row"><label class="modal-label">Your Name</label><input type="text" id="pet-pet-poster" placeholder="First name or handle" class="modal-input"></div>
-        <div class="form-row"><label class="modal-label">Contact</label><input type="text" id="pet-pet-contact" placeholder="Phone, email, or @handle" class="modal-input"></div>
+
+        <div class="form-row"><label class="modal-label">Email</label>
+          <div class="linked-input">
+            <div class="linked-input-icon" style="background:#1a1a1a" onclick="!isLoggedIn()?openFormSidebar('profile'):void 0" title="Google">
+              <svg width="12" height="12" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            </div>
+            <input type="text" id="pet-pet-contact" readonly placeholder="Sign in with Google to add email" class="linked-input-field">
+          </div>
+        </div>
+
+        <div class="form-row"><label class="modal-label">Telegram</label>
+          <div class="linked-input">
+            <div class="linked-input-icon" style="background:#229ED9" onclick="isLoggedIn()?linkTelegram():openFormSidebar('profile')" title="Link Telegram">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+            </div>
+            <input type="text" id="pet-pet-tg-contact" readonly placeholder="Link Telegram to add contact" class="linked-input-field">
+          </div>
+        </div>
+
+        <div class="form-row"><label class="modal-label">X / Twitter</label>
+          <div class="linked-input">
+            <div class="linked-input-icon" style="background:#000;border:1px solid rgba(255,255,255,.15)" onclick="isLoggedIn()?linkX():openFormSidebar('profile')" title="Link X">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </div>
+            <input type="text" id="pet-pet-xhandle" readonly placeholder="Link X to add @handle" class="linked-input-field">
+          </div>
+        </div>
+
         <button id="pet-pet-submit" class="submit-btn" style="background:#ff9f1c;color:#000" onclick="submitPet('pet')">Submit Pet Post</button>
       </div>
     </div>
@@ -888,7 +915,7 @@ function googleTranslateInit() {
         <!-- SPARE ROOMS -->
         <div class="fp-section">
           <div class="fp-section-head" onclick="toggleFpSection(this)">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span style="font-size:1rem">SPARE ROOMS</span><span id="mfp-badge-rooms" class="fp-badge fp-badge--lg" style="--badge-c:var(--accent)"></span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span style="font-size:1rem">SPARE ROOMS</span><span id="mfp-badge-rooms" class="fp-badge fp-badge--lg" style="--badge-c:#3498ec"></span>
             <svg class="fp-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
           <div class="fp-section-body">
@@ -900,7 +927,7 @@ function googleTranslateInit() {
         <!-- PEOPLE STRANDED -->
         <div class="fp-section">
           <div class="fp-section-head" onclick="toggleFpSection(this)">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span style="font-size:1rem">PEOPLE STRANDED</span><span id="mfp-badge-stranded" class="fp-badge fp-badge--lg" style="--badge-c:var(--accent)"></span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span style="font-size:1rem">PEOPLE STRANDED</span><span id="mfp-badge-stranded" class="fp-badge fp-badge--lg" style="--badge-c:#ec3452"></span>
             <svg class="fp-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
           <div class="fp-section-body">
@@ -938,7 +965,7 @@ function googleTranslateInit() {
         <!-- SUCCESS STORIES -->
         <div class="fp-section">
           <div class="fp-section-head" onclick="toggleFpSection(this)">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg><span style="font-size:1rem">SUCCESS STORIES</span><span id="mfp-badge-success" class="fp-badge fp-badge--lg" style="--badge-c:var(--accent)"></span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg><span style="font-size:1rem">SUCCESS STORIES</span><span id="mfp-badge-success" class="fp-badge fp-badge--lg" style="--badge-c:#22c55e"></span>
             <svg class="fp-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
           <div class="fp-section-body">
@@ -951,7 +978,7 @@ function googleTranslateInit() {
         <div class="fp-section">
           <div class="fp-section-head" onclick="toggleFpSection(this)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff9f1c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="#ff9f1c" stroke="none"/><circle cx="6.5" cy="10" r="2" fill="#ff9f1c" stroke="none"/><circle cx="17.5" cy="10" r="2" fill="#ff9f1c" stroke="none"/><circle cx="10" cy="6.5" r="1.8" fill="#ff9f1c" stroke="none"/><circle cx="14" cy="6.5" r="1.8" fill="#ff9f1c" stroke="none"/></svg><span style="font-size:1rem">STRANDED PETS</span>
-            <span id="m-pet-count-badge" class="fp-badge fp-badge--lg" style="--badge-c:var(--accent)"></span>
+            <span id="m-pet-count-badge" class="fp-badge fp-badge--lg" style="--badge-c:#ff9f1c"></span>
             <svg class="fp-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
           <div class="fp-section-body">
@@ -1058,7 +1085,7 @@ function googleTranslateInit() {
       <div id="m-pets-content" style="display:none">
         <div style="font-size:.85rem;color:rgba(255,255,255,.45);margin-bottom:1rem;line-height:1.5"><strong style="color:#ff9f1c">🐾 Stranded Pets</strong> — report a pet that needs help, a found stray, or offer to foster.</div>
         <div class="m-form-row"><label class="m-form-label">Situation</label>
-          <select id="m-pet-pet-status" style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem">
+          <select id="m-pet-pet-status" style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem;color-scheme:dark">
             <option value="">Select...</option>
             <option value="need_foster">My pet needs a foster</option>
             <option value="found_stray">I found an abandoned pet</option>
@@ -1066,7 +1093,7 @@ function googleTranslateInit() {
           </select>
         </div>
         <div class="m-form-row"><label class="m-form-label">Animal type</label>
-          <select id="m-pet-pet-animal" style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem">
+          <select id="m-pet-pet-animal" style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem;color-scheme:dark">
             <option value="">Select...</option>
             <option value="dog">Dog 🐕</option>
             <option value="cat">Cat 🐈</option>
@@ -1083,7 +1110,25 @@ function googleTranslateInit() {
           </div>
         </div>
         <div class="m-form-row"><label class="m-form-label">Your name</label><input type="text" id="m-pet-pet-poster" placeholder="First name or handle" style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem"></div>
-        <div class="m-form-row"><label class="m-form-label">Contact</label><input type="text" id="m-pet-pet-contact" placeholder="Phone, email, or @handle" style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem"></div>
+        <div class="m-form-row"><label class="m-form-label">Email</label>
+          <div class="linked-input">
+            <div class="linked-input-icon" style="background:#1a1a1a" onclick="!isLoggedIn()?mTab('profile',null):void 0"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg></div>
+            <input type="text" id="m-pet-pet-contact" readonly placeholder="Sign in to add email" class="linked-input-field">
+          </div>
+        </div>
+        <div class="m-form-row"><label class="m-form-label">Telegram</label>
+          <div class="linked-input">
+            <div class="linked-input-icon" style="background:#229ED9" onclick="isLoggedIn()?linkTelegram():mTab('profile',null)"><svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg></div>
+            <input type="text" id="m-pet-pet-tg-contact" readonly placeholder="Link Telegram" class="linked-input-field">
+          </div>
+        </div>
+        <div class="m-form-row"><label class="m-form-label">X / Twitter</label>
+          <div class="linked-input">
+            <div class="linked-input-icon" style="background:#000;border:1px solid rgba(255,255,255,.15)" onclick="isLoggedIn()?linkX():mTab('profile',null)"><svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></div>
+            <input type="text" id="m-pet-pet-xhandle" readonly placeholder="Link X to add @handle" class="linked-input-field">
+          </div>
+        </div>
+        <div class="m-form-row"><label class="m-form-label">Phone <span style="opacity:.4;font-weight:400">(optional)</span></label><input type="tel" id="m-pet-pet-phone" placeholder="+971 50 123 4567" style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem"></div>
         <button id="m-pet-pet-submit" class="m-submit" style="background:#ff9f1c;color:#000" onclick="submitPet('m-pet')">Submit Pet Post</button>
       </div>
       <div id="m-edit-content" style="display:none">
