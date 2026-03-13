@@ -934,6 +934,40 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 }
 .help-panel-sub{font-size:.7rem;color:rgba(255,255,255,.28);line-height:1.5;}
 
+/* Buy $HELP hero */
+.help-buy-hero{
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;padding:.8rem;margin-bottom:1rem;text-align:center;
+}
+.help-buy-label{
+  font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;
+  color:rgba(255,255,255,.35);margin-bottom:.6rem;
+}
+.help-buy-exchanges{
+  display:flex;justify-content:center;gap:1.2rem;margin-bottom:.6rem;
+}
+.help-buy-ex{
+  display:flex;flex-direction:column;align-items:center;gap:.3rem;
+  text-decoration:none;transition:opacity .15s;
+}
+.help-buy-ex:hover{opacity:.7;}
+.help-buy-icon{
+  width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+}
+.help-buy-name{
+  font-size:.6rem;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.01em;
+}
+.help-buy-ca{
+  font-size:.55rem;color:rgba(255,255,255,.25);cursor:pointer;user-select:all;
+  font-family:monospace;letter-spacing:.02em;margin-bottom:.3rem;
+  transition:color .2s;
+}
+.help-buy-ca:hover{color:rgba(255,255,255,.45);}
+.help-buy-bankr{
+  font-size:.58rem;color:rgba(255,255,255,.3);line-height:1.5;
+}
+.help-buy-bankr a{color:var(--accent);text-decoration:none;font-weight:600;}
+
 /* Toggle bar */
 .help-toggle-bar{
   display:flex;background:rgba(255,255,255,.05);border-radius:10px;

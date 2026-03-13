@@ -1111,6 +1111,33 @@ function googleTranslateInit() {
       <div class="help-panel-sub">Community tipping on X · powered by $HELP</div>
     </div>
 
+    <!-- Buy $HELP — hero entry -->
+    <div class="help-buy-hero">
+      <div class="help-buy-label">Buy $HELP</div>
+      <div class="help-buy-exchanges">
+        <a href="https://www.coinbase.com" target="_blank" title="Buy on Coinbase" class="help-buy-ex">
+          <div class="help-buy-icon">
+            <svg width="22" height="22" viewBox="0 0 1024 1024" fill="none"><circle cx="512" cy="512" r="512" fill="rgba(255,255,255,.08)"/><path d="M512 692c-99.4 0-180-80.6-180-180s80.6-180 180-180 180 80.6 180 180-80.6 180-180 180z" fill="rgba(255,255,255,.7)"/></svg>
+          </div>
+          <span class="help-buy-name">Coinbase</span>
+        </a>
+        <a href="https://www.okx.com" target="_blank" title="Buy on OKX" class="help-buy-ex">
+          <div class="help-buy-icon">
+            <svg width="22" height="22" viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="8" fill="rgba(255,255,255,.08)"/><rect x="5" y="5" width="12" height="12" rx="2" fill="rgba(255,255,255,.7)"/><rect x="23" y="5" width="12" height="12" rx="2" fill="rgba(255,255,255,.7)"/><rect x="5" y="23" width="12" height="12" rx="2" fill="rgba(255,255,255,.7)"/><rect x="23" y="23" width="12" height="12" rx="2" fill="rgba(255,255,255,.7)"/></svg>
+          </div>
+          <span class="help-buy-name">OKX</span>
+        </a>
+        <a href="https://app.uniswap.org" target="_blank" title="Buy on Uniswap" class="help-buy-ex">
+          <div class="help-buy-icon">
+            <svg width="22" height="22" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="24" fill="rgba(255,255,255,.08)"/><path d="M16.8 8.2c-.3 0-.5.1-.4.3 1.8 2.7 3.1 5.8 3.4 9.2.1 1-.1 2-.4 2.9-.9 2.2-2.9 3.6-4.6 5.3-.2.2-.5.4-.8.7-2.1 1.9-3.8 4.3-3.8 7.4 0 6.4 5.6 12 12.4 12 8.3 0 14.2-6.8 14.2-14.2C36.8 19 26 11.7 20.8 8.5c-1.5-.9-2.9-1.6-4.4-2.2-.2-.1-.4-.1-.6-.1z" fill="rgba(255,255,255,.7)"/></svg>
+          </div>
+          <span class="help-buy-name">Uniswap</span>
+        </a>
+      </div>
+      <div class="help-buy-ca" onclick="navigator.clipboard.writeText(this.textContent.trim());this.style.color='var(--accent)';setTimeout(()=>this.style.color='',1500)" title="Click to copy contract address">CA: 0x000...replace_with_real_ca</div>
+      <div class="help-buy-bankr">Send to <a href="https://bankr.bot/terminal" target="_blank">bankr.bot/terminal</a> to tip on X</div>
+    </div>
+
     <!-- Toggle -->
     <div class="help-toggle-bar">
       <button class="help-toggle-btn active" id="htab-send" onclick="switchHelpTab('send')">SEND HELP</button>
@@ -1130,31 +1157,6 @@ function googleTranslateInit() {
             <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
             Connect X
           </button>
-          <div class="hstep-bankr-note" style="margin-top:.6rem">
-            <div style="font-size:.65rem;font-weight:700;color:rgba(255,255,255,.5);margin-bottom:.4rem">Buy $HELP</div>
-            <div style="display:flex;gap:.6rem;align-items:flex-start;margin-bottom:.5rem">
-              <a href="https://www.coinbase.com" target="_blank" title="Coinbase" style="display:flex;flex-direction:column;align-items:center;gap:.2rem;text-decoration:none">
-                <div style="width:36px;height:36px;background:#0052FF;border-radius:10px;display:flex;align-items:center;justify-content:center">
-                  <svg width="20" height="20" viewBox="0 0 1024 1024" fill="none"><path d="M512 692c-99.4 0-180-80.6-180-180s80.6-180 180-180 180 80.6 180 180-80.6 180-180 180z" fill="#fff"/></svg>
-                </div>
-                <span style="font-size:.5rem;color:rgba(255,255,255,.5);font-weight:600">Coinbase</span>
-              </a>
-              <a href="https://www.okx.com" target="_blank" title="OKX" style="display:flex;flex-direction:column;align-items:center;gap:.2rem;text-decoration:none">
-                <div style="width:36px;height:36px;background:#000;border:1px solid rgba(255,255,255,.15);border-radius:10px;display:flex;align-items:center;justify-content:center">
-                  <span style="font-size:.75rem;font-weight:900;color:#fff;letter-spacing:-.02em">OKX</span>
-                </div>
-                <span style="font-size:.5rem;color:rgba(255,255,255,.5);font-weight:600">OKX</span>
-              </a>
-              <a href="https://app.uniswap.org" target="_blank" title="Uniswap" style="display:flex;flex-direction:column;align-items:center;gap:.2rem;text-decoration:none">
-                <div style="width:36px;height:36px;background:#FF007A;border-radius:10px;display:flex;align-items:center;justify-content:center">
-                  <svg width="20" height="20" viewBox="0 0 48 48"><path d="M16.8 5.2c-.3 0-.5.1-.4.3 2.1 3.1 3.5 6.7 3.8 10.6.1 1.2-.1 2.3-.5 3.4-1 2.5-3.3 4.2-5.3 6.1-.3.3-.6.5-.9.8-2.4 2.2-4.4 4.9-4.4 8.6 0 7.4 6.5 13.8 14.4 13.8 9.6 0 16.5-7.8 16.5-16.5 0-12.4-11.4-20.8-17.4-24.5-1.7-1-3.3-1.9-5.1-2.5-.2-.1-.5-.1-.7-.1z" fill="#fff"/></svg>
-                </div>
-                <span style="font-size:.5rem;color:rgba(255,255,255,.5);font-weight:600">Uniswap</span>
-              </a>
-            </div>
-            <div style="font-size:.58rem;color:rgba(255,255,255,.3);cursor:pointer;user-select:all" onclick="navigator.clipboard.writeText(this.textContent.trim());this.style.color='var(--accent)';setTimeout(()=>this.style.color='rgba(255,255,255,.3)',1500)" title="Click to copy">CA: 0x000...replace_with_real_ca</div>
-            <div style="font-size:.6rem;color:rgba(255,255,255,.4);margin-top:.4rem;line-height:1.5">Login to <a href="https://bankr.bot/terminal" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:600">bankr.bot/terminal</a> and send your $HELP there</div>
-          </div>
         </div>
       </div>
 
@@ -1224,31 +1226,6 @@ function googleTranslateInit() {
               <span>Google</span>
               <button class="hstep-link-btn" id="hr-btn-g" onclick="helpConnectGoogle()">Connect</button>
             </div>
-          </div>
-          <div class="hstep-bankr-note" style="margin-top:.6rem">
-            <div style="font-size:.65rem;font-weight:700;color:rgba(255,255,255,.5);margin-bottom:.4rem">Buy $HELP</div>
-            <div style="display:flex;gap:.6rem;align-items:flex-start;margin-bottom:.5rem">
-              <a href="https://www.coinbase.com" target="_blank" title="Coinbase" style="display:flex;flex-direction:column;align-items:center;gap:.2rem;text-decoration:none">
-                <div style="width:36px;height:36px;background:#0052FF;border-radius:10px;display:flex;align-items:center;justify-content:center">
-                  <svg width="20" height="20" viewBox="0 0 1024 1024" fill="none"><path d="M512 692c-99.4 0-180-80.6-180-180s80.6-180 180-180 180 80.6 180 180-80.6 180-180 180z" fill="#fff"/></svg>
-                </div>
-                <span style="font-size:.5rem;color:rgba(255,255,255,.5);font-weight:600">Coinbase</span>
-              </a>
-              <a href="https://www.okx.com" target="_blank" title="OKX" style="display:flex;flex-direction:column;align-items:center;gap:.2rem;text-decoration:none">
-                <div style="width:36px;height:36px;background:#000;border:1px solid rgba(255,255,255,.15);border-radius:10px;display:flex;align-items:center;justify-content:center">
-                  <span style="font-size:.75rem;font-weight:900;color:#fff;letter-spacing:-.02em">OKX</span>
-                </div>
-                <span style="font-size:.5rem;color:rgba(255,255,255,.5);font-weight:600">OKX</span>
-              </a>
-              <a href="https://app.uniswap.org" target="_blank" title="Uniswap" style="display:flex;flex-direction:column;align-items:center;gap:.2rem;text-decoration:none">
-                <div style="width:36px;height:36px;background:#FF007A;border-radius:10px;display:flex;align-items:center;justify-content:center">
-                  <svg width="20" height="20" viewBox="0 0 48 48"><path d="M16.8 5.2c-.3 0-.5.1-.4.3 2.1 3.1 3.5 6.7 3.8 10.6.1 1.2-.1 2.3-.5 3.4-1 2.5-3.3 4.2-5.3 6.1-.3.3-.6.5-.9.8-2.4 2.2-4.4 4.9-4.4 8.6 0 7.4 6.5 13.8 14.4 13.8 9.6 0 16.5-7.8 16.5-16.5 0-12.4-11.4-20.8-17.4-24.5-1.7-1-3.3-1.9-5.1-2.5-.2-.1-.5-.1-.7-.1z" fill="#fff"/></svg>
-                </div>
-                <span style="font-size:.5rem;color:rgba(255,255,255,.5);font-weight:600">Uniswap</span>
-              </a>
-            </div>
-            <div style="font-size:.58rem;color:rgba(255,255,255,.3);cursor:pointer;user-select:all" onclick="navigator.clipboard.writeText(this.textContent.trim());this.style.color='var(--accent)';setTimeout(()=>this.style.color='rgba(255,255,255,.3)',1500)" title="Click to copy">CA: 0x000...replace_with_real_ca</div>
-            <div style="font-size:.6rem;color:rgba(255,255,255,.4);margin-top:.4rem;line-height:1.5">Login to <a href="https://bankr.bot/terminal" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:600">bankr.bot/terminal</a> and send your $HELP there</div>
           </div>
         </div>
       </div>
