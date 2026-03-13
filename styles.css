@@ -859,6 +859,7 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
   border-radius:50%;background:#fff;transition:transform .2s;
 }
 .fp-toggle input:checked + .fp-toggle-slider{background:var(--accent);}
+.fp-section--blue .fp-toggle input:checked + .fp-toggle-slider{background:#3498ec;}
 .fp-toggle input:checked + .fp-toggle-slider::after{transform:translateX(14px);}
 
 /* Labels, chips, selects */
@@ -2067,6 +2068,7 @@ font-size: clamp(.45rem, 1.2vw, .58rem);
   transition: opacity .15s;
 }
 .manage-action-btn--accent { background: var(--accent); }
+.manage-action-btn--blue { background: #3498ec; }
 .manage-action-btn--red { background: #ec3452; }
 .manage-action-btn--green { background: #22c55e; color: #000; }
 .manage-action-btn svg { stroke: currentColor; }
