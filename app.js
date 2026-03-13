@@ -4177,6 +4177,14 @@ function switchAuthTab(tab) {
 
 // ── Unified Auth Action ──────────────────────────────────
 function authAction(provider, mode) {
+  // Require TOS agreement for signup
+  if (mode === 'signup') {
+    const agreed = document.getElementById('tos-agree')?.checked || document.getElementById('m-tos-agree')?.checked;
+    if (!agreed) {
+      alert('Please agree to the Terms of Service and Privacy Policy to create an account.');
+      return;
+    }
+  }
   sessionStorage.setItem('postLogin', 'profile');
   sessionStorage.setItem('authMode', mode);
 
