@@ -3392,7 +3392,7 @@ function renderResources() {
         .map(r=>`<div class="resource-card"><div class="resource-type">${r.type}</div><div class="resource-name">${r.name}</div><div class="resource-desc">${r.desc}</div><a class="resource-link" href="${r.url}" target="_blank" rel="noopener">Open \u2192</a></div>`).join('');
     }
   }
-  grid.innerHTML = html || '<div class="empty-state">No items match this filter.</div>';
+  grid.innerHTML = html || '<div class="empty-state" style="min-height:50vh;display:flex;align-items:center;justify-content:center">No items match this filter.</div>';
 }
 
 // ============================================================
@@ -4124,7 +4124,7 @@ function mFilterResources() {
     html += NGOS.map(r=>`<div class="m-res-row"><div><div class="m-res-name">${r.name}<span class="m-res-type">${r.type}</span></div></div><a class="m-res-go" href="${r.url}" target="_blank">Open</a></div>`).join('');
   }
 
-  results.innerHTML = html || '<div style="text-align:center;padding:1rem 0;color:rgba(255,255,255,.25);font-size:.78rem">No results found</div>';
+  results.innerHTML = html || '<div style="text-align:center;padding:3rem 0;min-height:40vh;color:rgba(255,255,255,.25);font-size:.78rem">No results found</div>';
 }
 
 async function mSubmitOffer(){

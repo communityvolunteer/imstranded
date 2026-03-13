@@ -295,7 +295,24 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
   font-size:.8rem;font-weight:500;cursor:pointer;transition:all .15s;
 }
 .filter-btn.active,.filter-btn:hover{border-color:var(--accent);color:#fff;background:var(--accent);}
-.countries-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:3.9rem;}
+.countries-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:3.9rem;min-height:60vh;}
+
+/* Fix select dropdowns — dark bg with white text */
+#res-stuck-in, #res-from,
+#m-res-stuck, #m-res-from {
+  color-scheme: dark;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.4)' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right .5rem center;
+  padding-right: 2rem;
+}
+#res-stuck-in option, #res-from option,
+#m-res-stuck option, #m-res-from option {
+  background: #1a1a2e;
+  color: #fff;
+}
 .country-card{
   background:#000;border:5px solid #2e2e2f;
   border-top:8px solid var(--border2);border-radius:var(--radius);
