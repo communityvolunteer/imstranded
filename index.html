@@ -381,11 +381,32 @@ function googleTranslateInit() {
 
 <!-- RESOURCES VIEW -->
 <div id="resources-view" class="view">
-  <div class="container">
+  <div class="container" style="max-width:960px">
     <div class="section-header">
       <div class="section-title">Resources, Embassies &amp; NGOs</div>
-      <div class="section-subtitle">Verified organizations, embassy contacts, and hotlines</div>
+      <div class="section-subtitle">Find your embassy, emergency contacts, and crisis support</div>
     </div>
+
+    <!-- Smart finder -->
+    <div id="res-finder" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:1rem;margin-bottom:1.2rem">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.6rem">
+        <div>
+          <label style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.35);display:block;margin-bottom:.25rem">I'm stuck in</label>
+          <select id="res-stuck-in" onchange="renderResources()" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.5rem;color:#fff;font-family:Inter,sans-serif;font-size:.8rem;font-weight:600">
+            <option value="">All countries</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.35);display:block;margin-bottom:.25rem">I'm from</label>
+          <select id="res-from" onchange="renderResources()" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.5rem;color:#fff;font-family:Inter,sans-serif;font-size:.8rem;font-weight:600">
+            <option value="">All nationalities</option>
+          </select>
+        </div>
+      </div>
+      <input type="text" id="res-search" oninput="renderResources()" placeholder="Search country, embassy, or phone number..." style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.5rem .7rem;color:#fff;font-family:Inter,sans-serif;font-size:.78rem">
+    </div>
+
+    <!-- Filter tabs -->
     <div class="filter-bar">
       <button class="filter-btn active" onclick="filterResources('all',this)">All</button>
       <button class="filter-btn" onclick="filterResources('embassy',this)">Embassies</button>

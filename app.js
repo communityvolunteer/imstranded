@@ -1773,7 +1773,7 @@ function showView(name) {
   if (name === 'map' && navBtns[0]) navBtns[0].classList.add('active');
   if (name === 'resources' && navBtns[1]) navBtns[1].classList.add('active');
   if (name === 'map' && !window._mapInit) initMap();
-  if (name === 'resources') renderResources();
+  if (name === 'resources') { populateResourceDropdowns(); renderResources(); }
   if (name === 'map') closeFormSidebar();
 }
 
@@ -3211,50 +3211,131 @@ window.showCountryDetail = function(id) {
 let _resFilter = 'all';
 function filterResources(f, btn) {
   _resFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.filter-bar .filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderResources();
 }
+
+function populateResourceDropdowns() {
+  const stuckIn = document.getElementById('res-stuck-in');
+  const from = document.getElementById('res-from');
+  if (!stuckIn || !from) return;
+  if (typeof EMBASSIES_BY_HOST === 'undefined') return;
+
+  // "Stuck in" = host countries, ME first
+  const meOrder = ['AE','SA','QA','BH','KW','OM','JO','IR','IQ','IL','LB'];
+  const allHosts = Object.entries(EMBASSIES_BY_HOST).sort((a,b) => {
+    const aMe = meOrder.indexOf(a[0]), bMe = meOrder.indexOf(b[0]);
+    if (aMe >= 0 && bMe >= 0) return aMe - bMe;
+    if (aMe >= 0) return -1;
+    if (bMe >= 0) return 1;
+    return a[1].name.localeCompare(b[1].name);
+  });
+
+  let stuckHtml = '<option value="">All countries</option>';
+  stuckHtml += '<optgroup label="Middle East (Crisis Zone)">';
+  for (const [cc, host] of allHosts) {
+    if (meOrder.includes(cc)) {
+      stuckHtml += `<option value="${cc}">${host.name} (${Object.keys(host.embassies).length} embassies)</option>`;
+    }
+  }
+  stuckHtml += '</optgroup><optgroup label="Other Countries">';
+  for (const [cc, host] of allHosts) {
+    if (!meOrder.includes(cc)) {
+      stuckHtml += `<option value="${cc}">${host.name} (${Object.keys(host.embassies).length})</option>`;
+    }
+  }
+  stuckHtml += '</optgroup>';
+  stuckIn.innerHTML = stuckHtml;
+
+  // "From" = nationalities
+  const natSet = new Set();
+  for (const host of Object.values(EMBASSIES_BY_HOST)) {
+    for (const cc of Object.keys(host.embassies)) natSet.add(cc);
+  }
+  const nats = Array.from(natSet).map(cc => {
+    const n = (typeof EMB_NATIONS !== 'undefined' && EMB_NATIONS[cc]) || { flag: '', name: cc };
+    return { cc, name: n.name, flag: n.flag };
+  }).sort((a, b) => a.name.localeCompare(b.name));
+
+  let fromHtml = '<option value="">All nationalities</option>';
+  for (const n of nats) {
+    // Count how many countries have this embassy
+    let count = 0;
+    for (const host of Object.values(EMBASSIES_BY_HOST)) {
+      if (host.embassies[n.cc]) count++;
+    }
+    fromHtml += `<option value="${n.cc}">${n.flag} ${n.name} (in ${count} countries)</option>`;
+  }
+  from.innerHTML = fromHtml;
+}
+
 function renderResources() {
   const grid = document.getElementById('resources-grid');
   if (!grid) return;
   let html = '';
   
+  const stuckIn = document.getElementById('res-stuck-in')?.value || '';
+  const from = document.getElementById('res-from')?.value || '';
+  const search = (document.getElementById('res-search')?.value || '').toLowerCase().trim();
+  
   // Map COUNTRIES.id to embassy host country code
   const ID_TO_CC = {uae:'AE',bahrain:'BH',kuwait:'KW',qatar:'QA',oman:'OM',saudi:'SA',iran:'IR',iraq:'IQ',israel:'IL'};
   
   if (_resFilter==='all'||_resFilter==='embassy') {
-    // Country situation cards (advisory, airspace, borders — NO duplicate embassy lists)
-    html += COUNTRIES.map(c => {
-      const embCC = ID_TO_CC[c.id];
-      const hasFullDir = typeof EMBASSIES_BY_HOST !== 'undefined' && embCC && EMBASSIES_BY_HOST[embCC];
-      const embCount = hasFullDir ? Object.keys(EMBASSIES_BY_HOST[embCC].embassies).length : 0;
-      // Show a link to full directory instead of sparse embassy rows
-      const embSection = hasFullDir
-        ? `<div class="embassy-section"><a href="javascript:void(0)" onclick="document.getElementById('emb-${embCC}')?.scrollIntoView({behavior:'smooth',block:'start'})" style="display:block;text-align:center;padding:.45rem;background:'+accentRgba(.1)+';border:1px solid '+accentRgba(.18)+';border-radius:8px;color:'+accentHex()+';font-size:.72rem;font-weight:700;text-decoration:none;text-transform:uppercase;letter-spacing:.03em">\ud83c\udfdb\ufe0f ${embCount} Embassy contacts below \u2193</a></div>`
-        : `<div class="embassy-section"><div class="embassy-title">Emergency Contacts</div>${Object.entries(c.embassy).map(([key,info]) => {
-            const M = EMBASSY_META[key]||{flag:'',role:key.toUpperCase()};
-            const phone = info.phone||info.alt||null;
-            return '<div class="embassy-row"><div style="flex:1"><span class="embassy-name">'+M.flag+' '+M.role+'</span>'+(info.note?'<div class="embassy-note">'+info.note+'</div>':'')+'</div>'+(phone?'<a class="call-btn" href="tel:'+phone.replace(/[\s\-()]/g,'')+'">'+phone+'</a>':'')+'</div>';
-          }).join('')}</div>`;
-      return `<div class="country-card ${c.status}" id="card-${c.id}">
-        <div class="card-header"><div class="card-name">${c.name}</div><span class="status-badge ${c.status}">${c.status.toUpperCase()}</span></div>
-        <div class="card-advisory">${c.advisory}</div>
-        <div class="info-row"><span class="info-label">Airspace</span><span style="color:${c.airspace==='CLOSED'?'var(--danger)':c.airspace.includes('OPEN')?'var(--safe)':'var(--warn)'};font-weight:600">${c.airspace}</span></div>
-        ${c.borders.map(b=>`<div class="info-row"><span class="info-label">${b.route}</span><span style="color:${b.status==='safe'?'var(--safe)':b.status==='warn'?'var(--warn)':'var(--danger)'};font-weight:600">${b.status.toUpperCase()}</span></div>`).join('')}
-        ${embSection}
-        ${c.ngos?.length?`<div class="ngo-tags">${c.ngos.map(n=>`<span class="ngo-tag">${n}</span>`).join('')}</div>`:''}
-        ${c.telegram?`<a class="telegram-link" href="${c.telegram}" target="_blank">\u2192 Telegram group</a>`:''}
-      </div>`;
-    }).join('');
+    // Country situation cards (advisory, airspace, borders)
+    if (!stuckIn && !from && !search) {
+      html += COUNTRIES.map(c => {
+        const embCC = ID_TO_CC[c.id];
+        const hasFullDir = typeof EMBASSIES_BY_HOST !== 'undefined' && embCC && EMBASSIES_BY_HOST[embCC];
+        const embCount = hasFullDir ? Object.keys(EMBASSIES_BY_HOST[embCC].embassies).length : 0;
+        const embSection = hasFullDir
+          ? `<div class="embassy-section"><a href="javascript:void(0)" onclick="document.getElementById('res-stuck-in').value='${embCC}';renderResources()" style="display:block;text-align:center;padding:.45rem;background:rgba(52,152,236,.1);border:1px solid rgba(52,152,236,.18);border-radius:8px;color:#3498ec;font-size:.72rem;font-weight:700;text-decoration:none;text-transform:uppercase;letter-spacing:.03em">\ud83c\udfdb\ufe0f ${embCount} Embassy contacts — tap to filter</a></div>`
+          : `<div class="embassy-section"><div class="embassy-title">Emergency Contacts</div>${Object.entries(c.embassy).map(([key,info]) => {
+              const M = EMBASSY_META[key]||{flag:'',role:key.toUpperCase()};
+              const phone = info.phone||info.alt||null;
+              return '<div class="embassy-row"><div style="flex:1"><span class="embassy-name">'+M.flag+' '+M.role+'</span>'+(info.note?'<div class="embassy-note">'+info.note+'</div>':'')+'</div>'+(phone?'<a class="call-btn" href="tel:'+phone.replace(/[\s\-()]/g,'')+'">'+phone+'</a>':'')+'</div>';
+            }).join('')}</div>`;
+        return `<div class="country-card ${c.status}" id="card-${c.id}">
+          <div class="card-header"><div class="card-name">${c.name}</div><span class="status-badge ${c.status}">${c.status.toUpperCase()}</span></div>
+          <div class="card-advisory">${c.advisory}</div>
+          <div class="info-row"><span class="info-label">Airspace</span><span style="color:${c.airspace==='CLOSED'?'var(--danger)':c.airspace.includes('OPEN')?'var(--safe)':'var(--warn)'};font-weight:600">${c.airspace}</span></div>
+          ${c.borders.map(b=>`<div class="info-row"><span class="info-label">${b.route}</span><span style="color:${b.status==='safe'?'var(--safe)':b.status==='warn'?'var(--warn)':'var(--danger)'};font-weight:600">${b.status.toUpperCase()}</span></div>`).join('')}
+          ${embSection}
+          ${c.ngos?.length?`<div class="ngo-tags">${c.ngos.map(n=>`<span class="ngo-tag">${n}</span>`).join('')}</div>`:''}
+          ${c.telegram?`<a class="telegram-link" href="${c.telegram}" target="_blank">\u2192 Telegram group</a>`:''}
+        </div>`;
+      }).join('');
+    }
     
-    // Full embassy directory (single source of truth)
+    // Embassy directory — filtered by dropdowns and search
     if (typeof EMBASSIES_BY_HOST !== 'undefined') {
-      html += '<div style="grid-column:1/-1;margin:1.5rem 0 .5rem"><div style="font-size:1.1rem;font-weight:800;color:'+accentHex()+';margin-bottom:.25rem">Full Embassy Directory</div><div style="font-size:.8rem;color:rgba(255,255,255,.4)">Contacts for 25+ nationalities in each Middle East country</div></div>';
-      for (const [cc, host] of Object.entries(EMBASSIES_BY_HOST)) {
-        const entries = Object.entries(host.embassies);
-        html += `<div class="country-card warn" id="emb-${cc}" style="border-color:'+accentRgba(.2)+'">
-          <div class="card-header"><div class="card-name">${host.name}</div><span class="status-badge" style="background:'+accentRgba(.15)+';color:'+accentHex()+'">${entries.length} EMBASSIES</span></div>
+      const hosts = stuckIn ? [[stuckIn, EMBASSIES_BY_HOST[stuckIn]]] : Object.entries(EMBASSIES_BY_HOST);
+      let matchCount = 0;
+
+      for (const [cc, host] of hosts) {
+        if (!host) continue;
+        let entries = Object.entries(host.embassies);
+        
+        // Filter by nationality
+        if (from) entries = entries.filter(([natCC]) => natCC === from);
+        
+        // Filter by search
+        if (search) {
+          entries = entries.filter(([natCC, info]) => {
+            const nat = (typeof EMB_NATIONS !== 'undefined' && EMB_NATIONS[natCC]) || {name: natCC};
+            return nat.name.toLowerCase().includes(search) ||
+                   host.name.toLowerCase().includes(search) ||
+                   (info.phone || '').includes(search) ||
+                   natCC.toLowerCase() === search;
+          });
+        }
+        
+        if (!entries.length) continue;
+        matchCount += entries.length;
+
+        html += `<div class="country-card warn" id="emb-${cc}" style="grid-column:1/-1">
+          <div class="card-header"><div class="card-name">${host.name}</div><span class="status-badge" style="background:rgba(52,152,236,.15);color:#3498ec">${entries.length} EMBASSIES</span></div>
           ${host.emergency ? '<div style="font-size:.78rem;color:rgba(255,255,255,.5);margin:.3rem 0">Emergency: <strong style="color:#ec3452">'+host.emergency+'</strong></div>' : ''}
           ${host.crisis_note ? '<div style="font-size:.72rem;color:rgba(255,255,255,.35);font-style:italic;margin-bottom:.4rem">'+host.crisis_note+'</div>' : ''}
           <div class="embassy-section">`;
@@ -3268,17 +3349,23 @@ function renderResources() {
             </div>
             <div style="display:flex;gap:.3rem;align-items:center">
               ${phone ? '<a class="call-btn" href="tel:'+phone.replace(/[\s\-()]/g,'')+'">'+phone+'</a>' : ''}
-              ${info.web ? '<a href="'+info.web+'" target="_blank" style="font-size:.65rem;color:'+accentHex()+';text-decoration:none;white-space:nowrap">[web]</a>' : ''}
+              ${info.web ? '<a href="'+info.web+'" target="_blank" style="font-size:.65rem;color:#3498ec;text-decoration:none;white-space:nowrap">[web]</a>' : ''}
             </div>
           </div>`;
         }
         html += '</div></div>';
       }
+
+      // Summary
+      if (stuckIn || from || search) {
+        const summaryColor = matchCount > 0 ? '#3498ec' : 'rgba(255,255,255,.3)';
+        html = `<div style="grid-column:1/-1;font-size:.78rem;color:${summaryColor};font-weight:600;margin-bottom:.3rem">${matchCount} result${matchCount !== 1 ? 's' : ''} found</div>` + html;
+      }
     }
     
-    // Global emergency hotlines
-    if (typeof GLOBAL_EMERGENCY !== 'undefined') {
-      html += `<div class="country-card safe" id="emb-global" style="border-color:rgba(52,152,236,.2)">
+    // Global emergency hotlines (show when no filters)
+    if (!stuckIn && !from && !search && typeof GLOBAL_EMERGENCY !== 'undefined') {
+      html += `<div class="country-card safe" id="emb-global" style="grid-column:1/-1;border-color:rgba(52,152,236,.2)">
         <div class="card-header"><div class="card-name">Global Emergency Hotlines</div><span class="status-badge safe">24/7</span></div>
         <div style="font-size:.78rem;color:rgba(255,255,255,.45);margin-bottom:.5rem">Call your country's crisis line from anywhere</div>
         <div class="embassy-section">`;
@@ -3288,18 +3375,22 @@ function renderResources() {
           <div style="flex:1"><span class="embassy-name">${nat.flag} ${nat.name}</span>${info.note ? '<div class="embassy-note">'+info.note+'</div>' : ''}</div>
           <div style="display:flex;gap:.3rem;align-items:center">
             <a class="call-btn" href="tel:${info.phone.replace(/[\s\-()]/g,'')}">${info.phone}</a>
-            ${info.web ? '<a href="'+info.web+'" target="_blank" style="font-size:.65rem;color:'+accentHex()+';text-decoration:none">[web]</a>' : ''}
+            ${info.web ? '<a href="'+info.web+'" target="_blank" style="font-size:.65rem;color:#3498ec;text-decoration:none">[web]</a>' : ''}
           </div>
         </div>`;
       }
       html += '</div></div>';
     }
 
-    html += WORLDWIDE.map(r=>`<div class="country-card safe" id="card-${r.id}"><div class="card-name" style="margin-bottom:.5rem">Worldwide: ${r.name}</div><div class="card-advisory">${r.note}</div>${r.contacts.map(c=>`<div class="info-row"><span class="info-label">${c.label}</span><span>${c.value}</span></div>`).join('')}</div>`).join('');
+    if (!stuckIn && !from && !search) {
+      html += WORLDWIDE.map(r=>`<div class="country-card safe" id="card-${r.id}"><div class="card-name" style="margin-bottom:.5rem">Worldwide: ${r.name}</div><div class="card-advisory">${r.note}</div>${r.contacts.map(c=>`<div class="info-row"><span class="info-label">${c.label}</span><span>${c.value}</span></div>`).join('')}</div>`).join('');
+    }
   }
   if (_resFilter==='all'||_resFilter==='ngo'||_resFilter==='info') {
-    html += NGOS.filter(r=>_resFilter==='all'||(_resFilter==='ngo'&&r.type!=='Info'&&r.type!=='Government')||(_resFilter==='info'&&(r.type==='Info'||r.type==='Government')))
-      .map(r=>`<div class="resource-card"><div class="resource-type">${r.type}</div><div class="resource-name">${r.name}</div><div class="resource-desc">${r.desc}</div><a class="resource-link" href="${r.url}" target="_blank" rel="noopener">Open \u2192</a></div>`).join('');
+    if (!stuckIn && !from && !search) {
+      html += NGOS.filter(r=>_resFilter==='all'||(_resFilter==='ngo'&&r.type!=='Info'&&r.type!=='Government')||(_resFilter==='info'&&(r.type==='Info'||r.type==='Government')))
+        .map(r=>`<div class="resource-card"><div class="resource-type">${r.type}</div><div class="resource-name">${r.name}</div><div class="resource-desc">${r.desc}</div><a class="resource-link" href="${r.url}" target="_blank" rel="noopener">Open \u2192</a></div>`).join('');
+    }
   }
   grid.innerHTML = html || '<div class="empty-state">No items match this filter.</div>';
 }
@@ -3921,19 +4012,119 @@ function mSheetToggle(){
 
 function mRenderResources(){
   const el=document.getElementById('m-resources-content');if(!el)return;
-  let html='<div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.4);margin-bottom:.6rem;margin-top:.25rem">Country Embassies</div>';
-  html+=COUNTRIES.map(c=>`
-    <div class="m-emb-section">
-      <div class="m-emb-country-title" style="color:${getSC()[c.status]}">${c.name} <span style="font-size:.6rem;font-weight:600;text-transform:uppercase;opacity:.6">${c.status}</span></div>
-      ${Object.entries(c.embassy).slice(0,4).map(([key,info])=>{
-        const M=EMBASSY_META[key]||{flag:'',role:key.toUpperCase()};
-        const phone=info.phone||info.alt||null;
-        return `<div class="m-emb-row"><div class="m-emb-who"><span class="m-emb-country">${M.flag} ${M.role}</span>${info.note?`<span class="m-emb-role">${info.note}</span>`:''}</div>${phone?`<a class="m-call-btn" href="tel:${phone.replace(/[\s\-()]/g,'')}">${PHONE_SVG} Call</a>`:''}</div>`;
-      }).join('')}
-    </div>`).join('');
-  html+='<div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.4);margin:.9rem 0 .6rem">NGOs and Info</div>';
-  html+=NGOS.map(r=>`<div class="m-res-row"><div><div class="m-res-name">${r.name}<span class="m-res-type">${r.type}</span></div></div><a class="m-res-go" href="${r.url}" target="_blank">Open</a></div>`).join('');
-  el.innerHTML=html;
+  let html='';
+
+  // Smart finder for mobile
+  html += `<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:.8rem;margin-bottom:.8rem">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem">
+      <div>
+        <label style="font-size:.5rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.3);display:block;margin-bottom:.2rem">I'm stuck in</label>
+        <select id="m-res-stuck" onchange="mFilterResources()" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.4rem;color:#fff;font-family:Inter,sans-serif;font-size:.72rem;font-weight:600">
+          <option value="">All</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:.5rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.3);display:block;margin-bottom:.2rem">I'm from</label>
+        <select id="m-res-from" onchange="mFilterResources()" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.4rem;color:#fff;font-family:Inter,sans-serif;font-size:.72rem;font-weight:600">
+          <option value="">All</option>
+        </select>
+      </div>
+    </div>
+    <input type="text" id="m-res-search" oninput="mFilterResources()" placeholder="Search..." style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.4rem .6rem;color:#fff;font-family:Inter,sans-serif;font-size:.72rem">
+  </div>
+  <div id="m-res-results"></div>`;
+
+  el.innerHTML = html;
+
+  // Populate mobile dropdowns
+  if (typeof EMBASSIES_BY_HOST !== 'undefined') {
+    const meOrder = ['AE','SA','QA','BH','KW','OM','JO','IR','IQ','IL','LB'];
+    const stuckSel = document.getElementById('m-res-stuck');
+    const fromSel = document.getElementById('m-res-from');
+    if (stuckSel) {
+      let opts = '<option value="">All</option>';
+      const sorted = Object.entries(EMBASSIES_BY_HOST).sort((a,b) => {
+        const am = meOrder.indexOf(a[0]), bm = meOrder.indexOf(b[0]);
+        if (am >= 0 && bm >= 0) return am - bm;
+        if (am >= 0) return -1; if (bm >= 0) return 1;
+        return a[1].name.localeCompare(b[1].name);
+      });
+      for (const [cc, h] of sorted) opts += `<option value="${cc}">${h.name}</option>`;
+      stuckSel.innerHTML = opts;
+    }
+    if (fromSel) {
+      const nats = new Set();
+      for (const h of Object.values(EMBASSIES_BY_HOST)) for (const cc of Object.keys(h.embassies)) nats.add(cc);
+      let opts = '<option value="">All</option>';
+      const natArr = Array.from(nats).map(cc => {
+        const n = (typeof EMB_NATIONS !== 'undefined' && EMB_NATIONS[cc]) || {flag:'',name:cc};
+        return {cc, name: n.name, flag: n.flag};
+      }).sort((a,b) => a.name.localeCompare(b.name));
+      for (const n of natArr) opts += `<option value="${n.cc}">${n.flag} ${n.name}</option>`;
+      fromSel.innerHTML = opts;
+    }
+  }
+
+  mFilterResources();
+}
+
+function mFilterResources() {
+  const results = document.getElementById('m-res-results');
+  if (!results) return;
+  const stuckIn = document.getElementById('m-res-stuck')?.value || '';
+  const from = document.getElementById('m-res-from')?.value || '';
+  const search = (document.getElementById('m-res-search')?.value || '').toLowerCase().trim();
+  let html = '';
+
+  if (typeof EMBASSIES_BY_HOST !== 'undefined') {
+    const hosts = stuckIn ? [[stuckIn, EMBASSIES_BY_HOST[stuckIn]]] : Object.entries(EMBASSIES_BY_HOST);
+    let count = 0;
+    for (const [cc, host] of hosts) {
+      if (!host) continue;
+      let entries = Object.entries(host.embassies);
+      if (from) entries = entries.filter(([n]) => n === from);
+      if (search) entries = entries.filter(([n, info]) => {
+        const nat = (typeof EMB_NATIONS !== 'undefined' && EMB_NATIONS[n]) || {name:n};
+        return nat.name.toLowerCase().includes(search) || host.name.toLowerCase().includes(search) || (info.phone||'').includes(search);
+      });
+      if (!entries.length) continue;
+      count += entries.length;
+      html += `<div class="m-emb-section">
+        <div class="m-emb-country-title">${host.name} <span style="font-size:.55rem;background:rgba(52,152,236,.15);color:#3498ec;border-radius:4px;padding:.1rem .3rem;font-weight:700">${entries.length}</span></div>
+        ${host.emergency ? '<div style="font-size:.65rem;color:rgba(255,255,255,.4);margin-bottom:.3rem">Emergency: <strong style="color:#ec3452">'+host.emergency+'</strong></div>' : ''}
+        ${entries.map(([natCC, info]) => {
+          const nat = (typeof EMB_NATIONS !== 'undefined' && EMB_NATIONS[natCC]) || {flag:'',name:natCC};
+          const phone = info.phone || null;
+          return `<div class="m-emb-row"><div class="m-emb-who"><span class="m-emb-country">${nat.flag} ${nat.name}</span>${info.note?`<span class="m-emb-role">${info.note}</span>`:''}</div>
+            <div style="display:flex;gap:.3rem;align-items:center">
+              ${phone?`<a class="m-call-btn" href="tel:${phone.replace(/[\s\-()]/g,'')}">${PHONE_SVG} ${phone}</a>`:''}
+              ${info.web?`<a href="${info.web}" target="_blank" style="font-size:.55rem;color:#3498ec;text-decoration:none">[web]</a>`:''}
+            </div></div>`;
+        }).join('')}
+      </div>`;
+    }
+    if (stuckIn || from || search) {
+      html = `<div style="font-size:.7rem;color:#3498ec;font-weight:600;margin-bottom:.4rem">${count} result${count!==1?'s':''}</div>` + html;
+    }
+  }
+
+  if (!stuckIn && !from && !search) {
+    // Show ME situation cards + NGOs when unfiltered
+    html += '<div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.3);margin:.6rem 0 .4rem">Country Situations</div>';
+    html += COUNTRIES.map(c => `
+      <div class="m-emb-section">
+        <div class="m-emb-country-title" style="color:${getSC()[c.status]}">${c.name} <span style="font-size:.6rem;font-weight:600;text-transform:uppercase;opacity:.6">${c.status}</span></div>
+        ${Object.entries(c.embassy).slice(0,4).map(([key,info])=>{
+          const M=EMBASSY_META[key]||{flag:'',role:key.toUpperCase()};
+          const phone=info.phone||info.alt||null;
+          return `<div class="m-emb-row"><div class="m-emb-who"><span class="m-emb-country">${M.flag} ${M.role}</span>${info.note?`<span class="m-emb-role">${info.note}</span>`:''}</div>${phone?`<a class="m-call-btn" href="tel:${phone.replace(/[\s\-()]/g,'')}">${PHONE_SVG} Call</a>`:''}</div>`;
+        }).join('')}
+      </div>`).join('');
+    html += '<div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.3);margin:.6rem 0 .4rem">NGOs & Info</div>';
+    html += NGOS.map(r=>`<div class="m-res-row"><div><div class="m-res-name">${r.name}<span class="m-res-type">${r.type}</span></div></div><a class="m-res-go" href="${r.url}" target="_blank">Open</a></div>`).join('');
+  }
+
+  results.innerHTML = html || '<div style="text-align:center;padding:1rem 0;color:rgba(255,255,255,.25);font-size:.78rem">No results found</div>';
 }
 
 async function mSubmitOffer(){
