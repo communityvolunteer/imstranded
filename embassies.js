@@ -1437,20 +1437,10 @@ function getHostCountryForAirport(iata) {
 
 // ── HELPER: navigate to embassy section on resources page ──
 function goToEmbassy(cc) {
-  showView('resources');
-  // Click the Embassies filter
-  var btns = document.querySelectorAll('.filter-btn');
-  for (var i = 0; i < btns.length; i++) {
-    if (btns[i].textContent.trim() === 'Embassies') {
-      filterResources('embassy', btns[i]);
-      break;
-    }
-  }
-  if (cc) {
-    setTimeout(function() {
-      var el = document.getElementById('emb-' + cc);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 250);
+  if (cc === 'global' || !cc) {
+    openResourcesSidebar();
+  } else {
+    openResourcesSidebar(cc);
   }
 }
 

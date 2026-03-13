@@ -99,7 +99,7 @@ function googleTranslateInit() {
   </a>
   <nav>
     <button class="active" onclick="showView('map')"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff" style="vertical-align:-2px;margin-right:4px"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4zm7-2l8 4v14l-8-4V4z"/></svg>Map</button>
-    <button onclick="showView('resources')">Resources</button>
+    <button onclick="isMob()?openResourcesSidebar():openResourcesSidebar()">Resources</button>
     <button id="nav-filters-btn" onclick="toggleFilterPanel()">Hide Filters</button>
     <button id="nav-sitrep-btn" onclick="toggleSitrepBar()">Hide Menu</button>
     <button id="nav-socials-btn" onclick="toggleSocialsBar()">Hide Socials</button>
@@ -1349,7 +1349,7 @@ function googleTranslateInit() {
   <div style="margin:.2rem 1.1rem .5rem;padding:.6rem .75rem;background:rgba(255,255,255,.04);border-radius:10px;border:1px solid rgba(255,255,255,.06)">
     <div style="font-size:.62rem;color:rgba(255,255,255,.7);line-height:1.55">People Impacted = total passengers on cancelled flights. Est. Stranded = ~20% still unable to leave. Data: AviationStack.</div>
   </div>
-  <a href="#" onclick="closeImpactSheet();setTimeout(()=>mTab('resources',null),200);return false" style="display:flex;align-items:center;justify-content:center;gap:.4rem;margin:.2rem 1.1rem .8rem;padding:.65rem;background:rgba(52,152,236,.1);border:1px solid rgba(52,152,236,.18);border-radius:10px;text-decoration:none">
+  <a href="#" onclick="closeImpactSheet();setTimeout(()=>openResourcesSidebar(),200);return false" style="display:flex;align-items:center;justify-content:center;gap:.4rem;margin:.2rem 1.1rem .8rem;padding:.65rem;background:rgba(52,152,236,.1);border:1px solid rgba(52,152,236,.18);border-radius:10px;text-decoration:none">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
     <span style="font-size:.75rem;font-weight:700;color:#3498ec">Full Embassy &amp; Resource Contacts</span>
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>

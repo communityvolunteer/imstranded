@@ -299,7 +299,8 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 
 /* Fix select dropdowns — dark bg with white text */
 #res-stuck-in, #res-from,
-#m-res-stuck, #m-res-from {
+#m-res-stuck, #m-res-from,
+#res-sb-host, #res-sb-nat {
   color-scheme: dark;
   -webkit-appearance: none;
   appearance: none;
@@ -309,7 +310,8 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
   padding-right: 2rem;
 }
 #res-stuck-in option, #res-from option,
-#m-res-stuck option, #m-res-from option {
+#m-res-stuck option, #m-res-from option,
+#res-sb-host option, #res-sb-nat option {
   background: #1a1a2e;
   color: #fff;
 }
