@@ -4511,7 +4511,7 @@ function _updateProfileNameBadge() {
   const shield = badge.querySelector('svg');
   const check  = badge.querySelector('#profile-badge-check');
   if (isVerified) {
-    shield.style.fill = 'var(--accent)';
+    shield.style.fill = '#3498ec';
     if (check) { check.setAttribute('stroke','#fff'); }
     badge.title = 'Verified account';
   } else {
@@ -6230,8 +6230,9 @@ const _svgPerson = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" 
 function buildStrandedCard(p, match, step) {
   const t = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
   const needsList = (p.needs || []).join(', ');
+  const _verified = _currentProfile?.google_verified || _currentProfile?.x_verified || _currentProfile?.tg_verified;
   let html = `<div style="padding:.5rem 0">
-    <div style="font-size:1.35rem;font-weight:800;color:#fff;margin-bottom:.5rem;line-height:1.2">${esc(p.name) || 'Anonymous'} <span style="font-size:.7rem;color:rgba(255,255,255,.4);font-weight:400">${t}</span></div>
+    <div style="font-size:1.35rem;font-weight:800;color:#fff;margin-bottom:.5rem;line-height:1.2">${esc(p.name) || 'Anonymous'} ${buildBadge(_verified)} <span style="font-size:.7rem;color:rgba(255,255,255,.4);font-weight:400">${t}</span></div>
     <div style="display:flex;align-items:center;gap:.35rem;font-size:.9rem;color:rgba(255,255,255,.85);margin-bottom:.25rem">${_svgPin} ${esc(p.current_location)}</div>
     <div style="display:flex;align-items:center;gap:.35rem;font-size:.9rem;color:rgba(255,255,255,.85);margin-bottom:.25rem">${_svgHome} ${esc(p.destination)}${p.dest_airport ? ' ('+p.dest_airport+')' : ''}</div>
     ${needsList ? '<div style="font-size:.8rem;color:#f59e0b;margin-top:.3rem;margin-bottom:.4rem">Needs: '+needsList+'</div>' : ''}
@@ -6288,8 +6289,9 @@ function buildStrandedCard(p, match, step) {
 
 function buildOfferCard(p, match, pending, step) {
   const t = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
+  const _verified = _currentProfile?.google_verified || _currentProfile?.x_verified || _currentProfile?.tg_verified;
   let html = `<div style="padding:.5rem 0">
-    <div style="font-size:1.35rem;font-weight:800;color:#fff;margin-bottom:.5rem;line-height:1.2">${esc(p.name) || 'Anonymous'} <span style="font-size:.7rem;color:rgba(255,255,255,.4);font-weight:400">${t}</span></div>
+    <div style="font-size:1.35rem;font-weight:800;color:#fff;margin-bottom:.5rem;line-height:1.2">${esc(p.name) || 'Anonymous'} ${buildBadge(_verified)} <span style="font-size:.7rem;color:rgba(255,255,255,.4);font-weight:400">${t}</span></div>
     <div style="display:flex;align-items:center;gap:.35rem;font-size:.9rem;color:rgba(255,255,255,.85);margin-bottom:.25rem">${_svgPin} ${esc(p.location)}</div>
     ${p.body ? '<div style="font-size:.85rem;color:rgba(255,255,255,.65);line-height:1.5;margin-bottom:.6rem">'+esc(p.body).slice(0,150)+'</div>' : ''}`;
 
