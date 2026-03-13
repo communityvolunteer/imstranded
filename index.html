@@ -177,6 +177,11 @@ function googleTranslateInit() {
     <div class="sitrep-label" style="color:#ec3452">I'm Stranded</div>
     <div class="sitrep-sub">tap · register</div>
   </div>
+  <div class="sitrep-stat" id="ss-pets" onclick="isMob()?mTab('pets',null):openFormSidebar('pets')" style="cursor:pointer">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#ff9f1c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="18" r="2"/><circle cx="7" cy="14" r="1.5"/><circle cx="15" cy="14" r="1.5"/><circle cx="17" cy="10" r="1.5"/><circle cx="7" cy="10" r="1.5"/><path d="M12 2C9.5 5 7 8 7 11a5 5 0 0 0 10 0c0-3-2.5-6-5-9z"/></svg>
+    <div class="sitrep-label" style="color:#ff9f1c">Pets</div>
+    <div class="sitrep-sub">tap · report</div>
+  </div>
   <div class="sitrep-stat sitrep-stat--help-money" id="ss-help-money" onclick="isMob()?toggleHelpPanel():openFormSidebar('help')">
     <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
     <div class="sitrep-label">$HELP</div>
@@ -340,6 +345,27 @@ function googleTranslateInit() {
         <label class="fp-toggle"><input type="checkbox" id="fp-show-success" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show matched pins</label>
         <label class="fp-toggle"><input type="checkbox" id="fp-show-success-arcs" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show connection arcs</label>
         <label class="fp-toggle"><input type="checkbox" id="fp-show-home" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show "made it home" pins</label>
+      </div>
+    </div>
+
+    <!-- Section: STRANDED PETS -->
+    <div class="fp-section">
+      <div class="fp-section-head" onclick="toggleFpSection(this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff9f1c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="18" r="2"/><circle cx="7" cy="14" r="1.5"/><circle cx="15" cy="14" r="1.5"/><circle cx="17" cy="10" r="1.5"/><circle cx="7" cy="10" r="1.5"/><path d="M12 2C9.5 5 7 8 7 11a5 5 0 0 0 10 0c0-3-2.5-6-5-9z"/></svg>
+        <span style="font-size:.95rem">STRANDED PETS</span>
+        <span id="pet-count-badge" style="background:rgba(255,159,28,.2);color:#ff9f1c;font-size:.55rem;font-weight:800;padding:.1rem .4rem;border-radius:8px;margin-left:auto">0</span>
+        <svg class="fp-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="fp-section-body">
+        <label class="fp-toggle"><input type="checkbox" id="fp-show-pets" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show on map</label>
+        <div class="fp-label">Situation</div>
+        <select id="fp-pet-status" class="fp-select" onchange="applyFilters()">
+          <option value="">All</option>
+          <option value="need_foster">Needs foster/boarding</option>
+          <option value="found_stray">Found stray</option>
+          <option value="can_foster">Can foster</option>
+        </select>
+        <button onclick="isMob()?mTab('pets',null):openFormSidebar('pets')" style="width:100%;margin-top:.5rem;padding:.5rem;border:1px solid rgba(255,159,28,.3);border-radius:8px;background:rgba(255,159,28,.08);color:#ff9f1c;font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">🐾 Post About a Pet</button>
       </div>
     </div>
 
@@ -525,6 +551,44 @@ function googleTranslateInit() {
 
       <!-- Panel: Profile -->
       <div id="fs-panel-profile" class="fs-panel"></div>
+
+    <!-- Panel: Stranded Pets -->
+    <div id="help-panel-pets" style="display:none;max-width:560px;margin:0 auto">
+      <div style="background:rgba(255,159,28,.08);border:1px solid rgba(255,159,28,.2);border-radius:14px;padding:1.2rem;margin-bottom:1rem">
+        <div style="font-size:1.15rem;font-weight:800;color:#ff9f1c;margin-bottom:.25rem">🐾 Stranded Pets</div>
+        <div style="font-size:.82rem;color:rgba(255,255,255,.5);line-height:1.5">Report a pet that needs help, a found stray, or offer to foster. Contacts are public so people nearby can reach out.</div>
+      </div>
+      <div class="post-form">
+        <div class="form-row"><label class="modal-label">Situation</label>
+          <select id="pet-pet-status" class="modal-input" style="color-scheme:dark">
+            <option value="">Select...</option>
+            <option value="need_foster">My pet needs a foster / I can't take them</option>
+            <option value="found_stray">I found an abandoned pet</option>
+            <option value="can_foster">I can foster a pet</option>
+          </select>
+        </div>
+        <div class="form-row"><label class="modal-label">Animal type</label>
+          <select id="pet-pet-animal" class="modal-input" style="color-scheme:dark">
+            <option value="">Select...</option>
+            <option value="dog">Dog</option>
+            <option value="cat">Cat</option>
+            <option value="bird">Bird</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-row"><label class="modal-label">Pet name <span style="color:rgba(255,255,255,.25)">(optional)</span></label><input type="text" id="pet-pet-name" placeholder="e.g. Bruno, Mochi..." class="modal-input"></div>
+        <div class="form-row"><label class="modal-label">Description</label><textarea id="pet-pet-desc" placeholder="Breed, age, temperament, what's needed..." class="modal-input" style="min-height:80px;resize:none"></textarea></div>
+        <div class="form-row"><label class="modal-label">Location</label>
+          <div style="display:flex;gap:.4rem;align-items:center">
+            <div class="loc-ac-wrap" style="flex:1"><input type="text" id="pet-pet-location" placeholder="Where is the pet?" autocomplete="off" class="modal-input"><input type="hidden" id="pet-pet-lat"><input type="hidden" id="pet-pet-lng"><div class="loc-ac-list" id="pet-location-ac"></div></div>
+            <button type="button" onclick="useMyLocation('pet-pet')" class="gps-btn" title="Use my location"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2"/></svg></button>
+          </div>
+        </div>
+        <div class="form-row"><label class="modal-label">Your Name</label><input type="text" id="pet-pet-poster" placeholder="First name or handle" class="modal-input"></div>
+        <div class="form-row"><label class="modal-label">Contact</label><input type="text" id="pet-pet-contact" placeholder="Phone, email, or @handle" class="modal-input"></div>
+        <button id="pet-pet-submit" class="submit-btn" style="background:#ff9f1c;color:#000" onclick="submitPet('pet')">Submit Pet Post</button>
+      </div>
+    </div>
   </div>
   </div>
   
@@ -878,6 +942,25 @@ function googleTranslateInit() {
             <label class="fp-toggle"><input type="checkbox" id="mfp-show-home" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show "made it home" pins</label>
           </div>
         </div>
+        <!-- STRANDED PETS -->
+        <div class="fp-section">
+          <div class="fp-section-head" onclick="toggleFpSection(this)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff9f1c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="18" r="2"/><circle cx="7" cy="14" r="1.5"/><circle cx="15" cy="14" r="1.5"/><circle cx="17" cy="10" r="1.5"/><circle cx="7" cy="10" r="1.5"/><path d="M12 2C9.5 5 7 8 7 11a5 5 0 0 0 10 0c0-3-2.5-6-5-9z"/></svg><span style="font-size:1rem">STRANDED PETS</span>
+            <span id="m-pet-count-badge" style="background:rgba(255,159,28,.2);color:#ff9f1c;font-size:.55rem;font-weight:800;padding:.1rem .4rem;border-radius:8px;margin-left:auto">0</span>
+            <svg class="fp-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="fp-section-body">
+            <label class="fp-toggle"><input type="checkbox" id="mfp-show-pets" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show on map</label>
+            <div class="fp-label">Situation</div>
+            <select id="mfp-pet-status" class="fp-select" onchange="applyFilters()">
+              <option value="">All</option>
+              <option value="need_foster">Needs foster</option>
+              <option value="found_stray">Found stray</option>
+              <option value="can_foster">Can foster</option>
+            </select>
+            <button onclick="mTab('pets',null)" style="width:100%;margin-top:.5rem;padding:.5rem;border:1px solid rgba(255,159,28,.3);border-radius:8px;background:rgba(255,159,28,.08);color:#ff9f1c;font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">🐾 Post About a Pet</button>
+          </div>
+        </div>
         <button class="fp-clear" onclick="clearAllFilters()" style="width:100%;margin:.75rem 0">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           Clear all filters
@@ -966,6 +1049,37 @@ function googleTranslateInit() {
         </div>
 
         <button class="m-submit" onclick="mSubmitOffer()">List Spare Room</button>
+      </div>
+      <div id="m-pets-content" style="display:none">
+        <div style="font-size:.85rem;color:rgba(255,255,255,.45);margin-bottom:1rem;line-height:1.5"><strong style="color:#ff9f1c">🐾 Stranded Pets</strong> — report a pet that needs help, a found stray, or offer to foster.</div>
+        <div class="m-form-row"><label class="m-form-label">Situation</label>
+          <select id="m-pet-pet-status" style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem">
+            <option value="">Select...</option>
+            <option value="need_foster">My pet needs a foster</option>
+            <option value="found_stray">I found an abandoned pet</option>
+            <option value="can_foster">I can foster a pet</option>
+          </select>
+        </div>
+        <div class="m-form-row"><label class="m-form-label">Animal type</label>
+          <select id="m-pet-pet-animal" style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem">
+            <option value="">Select...</option>
+            <option value="dog">Dog 🐕</option>
+            <option value="cat">Cat 🐈</option>
+            <option value="bird">Bird 🐦</option>
+            <option value="other">Other 🐾</option>
+          </select>
+        </div>
+        <div class="m-form-row"><label class="m-form-label">Pet name <span style="color:rgba(255,255,255,.25)">(optional)</span></label><input type="text" id="m-pet-pet-name" placeholder="e.g. Bruno, Mochi..." style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem"></div>
+        <div class="m-form-row"><label class="m-form-label">Description</label><textarea id="m-pet-pet-desc" placeholder="Breed, age, temperament, what's needed..." style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem;min-height:70px;resize:none"></textarea></div>
+        <div class="m-form-row"><label class="m-form-label">Location</label>
+          <div style="display:flex;gap:.3rem;align-items:center">
+            <div class="loc-ac-wrap" style="flex:1"><input type="text" id="m-pet-pet-location" placeholder="Where is the pet?" autocomplete="off"><input type="hidden" id="m-pet-pet-lat"><input type="hidden" id="m-pet-pet-lng"><div class="loc-ac-list" id="m-pet-location-ac"></div></div>
+            <button type="button" onclick="useMyLocation('m-pet-pet')" class="gps-btn" title="Use my location"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2"/></svg></button>
+          </div>
+        </div>
+        <div class="m-form-row"><label class="m-form-label">Your name</label><input type="text" id="m-pet-pet-poster" placeholder="First name or handle" style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem"></div>
+        <div class="m-form-row"><label class="m-form-label">Contact</label><input type="text" id="m-pet-pet-contact" placeholder="Phone, email, or @handle" style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem"></div>
+        <button id="m-pet-pet-submit" class="m-submit" style="background:#ff9f1c;color:#000" onclick="submitPet('m-pet')">Submit Pet Post</button>
       </div>
       <div id="m-edit-content" style="display:none">
         <!-- Mobile profile login -->

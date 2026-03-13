@@ -1148,12 +1148,15 @@ function getFilterState() {
   const showSuccessArcs = v('show-success-arcs') ?? true;
   const showHome        = v('show-home')       ?? true;
 
+  const showPets        = v('show-pets')       ?? true;
+  const petStatus       = v('pet-status')      || '';
+
   const destCountry = val(P + '-filter-dest-country') || val(S + '-filter-dest-country') || '';
   const destAirport = val(P + '-filter-dest-airport') || val(S + '-filter-dest-airport') || '';
   const atIata = _filterAtIata || val(P + '-at-iata') || val(S + '-at-iata') || '';
   const toIata = _filterToIata || val(P + '-to-iata') || val(S + '-to-iata') || '';
 
-  return { showOffers, offersVerified, offerTypes, showStranded, strandedVerified, nationality, strandedNeeds, groupSize, showWorldwide, destCountry, destAirport, showArcs, atIata, toIata, showSuccess, showSuccessArcs, showHome };
+  return { showOffers, offersVerified, offerTypes, showStranded, strandedVerified, nationality, strandedNeeds, groupSize, showWorldwide, destCountry, destAirport, showArcs, atIata, toIata, showSuccess, showSuccessArcs, showHome, showPets, petStatus };
 }
 
 function applyFilters() {
@@ -1309,6 +1312,15 @@ function applyFilters() {
     }
   }
   
+  // ── Filter & re-render pets ──
+  const filteredPets = _petPosts.filter(p => {
+    if (!f.showPets) return false;
+    if (f.petStatus && p.pet_status !== f.petStatus) return false;
+    return true;
+  });
+  renderFilteredPets(window._crisisMap, false, filteredPets);
+  renderFilteredPets(window._mobileMap, true, filteredPets);
+
   // ── Update Est. Stranded label ──
   updateStrandedLabel(f.atIata, f.toIata, filteredGlobal, reverseData);
 
@@ -1420,13 +1432,14 @@ function syncFilterPanels() {
     ['fp-show-offers','mfp-show-offers'],['fp-offers-verified','mfp-offers-verified'],
     ['fp-show-stranded','mfp-show-stranded'],['fp-stranded-verified','mfp-stranded-verified'],
     ['fp-show-worldwide','mfp-show-worldwide'],['fp-worldwide-arcs','mfp-worldwide-arcs'],
+    ['fp-show-pets','mfp-show-pets'],
   ];
   pairs.forEach(([d,m]) => {
     const src = document.getElementById(isMobile ? m : d);
     const dst = document.getElementById(isMobile ? d : m);
     if (src && dst) dst.checked = src.checked;
   });
-  [['fp-nationality','mfp-nationality'],['fp-group-size','mfp-group-size'],['fp-at-search','mfp-at-search'],['fp-at-iata','mfp-at-iata'],['fp-to-search','mfp-to-search'],['fp-to-iata','mfp-to-iata']].forEach(([d,m]) => {
+  [['fp-nationality','mfp-nationality'],['fp-group-size','mfp-group-size'],['fp-at-search','mfp-at-search'],['fp-at-iata','mfp-at-iata'],['fp-to-search','mfp-to-search'],['fp-to-iata','mfp-to-iata'],['fp-pet-status','mfp-pet-status']].forEach(([d,m]) => {
     const src = document.getElementById(isMobile ? m : d);
     const dst = document.getElementById(isMobile ? d : m);
     if (src && dst) dst.value = src.value;
@@ -1458,7 +1471,7 @@ function clearAllFilters() {
   _mapFilterActive = '';
   clearGlobalFilter();
   document.querySelectorAll('.fp-chip input').forEach(cb => cb.checked = false);
-  document.querySelectorAll('[id$="-show-offers"],[id$="-show-stranded"],[id$="-show-worldwide"]').forEach(cb => cb.checked = true);
+  document.querySelectorAll('[id$="-show-offers"],[id$="-show-stranded"],[id$="-show-worldwide"],[id$="-show-pets"]').forEach(cb => cb.checked = true);
   document.querySelectorAll('[id$="-offers-verified"],[id$="-stranded-verified"]').forEach(cb => cb.checked = false);
   document.querySelectorAll('[id$="-worldwide-arcs"]').forEach(cb => cb.checked = false);
   document.querySelectorAll('.fp-select').forEach(s => { if (s.tagName === 'SELECT') s.value = ''; else if (s.type === 'text') s.value = ''; });
@@ -1864,17 +1877,20 @@ const _fsTitles = {
   stranded: "I'M STRANDED",
   help:     '$HELP · COMMUNITY TIPS',
   profile:  'MY PROFILE',
+  pets:     'STRANDED PETS',
 };
 // Map of which DOM element to move into the sidebar for each panel
 const _fsSourceMap = {
   offer:    () => document.getElementById('help-panel-offer'),
   stranded: () => document.getElementById('help-panel-stranded'),
+  pets:     () => document.getElementById('help-panel-pets'),
   profile:  () => document.querySelector('#profile-view .container'),
   help:     () => document.getElementById('help-money-modal'),
 };
 const _fsReturnMap = {
   offer:    () => document.getElementById('help-view-container'),
   stranded: () => document.getElementById('help-view-container'),
+  pets:     () => document.getElementById('help-view-container'),
   profile:  () => document.getElementById('profile-view'),
   help:     () => document.body,
 };
@@ -1943,6 +1959,9 @@ function openFormSidebar(which) {
     if (node) node.style.display = 'block';
     renderPosts();
   }
+  if (which === 'pets') {
+    if (node) node.style.display = 'block';
+  }
   if (which === 'profile')  renderProfileView();
   if (which === 'help')     {
     // Ensure modal shows inline
@@ -1965,6 +1984,7 @@ function _fsReturnMounted() {
       if (home) {
         // Offer panel should return hidden (stranded is default view)
         if (child.id === 'help-panel-offer') child.style.display = 'none';
+        if (child.id === 'help-panel-pets') child.style.display = 'none';
         else child.style.display = '';
         home.appendChild(child);
         delete child.dataset.fsHome;
@@ -3174,11 +3194,12 @@ function buildFlagButton(table, id) {
 
 // ── User dot builder (matches IMPACTED dot style) ────────────
 function buildUserDot(type, num, subtitle, minSz) {
-  // type: 'offer' (blue), 'stranded' (red), 'success' (green)
+  // type: 'offer' (blue), 'stranded' (red), 'success' (green), 'pet' (amber)
   const colors = {
     offer:    { bg:'rgba(52,152,236,.18)',  border:'rgba(52,152,236,.35)',  ring:'rgba(52,152,236,.12)' },
     stranded: { bg:'rgba(236,52,82,.18)',   border:'rgba(236,52,82,.35)',   ring:'rgba(236,52,82,.12)' },
     success:  { bg:'rgba(34,197,94,.18)',   border:'rgba(34,197,94,.35)',   ring:'rgba(34,197,94,.12)' },
+    pet:      { bg:'rgba(255,159,28,.18)',  border:'rgba(255,159,28,.40)',  ring:'rgba(255,159,28,.12)' },
   };
   const c = colors[type] || colors.offer;
   const label = num >= 1000000 ? (num/1000000).toFixed(1)+'M' : num >= 1000 ? Math.round(num/1000)+'k' : num.toString();
@@ -4098,6 +4119,7 @@ function mTab(tab,btn){
   else if(tab==='help-money') mShowSheetContent('help-money','$HELP');
   else if(tab==='stranded')  mShowSheetContent('stranded','I\'M STRANDED');
   else if(tab==='offer')     mShowSheetContent('offer','OFFER A SPARE ROOM');
+  else if(tab==='pets')      mShowSheetContent('pets','STRANDED PETS');
   else if(tab==='profile')   { mShowSheetContent('profile','MY PROFILE'); renderMobileProfileView(); }
   else if(tab==='manage-room')     { mShowSheetContent('manage','MY ROOM'); renderManageDashboard('offer'); }
   else if(tab==='manage-stranded') { mShowSheetContent('manage','MY STATUS'); renderManageDashboard('stranded'); }
@@ -4109,6 +4131,8 @@ function mShowSheetContent(which,title){
   document.getElementById('m-help-money-content').style.display=which==='help-money'?'block':'none';
   document.getElementById('m-stranded-content').style.display=which==='stranded'?'block':'none';
   document.getElementById('m-offer-content').style.display=which==='offer'?'block':'none';
+  const petsEl = document.getElementById('m-pets-content');
+  if (petsEl) petsEl.style.display = which==='pets'?'block':'none';
   document.getElementById('m-edit-content').style.display=which==='profile'?'block':'none';
   const manageEl = document.getElementById('m-manage-content');
   if (manageEl) manageEl.style.display = which==='manage'?'block':'none';
@@ -5425,6 +5449,11 @@ let _strandedPeople = [];
 let _strandedCluster = null;
 let _mStrandedCluster = null;
 
+// ── PETS ──
+let _petPosts = [];
+let _petCluster = null;
+let _mPetCluster = null;
+
 function toggleHelpPanel() {
   const modal = document.getElementById('help-money-modal');
   if (!modal) return;
@@ -5791,6 +5820,186 @@ function initStrandedRealtime() {
       renderStrandedOnMap(window._mobileMap, true);
     }
   }).subscribe();
+}
+
+// ============================================================
+// STRANDED PETS
+// ============================================================
+const PET_STATUS_LABELS = { need_foster:'Needs Foster', found_stray:'Found Stray', can_foster:'Can Foster' };
+const PET_STATUS_COLORS = { need_foster:'#ff9f1c', found_stray:'#ec3452', can_foster:'#22c55e' };
+const PET_ANIMAL_ICONS  = { dog:'🐕', cat:'🐈', bird:'🐦', other:'🐾' };
+
+async function loadPets() {
+  try {
+    const { data } = await withTimeout(_sb.from('stranded_pets').select('*')
+      .eq('flagged', false).order('created_at', { ascending: false }).limit(500));
+    _petPosts = data || [];
+    renderPetsOnMap(window._crisisMap, false);
+    renderPetsOnMap(window._mobileMap, true);
+    // Update pet count badge
+    const badge = document.getElementById('pet-count-badge');
+    const mBadge = document.getElementById('m-pet-count-badge');
+    if (badge) badge.textContent = _petPosts.length;
+    if (mBadge) mBadge.textContent = _petPosts.length;
+  } catch(e) { console.error('Load pets error:', e); }
+}
+
+function renderPetsOnMap(map, isMobile) {
+  if (!map) return;
+  const clusterRef = isMobile ? _mPetCluster : _petCluster;
+  if (clusterRef) map.removeLayer(clusterRef);
+
+  const cluster = L.markerClusterGroup({
+    maxClusterRadius: 60, spiderfyOnMaxZoom: true, showCoverageOnHover: false, zoomToBoundsOnClick: true,
+    iconCreateFunction: function(c) {
+      const count = c.getChildCount();
+      const d = buildUserDot('pet', count, 'pets', 42);
+      return L.divIcon({ html: d.html, className: '', iconSize: [d.sz, d.sz], iconAnchor: [d.sz/2, d.sz/2] });
+    }
+  });
+
+  for (const p of _petPosts) {
+    if (!p.lat || !p.lng) continue;
+    const age = timeAgo(p.created_at);
+    const statusLabel = PET_STATUS_LABELS[p.pet_status] || p.pet_status;
+    const statusColor = PET_STATUS_COLORS[p.pet_status] || '#ff9f1c';
+    const animalIcon = PET_ANIMAL_ICONS[p.animal_type] || '🐾';
+    const _pd = buildUserDot('pet', 1, animalIcon, 38);
+    const icon = L.divIcon({ className: '', html: _pd.html, iconSize: [_pd.sz, _pd.sz], iconAnchor: [_pd.sz/2, _pd.sz/2] });
+    const marker = L.marker([p.lat, p.lng], { icon });
+    const popHtml = `
+      <div style="font-family:Inter,sans-serif">
+        <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem">
+          <span style="font-size:1.2rem">${animalIcon}</span>
+          <span style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:${statusColor};letter-spacing:.04em">${statusLabel}</span>
+          <span style="font-size:.55rem;color:rgba(255,255,255,.3);margin-left:auto">${age}</span>
+        </div>
+        ${p.pet_name ? '<div style="font-size:.95rem;font-weight:800;color:#fff;margin-bottom:.15rem">'+esc(p.pet_name)+'</div>' : ''}
+        <div style="font-size:.72rem;font-weight:600;color:rgba(255,255,255,.5);margin-bottom:.15rem;text-transform:capitalize">${p.animal_type}</div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.2rem">📍 ${esc(p.location)}</div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.5);line-height:1.5;margin-bottom:.4rem">${esc(p.description)}</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.45);margin-bottom:.3rem">Posted by <strong style="color:#fff">${esc(p.name)}</strong></div>
+        ${buildContactButtons(p.contact, p.xhandle, p.name)}
+        ${buildFlagButton('stranded_pets', p.id)}
+      </div>`;
+    if (isMobile) {
+      marker.on('click', function(e) { L.DomEvent.stopPropagation(e); openMPinSheet(popHtml); });
+    } else {
+      marker.bindPopup(popHtml, { className: 'dark-popup', maxWidth: 280 });
+    }
+    cluster.addLayer(marker);
+  }
+
+  map.addLayer(cluster);
+  if (isMobile) _mPetCluster = cluster;
+  else _petCluster = cluster;
+}
+
+function renderFilteredPets(map, isMobile, filteredPets) {
+  if (!map) return;
+  const clusterRef = isMobile ? _mPetCluster : _petCluster;
+  if (clusterRef) map.removeLayer(clusterRef);
+
+  const cluster = L.markerClusterGroup({
+    maxClusterRadius: 60, spiderfyOnMaxZoom: true, showCoverageOnHover: false, zoomToBoundsOnClick: true,
+    iconCreateFunction: function(c) {
+      const count = c.getChildCount();
+      const d = buildUserDot('pet', count, 'pets', 42);
+      return L.divIcon({ html: d.html, className: '', iconSize: [d.sz, d.sz], iconAnchor: [d.sz/2, d.sz/2] });
+    }
+  });
+
+  for (const p of filteredPets) {
+    if (!p.lat || !p.lng) continue;
+    const age = timeAgo(p.created_at);
+    const statusLabel = PET_STATUS_LABELS[p.pet_status] || p.pet_status;
+    const statusColor = PET_STATUS_COLORS[p.pet_status] || '#ff9f1c';
+    const animalIcon = PET_ANIMAL_ICONS[p.animal_type] || '🐾';
+    const _pd = buildUserDot('pet', 1, animalIcon, 38);
+    const icon = L.divIcon({ className: '', html: _pd.html, iconSize: [_pd.sz, _pd.sz], iconAnchor: [_pd.sz/2, _pd.sz/2] });
+    const marker = L.marker([p.lat, p.lng], { icon });
+    const popHtml = `
+      <div style="font-family:Inter,sans-serif">
+        <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem">
+          <span style="font-size:1.2rem">${animalIcon}</span>
+          <span style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:${statusColor};letter-spacing:.04em">${statusLabel}</span>
+          <span style="font-size:.55rem;color:rgba(255,255,255,.3);margin-left:auto">${age}</span>
+        </div>
+        ${p.pet_name ? '<div style="font-size:.95rem;font-weight:800;color:#fff;margin-bottom:.15rem">'+esc(p.pet_name)+'</div>' : ''}
+        <div style="font-size:.72rem;font-weight:600;color:rgba(255,255,255,.5);margin-bottom:.15rem;text-transform:capitalize">${p.animal_type}</div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.2rem">📍 ${esc(p.location)}</div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.5);line-height:1.5;margin-bottom:.4rem">${esc(p.description)}</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.45);margin-bottom:.3rem">Posted by <strong style="color:#fff">${esc(p.name)}</strong></div>
+        ${buildContactButtons(p.contact, p.xhandle, p.name)}
+        ${buildFlagButton('stranded_pets', p.id)}
+      </div>`;
+    if (isMobile) {
+      marker.on('click', function(e) { L.DomEvent.stopPropagation(e); openMPinSheet(popHtml); });
+    } else {
+      marker.bindPopup(popHtml, { className: 'dark-popup', maxWidth: 280 });
+    }
+    cluster.addLayer(marker);
+  }
+
+  map.addLayer(cluster);
+  if (isMobile) _mPetCluster = cluster;
+  else _petCluster = cluster;
+}
+
+function initPetRealtime() {
+  _sb.channel('stranded_pets').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'stranded_pets' }, payload => {
+    if (payload.new && !payload.new.flagged) {
+      _petPosts.unshift(payload.new);
+      renderPetsOnMap(window._crisisMap, false);
+      renderPetsOnMap(window._mobileMap, true);
+    }
+  }).subscribe();
+}
+
+async function submitPet(prefix) {
+  const status = document.getElementById(prefix + '-pet-status')?.value;
+  const animalType = document.getElementById(prefix + '-pet-animal')?.value;
+  const petName = document.getElementById(prefix + '-pet-name')?.value?.trim() || '';
+  const desc = document.getElementById(prefix + '-pet-desc')?.value?.trim();
+  const loc = document.getElementById(prefix + '-pet-location')?.value?.trim();
+  const lat = parseFloat(document.getElementById(prefix + '-pet-lat')?.value) || null;
+  const lng = parseFloat(document.getElementById(prefix + '-pet-lng')?.value) || null;
+  const name = document.getElementById(prefix + '-pet-poster')?.value?.trim();
+  const contact = document.getElementById(prefix + '-pet-contact')?.value?.trim();
+
+  if (!status) return alert('Please select a situation.');
+  if (!animalType) return alert('Please select the animal type.');
+  if (!desc || desc.length < 5) return alert('Please describe the situation (min 5 chars).');
+  if (!loc) return alert('Please enter a location.');
+  if (!name) return alert('Please enter your name.');
+  if (!contact) return alert('Please enter contact info.');
+
+  const btn = document.getElementById(prefix + '-pet-submit');
+  if (btn) { btn.disabled = true; btn.textContent = 'Posting...'; }
+
+  try {
+    const row = {
+      pet_status: status, animal_type: animalType, pet_name: petName || null,
+      description: desc, location: loc, lat, lng, name, contact,
+      xhandle: (_currentProfile?.x_handle) || null,
+      user_id: _currentUser?.id || null,
+      avatar_url: _currentProfile?.avatar_url || '',
+      flagged: containsLink(desc)
+    };
+    const { error } = await _sb.from('stranded_pets').insert(row);
+    if (error) throw error;
+    alert('Pet post submitted! It will appear on the map shortly.');
+    // Clear form
+    ['pet-status','pet-animal','pet-name','pet-desc','pet-location','pet-lat','pet-lng','pet-poster','pet-contact'].forEach(f => {
+      const el = document.getElementById(prefix + '-' + f);
+      if (el) el.value = '';
+    });
+    loadPets();
+  } catch(e) {
+    alert('Error: ' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Submit Pet Post'; }
+  }
 }
 
 
@@ -6776,6 +6985,7 @@ async function renderAdminPanel(container) {
     <button onclick="_adminTab='flagged';renderAdminPanel(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="flex:1;padding:.4rem;border:none;border-radius:6px;font-family:Inter,sans-serif;font-size:.65rem;font-weight:700;cursor:pointer;${_adminTab==='flagged'?'background:rgba(236,52,82,.15);color:#ec3452':'background:transparent;color:rgba(255,255,255,.3)'}">Flagged</button>
     <button onclick="_adminTab='rooms';renderAdminPanel(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="flex:1;padding:.4rem;border:none;border-radius:6px;font-family:Inter,sans-serif;font-size:.65rem;font-weight:700;cursor:pointer;${_adminTab==='rooms'?'background:rgba(52,152,236,.15);color:#3498ec':'background:transparent;color:rgba(255,255,255,.3)'}">Rooms</button>
     <button onclick="_adminTab='stranded';renderAdminPanel(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="flex:1;padding:.4rem;border:none;border-radius:6px;font-family:Inter,sans-serif;font-size:.65rem;font-weight:700;cursor:pointer;${_adminTab==='stranded'?'background:rgba(236,52,82,.15);color:#ec3452':'background:transparent;color:rgba(255,255,255,.3)'}">Stranded</button>
+    <button onclick="_adminTab='pets';renderAdminPanel(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="flex:1;padding:.4rem;border:none;border-radius:6px;font-family:Inter,sans-serif;font-size:.65rem;font-weight:700;cursor:pointer;${_adminTab==='pets'?'background:rgba(255,159,28,.15);color:#ff9f1c':'background:transparent;color:rgba(255,255,255,.3)'}">Pets</button>
     ${isAdmin() ? `<button onclick="_adminTab='mods';renderAdminPanel(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="flex:1;padding:.4rem;border:none;border-radius:6px;font-family:Inter,sans-serif;font-size:.65rem;font-weight:700;cursor:pointer;${_adminTab==='mods'?'background:rgba(168,85,247,.15);color:#a855f7':'background:transparent;color:rgba(255,255,255,.3)'}">Mods</button>` : ''}
   </div>`;
 
@@ -6790,20 +7000,27 @@ async function renderAdminPanel(container) {
   try {
     let items = [];
     if (_adminTab === 'flagged') {
-      const [r1, r2] = await Promise.all([
+      const [r1, r2, r3] = await Promise.all([
         withTimeout(_sb.from('help_posts').select('id,name,location,body,created_at,flagged,user_id').eq('flagged', true).order('created_at', { ascending: false }).limit(50), 6000),
-        withTimeout(_sb.from('stranded_people').select('id,name,current_location,details,created_at,flagged,user_id').eq('flagged', true).order('created_at', { ascending: false }).limit(50), 6000)
+        withTimeout(_sb.from('stranded_people').select('id,name,current_location,details,created_at,flagged,user_id').eq('flagged', true).order('created_at', { ascending: false }).limit(50), 6000),
+        withTimeout(_sb.from('stranded_pets').select('id,name,location,description,created_at,flagged,user_id').eq('flagged', true).order('created_at', { ascending: false }).limit(50), 6000)
       ]);
       if (r1.error) throw new Error('help_posts: ' + r1.error.message);
       if (r2.error) throw new Error('stranded_people: ' + r2.error.message);
+      // r3 may fail if table doesn't exist yet — gracefully handle
       items = [
         ...(r1.data || []).map(p => ({ ...p, _table: 'help_posts', _type: 'Room' })),
-        ...(r2.data || []).map(p => ({ ...p, _table: 'stranded_people', _type: 'Stranded', location: p.current_location, body: p.details }))
+        ...(r2.data || []).map(p => ({ ...p, _table: 'stranded_people', _type: 'Stranded', location: p.current_location, body: p.details })),
+        ...((r3.data || []).map(p => ({ ...p, _table: 'stranded_pets', _type: 'Pet', body: p.description })))
       ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     } else if (_adminTab === 'rooms') {
       const { data, error } = await withTimeout(_sb.from('help_posts').select('id,name,location,body,created_at,flagged,user_id').eq('type', 'offer').order('created_at', { ascending: false }).limit(100), 6000);
       if (error) throw new Error(error.message);
       items = (data || []).map(p => ({ ...p, _table: 'help_posts', _type: 'Room' }));
+    } else if (_adminTab === 'pets') {
+      const { data, error } = await withTimeout(_sb.from('stranded_pets').select('id,name,location,description,animal_type,pet_status,created_at,flagged,user_id').order('created_at', { ascending: false }).limit(100), 6000);
+      if (error) throw new Error(error.message);
+      items = (data || []).map(p => ({ ...p, _table: 'stranded_pets', _type: 'Pet', body: p.description }));
     } else {
       const { data, error } = await withTimeout(_sb.from('stranded_people').select('id,name,current_location,details,created_at,flagged,user_id').order('created_at', { ascending: false }).limit(100), 6000);
       if (error) throw new Error(error.message);
@@ -7205,6 +7422,10 @@ window.addEventListener('DOMContentLoaded',()=>{
   checkXRedirect();
   initStrandedRealtime();
   loadStranded();
+  initPetRealtime();
+  loadPets();
+  initLocationAutocomplete('pet-pet-location','pet-pet-lat','pet-pet-lng','pet-location-ac');
+  initLocationAutocomplete('m-pet-pet-location','m-pet-pet-lat','m-pet-pet-lng','m-pet-location-ac');
   initLocationAutocomplete('stranded-location','stranded-lat','stranded-lng','stranded-location-ac');
   initLocationAutocomplete('m-stranded-location','m-stranded-lat','m-stranded-lng','m-stranded-location-ac');
   // Seed placeholder dashes in flip columns before data arrives
