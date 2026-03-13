@@ -937,7 +937,7 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
 .help-panel-head{margin-bottom:.9rem;padding-right:2rem;}
 .help-panel-ticker{
   display:flex;align-items:center;gap:.4rem;
-  font-size:1.25rem;font-weight:900;letter-spacing:-.02em;
+  font-size:2rem;font-weight:900;letter-spacing:-.03em;
   background:linear-gradient(135deg,var(--accent),#c084fc);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
   margin-bottom:.18rem;
@@ -983,14 +983,14 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
 
 /* Toggle bar */
 .help-toggle-bar{
-  display:flex;background:rgba(255,255,255,.05);border-radius:10px;
+  display:flex;justify-content:center;background:rgba(255,255,255,.05);border-radius:10px;
   padding:3px;gap:3px;margin-bottom:1rem;
   border:1px solid rgba(255,255,255,.08);
 }
 .help-toggle-btn{
   flex:1;padding:.48rem .5rem;border:none;border-radius:8px;
   font-family:'Inter',sans-serif;font-size:.7rem;font-weight:800;
-  letter-spacing:.04em;cursor:pointer;transition:all .2s;
+  letter-spacing:.04em;cursor:pointer;transition:all .2s;text-align:center;
   color:rgba(255,255,255,.35);background:transparent;
 }
 .help-toggle-btn.active{background:#fff;color:#000;}
