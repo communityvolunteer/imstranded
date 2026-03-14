@@ -3321,7 +3321,7 @@ function buildContactIcons(contact, xhandle, name) {
 }
 
 function buildFlagButton(table, id) {
-  return `<button onclick="event.stopPropagation();flagPost('${table}','${id}')" style="display:inline-flex;align-items:center;gap:3px;margin-top:.35rem;padding:.2rem .5rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:5px;color:rgba(255,255,255,.3);font-size:.55rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif" title="Flag for review"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> Flag</button>`;
+  return `<button onclick="event.stopPropagation();flagPost('${table}','${id}')" style="display:inline-flex;align-items:center;gap:3px;margin-top:.35rem;padding:.2rem .5rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:5px;color:rgba(255,255,255,.3);font-size:.55rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif" title="Flag for review"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> Flag</button>`;
 }
 
 // ── User dot builder (matches IMPACTED dot style) ────────────
@@ -4301,7 +4301,7 @@ function mRenderResources(){
   let html='';
 
   // Hero header
-  html += `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1rem 0 1.2rem"><button onclick="mSheetToggle()" style="position:absolute;top:.7rem;right:.7rem;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.6);font-size:.9rem">✕</button><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="${accentHex()}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.5rem"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg><div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">RESOURCES</div><div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-top:.35rem">Embassies, NGOs &amp; emergency contacts</div></div>`;
+  html += `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1rem 0 1.2rem"><button onclick="mSheetToggle()" style="position:absolute;top:.7rem;right:.7rem;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.6);font-size:.9rem">✕</button><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="${accentHex()}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.5rem"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">RESOURCES</div><div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-top:.35rem">Embassies, NGOs &amp; emergency contacts</div></div>`;
 
   // Smart finder for mobile
   html += `<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:.8rem;margin-bottom:.8rem">
@@ -5303,7 +5303,6 @@ async function renderMobileProfileView() {
     // Profile photo — inline next to name (no longer shown, hero above handles it)
     const avatarPhoto = document.getElementById('m-profile-avatar-photo');
     const avatarSvg   = document.getElementById('m-profile-avatar-svg');
-   
     if (avatarPhoto && _currentProfile?.avatar_url) {
       avatarPhoto.src = _currentProfile.avatar_url;
       avatarPhoto.style.display = 'block';
@@ -7734,7 +7733,7 @@ function openResourcesSidebar(hostCC) {
     setTimeout(() => {
       body.innerHTML = '<div id="pc-manage-content"></div>';
       if (title) {
-        title.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="'+accentHex()+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:.3rem"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> RESOURCES';
+        title.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="'+accentHex()+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:.3rem"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> RESOURCES';
         title.style.color = accentHex();
         title.style.fontSize = '.85rem';
       }
@@ -7789,13 +7788,20 @@ function renderResourcesSidebar(container) {
     for (const [cc, n] of nats) natOpts += `<option value="${cc}" ${cc===natCC?'selected':''}>${n.flag} ${n.name}</option>`;
   }
 
-  let html = `<div style="margin-bottom:.8rem">
+  const isMobile = isMob();
+  const heroSize = isMobile ? 48 : 54;
+  const titleSize = isMobile ? '28px' : '35px';
+  const GRID_SVG = `<svg width="${heroSize}" height="${heroSize}" viewBox="0 0 24 24" fill="none" stroke="${accentHex()}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.6rem"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>`;
+
+  let html = `<div style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1.4rem">${isMobile ? '<button onclick="mSheetToggle()" style="position:absolute;top:.3rem;right:.3rem;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.6);font-size:.9rem">✕</button>' : ''}${GRID_SVG}<div style="font-size:${titleSize};font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">RESOURCES</div><div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">Embassies, NGOs &amp; emergency contacts</div></div>`;
+
+  html += `<div style="margin-bottom:.8rem">
     <label style="font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.3);display:block;margin-bottom:.2rem">I'm stuck in</label>
-    <select id="res-sb-host" onchange="_resHostCC=this.value;renderResourcesSidebar(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.45rem;color:#fff;font-family:Inter,sans-serif;font-size:.78rem;font-weight:600;color-scheme:dark">${hostOpts}</select>
+    <select id="res-sb-host" onchange="_resHostCC=this.value;renderResourcesSidebar(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="width:100%;background:#111;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:.45rem;color:#fff;font-family:Inter,sans-serif;font-size:.78rem;font-weight:600;color-scheme:dark">${hostOpts}</select>
   </div>
   <div style="margin-bottom:.8rem">
     <label style="font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.3);display:block;margin-bottom:.2rem">I'm from</label>
-    <select id="res-sb-nat" onchange="_resNatCC=this.value;renderResourcesSidebar(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.45rem;color:#fff;font-family:Inter,sans-serif;font-size:.78rem;font-weight:600;color-scheme:dark">${natOpts}</select>
+    <select id="res-sb-nat" onchange="_resNatCC=this.value;renderResourcesSidebar(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="width:100%;background:#111;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:.45rem;color:#fff;font-family:Inter,sans-serif;font-size:.78rem;font-weight:600;color-scheme:dark">${natOpts}</select>
   </div>`;
 
   if (!hostCC) {
