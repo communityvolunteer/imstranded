@@ -1259,7 +1259,7 @@ function googleTranslateInit() {
 </div>
 
 <!-- $HELP Panel — body-level so it works on both PC and mobile -->
-<div id="help-money-modal">
+<div id="help-money-modal" onclick="if(event.target===this)dismissHelp()">
   <div class="help-panel-inner">
 
     <!-- Close -->

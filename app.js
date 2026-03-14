@@ -4869,7 +4869,7 @@ function renderProfileView() {
     updateVerifyStatus('google', _currentProfile?.google_verified);
     updateVerifyStatus('x', _currentProfile?.x_verified);
     updateVerifyStatus('tg', _currentProfile?.tg_verified);
-    // Big badge next to name — accent if any verified, gray if not
+    // Big badge next to name — signature blue #3498ec if verified, gray if not
     _updateProfileNameBadge();
     updateActionButtons();
   } else {
@@ -5538,7 +5538,7 @@ function refreshHelpPanel() {
     s1num?.classList.add('done');
     const isVerified = xOk && tgOk && gOk;
     const badge = isVerified
-      ? '<span style="display:inline-flex;align-items:center;gap:.2rem;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);border-radius:6px;padding:.1rem .35rem;font-size:.55rem;font-weight:700;color:#22c55e;margin-left:.35rem;vertical-align:middle">🟢 Verified</span>'
+      ? '<span style="display:inline-flex;align-items:center;gap:.2rem;background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.15);border:1px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.3);border-radius:6px;padding:.1rem .35rem;font-size:.55rem;font-weight:700;color:var(--accent);margin-left:.35rem;vertical-align:middle">✓ Verified</span>'
       : '<span style="display:inline-flex;align-items:center;gap:.2rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.1rem .35rem;font-size:.55rem;font-weight:700;color:rgba(255,255,255,.35);margin-left:.35rem;vertical-align:middle">⚪ Unverified</span>';
     if (s1desc) s1desc.innerHTML = `Connected as <strong style="color:#fff">@${p.x_handle}</strong> ${badge}`;
     if (s1btn) {
@@ -5580,8 +5580,8 @@ function refreshHelpPanel() {
     btn.textContent = linked ? '✓ Connected' : 'Connect';
     btn.classList.toggle('linked', linked);
     btn.disabled = linked;
-    if (linked) btn.style.opacity = '.6';
-    else btn.style.opacity = '';
+    if (linked) { btn.style.opacity = '1'; btn.style.color = 'var(--accent)'; }
+    else { btn.style.opacity = ''; btn.style.color = ''; }
   }
   setDot('hr-dot-x', xOk);  setLinkBtn('hr-btn-x', xOk);
   setDot('hr-dot-tg', tgOk); setLinkBtn('hr-btn-tg', tgOk);

@@ -934,7 +934,15 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
   cursor:pointer;transition:background .15s;z-index:1;
 }
 .help-panel-x:hover{background:rgba(255,255,255,.18);}
-.help-panel-head{margin-bottom:.9rem;padding-right:2rem;text-align:center;}
+.help-panel-head{margin-bottom:.9rem;text-align:center;}
+
+/* Brighter CA line */
+.help-buy-ca{
+  font-size:.55rem;color:rgba(255,255,255,.6);cursor:pointer;user-select:all;
+  font-family:monospace;letter-spacing:.02em;margin-bottom:.3rem;
+  transition:color .2s;
+}
+.help-buy-ca:hover{color:#fff;}
 .help-panel-ticker{
   display:flex;align-items:center;gap:.4rem;
   font-size:2.6rem;font-weight:900;letter-spacing:-.04em;line-height:1;
@@ -970,12 +978,6 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
 .help-buy-name{
   font-size:.6rem;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.01em;
 }
-.help-buy-ca{
-  font-size:.55rem;color:rgba(255,255,255,.25);cursor:pointer;user-select:all;
-  font-family:monospace;letter-spacing:.02em;margin-bottom:.3rem;
-  transition:color .2s;
-}
-.help-buy-ca:hover{color:rgba(255,255,255,.45);}
 .help-buy-bankr{
   font-size:.58rem;color:rgba(255,255,255,.3);line-height:1.5;
 }
@@ -1008,7 +1010,7 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
   font-size:.62rem;font-weight:800;color:rgba(255,255,255,.3);
   margin-top:.1rem;transition:all .3s;
 }
-.hstep-num.done{background:rgba(34,197,94,.18);color:#22c55e;}
+.hstep-num.done{background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.18);color:var(--accent);}
 .hstep-body{flex:1;min-width:0;}
 .hstep-title{font-size:.82rem;font-weight:700;color:#fff;margin-bottom:.22rem;}
 .hstep-desc{font-size:.74rem;color:rgba(255,255,255,.4);line-height:1.6;margin-bottom:.5rem;}
@@ -1033,7 +1035,7 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
 .hstep-btn + .hstep-btn{margin-left:.35rem;}
 .hstep-btn:hover{opacity:.78;text-decoration:none;}
 .hstep-btn--x{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.12);}
-.hstep-btn--x.done{background:rgba(34,197,94,.12);color:#22c55e;border-color:rgba(34,197,94,.2);pointer-events:none;}
+.hstep-btn--x.done{background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.12);color:var(--accent);border-color:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.2);pointer-events:none;}
 .hstep-btn--blue{background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.13);color:var(--accent);border:1px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.22);}
 .hstep-btn--purple{background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.13);color:var(--accent);border:1px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.22);}
 .hstep-btn--red{background:rgba(236,52,82,.1);color:#ec3452;border:1px solid rgba(236,52,82,.18);}
@@ -1051,7 +1053,7 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
   width:7px;height:7px;border-radius:50%;flex-shrink:0;
   background:rgba(255,255,255,.1);transition:background .3s;
 }
-.hstep-social-dot.linked{background:#22c55e;box-shadow:0 0 5px rgba(34,197,94,.4);}
+.hstep-social-dot.linked{background:var(--accent);box-shadow:0 0 5px rgba(var(--accent-r),var(--accent-g),var(--accent-b),.4);}
 .hstep-link-btn{
   margin-left:auto;padding:.18rem .55rem;border-radius:6px;
   background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
@@ -1060,8 +1062,8 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
 }
 .hstep-link-btn:hover{background:rgba(255,255,255,.12);color:#fff;}
 .hstep-link-btn.linked{
-  background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.2);
-  color:#22c55e;pointer-events:none;
+  background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.08);border-color:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.2);
+  color:var(--accent);pointer-events:none;
 }
 
 /* Bankr note */
@@ -1091,6 +1093,7 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
     padding:1.2rem 1.1rem calc(1.4rem + env(safe-area-inset-bottom));
     max-height:88dvh;
   }
+  #help-money-modal .help-panel-x{display:none;}
 }
 /* Theme toggle in header */
 .theme-header-btn{
