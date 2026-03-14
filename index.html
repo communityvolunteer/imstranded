@@ -1304,12 +1304,12 @@ function googleTranslateInit() {
 
     <!-- Toggle -->
     <div class="help-toggle-bar">
-      <button class="help-toggle-btn active" id="htab-send" onclick="switchHelpTab('send')">SEND HELP</button>
-      <button class="help-toggle-btn" id="htab-receive" onclick="switchHelpTab('receive')">RECEIVE HELP</button>
+      <button class="help-toggle-btn" id="htab-send" onclick="switchHelpTab('send')">SEND HELP</button>
+      <button class="help-toggle-btn active" id="htab-receive" onclick="switchHelpTab('receive')">RECEIVE HELP</button>
     </div>
 
     <!-- SEND PANEL -->
-    <div id="help-send-panel">
+    <div id="help-send-panel" style="display:none">
 
       <!-- Step 1 -->
       <div class="hstep" id="hs-s1">
@@ -1360,7 +1360,7 @@ function googleTranslateInit() {
     </div>
 
     <!-- RECEIVE PANEL -->
-    <div id="help-receive-panel" style="display:none">
+    <div id="help-receive-panel">
 
       <!-- Step 1 -->
       <div class="hstep" id="hr-s1">

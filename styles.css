@@ -934,7 +934,7 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
   cursor:pointer;transition:background .15s;z-index:1;
 }
 .help-panel-x:hover{background:rgba(255,255,255,.18);}
-.help-panel-head{margin-bottom:.9rem;padding-right:2rem;}
+.help-panel-head{margin-bottom:.9rem;padding-right:2rem;text-align:center;}
 .help-panel-ticker{
   display:flex;align-items:center;gap:.4rem;
   font-size:2.6rem;font-weight:900;letter-spacing:-.04em;line-height:1;
