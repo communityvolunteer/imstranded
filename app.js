@@ -5584,6 +5584,15 @@ function refreshHelpPanel() {
     }
   }
 
+  // Send steps 2 & 3 — go solid when X is connected
+  const s2num = document.getElementById('hs-s2-num');
+  const s2btn = document.getElementById('hs-s2-btn');
+  const s3num = document.getElementById('hs-s3-num');
+  if (s2num) s2num.classList.toggle('done', xOk);
+  if (s2btn) s2btn.classList.toggle('done', xOk);
+  if (s3num) s3num.classList.toggle('done', xOk);
+  if (s3btn) s3btn.classList.toggle('done', xOk);
+
   // ── RECEIVE panel ────────────────────────────────────────
   // Step 1 socials
   function setDot(id, linked) {
@@ -5606,6 +5615,21 @@ function refreshHelpPanel() {
   // Step 1 num — green if at least X connected (required for tipping)
   const r1num = document.getElementById('hr-s1-num');
   if (r1num) r1num.classList.toggle('done', xOk);
+
+  // Receive step 2 — solid when user has an active offer or stranded post
+  const r2num = document.getElementById('hr-s2-num');
+  const r2offerBtn = document.getElementById('hr-s2-offer-btn');
+  const r2strandedBtn = document.getElementById('hr-s2-stranded-btn');
+  const hasPost = !!(_hasActiveOffer || _hasActiveStranded);
+  if (r2num) r2num.classList.toggle('done', hasPost);
+  if (r2offerBtn) r2offerBtn.classList.toggle('done', _hasActiveOffer);
+  if (r2strandedBtn) r2strandedBtn.classList.toggle('done', _hasActiveStranded);
+
+  // Receive step 3 — solid when X is connected
+  const r3num = document.getElementById('hr-s3-num');
+  const r3btn = document.getElementById('hr-s3-btn');
+  if (r3num) r3num.classList.toggle('done', xOk);
+  if (r3btn) r3btn.classList.toggle('done', xOk);
 }
 
 // ── $HELP modal self-contained connect functions ─────────────

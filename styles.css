@@ -1036,6 +1036,8 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
 .hstep-btn:hover{opacity:.78;text-decoration:none;}
 .hstep-btn--x{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.12);}
 .hstep-btn--x.done{background:var(--accent);color:#fff;border-color:var(--accent);pointer-events:none;}
+.hstep-btn--blue.done,.hstep-btn--purple.done{background:var(--accent);color:#fff;border-color:var(--accent);}
+.hstep-btn--ghost.done{background:var(--accent);color:#fff;border-color:var(--accent);}
 .hstep-btn--blue{background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.13);color:var(--accent);border:1px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.22);}
 .hstep-btn--purple{background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.13);color:var(--accent);border:1px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.22);}
 .hstep-btn--red{background:rgba(236,52,82,.1);color:#ec3452;border:1px solid rgba(236,52,82,.18);}
