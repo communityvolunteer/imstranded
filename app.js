@@ -4967,6 +4967,17 @@ function renderProfileView() {
   if (isLoggedIn()) {
     loginEl.style.display = 'none';
     mainEl.style.display = 'block';
+    // Hero avatar
+    const heroImg = document.getElementById('pc-profile-hero-img');
+    const heroSvg = document.getElementById('pc-profile-hero-svg');
+    if (heroImg && _currentProfile?.avatar_url) {
+      heroImg.src = _currentProfile.avatar_url;
+      heroImg.style.display = 'block';
+      if (heroSvg) heroSvg.style.display = 'none';
+    } else if (heroImg) {
+      heroImg.style.display = 'none';
+      if (heroSvg) heroSvg.style.display = '';
+    }
     // Update name + email display
     const nameEl = document.getElementById('profile-display-name');
     const emailEl = document.getElementById('profile-email');
@@ -5267,7 +5278,18 @@ async function renderMobileProfileView() {
       const verified = _currentProfile?.google_verified || _currentProfile?.x_verified || _currentProfile?.tg_verified;
       nameEl.innerHTML = esc(_currentProfile?.display_name || _currentUser.email) + ' ' + buildBadge(verified);
     }
-    // Profile photo
+    // Profile photo — hero circle at top
+    const mHeroImg = document.getElementById('m-profile-hero-img');
+    const mHeroSvg = document.getElementById('m-profile-hero-svg');
+    if (mHeroImg && _currentProfile?.avatar_url) {
+      mHeroImg.src = _currentProfile.avatar_url;
+      mHeroImg.style.display = 'block';
+      if (mHeroSvg) mHeroSvg.style.display = 'none';
+    } else if (mHeroImg) {
+      mHeroImg.style.display = 'none';
+      if (mHeroSvg) mHeroSvg.style.display = '';
+    }
+    // Profile photo — inline next to name
     const avatarPhoto = document.getElementById('m-profile-avatar-photo');
     const avatarSvg = document.getElementById('m-profile-avatar-svg');
     if (avatarPhoto && _currentProfile?.avatar_url) {
