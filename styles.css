@@ -950,9 +950,15 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
 .help-panel-ticker{
   display:flex;align-items:center;justify-content:center;gap:.4rem;
   font-size:2.6rem;font-weight:900;letter-spacing:-.04em;line-height:1;
-  background:linear-gradient(135deg,var(--accent),#c084fc);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  color:#fff;
   margin-bottom:.25rem;
+}
+@media(max-width:600px){
+  .help-panel-ticker{
+    background:linear-gradient(135deg,var(--accent),#c084fc);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    color:transparent;
+  }
 }
 .help-panel-sub{font-size:.7rem;color:rgba(255,255,255,.28);line-height:1.5;}
 
@@ -2096,5 +2102,11 @@ font-size: clamp(.45rem, 1.2vw, .58rem);
   pointer-events: none;
   opacity: 0;
   transition: opacity .25s ease;
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
 }
-.sidebar-overlay.active { opacity: 1; }
+.sidebar-overlay.active {
+  opacity: 1;
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
