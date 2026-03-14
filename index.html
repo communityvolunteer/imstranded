@@ -721,6 +721,10 @@ function googleTranslateInit() {
 
     <!-- Logged-in state -->
     <div id="profile-main" style="display:none;padding:2rem 0">
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:.4rem 0 1.4rem">
+        <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.6rem"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">MY PROFILE</div>
+      </div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
         <div>
           <div style="display:flex;align-items:center;gap:.5rem">
@@ -1241,6 +1245,10 @@ function googleTranslateInit() {
         </div>
         <!-- Mobile profile main -->
         <div id="m-profile-main" style="display:none">
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:.4rem 0 1rem">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.5rem"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">MY PROFILE</div>
+          </div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
             <div style="font-size:.82rem;font-weight:700;color:#fff" id="m-profile-display-name"></div>
             <button onclick="doSignOut()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.45);border-radius:7px;padding:.28rem .65rem;font-size:.65rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Sign Out</button>
