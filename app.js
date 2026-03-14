@@ -4005,7 +4005,7 @@ function initMobile(){
     mmap.on('zoomend', () => applyFilters());
 
     try {
-      window._mTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mmap);
+      window._mTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mmap);
 
       mmap.createPane('worldwidePane');
       mmap.getPane('worldwidePane').style.zIndex = 580;
@@ -4048,15 +4048,15 @@ function initMobile(){
 
       mRenderResources();
 
-      // Mobile defaults to dark map
-      _mapDark = true;
-      document.body.classList.remove('map-light');
-      document.querySelectorAll('.leaflet-control-zoom').forEach(el => el.classList.remove('theme-light'));
+      // Mobile defaults to light map
+      _mapDark = false;
+      document.body.classList.add('map-light');
+      document.querySelectorAll('.leaflet-control-zoom').forEach(el => el.classList.add('theme-light'));
       ['','m-'].forEach(prefix => {
         const sun = document.getElementById(prefix + 'theme-icon-sun');
         const moon = document.getElementById(prefix + 'theme-icon-moon');
-        if (sun) sun.style.display = 'block';
-        if (moon) moon.style.display = 'none';
+        if (sun) sun.style.display = 'none';
+        if (moon) moon.style.display = 'block';
       });
 
       // Mobile: turn off route arcs by default

@@ -872,10 +872,16 @@ function googleTranslateInit() {
       Back Home
     </a>
 
-    <!-- Admin pill (center, hidden by default) -->
-    <a class="m-map-pill m-map-pill--center" id="m-admin-pill" href="#" onclick="toggleAdminPanel();return false;" style="display:none;background:#ec3452;color:#fff;border-color:rgba(236,52,82,.3)">
+    <!-- Admin pill (above MY PROFILE, hidden by default) -->
+    <a class="m-map-pill m-map-pill--right" id="m-admin-pill" href="#" onclick="toggleAdminPanel();return false;" style="display:none;background:#ec3452;color:#fff;border-color:rgba(236,52,82,.3);bottom:calc(1.2rem + 2.6rem + .5rem)">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       Admin
+    </a>
+
+    <!-- Paw / Pets pill (center) -->
+    <a class="m-map-pill m-map-pill--center" id="m-pets-pill" href="#" onclick="mTab('pets',null);return false;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="4" r="1.5"/><circle cx="17" cy="4" r="1.5"/><circle cx="4" cy="10" r="1.5"/><circle cx="20" cy="10" r="1.5"/><path d="M12 22c-2 0-7-4.5-7-9 0-2.5 2-4 4-3.5.8.2 1.8.5 3 .5s2.2-.3 3-.5c2-.5 4 1 4 3.5 0 4.5-5 9-7 9z"/></svg>
+      STRANDED PETS
     </a>
 
     <!-- My Profile pill (right) -->

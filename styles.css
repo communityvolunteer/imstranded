@@ -2001,7 +2001,7 @@ font-size: clamp(.45rem, 1.2vw, .58rem);
   background: #fff !important;
   color: #000 !important;
 }
-.m-tab-spare svg { stroke: #3498ec !important; }
+.m-tab-spare svg { stroke: var(--accent) !important; }
 
 /* ── LIGHT MAP THEME: darker dots + text ─────────────────── */
 .map-light .gd-cluster-num {
