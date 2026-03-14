@@ -2114,7 +2114,3 @@ font-size: clamp(.45rem, 1.2vw, .58rem);
 #form-sidebar-body #help-panel-pets .post-form {
   padding: 0 !important;
 }
-
-/* Pet mode toggle — full-width fp-chip pills */
-#pet-mode-toggle,#m-pet-mode-toggle{flex-wrap:nowrap;}
-#pet-mode-toggle .fp-chip,#m-pet-mode-toggle .fp-chip{flex:1;justify-content:center;}
