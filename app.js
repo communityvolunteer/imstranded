@@ -1585,7 +1585,7 @@ function updateStrandedLabel(atIata, toIata, filteredGlobal, reverseData) {
     if (pcSub) pcSub.textContent = atIata + ' \u00b7 ' + (g.airlines||[]).length + ' airlines';
     if (mLabel) mLabel.innerHTML = 'AT ' + city.toUpperCase() + '<br>' + atIata;
   } else {
-    if (pcLabel) pcLabel.innerHTML = 'People Impacted <span style="font-size:.55rem;color:rgba(255,255,255,.3);font-weight:500;letter-spacing:.01em">since Mar 1</span>';
+    if (pcLabel) pcLabel.innerHTML = 'People Impacted <span style="font-size:.55rem;color:var(--accent);font-weight:700;letter-spacing:.01em">since Mar 1</span>';
     // Restore +today into the sub — read cached value from the today span if present
     if (pcSub) {
       const todayEl = document.getElementById('stat-stranded-today');
@@ -1594,7 +1594,7 @@ function updateStrandedLabel(atIata, toIata, filteredGlobal, reverseData) {
         ? `<span id="stat-stranded-today" style="color:'+accentHex()+';font-weight:700">${todayVal}</span><span id="stat-stranded-today-label">\u00a0today</span>`
         : `<span id="stat-stranded-today" style="color:'+accentHex()+';font-weight:700"></span><span id="stat-stranded-today-label">tap \u00b7 see how</span>`;
     }
-    if (mLabel) mLabel.innerHTML = 'PEOPLE IMPACTED <span style="font-size:.52rem;color:rgba(255,255,255,.3);font-weight:400;letter-spacing:.01em">· since Mar 1</span>';
+    if (mLabel) mLabel.innerHTML = 'PEOPLE IMPACTED <span style="font-size:.52rem;color:var(--accent);font-weight:700;letter-spacing:.01em">· SINCE MAR 1</span>';
     refreshStrandedCount();
   }
 }
@@ -5605,8 +5605,8 @@ function refreshHelpPanel() {
     btn.textContent = linked ? '✓ Connected' : 'Connect';
     btn.classList.toggle('linked', linked);
     btn.disabled = linked;
-    if (linked) { btn.style.opacity = '1'; btn.style.color = '#fff'; }
-    else { btn.style.opacity = ''; btn.style.color = ''; }
+    if (linked) { btn.style.opacity = '1'; btn.style.color = '#fff'; btn.style.background = '#3498ec'; btn.style.borderColor = '#3498ec'; }
+    else { btn.style.opacity = ''; btn.style.color = ''; btn.style.background = ''; btn.style.borderColor = ''; }
   }
   setDot('hr-dot-x', xOk);  setLinkBtn('hr-btn-x', xOk);
   setDot('hr-dot-tg', tgOk); setLinkBtn('hr-btn-tg', tgOk);
@@ -7589,7 +7589,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   else {
     showView('map');
     // Initialize sidebar-aware community bar centering (sidebar starts open)
-    document.getElementById('map-view')?.style.setProperty('--sidebar-w', '280px');
+    document.getElementById('map-view')?.style.setProperty('--sidebar-w', '290px');
   }
   // Init autocomplete on both desktop and mobile location fields
   initLocationAutocomplete('offer-location','offer-lat','offer-lng','offer-location-ac');
