@@ -6738,7 +6738,7 @@ async function updateActionButtons() {
         ? `<span style="display:inline-block;background:#ec3452;color:#fff;font-size:.55rem;font-weight:800;border-radius:10px;padding:.1rem .4rem;margin-left:.3rem;vertical-align:middle">${_pendingRequestCount}</span>`
         : `<span style="display:inline-block;background:rgba(255,255,255,.12);color:rgba(255,255,255,.4);font-size:.55rem;font-weight:800;border-radius:10px;padding:.1rem .4rem;margin-left:.3rem;vertical-align:middle">0</span>`;
       pcOffer.querySelector('.sitrep-sub').innerHTML = 'Requests' + badge;
-      pcOffer.querySelector('svg').outerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke=accentHex() stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
+      pcOffer.querySelector('svg').outerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="'+accentHex()+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
       pcOffer.onclick = () => openManageSidebar('offer');
     } else {
       pcOffer.querySelector('.sitrep-label').textContent = 'Offer Spare Room';
@@ -6826,7 +6826,7 @@ function openManageSidebar(type) {
     const heroColor = type === 'offer' ? accentHex() : '#ec3452';
     const heroIcon = type === 'stranded'
       ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:.3rem"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
-      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke=accentHex() stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:.3rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
+      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="'+accentHex()+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:.3rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
     if (title) {
       title.innerHTML = heroIcon + (type === 'offer' ? 'MY ROOM' : 'MY STATUS');
       title.style.color = heroColor;
@@ -6960,7 +6960,7 @@ function buildProgressTracker(currentStep, labels, color) {
 
 const _svgPin = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
 const _svgHome = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
-const _svgPerson = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke=accentHex() stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+const _svgPerson = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="'+accentHex()+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
 
 function buildStrandedCard(p, match, step) {
   const t = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
@@ -7468,7 +7468,7 @@ function openResourcesSidebar(hostCC) {
     setTimeout(() => {
       body.innerHTML = '<div id="pc-manage-content"></div>';
       if (title) {
-        title.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke=accentHex() stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:.3rem"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> RESOURCES';
+        title.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="'+accentHex()+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:.3rem"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> RESOURCES';
         title.style.color = accentHex();
         title.style.fontSize = '.85rem';
       }
