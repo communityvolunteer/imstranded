@@ -944,7 +944,7 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
 }
 .help-buy-ca:hover{color:#fff;}
 .help-panel-ticker{
-  display:flex;align-items:center;gap:.4rem;
+  display:flex;align-items:center;justify-content:center;gap:.4rem;
   font-size:2.6rem;font-weight:900;letter-spacing:-.04em;line-height:1;
   background:linear-gradient(135deg,var(--accent),#c084fc);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
@@ -986,7 +986,7 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
 /* Toggle bar */
 .help-toggle-bar{
   display:flex;justify-content:center;background:rgba(255,255,255,.05);border-radius:10px;
-  padding:3px;gap:3px;margin-bottom:1rem;
+  padding:3px;gap:3px;margin:0 auto 1rem;width:70%;
   border:1px solid rgba(255,255,255,.08);
 }
 .help-toggle-btn{
@@ -1094,6 +1094,7 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
     max-height:88dvh;
   }
   #help-money-modal .help-panel-x{display:none;}
+  .help-toggle-bar{width:100%;}
 }
 /* Theme toggle in header */
 .theme-header-btn{
