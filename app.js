@@ -1150,13 +1150,14 @@ function getFilterState() {
 
   const showPets        = v('show-pets')       ?? true;
   const petStatus       = v('pet-status')      || '';
+  const showFostering   = v('show-fostering')  ?? true;
 
   const destCountry = val(P + '-filter-dest-country') || val(S + '-filter-dest-country') || '';
   const destAirport = val(P + '-filter-dest-airport') || val(S + '-filter-dest-airport') || '';
   const atIata = _filterAtIata || val(P + '-at-iata') || val(S + '-at-iata') || '';
   const toIata = _filterToIata || val(P + '-to-iata') || val(S + '-to-iata') || '';
 
-  return { showOffers, offersVerified, offerTypes, showStranded, strandedVerified, nationality, strandedNeeds, groupSize, showWorldwide, destCountry, destAirport, showArcs, atIata, toIata, showSuccess, showSuccessArcs, showHome, showPets, petStatus };
+  return { showOffers, offersVerified, offerTypes, showStranded, strandedVerified, nationality, strandedNeeds, groupSize, showWorldwide, destCountry, destAirport, showArcs, atIata, toIata, showSuccess, showSuccessArcs, showHome, showPets, petStatus, showFostering };
 }
 
 function applyFilters() {
@@ -1322,9 +1323,20 @@ function applyFilters() {
   
   // ── Filter & re-render pets ──
   const filteredPets = _petPosts.filter(p => {
+    const isFostering = p.pet_status === 'can_foster';
+    if (isFostering) return f.showFostering;
     if (!f.showPets) return false;
     if (f.petStatus && p.pet_status !== f.petStatus) return false;
     return true;
+  });
+  // Update filter badges
+  const needCount = filteredPets.filter(p => p.pet_status !== 'can_foster').length;
+  const fosterCount = filteredPets.filter(p => p.pet_status === 'can_foster').length;
+  ['pet-count-badge','m-pet-count-badge'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.textContent = needCount || '';
+  });
+  ['fp-badge-fostering','mfp-badge-fostering'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.textContent = fosterCount || '';
   });
   renderFilteredPets(window._crisisMap, false, pcMerge  ? [] : filteredPets);
   renderFilteredPets(window._mobileMap, true,  mobMerge ? [] : filteredPets);
@@ -5255,6 +5267,17 @@ async function renderMobileProfileView() {
       const verified = _currentProfile?.google_verified || _currentProfile?.x_verified || _currentProfile?.tg_verified;
       nameEl.innerHTML = esc(_currentProfile?.display_name || _currentUser.email) + ' ' + buildBadge(verified);
     }
+    // Profile photo
+    const avatarPhoto = document.getElementById('m-profile-avatar-photo');
+    const avatarSvg = document.getElementById('m-profile-avatar-svg');
+    if (avatarPhoto && _currentProfile?.avatar_url) {
+      avatarPhoto.src = _currentProfile.avatar_url;
+      avatarPhoto.style.display = 'block';
+      if (avatarSvg) avatarSvg.style.display = 'none';
+    } else if (avatarPhoto) {
+      avatarPhoto.style.display = 'none';
+      if (avatarSvg) avatarSvg.style.display = '';
+    }
     updateVerifyStatus('google', _currentProfile?.google_verified);
     updateVerifyStatus('x', _currentProfile?.x_verified);
     updateVerifyStatus('tg', _currentProfile?.tg_verified);
@@ -6138,6 +6161,38 @@ function initPetRealtime() {
 // ============================================================
 // PET PHOTO — client-side compress + Supabase Storage upload
 // ============================================================
+// ============================================================
+// PET FORM MODE TOGGLE — CAN TAKE A PET / PET NEEDS HOME
+// ============================================================
+function setPetMode(prefix, mode) {
+  const needsBtn   = document.getElementById(prefix + '-mode-needs');
+  const takeBtn    = document.getElementById(prefix + '-mode-take');
+  const needsEl    = document.getElementById(prefix + '-needs-fields');
+  const takeEl     = document.getElementById(prefix + '-take-fields');
+  if (!needsBtn || !takeBtn) return;
+  const ON  = { background: 'var(--accent)', color: '#000' };
+  const OFF = { background: 'transparent', color: 'rgba(255,255,255,.45)' };
+  if (mode === 'needs') {
+    Object.assign(needsBtn.style, ON);
+    Object.assign(takeBtn.style, OFF);
+    if (needsEl) needsEl.style.display = '';
+    if (takeEl)  takeEl.style.display  = 'none';
+  } else {
+    Object.assign(takeBtn.style, ON);
+    Object.assign(needsBtn.style, OFF);
+    if (needsEl) needsEl.style.display = 'none';
+    if (takeEl)  takeEl.style.display  = '';
+  }
+}
+
+function getPetStatus(prefix) {
+  // Check which mode is active
+  const takeBtn = document.getElementById(prefix + '-mode-take');
+  const isTake = takeBtn && takeBtn.style.background !== 'transparent' && takeBtn.style.color === '#000';
+  if (isTake) return 'can_foster';
+  return document.getElementById(prefix + '-pet-status')?.value || '';
+}
+
 function previewPetPhoto(input, prefix) {
   const file = input.files[0];
   if (!file) return;
@@ -6204,7 +6259,7 @@ async function uploadPetPhoto(prefix) {
 }
 
 async function submitPet(prefix) {
-  const status = document.getElementById(prefix + '-pet-status')?.value;
+  const status = getPetStatus(prefix);
   const animalType = document.getElementById(prefix + '-pet-animal')?.value;
   const petName = document.getElementById(prefix + '-pet-name')?.value?.trim() || '';
   const desc = document.getElementById(prefix + '-pet-desc')?.value?.trim();
@@ -6917,6 +6972,28 @@ async function updateActionButtons() {
     }
   }
 
+  // ── Pets sitrep + paw subtitle ──
+  try {
+    const myPetPost = _petPosts.find(p => p.user_id === _currentUser?.id);
+    const petSub  = document.getElementById('ss-pets-sub');
+    const pawSub  = document.getElementById('m-pets-pill-sub');
+    if (myPetPost) {
+      // Count pet_matches where this user's post was involved
+      const { count } = await withTimeout(
+        _sb.from('pet_matches').select('id', { count: 'exact', head: true })
+          .or(`pet_post_id.eq.${myPetPost.id},foster_post_id.eq.${myPetPost.id}`), 4000);
+      const txt = count > 0 ? `${count} response${count > 1 ? 's' : ''}` : 'tap · report';
+      if (petSub) petSub.textContent = txt;
+      if (pawSub) pawSub.textContent = count > 0 ? `${count} response${count > 1 ? 's' : ''}` : '';
+    } else {
+      if (petSub) petSub.textContent = 'tap · report';
+      if (pawSub) pawSub.textContent = '';
+    }
+  } catch(e) {
+    const petSub = document.getElementById('ss-pets-sub');
+    if (petSub) petSub.textContent = 'tap · report';
+  }
+
   // ── Mobile buttons ──
   const mOffer = document.getElementById('mss-offer');
   const mTabSpare = document.getElementById('mtab-spare');
@@ -7048,7 +7125,9 @@ async function renderManageDashboard(type) {
     if (!p) { container.innerHTML = '<div style="text-align:center;padding:2rem 0;color:rgba(255,255,255,.4)">No active registration.</div>'; return; }
 
     const step = match?.home_lat ? 3 : match?.offer_confirmed ? 2 : 1;
-    const strandedHero = isMob() ? '' : `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1.4rem"><svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.6rem"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">MY STATUS</div><div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">Track your registration and match progress.</div></div>`;
+    const strandedHero = isMob()
+      ? `<div style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1rem"><button onclick="mSheetToggle()" style="position:absolute;top:.3rem;right:.3rem;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.6);font-size:.9rem">✕</button><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.5rem"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">MY STATUS</div></div>`
+      : `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1.4rem"><svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.6rem"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">MY STATUS</div><div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">Track your registration and match progress.</div></div>`;
     container.innerHTML = strandedHero + buildProgressTracker(step, ['Registered', 'Matched', 'Home'], '#ec3452') + buildStrandedCard(p, match, step);
 
   // ── OFFER ──
@@ -7090,7 +7169,9 @@ async function renderManageDashboard(type) {
     } catch(e) {}
 
     const step = match ? 2 : 1;
-    const offerHero = isMob() ? '' : `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1.4rem"><svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="${accentHex()}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.6rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">MY ROOM</div><div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">Manage your spare room listing and incoming requests.</div></div>`;
+    const offerHero = isMob()
+      ? `<div style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1rem"><button onclick="mSheetToggle()" style="position:absolute;top:.3rem;right:.3rem;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.6);font-size:.9rem">✕</button><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="${accentHex()}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.5rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">MY ROOM</div></div>`
+      : `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1.4rem"><svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="${accentHex()}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.6rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">MY ROOM</div><div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">Manage your spare room listing and incoming requests.</div></div>`;
     container.innerHTML = offerHero + buildProgressTracker(step, ['Listed', 'Matched', 'Success'], accentHex()) + buildOfferCard(p, match, pending, step);
   }
 }
@@ -7250,6 +7331,10 @@ function resetActionButtons() {
     pcStranded.querySelector('.sitrep-sub').textContent = 'tap · register';
     pcStranded.onclick = () => isMob() ? mTab('stranded', null) : openFormSidebar('stranded');
   }
+  const petSub = document.getElementById('ss-pets-sub');
+  if (petSub) petSub.textContent = 'tap · report';
+  const pawSub = document.getElementById('m-pets-pill-sub');
+  if (pawSub) pawSub.textContent = '';
   const mOffer = document.getElementById('mss-offer');
   if (mOffer) {
     const mSvg = mOffer.querySelector('svg');

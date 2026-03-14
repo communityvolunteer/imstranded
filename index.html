@@ -180,7 +180,7 @@ function googleTranslateInit() {
   <div class="sitrep-stat" id="ss-pets" onclick="isMob()?mTab('pets',null):openFormSidebar('pets')" style="cursor:pointer">
     <svg width="45" height="45" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)" stroke="none"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)" stroke="none"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)" stroke="none"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)" stroke="none"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)" stroke="none"/></svg>
     <div class="sitrep-label" style="color:#fff">Pets</div>
-    <div class="sitrep-sub">tap · report</div>
+    <div class="sitrep-sub" id="ss-pets-sub">tap · report</div>
   </div>
   <div class="sitrep-stat sitrep-stat--help-money" id="ss-help-money" onclick="isMob()?toggleHelpPanel():openFormSidebar('help')">
     <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
@@ -337,6 +337,20 @@ function googleTranslateInit() {
       </div>
     </div>
 
+    <!-- Section: HELPING WITH PETS -->
+    <div class="fp-section">
+      <div class="fp-section-head" onclick="toggleFpSection(this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="none" style="flex-shrink:0"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg>
+        <span style="font-size:.95rem">HELPING WITH PETS</span>
+        <span id="fp-badge-fostering" class="fp-badge fp-badge--lg" style="--badge-c:var(--accent)"></span>
+        <svg class="fp-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="fp-section-body" style="display:none">
+        <label class="fp-toggle"><input type="checkbox" id="fp-show-fostering" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show on map</label>
+        <button onclick="isMob()?mTab('pets',null):openFormSidebar('pets')" style="width:100%;margin-top:.5rem;padding:.5rem;border:1px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.3);border-radius:8px;background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.08);color:var(--accent);font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">I Can Help a Pet</button>
+      </div>
+    </div>
+
     <!-- Section: STRANDED PETS -->
     <div class="fp-section">
       <div class="fp-section-head" onclick="toggleFpSection(this)">
@@ -487,19 +501,19 @@ function googleTranslateInit() {
         <div class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>What do you need?</label><div style="display:flex;flex-wrap:wrap;gap:.4rem" id="stranded-needs"><label class="need-chip"><input type="checkbox" value="housing"> Housing</label><label class="need-chip"><input type="checkbox" value="flight"> Flight home</label><label class="need-chip"><input type="checkbox" value="food"> Food / water</label><label class="need-chip"><input type="checkbox" value="medical"> Medical</label><label class="need-chip"><input type="checkbox" value="money"> Financial</label><label class="need-chip"><input type="checkbox" value="translation"> Translation</label></div></div>
         <div class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Stranded since</label><input type="date" id="stranded-since" class="modal-input"></div>
         <div class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Details <span style="opacity:.5;font-weight:400;text-transform:none">(optional)</span></label><textarea id="stranded-details" placeholder="Any additional context..." class="modal-input" style="min-height:60px;resize:none"></textarea></div>
-        <div class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Email</label>
+        <div class="form-row"><label class="modal-label">EMAIL</label>
           <div class="linked-input" id="s-linked-google">
             <div class="linked-input-icon" style="background:#1a1a1a" onclick="!isLoggedIn()?openFormSidebar('profile'):void 0" title="Google"><svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.33 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.67 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg></div>
             <input type="text" id="stranded-contact" readonly placeholder="Sign in with Google to add email" class="linked-input-field">
           </div>
         </div>
-        <div class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Telegram</label>
+        <div class="form-row"><label class="modal-label">TELEGRAM</label>
           <div class="linked-input" id="s-linked-tg">
             <div class="linked-input-icon" style="background:#229ED9" onclick="isLoggedIn()?linkTelegram():openFormSidebar('profile')" title="Link Telegram"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg></div>
             <input type="text" id="stranded-tg-contact" readonly placeholder="Link Telegram to add contact" class="linked-input-field">
           </div>
         </div>
-        <div class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="var(--accent)" class="m-field-icon"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>X / Twitter</label>
+        <div class="form-row"><label class="modal-label">X / TWITTER</label>
           <div class="linked-input" id="s-linked-x">
             <div class="linked-input-icon" style="background:#000;border:1px solid rgba(255,255,255,.15)" onclick="isLoggedIn()?linkX():openFormSidebar('profile')" title="Link X"><svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></div>
             <input type="text" id="stranded-xhandle" readonly placeholder="Link X to enable Send $HELP" class="linked-input-field">
@@ -526,29 +540,26 @@ function googleTranslateInit() {
           <div class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Your Name</label><input type="text" id="offer-name" placeholder="John Smith" class="modal-input"></div>
 
           <!-- Linked account fields -->
-          <div class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Email</label>
+          <div class="form-row"><label class="modal-label">EMAIL</label>
             <div class="linked-input" id="linked-google">
               <div class="linked-input-icon" style="background:#1a1a1a" onclick="!isLoggedIn()?openFormSidebar('profile'):void 0" title="Google">
-            <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.33 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.67 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>  
-              </div>
+            <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.33 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.67 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg></div>
               <input type="text" id="offer-contact" readonly placeholder="Sign in with Google to add email" class="linked-input-field">
             </div>
           </div>
 
-          <div class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Telegram</label>
+          <div class="form-row"><label class="modal-label">TELEGRAM</label>
             <div class="linked-input" id="linked-tg">
               <div class="linked-input-icon" style="background:#229ED9" onclick="isLoggedIn()?linkTelegram():openFormSidebar('profile')" title="Link Telegram">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>  
-              </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg></div>
               <input type="text" id="offer-tg-contact" readonly placeholder="Link Telegram to add contact" class="linked-input-field">
             </div>
           </div>
 
-          <div class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="var(--accent)" class="m-field-icon"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>X / Twitter</label>
+          <div class="form-row"><label class="modal-label">X / TWITTER</label>
             <div class="linked-input" id="linked-x">
               <div class="linked-input-icon" style="background:#000;border:1px solid rgba(255,255,255,.15)" onclick="isLoggedIn()?linkX():openFormSidebar('profile')" title="Link X">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-              </div>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></div>
               <input type="text" id="offer-xhandle" readonly placeholder="Link X to add @handle & enable tips" class="linked-input-field">
             </div>
           </div>
@@ -572,13 +583,20 @@ function googleTranslateInit() {
         <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">Report a pet that needs help, a found stray, or offer to foster.</div>
       </div>
       <div class="post-form">
+<div style="display:flex;background:rgba(255,255,255,.06);border-radius:10px;padding:3px;margin-bottom:1rem;gap:3px" id="pet-mode-toggle">
+          <button type="button" onclick="setPetMode('pet','needs')" id="pet-mode-needs" style="flex:1;padding:.5rem .3rem;border:none;border-radius:8px;font-family:Inter,sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .15s;background:var(--accent);color:#000">🏠 PET NEEDS HOME</button>
+          <button type="button" onclick="setPetMode('pet','take')" id="pet-mode-take" style="flex:1;padding:.5rem .3rem;border:none;border-radius:8px;font-family:Inter,sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .15s;background:transparent;color:rgba(255,255,255,.45)">🐾 CAN TAKE A PET</button>
+        </div>
+        <div id="pet-needs-fields">
         <div class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="none" class="m-field-icon"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg>Situation</label>
           <select id="pet-pet-status" class="modal-input" style="color-scheme:dark">
             <option value="">Select...</option>
             <option value="need_foster">My pet needs a foster / I can't take them</option>
             <option value="found_stray">I found an abandoned pet</option>
-            <option value="can_foster">I can foster a pet</option>
           </select>
+        </div></div>
+        <div id="pet-take-fields" style="display:none">
+        <input type="hidden" id="pet-pet-status-foster" value="can_foster">
         </div>
         <div class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="none" class="m-field-icon"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg>Animal type</label>
           <select id="pet-pet-animal" class="modal-input" style="color-scheme:dark">
@@ -616,29 +634,26 @@ function googleTranslateInit() {
         </div>
         <div class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Your Name</label><input type="text" id="pet-pet-poster" placeholder="John Smith" class="modal-input"></div>
 
-        <div class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Email</label>
+        <div class="form-row"><label class="modal-label">EMAIL</label>
           <div class="linked-input">
             <div class="linked-input-icon" style="background:#1a1a1a" onclick="!isLoggedIn()?openFormSidebar('profile'):void 0" title="Google">
-            <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.33 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.67 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
-            </div>
+            <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.33 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.67 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg></div>
             <input type="text" id="pet-pet-contact" readonly placeholder="Sign in with Google to add email" class="linked-input-field">
           </div>
         </div>
 
-        <div class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Telegram</label>
+        <div class="form-row"><label class="modal-label">TELEGRAM</label>
           <div class="linked-input">
             <div class="linked-input-icon" style="background:#229ED9" onclick="isLoggedIn()?linkTelegram():openFormSidebar('profile')" title="Link Telegram">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg></div>
             <input type="text" id="pet-pet-tg-contact" readonly placeholder="Link Telegram to add contact" class="linked-input-field">
           </div>
         </div>
 
-        <div class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="var(--accent)" class="m-field-icon"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>X / Twitter</label>
+        <div class="form-row"><label class="modal-label">X / TWITTER</label>
           <div class="linked-input">
             <div class="linked-input-icon" style="background:#000;border:1px solid rgba(255,255,255,.15)" onclick="isLoggedIn()?linkX():openFormSidebar('profile')" title="Link X">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-            </div>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></div>
             <input type="text" id="pet-pet-xhandle" readonly placeholder="Link X to add @handle" class="linked-input-field">
           </div>
         </div>
@@ -908,7 +923,7 @@ function googleTranslateInit() {
     </a>
 
     <!-- Paw / Pets button (center, big circle) -->
-    <a id="m-pets-pill" href="#" onclick="mTab('pets',null);return false;" style="position:absolute;bottom:1.2rem;left:50%;transform:translateX(-50%);z-index:950;width:50px;height:50px;border-radius:50%;background:#000;border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.4);text-decoration:none;">
+    <div style="position:absolute;bottom:.55rem;left:50%;transform:translateX(-50%);z-index:949;display:flex;flex-direction:column;align-items:center;gap:0"><a id="m-pets-pill" href="#" onclick="mTab('pets',null);return false;" style="width:50px;height:50px;border-radius:50%;background:#000;border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.4);text-decoration:none;">
       <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="none" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg>
     </a>
 
@@ -996,6 +1011,18 @@ function googleTranslateInit() {
             <input type="hidden" id="mfp-filter-dest-country"><input type="hidden" id="mfp-filter-dest-airport">
           </div>
         </div>
+        <!-- HELPING WITH PETS -->
+        <div class="fp-section">
+          <div class="fp-section-head" onclick="toggleFpSection(this)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="none" style="flex-shrink:0"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg><span style="font-size:1rem">HELPING WITH PETS</span>
+            <span id="mfp-badge-fostering" class="fp-badge fp-badge--lg" style="--badge-c:var(--accent)"></span>
+            <svg class="fp-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="fp-section-body" style="display:none">
+            <label class="fp-toggle"><input type="checkbox" id="mfp-show-fostering" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show on map</label>
+            <button onclick="mTab('pets',null)" style="width:100%;margin-top:.5rem;padding:.5rem;border:1px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.3);border-radius:8px;background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.08);color:var(--accent);font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">I Can Help a Pet</button>
+          </div>
+        </div>
         <!-- STRANDED PETS -->
         <div class="fp-section">
           <div class="fp-section-head" onclick="toggleFpSection(this)">
@@ -1050,8 +1077,8 @@ function googleTranslateInit() {
         </a>
         <div style="font-size:.65rem;color:rgba(255,255,255,.25);text-align:center;line-height:1.5;margin-top:.8rem">$HELP tips are processed via <a href="https://x.com/bankrbot" target="_blank" style="color:rgba(255,255,255,.4)">@bankrbot</a> on X. Link your X account in your profile to receive tips.</div>
       </div>
-      <div id="m-stranded-content" style="display:none">
-        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1rem 0 1.2rem">
+      <div id="m-stranded-content" style="display:none;position:relative"><button onclick="mSheetToggle()" style="position:absolute;top:.5rem;right:.5rem;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;color:rgba(255,255,255,.6);font-size:.9rem">✕</button>
+        <div style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1.2rem"><button onclick="mSheetToggle()" style="position:absolute;top:.7rem;right:.7rem;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.6);font-size:.9rem;flex-shrink:0">✕</button>
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.5rem"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           <div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">I'M STRANDED</div>
           <div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-top:.35rem">Register so help can find you.</div>
@@ -1063,19 +1090,19 @@ function googleTranslateInit() {
         <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>What do you need?</label><div style="display:flex;flex-wrap:wrap;gap:.3rem" id="m-stranded-needs"><label class="need-chip"><input type="checkbox" value="housing"> Housing</label><label class="need-chip"><input type="checkbox" value="flight"> Flight</label><label class="need-chip"><input type="checkbox" value="food"> Food</label><label class="need-chip"><input type="checkbox" value="medical"> Medical</label><label class="need-chip"><input type="checkbox" value="money"> Financial</label><label class="need-chip"><input type="checkbox" value="translation"> Translation</label></div></div>
         <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Stranded since</label><input type="date" id="m-stranded-since" style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem"></div>
         <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Details <span style="opacity:.4;font-weight:400">(optional)</span></label><textarea id="m-stranded-details" placeholder="Any additional context..." style="width:100%;min-height:60px;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem;resize:none"></textarea></div>
-        <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Email</label>
+        <div class="m-form-row"><label class="m-form-label">EMAIL</label>
           <div class="linked-input" id="ms-linked-google">
             <div class="linked-input-icon" style="background:#1a1a1a" onclick="!isLoggedIn()?mTab('profile',null):void 0"><svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.33 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.67 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg></div>
             <input type="text" id="m-stranded-contact" readonly placeholder="Sign in to add email" class="linked-input-field">
           </div>
         </div>
-        <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Telegram</label>
+        <div class="m-form-row"><label class="m-form-label">TELEGRAM</label>
           <div class="linked-input" id="ms-linked-tg">
             <div class="linked-input-icon" style="background:#229ED9" onclick="isLoggedIn()?linkTelegram():mTab('profile',null)"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg></div>
             <input type="text" id="m-stranded-tg-contact" readonly placeholder="Link Telegram" class="linked-input-field">
           </div>
         </div>
-        <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="var(--accent)" class="m-field-icon"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>X / Twitter</label>
+        <div class="m-form-row"><label class="m-form-label">X / TWITTER</label>
           <div class="linked-input" id="ms-linked-x">
             <div class="linked-input-icon" style="background:#000;border:1px solid rgba(255,255,255,.15)" onclick="isLoggedIn()?linkX():mTab('profile',null)"><svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></div>
             <input type="text" id="m-stranded-xhandle" readonly placeholder="Link X to enable Send $HELP" class="linked-input-field">
@@ -1084,8 +1111,8 @@ function googleTranslateInit() {
         <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>Phone <span style="opacity:.4;font-weight:400">(optional)</span></label><input type="tel" id="m-stranded-phone" placeholder="+1 555 123 4567" style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem"></div>
         <button onclick="mSubmitStranded()" id="m-stranded-submit-btn" style="width:100%;background:#ec3452;color:#fff;border:none;border-radius:10px;padding:.75rem;font-family:Inter,sans-serif;font-size:.88rem;font-weight:700;cursor:pointer">Add Me to the Map</button>
       </div>
-      <div id="m-offer-content" style="display:none">
-        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1rem 0 1.2rem">
+      <div id="m-offer-content" style="display:none;position:relative"><button onclick="mSheetToggle()" style="position:absolute;top:.5rem;right:.5rem;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;color:rgba(255,255,255,.6);font-size:.9rem">✕</button>
+        <div style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1.2rem"><button onclick="mSheetToggle()" style="position:absolute;top:.7rem;right:.7rem;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.6);font-size:.9rem;flex-shrink:0">✕</button>
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.5rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           <div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">OFFER A SPARE ROOM</div>
           <div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-top:.35rem">Help someone stranded near you.</div>
@@ -1095,48 +1122,52 @@ function googleTranslateInit() {
         <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Your Name</label><input type="text" id="m-offer-name" placeholder="First name or handle"></div>
 
         <!-- Linked account fields -->
-        <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Email</label>
+        <div class="m-form-row"><label class="m-form-label">EMAIL</label>
           <div class="linked-input" id="m-linked-google">
             <div class="linked-input-icon" style="background:#1a1a1a" onclick="!isLoggedIn()?mTab('profile',document.getElementById('mtab-help')):void 0">
-            <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.33 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.67 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>  <svg width="11" height="11" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-            </div>
+            <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.33 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.67 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg></div>
             <input type="text" id="m-offer-contact" readonly placeholder="Sign in with Google to add email" class="linked-input-field">
           </div>
         </div>
 
-        <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Telegram</label>
+        <div class="m-form-row"><label class="m-form-label">TELEGRAM</label>
           <div class="linked-input" id="m-linked-tg">
             <div class="linked-input-icon" style="background:#229ED9" onclick="isLoggedIn()?linkTelegram():mTab('profile',document.getElementById('mtab-help'))">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>  <svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg></div>
             <input type="text" id="m-offer-tg-contact" readonly placeholder="Link Telegram to add contact" class="linked-input-field">
           </div>
         </div>
 
-        <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="var(--accent)" class="m-field-icon"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>X / Twitter</label>
+        <div class="m-form-row"><label class="m-form-label">X / TWITTER</label>
           <div class="linked-input" id="m-linked-x">
             <div class="linked-input-icon" style="background:#000;border:1px solid rgba(255,255,255,.15)" onclick="isLoggedIn()?linkX():mTab('profile',document.getElementById('mtab-help'))">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-            </div>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></div>
             <input type="text" id="m-offer-xhandle" readonly placeholder="Link X to add @handle & tips" class="linked-input-field">
           </div>
         </div>
 
         <button class="m-submit" onclick="mSubmitOffer()">List Spare Room</button>
       </div>
-      <div id="m-pets-content" style="display:none">
-        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1rem 0 1.2rem">
+      <div id="m-pets-content" style="display:none;position:relative"><button onclick="mSheetToggle()" style="position:absolute;top:.5rem;right:.5rem;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;color:rgba(255,255,255,.6);font-size:.9rem">✕</button>
+        <div style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1.2rem"><button onclick="mSheetToggle()" style="position:absolute;top:.7rem;right:.7rem;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.6);font-size:.9rem;flex-shrink:0">✕</button>
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="none" style="margin-bottom:.5rem"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg>
           <div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">STRANDED PETS</div>
           <div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-top:.35rem">Report a pet needing help or foster.</div>
         </div>
+<div style="display:flex;background:rgba(255,255,255,.06);border-radius:10px;padding:3px;margin-bottom:1rem;gap:3px" id="m-pet-mode-toggle">
+          <button type="button" onclick="setPetMode('m-pet','needs')" id="m-pet-mode-needs" style="flex:1;padding:.55rem .3rem;border:none;border-radius:8px;font-family:Inter,sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .15s;background:var(--accent);color:#000">🏠 PET NEEDS HOME</button>
+          <button type="button" onclick="setPetMode('m-pet','take')" id="m-pet-mode-take" style="flex:1;padding:.55rem .3rem;border:none;border-radius:8px;font-family:Inter,sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .15s;background:transparent;color:rgba(255,255,255,.45)">🐾 CAN TAKE A PET</button>
+        </div>
+        <div id="m-pet-needs-fields">
         <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="none" class="m-field-icon"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg>Situation</label>
           <select id="m-pet-pet-status" style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem;color-scheme:dark">
             <option value="">Select...</option>
             <option value="need_foster">My pet needs a foster</option>
             <option value="found_stray">I found an abandoned pet</option>
-            <option value="can_foster">I can foster a pet</option>
           </select>
+        </div></div>
+        <div id="m-pet-take-fields" style="display:none">
+        <input type="hidden" id="m-pet-pet-status-foster" value="can_foster">
         </div>
         <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="none" class="m-field-icon"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg>Animal type</label>
           <select id="m-pet-pet-animal" style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem;color-scheme:dark">
@@ -1173,19 +1204,19 @@ function googleTranslateInit() {
           </div>
         </div>
         <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Your name</label><input type="text" id="m-pet-pet-poster" placeholder="John Smith" style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem"></div>
-        <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Email</label>
+        <div class="m-form-row"><label class="m-form-label">EMAIL</label>
           <div class="linked-input">
             <div class="linked-input-icon" style="background:#1a1a1a" onclick="!isLoggedIn()?mTab('profile',null):void 0"><svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.33 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.67 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg></div>
             <input type="text" id="m-pet-pet-contact" readonly placeholder="Sign in to add email" class="linked-input-field">
           </div>
         </div>
-        <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Telegram</label>
+        <div class="m-form-row"><label class="m-form-label">TELEGRAM</label>
           <div class="linked-input">
             <div class="linked-input-icon" style="background:#229ED9" onclick="isLoggedIn()?linkTelegram():mTab('profile',null)"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg></div>
             <input type="text" id="m-pet-pet-tg-contact" readonly placeholder="Link Telegram" class="linked-input-field">
           </div>
         </div>
-        <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="var(--accent)" class="m-field-icon"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>X / Twitter</label>
+        <div class="m-form-row"><label class="m-form-label">X / TWITTER</label>
           <div class="linked-input">
             <div class="linked-input-icon" style="background:#000;border:1px solid rgba(255,255,255,.15)" onclick="isLoggedIn()?linkX():mTab('profile',null)"><svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></div>
             <input type="text" id="m-pet-pet-xhandle" readonly placeholder="Link X to add @handle" class="linked-input-field">
@@ -1244,13 +1275,19 @@ function googleTranslateInit() {
           </div>
         </div>
         <!-- Mobile profile main -->
-        <div id="m-profile-main" style="display:none">
+        <div id="m-profile-main" style="display:none;position:relative"><button onclick="mSheetToggle()" style="position:absolute;top:.5rem;right:.5rem;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;color:rgba(255,255,255,.6);font-size:.9rem">✕</button>
           <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:.4rem 0 1rem">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.5rem"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             <div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">MY PROFILE</div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-            <div style="font-size:.82rem;font-weight:700;color:#fff" id="m-profile-display-name"></div>
+            <div style="display:flex;align-items:center;gap:.6rem">
+              <div style="width:38px;height:38px;border-radius:50%;background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.2);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0" id="m-profile-avatar-wrap">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" id="m-profile-avatar-svg"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <img id="m-profile-avatar-photo" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%" alt="">
+              </div>
+              <div style="font-size:.9rem;font-weight:700;color:#fff" id="m-profile-display-name"></div>
+            </div>
             <button onclick="doSignOut()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.45);border-radius:7px;padding:.28rem .65rem;font-size:.65rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Sign Out</button>
           </div>
 
@@ -1619,7 +1656,8 @@ function googleTranslateInit() {
 
   <!-- Main message -->
   <div style="text-align:center;padding:0 2.5rem;max-width:400px">
-    <div style="font-size:clamp(2rem,6vw,3rem);font-weight:900;color:#fff;line-height:1.1;letter-spacing:-.04em;margin-bottom:.9rem">You are<br><span style="color:var(--accent)">not alone.</span></div>
+    <div style="font-size:clamp(2rem,6vw,3rem);font-weight:900;color:#fff;line-height:1.1;letter-spacing:-.04em;margin-bottom:.5rem">You are<br><span style="color:var(--accent)">not alone.</span></div>
+    <div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-bottom:.9rem;display:flex;align-items:center;gap:.35rem;justify-content:center">And neither is your pet <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg></div>
     <div style="font-size:clamp(.78rem,2.2vw,.92rem);color:rgba(255,255,255,.45);line-height:1.7;font-weight:400">Don't face this crisis alone — join the only global support community for the unfolding gulf crisis.</div>
   </div>
 
