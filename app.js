@@ -6165,31 +6165,16 @@ function initPetRealtime() {
 // PET FORM MODE TOGGLE — CAN TAKE A PET / PET NEEDS HOME
 // ============================================================
 function setPetMode(prefix, mode) {
-  const needsBtn   = document.getElementById(prefix + '-mode-needs');
-  const takeBtn    = document.getElementById(prefix + '-mode-take');
-  const needsEl    = document.getElementById(prefix + '-needs-fields');
-  const takeEl     = document.getElementById(prefix + '-take-fields');
-  if (!needsBtn || !takeBtn) return;
-  const ON  = { background: 'var(--accent)', color: '#000' };
-  const OFF = { background: 'transparent', color: 'rgba(255,255,255,.45)' };
-  if (mode === 'needs') {
-    Object.assign(needsBtn.style, ON);
-    Object.assign(takeBtn.style, OFF);
-    if (needsEl) needsEl.style.display = '';
-    if (takeEl)  takeEl.style.display  = 'none';
-  } else {
-    Object.assign(takeBtn.style, ON);
-    Object.assign(needsBtn.style, OFF);
-    if (needsEl) needsEl.style.display = 'none';
-    if (takeEl)  takeEl.style.display  = '';
-  }
+  const needsEl = document.getElementById(prefix + '-needs-fields');
+  const takeEl  = document.getElementById(prefix + '-take-fields');
+  if (needsEl) needsEl.style.display = mode === 'needs' ? '' : 'none';
+  if (takeEl)  takeEl.style.display  = mode === 'take'  ? '' : 'none';
 }
 
 function getPetStatus(prefix) {
-  // Check which mode is active
-  const takeBtn = document.getElementById(prefix + '-mode-take');
-  const isTake = takeBtn && takeBtn.style.background !== 'transparent' && takeBtn.style.color === '#000';
-  if (isTake) return 'can_foster';
+  const radioName = prefix === 'pet' ? 'pet-mode' : 'm-pet-mode';
+  const checked = document.querySelector(`input[name="${radioName}"]:checked`);
+  if (checked?.value === 'take') return 'can_foster';
   return document.getElementById(prefix + '-pet-status')?.value || '';
 }
 

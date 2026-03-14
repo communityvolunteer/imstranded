@@ -583,9 +583,9 @@ function googleTranslateInit() {
         <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">Report a pet that needs help, a found stray, or offer to foster.</div>
       </div>
       <div class="post-form">
-<div style="display:flex;background:rgba(255,255,255,.06);border-radius:10px;padding:3px;margin-bottom:1rem;gap:3px" id="pet-mode-toggle">
-          <button type="button" onclick="setPetMode('pet','needs')" id="pet-mode-needs" style="flex:1;padding:.5rem .3rem;border:none;border-radius:8px;font-family:Inter,sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .15s;background:var(--accent);color:#000">🏠 PET NEEDS HOME</button>
-          <button type="button" onclick="setPetMode('pet','take')" id="pet-mode-take" style="flex:1;padding:.5rem .3rem;border:none;border-radius:8px;font-family:Inter,sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .15s;background:transparent;color:rgba(255,255,255,.45)">🐾 CAN TAKE A PET</button>
+<div class="fp-chips" style="margin-bottom:1rem" id="pet-mode-toggle">
+          <label class="fp-chip fp-chip--blue" style="flex:1;justify-content:center;text-align:center"><input type="radio" name="pet-mode" value="needs" checked onchange="setPetMode('pet','needs')"> PET NEEDS HOME</label>
+          <label class="fp-chip fp-chip--blue" style="flex:1;justify-content:center;text-align:center"><input type="radio" name="pet-mode" value="take" onchange="setPetMode('pet','take')"> CAN TAKE A PET</label>
         </div>
         <div id="pet-needs-fields">
         <div class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="none" class="m-field-icon"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg>Situation</label>
@@ -1077,7 +1077,7 @@ function googleTranslateInit() {
         </a>
         <div style="font-size:.65rem;color:rgba(255,255,255,.25);text-align:center;line-height:1.5;margin-top:.8rem">$HELP tips are processed via <a href="https://x.com/bankrbot" target="_blank" style="color:rgba(255,255,255,.4)">@bankrbot</a> on X. Link your X account in your profile to receive tips.</div>
       </div>
-      <div id="m-stranded-content" style="display:none;position:relative"><button onclick="mSheetToggle()" style="position:absolute;top:.5rem;right:.5rem;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;color:rgba(255,255,255,.6);font-size:.9rem">✕</button>
+      <div id="m-stranded-content" style="display:none">
         <div style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1.2rem"><button onclick="mSheetToggle()" style="position:absolute;top:.7rem;right:.7rem;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.6);font-size:.9rem;flex-shrink:0">✕</button>
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.5rem"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           <div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">I'M STRANDED</div>
@@ -1111,7 +1111,7 @@ function googleTranslateInit() {
         <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>Phone <span style="opacity:.4;font-weight:400">(optional)</span></label><input type="tel" id="m-stranded-phone" placeholder="+1 555 123 4567" style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem"></div>
         <button onclick="mSubmitStranded()" id="m-stranded-submit-btn" style="width:100%;background:#ec3452;color:#fff;border:none;border-radius:10px;padding:.75rem;font-family:Inter,sans-serif;font-size:.88rem;font-weight:700;cursor:pointer">Add Me to the Map</button>
       </div>
-      <div id="m-offer-content" style="display:none;position:relative"><button onclick="mSheetToggle()" style="position:absolute;top:.5rem;right:.5rem;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;color:rgba(255,255,255,.6);font-size:.9rem">✕</button>
+      <div id="m-offer-content" style="display:none">
         <div style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1.2rem"><button onclick="mSheetToggle()" style="position:absolute;top:.7rem;right:.7rem;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.6);font-size:.9rem;flex-shrink:0">✕</button>
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.5rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           <div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">OFFER A SPARE ROOM</div>
@@ -1148,15 +1148,15 @@ function googleTranslateInit() {
 
         <button class="m-submit" onclick="mSubmitOffer()">List Spare Room</button>
       </div>
-      <div id="m-pets-content" style="display:none;position:relative"><button onclick="mSheetToggle()" style="position:absolute;top:.5rem;right:.5rem;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;color:rgba(255,255,255,.6);font-size:.9rem">✕</button>
+      <div id="m-pets-content" style="display:none">
         <div style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1.2rem"><button onclick="mSheetToggle()" style="position:absolute;top:.7rem;right:.7rem;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.6);font-size:.9rem;flex-shrink:0">✕</button>
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="none" style="margin-bottom:.5rem"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg>
           <div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">STRANDED PETS</div>
           <div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-top:.35rem">Report a pet needing help or foster.</div>
         </div>
-<div style="display:flex;background:rgba(255,255,255,.06);border-radius:10px;padding:3px;margin-bottom:1rem;gap:3px" id="m-pet-mode-toggle">
-          <button type="button" onclick="setPetMode('m-pet','needs')" id="m-pet-mode-needs" style="flex:1;padding:.55rem .3rem;border:none;border-radius:8px;font-family:Inter,sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .15s;background:var(--accent);color:#000">🏠 PET NEEDS HOME</button>
-          <button type="button" onclick="setPetMode('m-pet','take')" id="m-pet-mode-take" style="flex:1;padding:.55rem .3rem;border:none;border-radius:8px;font-family:Inter,sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .15s;background:transparent;color:rgba(255,255,255,.45)">🐾 CAN TAKE A PET</button>
+<div class="fp-chips" style="margin-bottom:1rem" id="m-pet-mode-toggle">
+          <label class="fp-chip fp-chip--blue" style="flex:1;justify-content:center;text-align:center"><input type="radio" name="m-pet-mode" value="needs" checked onchange="setPetMode('m-pet','needs')"> PET NEEDS HOME</label>
+          <label class="fp-chip fp-chip--blue" style="flex:1;justify-content:center;text-align:center"><input type="radio" name="m-pet-mode" value="take" onchange="setPetMode('m-pet','take')"> CAN TAKE A PET</label>
         </div>
         <div id="m-pet-needs-fields">
         <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="none" class="m-field-icon"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg>Situation</label>
@@ -1550,9 +1550,7 @@ function googleTranslateInit() {
   </div>
   <div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem 1.1rem .5rem">
     <div style="font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#fff">Crisis Snapshot · Since Mar 1</div>
-    <button onclick="closeImpactSheet()" style="background:rgba(255,255,255,.1);border:none;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer">
-      
-    </button>
+    <button onclick="closeImpactSheet()" style="background:rgba(255,255,255,.1);border:none;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.6);font-size:.8rem">✕</button>
   </div>
   <!-- Timeline chart Mar 1 → today -->
   <div style="padding:.2rem 1.1rem .6rem;overflow:hidden">
