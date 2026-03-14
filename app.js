@@ -4279,7 +4279,7 @@ function mShowSheetContent(which,title){
   const titleEl = document.getElementById('m-sheet-title-text');
   const titleBar = document.getElementById('m-sheet-title');
   // Panels with in-content hero headers — hide the sheet title bar
-  const hasOwnHero = ['stranded','offer','pets','profile','manage'].includes(which);
+  const hasOwnHero = ['stranded','offer','pets','profile','manage','resources'].includes(which);
   if (titleBar) titleBar.style.display = hasOwnHero ? 'none' : '';
   if (titleEl) {
     const A = 'var(--accent)';
@@ -4300,26 +4300,28 @@ function mRenderResources(){
   const el=document.getElementById('m-resources-content');if(!el)return;
   let html='';
 
+  // Hero header
+  html += `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1rem 0 1.2rem"><button onclick="mSheetToggle()" style="position:absolute;top:.7rem;right:.7rem;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.6);font-size:.9rem">✕</button><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="${accentHex()}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.5rem"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg><div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">RESOURCES</div><div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-top:.35rem">Embassies, NGOs &amp; emergency contacts</div></div>`;
+
   // Smart finder for mobile
   html += `<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:.8rem;margin-bottom:.8rem">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem">
       <div>
         <label style="font-size:.5rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.3);display:block;margin-bottom:.2rem">I'm stuck in</label>
-        <select id="m-res-stuck" onchange="mFilterResources()" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.4rem;color:#fff;font-family:Inter,sans-serif;font-size:.72rem;font-weight:600">
+        <select id="m-res-stuck" onchange="mFilterResources()" style="width:100%;background:#111;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:.4rem;color:#fff;font-family:Inter,sans-serif;font-size:.72rem;font-weight:600;color-scheme:dark">
           <option value="">All</option>
         </select>
       </div>
       <div>
         <label style="font-size:.5rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.3);display:block;margin-bottom:.2rem">I'm from</label>
-        <select id="m-res-from" onchange="mFilterResources()" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.4rem;color:#fff;font-family:Inter,sans-serif;font-size:.72rem;font-weight:600">
+        <select id="m-res-from" onchange="mFilterResources()" style="width:100%;background:#111;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:.4rem;color:#fff;font-family:Inter,sans-serif;font-size:.72rem;font-weight:600;color-scheme:dark">
           <option value="">All</option>
         </select>
       </div>
     </div>
-    <input type="text" id="m-res-search" oninput="mFilterResources()" placeholder="Search..." style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.4rem .6rem;color:#fff;font-family:Inter,sans-serif;font-size:.72rem">
+    <input type="text" id="m-res-search" oninput="mFilterResources()" placeholder="Search..." style="width:100%;background:#111;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:.4rem .6rem;color:#fff;font-family:Inter,sans-serif;font-size:.72rem">
   </div>
   <div id="m-res-results"></div>`;
-
   el.innerHTML = html;
 
   // Populate mobile dropdowns
@@ -5289,8 +5291,9 @@ async function renderMobileProfileView() {
       mHeroImg.style.display = 'none';
       if (mHeroSvg) mHeroSvg.style.display = '';
     }
-    // Profile photo — inline next to name
+    // Profile photo — inline next to name (no longer shown, hero above handles it)
     const avatarPhoto = document.getElementById('m-profile-avatar-photo');
+    // these elements are removed from DOM, guard silently
     const avatarSvg = document.getElementById('m-profile-avatar-svg');
     if (avatarPhoto && _currentProfile?.avatar_url) {
       avatarPhoto.src = _currentProfile.avatar_url;
@@ -7789,7 +7792,7 @@ function renderResourcesSidebar(container) {
   if (!hostCC) {
     html += '<div style="text-align:center;padding:2rem 0;color:rgba(255,255,255,.25);font-size:.82rem">Select a country to see embassy contacts and local resources</div>';
     // Show the full resources page link
-    html += `<a href="javascript:void(0)" onclick="${isMob() ? "mTab('resources',null)" : "closeFormSidebar();showView('resources')"}" style="display:block;text-align:center;padding:.5rem;background:'+accentRgba(.08)+';border:1px solid '+accentRgba(.15)+';border-radius:8px;color:'+accentHex()+';font-size:.72rem;font-weight:700;text-decoration:none;margin-top:.5rem">View Full Resources Directory →</a>`;
+    html += `<a href="javascript:void(0)" onclick="${isMob() ? "mTab('resources',null)" : "closeFormSidebar();showView('resources')"}" style="display:block;text-align:center;padding:.65rem;background:'+accentHex()+';border-radius:8px;color:#000;font-size:.75rem;font-weight:800;text-decoration:none;margin-top:.6rem">View Full Resources Directory →</a>`;
     container.innerHTML = html;
     return;
   }
