@@ -726,14 +726,14 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
   .m-form-label{display:flex;align-items:center;gap:.35rem;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#fff;margin-bottom:.32rem;}
   .m-form-label span{color:rgba(255,255,255,.45);font-weight:500;text-transform:none;letter-spacing:0;}
   .m-form-row{margin-bottom:.9rem;}
-  .m-form-row input,.m-form-row select,.m-form-row textarea{
+  .m-form-row input:not(.linked-input-field),.m-form-row select,.m-form-row textarea{
     width:100%;border:none;border-radius:10px;
     padding:.7rem .95rem;font-family:'Inter',sans-serif;font-size:.95rem;
     color:#fff;background:rgba(255,255,255,.08);outline:none;-webkit-appearance:none;
     transition:border-color .15s;
   }
-  .m-form-row input::placeholder,.m-form-row textarea::placeholder{color:rgba(255,255,255,.35);}
-  .m-form-row input:focus,.m-form-row textarea:focus{border:1.5px solid var(--accent);background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.06);}
+  .m-form-row input:not(.linked-input-field)::placeholder,.m-form-row textarea::placeholder{color:rgba(255,255,255,.35);}
+  .m-form-row input:not(.linked-input-field):focus,.m-form-row textarea:focus{border:1.5px solid var(--accent);background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.06);}
   .m-form-row textarea{min-height:88px;resize:none;}
   .m-form-note{font-size:.74rem;color:rgba(255,255,255,.55);line-height:1.55;margin-bottom:1rem;}
   .m-submit{
@@ -2109,4 +2109,8 @@ font-size: clamp(.45rem, 1.2vw, .58rem);
   opacity: 1;
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
+}
+/* Pets form in sidebar — remove redundant post-form padding */
+#form-sidebar-body #help-panel-pets .post-form {
+  padding: 0 !important;
 }
