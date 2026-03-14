@@ -5614,7 +5614,7 @@ function refreshHelpPanel() {
 function helpConnectX() {
   if (!isLoggedIn()) {
     sessionStorage.setItem('postLogin', 'help');
-    authAction('google', 'signin');
+    authAction('x', 'signin');
     return;
   }
   linkX();
@@ -5622,7 +5622,7 @@ function helpConnectX() {
 function helpConnectTg() {
   if (!isLoggedIn()) {
     sessionStorage.setItem('postLogin', 'help');
-    authAction('google', 'signin');
+    authAction('x', 'signin');
     return;
   }
   linkTelegram();
@@ -6698,8 +6698,8 @@ async function updateActionButtons() {
       pcOffer.querySelector('.sitrep-label').style.color = '#fff';
       const badge = _pendingRequestCount > 0
         ? `<span style="display:inline-block;background:#ec3452;color:#fff;font-size:.55rem;font-weight:800;border-radius:10px;padding:.1rem .4rem;margin-left:.3rem;vertical-align:middle">${_pendingRequestCount}</span>`
-        : '';
-      pcOffer.querySelector('.sitrep-sub').innerHTML = _pendingRequestCount + ' Request' + (_pendingRequestCount !== 1 ? 's' : '') + badge;
+        : `<span style="display:inline-block;background:rgba(255,255,255,.12);color:rgba(255,255,255,.4);font-size:.55rem;font-weight:800;border-radius:10px;padding:.1rem .4rem;margin-left:.3rem;vertical-align:middle">0</span>`;
+      pcOffer.querySelector('.sitrep-sub').innerHTML = 'Requests' + badge;
       pcOffer.querySelector('svg').outerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
       pcOffer.onclick = () => openManageSidebar('offer');
     } else {
@@ -6714,9 +6714,9 @@ async function updateActionButtons() {
       pcStranded.querySelector('.sitrep-label').textContent = 'My Status';
       pcStranded.querySelector('.sitrep-label').style.color = '#fff';
       const badge = _roomsOfferedCount > 0
-        ? `<span style="display:inline-block;background:#22c55e;color:#000;font-size:.55rem;font-weight:800;border-radius:10px;padding:.1rem .4rem;margin-left:.3rem;vertical-align:middle">${_roomsOfferedCount}</span>`
-        : '';
-      pcStranded.querySelector('.sitrep-sub').innerHTML = _roomsOfferedCount + ' Room' + (_roomsOfferedCount !== 1 ? 's' : '') + ' Offered' + badge;
+        ? `<span style="display:inline-block;background:var(--accent);color:#fff;font-size:.55rem;font-weight:800;border-radius:10px;padding:.1rem .4rem;margin-left:.3rem;vertical-align:middle">${_roomsOfferedCount}</span>`
+        : `<span style="display:inline-block;background:rgba(255,255,255,.12);color:rgba(255,255,255,.4);font-size:.55rem;font-weight:800;border-radius:10px;padding:.1rem .4rem;margin-left:.3rem;vertical-align:middle">0</span>`;
+      pcStranded.querySelector('.sitrep-sub').innerHTML = 'Offers' + badge;
       pcStranded.onclick = () => openManageSidebar('stranded');
     } else {
       pcStranded.querySelector('.sitrep-label').textContent = "I'm Stranded";
@@ -6733,8 +6733,8 @@ async function updateActionButtons() {
     const mSvg = mOffer.querySelector('svg');
     if (_hasActiveStranded) {
       if (mSvg) mSvg.outerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
-      const rBubble = `<span style="display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;border-radius:8px;font-size:.5rem;font-weight:800;padding:0 .25rem;${_roomsOfferedCount > 0 ? 'background:#22c55e;color:#000' : 'background:rgba(0,0,0,.12);color:rgba(0,0,0,.35)'}">${_roomsOfferedCount}</span>`;
-      mOffer.querySelector('.m-stat-label').innerHTML = `<span style="color:#1a1a2e;font-size:.55rem">MY STATUS</span><div style="display:flex;gap:.5rem;margin-top:.15rem"><span style="font-size:.45rem;color:rgba(0,0,0,.45);display:flex;align-items:center;gap:.2rem">Rooms Offered ${rBubble}</span></div>`;
+      const rBubble = `<span style="display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;border-radius:8px;font-size:.5rem;font-weight:800;padding:0 .25rem;${_roomsOfferedCount > 0 ? 'background:var(--accent);color:#fff' : 'background:#000;color:#fff'}">${_roomsOfferedCount}</span>`;
+      mOffer.querySelector('.m-stat-label').innerHTML = `<span style="color:#1a1a2e;font-size:.55rem;font-weight:800;letter-spacing:.06em">OFFERS ${rBubble}</span>`;
       mOffer.onclick = () => mTab('manage-stranded', null);
     } else {
       if (mSvg) mSvg.outerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
@@ -6744,8 +6744,8 @@ async function updateActionButtons() {
   }
   if (mTabSpare) {
     if (_hasActiveOffer) {
-      const reqBubble = `<span style="display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;border-radius:8px;font-size:.5rem;font-weight:800;padding:0 .25rem;${_pendingRequestCount > 0 ? 'background:#ec3452;color:#fff' : 'background:rgba(0,0,0,.15);color:rgba(0,0,0,.35)'}">${_pendingRequestCount}</span>`;
-      mTabSpare.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a1a2e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> MY ROOM <span style="font-size:.45rem;color:rgba(0,0,0,.45);display:inline-flex;align-items:center;gap:.2rem;margin-left:.2rem">Requests ' + reqBubble + '</span>';
+      const reqBubble = `<span style="display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;border-radius:8px;font-size:.5rem;font-weight:800;padding:0 .25rem;${_pendingRequestCount > 0 ? 'background:#ec3452;color:#fff' : 'background:#000;color:#fff'}">${_pendingRequestCount}</span>`;
+      mTabSpare.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a1a2e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span style="font-size:.55rem;font-weight:800;letter-spacing:.06em;margin-top:.1rem">REQUESTS ' + reqBubble + '</span>';
       mTabSpare.style.color = '#1a1a2e';
       mTabSpare.onclick = () => mTab('manage-room', null);
     } else {

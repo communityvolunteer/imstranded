@@ -524,10 +524,10 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 
   .m-stat-num{
     font-size:1.5rem;font-weight:900;letter-spacing:-.03em;line-height:1;display:block;
-    color:var(--accent);font-variant-numeric:tabular-nums;
+    color:#fff;font-variant-numeric:tabular-nums;
   }
   .m-stat-label{
-    font-size:.5rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+    font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
     color:rgb(255, 255, 255);margin-top:.1rem;text-align:center;line-height:1.25;
   }
 
@@ -681,7 +681,7 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
     flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.22rem;
     background:#000;border:none;border-top:2px solid transparent;
     color:rgba(255,255,255,.45);cursor:pointer;transition:all .15s;
-    padding:.4rem 0;font-family:'Inter',sans-serif;font-size:.5rem;
+    padding:.4rem 0;font-family:'Inter',sans-serif;font-size:.55rem;
     font-weight:700;letter-spacing:.06em;text-transform:uppercase;
   }
   .m-tab svg{width:25px;height:25px;stroke:rgb(255, 255, 255);}
@@ -695,7 +695,7 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
     flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1rem;
     background:rgb(255, 255, 255);border:none;border-top:2px solid rgba(52,152,236,.2);
     color:#000000 !important;cursor:pointer;
-    padding:.4rem 0;font-family:'Inter',sans-serif;font-size:.5rem;
+    padding:.4rem 0;font-family:'Inter',sans-serif;font-size:.55rem;
     font-weight:700;letter-spacing:.06em;text-transform:uppercase;
     transition:background .15s;
   }
