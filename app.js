@@ -6742,7 +6742,7 @@ async function updateActionButtons() {
       pcOffer.onclick = () => openManageSidebar('offer');
     } else {
       pcOffer.querySelector('.sitrep-label').textContent = 'Offer Spare Room';
-      pcOffer.querySelector('.sitrep-label').style.color = accentHex();
+      pcOffer.querySelector('.sitrep-label').style.color = '#fff';
       pcOffer.querySelector('.sitrep-sub').textContent = 'tap · help someone';
       pcOffer.onclick = () => isMob() ? mTab('offer', null) : openFormSidebar('offer');
     }
@@ -7085,7 +7085,7 @@ function resetActionButtons() {
   const pcStranded = document.getElementById('ss-im-stranded');
   if (pcOffer) {
     pcOffer.querySelector('.sitrep-label').textContent = 'Offer Spare Room';
-    pcOffer.querySelector('.sitrep-label').style.color = accentHex();
+    pcOffer.querySelector('.sitrep-label').style.color = '#fff';
     pcOffer.querySelector('.sitrep-sub').textContent = 'tap · help someone';
     pcOffer.onclick = () => isMob() ? mTab('offer', null) : openFormSidebar('offer');
   }
