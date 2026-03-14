@@ -2925,6 +2925,72 @@ function closePostSidebar() {
   }
 }
 
+function openPetSidebar(p, statusLabel, statusColor, animalIcon, petMatchHtml) {
+  // Close airport sidebar if open
+  const pinSb = document.getElementById('pin-sidebar');
+  if (pinSb) pinSb.classList.remove('open');
+
+  // Header
+  const initEl = document.getElementById('post-sidebar-avatar-initials');
+  const imgEl  = document.getElementById('post-sidebar-avatar-img');
+  if (initEl) initEl.textContent = animalIcon || '🐾';
+  if (imgEl) imgEl.style.display = 'none';
+
+  const nameEl  = document.getElementById('post-sidebar-name');
+  const badgeEl = document.getElementById('post-sidebar-type-badge');
+  const timeEl  = document.getElementById('post-sidebar-time');
+  if (nameEl)  nameEl.innerHTML = esc(p.pet_name || (p.animal_type ? p.animal_type.charAt(0).toUpperCase()+p.animal_type.slice(1) : 'Pet'));
+  if (timeEl)  timeEl.textContent = timeAgo(p.created_at);
+  if (badgeEl) {
+    badgeEl.textContent = statusLabel;
+    badgeEl.style.cssText = `background:${statusColor}22;color:${statusColor};border-radius:5px;padding:.1rem .45rem;font-size:.62rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase`;
+  }
+
+  // Body
+  const body = document.getElementById('post-sidebar-body');
+  if (!body) return;
+
+  let html = '';
+
+  // Hero icon + title
+  html += `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1rem 0 1.2rem">
+    <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="none" style="margin-bottom:.6rem"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="${accentHex()}"/><circle cx="6.5" cy="10" r="2" fill="${accentHex()}"/><circle cx="17.5" cy="10" r="2" fill="${accentHex()}"/><circle cx="10" cy="6.5" r="1.8" fill="${accentHex()}"/><circle cx="14" cy="6.5" r="1.8" fill="${accentHex()}"/></svg>
+    <div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">STRANDED PETS</div>
+    <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">${esc(p.animal_type || 'Pet')} · <span style="color:${statusColor};font-weight:700">${statusLabel}</span></div>
+  </div>`;
+
+  if (p.photo_url) {
+    html += `<img src="${esc(p.photo_url)}" style="width:100%;max-height:200px;object-fit:cover;border-radius:10px;margin-bottom:.8rem;display:block" loading="lazy" alt="pet photo">`;
+  }
+  if (p.pet_name) {
+    html += `<div class="post-sidebar-section"><div class="post-sidebar-label">Name</div><div class="post-sidebar-value" style="font-size:1.1rem;font-weight:800;color:#fff">${esc(p.pet_name)}</div></div>`;
+  }
+  html += `<div class="post-sidebar-section"><div class="post-sidebar-label">Animal</div><div class="post-sidebar-value" style="text-transform:capitalize">${esc(p.animal_type || '—')}</div></div>`;
+  html += `<div class="post-sidebar-section"><div class="post-sidebar-label">Location</div><div class="post-sidebar-value">📍 ${esc(p.location)}</div></div>`;
+  if (p.description) {
+    html += `<hr class="post-sidebar-divider"><div class="post-sidebar-section"><div class="post-sidebar-label">Situation</div><div class="post-sidebar-value">${esc(p.description)}</div></div>`;
+  }
+  html += `<div class="post-sidebar-section"><div class="post-sidebar-label">Posted by</div><div class="post-sidebar-value"><strong style="color:#fff">${esc(p.name)}</strong></div></div>`;
+  html += buildContactButtons(p.contact, p.xhandle, p.name);
+  html += petMatchHtml;
+  html += buildFlagButton('stranded_pets', p.id);
+
+  body.innerHTML = html;
+
+  const sb = document.getElementById('post-sidebar');
+  if (sb) sb.classList.add('open');
+  document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '320px');
+
+  // Close on bare map click
+  if (window._crisisMap) {
+    if (window._crisisMap._postSidebarClose) {
+      window._crisisMap.off('click', window._crisisMap._postSidebarClose);
+    }
+    window._crisisMap._postSidebarClose = function() { closePostSidebar(); };
+    window._crisisMap.on('click', window._crisisMap._postSidebarClose);
+  }
+}
+
 function closePinSidebar() {
   const sb = document.getElementById('pin-sidebar');
   if (sb) sb.classList.remove('open');
@@ -5979,11 +6045,18 @@ function renderPetsOnMap(map, isMobile) {
         ${buildPetMatchButton(p)}
         ${buildFlagButton('stranded_pets', p.id)}
       </div>`;
-    if (isMobile) {
-      marker.on('click', function(e) { L.DomEvent.stopPropagation(e); openMPinSheet(popHtml); });
-    } else {
-      marker.bindPopup(popHtml, { className: 'dark-popup', maxWidth: 280 });
-    }
+    const petClickFn = (function(_p, _sl, _sc, _ai) {
+      return function(e) {
+        L.DomEvent.stopPropagation(e);
+        const matchHtml = buildPetMatchButton(_p);
+        if (isMobile) {
+          openMPinSheet(popHtml);
+        } else {
+          openPetSidebar(_p, _sl, _sc, _ai, matchHtml);
+        }
+      };
+    })(p, statusLabel, statusColor, animalIcon);
+    marker.on('click', petClickFn);
     cluster.addLayer(marker);
   }
 
@@ -6033,11 +6106,18 @@ function renderFilteredPets(map, isMobile, filteredPets) {
         ${buildPetMatchButton(p)}
         ${buildFlagButton('stranded_pets', p.id)}
       </div>`;
-    if (isMobile) {
-      marker.on('click', function(e) { L.DomEvent.stopPropagation(e); openMPinSheet(popHtml); });
-    } else {
-      marker.bindPopup(popHtml, { className: 'dark-popup', maxWidth: 280 });
-    }
+    const petClickFn = (function(_p, _sl, _sc, _ai) {
+      return function(e) {
+        L.DomEvent.stopPropagation(e);
+        const matchHtml = buildPetMatchButton(_p);
+        if (isMobile) {
+          openMPinSheet(popHtml);
+        } else {
+          openPetSidebar(_p, _sl, _sc, _ai, matchHtml);
+        }
+      };
+    })(p, statusLabel, statusColor, animalIcon);
+    marker.on('click', petClickFn);
     cluster.addLayer(marker);
   }
 
