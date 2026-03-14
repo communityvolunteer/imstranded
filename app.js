@@ -4572,8 +4572,17 @@ function updateLinkedFields() {
   const p = _currentProfile;
   const lockSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
 
-  // Google → Email
-  ['offer-contact','m-offer-contact','stranded-contact','m-stranded-contact'].forEach(id => {
+  // Pre-fill display name on all name fields if empty
+  if (isLoggedIn()) {
+    const displayName = p?.display_name || _currentUser?.email?.split('@')[0] || '';
+    ['stranded-name','offer-name','pet-pet-poster','m-stranded-name','m-offer-name','m-pet-pet-poster'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el && !el.value) el.value = displayName;
+    });
+  }
+
+  // Google → Email (all forms)
+  ['offer-contact','m-offer-contact','stranded-contact','m-stranded-contact','pet-pet-contact','m-pet-pet-contact'].forEach(id => {
     const input = document.getElementById(id);
     const wrap = input?.closest('.linked-input');
     if (!input || !wrap) return;
@@ -4594,8 +4603,8 @@ function updateLinkedFields() {
     }
   });
 
-  // Telegram → Contact
-  ['offer-tg-contact','m-offer-tg-contact','stranded-tg-contact','m-stranded-tg-contact'].forEach(id => {
+  // Telegram → Contact (all forms)
+  ['offer-tg-contact','m-offer-tg-contact','stranded-tg-contact','m-stranded-tg-contact','pet-pet-tg-contact','m-pet-pet-tg-contact'].forEach(id => {
     const input = document.getElementById(id);
     const wrap = input?.closest('.linked-input');
     if (!input || !wrap) return;
@@ -4616,8 +4625,8 @@ function updateLinkedFields() {
     }
   });
 
-  // X → Handle
-  ['offer-xhandle','m-offer-xhandle','stranded-xhandle','m-stranded-xhandle'].forEach(id => {
+  // X → Handle (all forms)
+  ['offer-xhandle','m-offer-xhandle','stranded-xhandle','m-stranded-xhandle','pet-pet-xhandle','m-pet-pet-xhandle'].forEach(id => {
     const input = document.getElementById(id);
     const wrap = input?.closest('.linked-input');
     if (!input || !wrap) return;
@@ -5293,8 +5302,8 @@ async function renderMobileProfileView() {
     }
     // Profile photo — inline next to name (no longer shown, hero above handles it)
     const avatarPhoto = document.getElementById('m-profile-avatar-photo');
-    // these elements are removed from DOM, guard silently
-    const avatarSvg = document.getElementById('m-profile-avatar-svg');
+    const avatarSvg   = document.getElementById('m-profile-avatar-svg');
+   
     if (avatarPhoto && _currentProfile?.avatar_url) {
       avatarPhoto.src = _currentProfile.avatar_url;
       avatarPhoto.style.display = 'block';
@@ -7875,19 +7884,73 @@ window.addEventListener('DOMContentLoaded',()=>{
       } catch(e) { /* silent — don't null out user on timeout */ }
     }
   }, 2 * 60 * 1000);
-  // Recover from phone sleep / tab background — refresh everything on return
+  // ── Session timeout + visibility/focus refresh ──
+  const SESSION_MAX_MS = 2 * 60 * 60 * 1000; // 2 hours
+  let _loginTime = Date.now();
   let _lastVisible = Date.now();
-  document.addEventListener('visibilitychange', () => {
+
+  // Track login time on auth state change
+  _sb.auth.onAuthStateChange((event) => {
+    if (event === 'SIGNED_IN') _loginTime = Date.now();
+  });
+
+  document.addEventListener('visibilitychange', async () => {
     if (document.visibilityState === 'visible') {
       const gone = Date.now() - _lastVisible;
-      if (gone > 60000 && _currentUser) { // Been away > 1 minute
-        console.log('[Visibility] Tab returned after', Math.round(gone/1000), 's — refreshing session');
-        _sb.auth.getSession().then(({ data: { session } }) => {
-          if (session?.user) _currentUser = session.user;
-        }).catch(() => {});
-        // Reload data silently
-        loadPosts();
-        loadStranded();
+
+      // Check 2hr session expiry
+      if (_currentUser && Date.now() - _loginTime > SESSION_MAX_MS) {
+        console.log('[Session] 2hr timeout reached — signing out');
+        await _sb.auth.signOut();
+        _currentUser = null;
+        _currentProfile = null;
+        renderProfileView();
+        renderMobileProfileView();
+        updateLinkedFields();
+        updateActionButtons();
+        // Show a subtle toast
+        const t = document.createElement('div');
+        t.textContent = 'Session expired — please sign back in';
+        Object.assign(t.style, {
+          position:'fixed', bottom:'80px', left:'50%', transform:'translateX(-50%)',
+          background:'rgba(0,0,0,.9)', color:'rgba(255,255,255,.7)', fontSize:'.72rem',
+          fontWeight:'600', padding:'.5rem 1rem', borderRadius:'20px',
+          border:'1px solid rgba(255,255,255,.12)', zIndex:'99999',
+          whiteSpace:'nowrap', pointerEvents:'none',
+          transition:'opacity .4s ease', fontFamily:'Inter,sans-serif'
+        });
+        document.body.appendChild(t);
+        setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 4000);
+        return;
+      }
+
+      // Been away > 30s — re-validate session and refresh stale data
+      if (gone > 30000) {
+        console.log('[Visibility] Returned after', Math.round(gone/1000), 's — refreshing');
+        try {
+          const { data: { session } } = await _sb.auth.getSession();
+          if (session?.user) {
+            _currentUser = session.user;
+            _loginTime = Date.now(); // reset on valid session return
+          } else if (_currentUser) {
+            // Was logged in, now session gone
+            _currentUser = null;
+            _currentProfile = null;
+            renderProfileView();
+            renderMobileProfileView();
+            updateLinkedFields();
+            updateActionButtons();
+          }
+        } catch(e) { console.warn('[Visibility] session check failed:', e.message); }
+
+        // Refresh all data — catches websocket drops silently
+        if (SB_ON) {
+          loadPosts();
+          loadStranded();
+          loadPets?.();
+          loadSuccessStories?.();
+          refreshSitrep();
+        }
       }
     } else {
       _lastVisible = Date.now();
