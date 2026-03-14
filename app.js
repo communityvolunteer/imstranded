@@ -4196,7 +4196,18 @@ function mShowSheetContent(which,title){
   const manageEl = document.getElementById('m-manage-content');
   if (manageEl) manageEl.style.display = which==='manage'?'block':'none';
   const titleEl = document.getElementById('m-sheet-title-text');
-  if (titleEl) titleEl.textContent = title;
+  if (titleEl) {
+    const A = 'var(--accent)';
+    const icons = {
+      'stranded':  `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${A}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:.4rem"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+      'offer':     `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${A}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:.4rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+      'pets':      `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="none" style="vertical-align:middle;margin-right:.4rem"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="${A}"/><circle cx="6.5" cy="10" r="2" fill="${A}"/><circle cx="17.5" cy="10" r="2" fill="${A}"/><circle cx="10" cy="6.5" r="1.8" fill="${A}"/><circle cx="14" cy="6.5" r="1.8" fill="${A}"/></svg>`,
+      'profile':   `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${A}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:.4rem"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+      'filters':   `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${A}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:.4rem"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>`,
+      'manage':    `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${A}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:.4rem"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>`,
+    };
+    titleEl.innerHTML = (icons[which] || '') + title;
+  }
   _mSheetOpen=true;document.getElementById('m-sheet').classList.add('open');
 }
 

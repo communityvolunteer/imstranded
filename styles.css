@@ -216,6 +216,10 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 }
 .community-link:hover{opacity:.82;}
 
+/* Form field icons — PC gets extra right margin */
+.m-field-icon{flex-shrink:0;}
+@media(min-width:601px){.m-field-icon{margin-right:5px;}}
+
 /* Leaflet */
 .leaflet-container{background:#c9d2d8 !important;}
 /* Eliminate tile seam lines — GPU compositing trick, doesn't break Leaflet's tile sizing */
