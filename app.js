@@ -6969,7 +6969,8 @@ async function renderManageDashboard(type) {
     if (!p) { container.innerHTML = '<div style="text-align:center;padding:2rem 0;color:rgba(255,255,255,.4)">No active registration.</div>'; return; }
 
     const step = match?.home_lat ? 3 : match?.offer_confirmed ? 2 : 1;
-    container.innerHTML = buildProgressTracker(step, ['Registered', 'Matched', 'Home'], '#ec3452') + buildStrandedCard(p, match, step);
+    const strandedHero = isMob() ? '' : `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1.4rem"><svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.6rem"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">MY STATUS</div><div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">Track your registration and match progress.</div></div>`;
+    container.innerHTML = strandedHero + buildProgressTracker(step, ['Registered', 'Matched', 'Home'], '#ec3452') + buildStrandedCard(p, match, step);
 
   // ── OFFER ──
   } else {
@@ -7010,7 +7011,8 @@ async function renderManageDashboard(type) {
     } catch(e) {}
 
     const step = match ? 2 : 1;
-    container.innerHTML = buildProgressTracker(step, ['Listed', 'Matched', 'Success'], accentHex()) + buildOfferCard(p, match, pending, step);
+    const offerHero = isMob() ? '' : `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1.4rem"><svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="'+accentHex()+'" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.6rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">MY ROOM</div><div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">Manage your spare room listing and incoming requests.</div></div>`;
+    container.innerHTML = offerHero + buildProgressTracker(step, ['Listed', 'Matched', 'Success'], accentHex()) + buildOfferCard(p, match, pending, step);
   }
 }
 
