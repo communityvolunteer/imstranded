@@ -986,7 +986,7 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
 /* Toggle bar */
 .help-toggle-bar{
   display:flex;justify-content:center;background:rgba(255,255,255,.05);border-radius:10px;
-  padding:3px;gap:3px;margin:0 auto 1rem;width:70%;
+  padding:3px;gap:3px;margin:0 auto 1rem;width:85%;
   border:1px solid rgba(255,255,255,.08);
 }
 .help-toggle-btn{
@@ -1010,7 +1010,7 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
   font-size:.62rem;font-weight:800;color:rgba(255,255,255,.3);
   margin-top:.1rem;transition:all .3s;
 }
-.hstep-num.done{background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.18);color:var(--accent);}
+.hstep-num.done{background:var(--accent);color:#fff;}
 .hstep-body{flex:1;min-width:0;}
 .hstep-title{font-size:.82rem;font-weight:700;color:#fff;margin-bottom:.22rem;}
 .hstep-desc{font-size:.74rem;color:rgba(255,255,255,.4);line-height:1.6;margin-bottom:.5rem;}
@@ -1035,7 +1035,7 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
 .hstep-btn + .hstep-btn{margin-left:.35rem;}
 .hstep-btn:hover{opacity:.78;text-decoration:none;}
 .hstep-btn--x{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.12);}
-.hstep-btn--x.done{background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.12);color:var(--accent);border-color:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.2);pointer-events:none;}
+.hstep-btn--x.done{background:var(--accent);color:#fff;border-color:var(--accent);pointer-events:none;}
 .hstep-btn--blue{background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.13);color:var(--accent);border:1px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.22);}
 .hstep-btn--purple{background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.13);color:var(--accent);border:1px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.22);}
 .hstep-btn--red{background:rgba(236,52,82,.1);color:#ec3452;border:1px solid rgba(236,52,82,.18);}
@@ -1062,8 +1062,8 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
 }
 .hstep-link-btn:hover{background:rgba(255,255,255,.12);color:#fff;}
 .hstep-link-btn.linked{
-  background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.08);border-color:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.2);
-  color:var(--accent);pointer-events:none;
+  background:var(--accent);border-color:var(--accent);
+  color:#fff;pointer-events:none;
 }
 
 /* Bankr note */
@@ -1095,6 +1095,7 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
   }
   #help-money-modal .help-panel-x{display:none;}
   .help-toggle-bar{width:100%;}
+  body:not(.map-light) .gd-cluster{backdrop-filter:blur(1px);-webkit-backdrop-filter:blur(1px);}
 }
 /* Theme toggle in header */
 .theme-header-btn{
