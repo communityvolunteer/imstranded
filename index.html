@@ -354,7 +354,7 @@ function googleTranslateInit() {
           <option value="found_stray">Found stray</option>
           <option value="can_foster">Can foster</option>
         </select>
-        <button onclick="isMob()?mTab('pets',null):openFormSidebar('pets')" style="width:100%;margin-top:.5rem;padding:.5rem;border:1px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.3);border-radius:8px;background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.08);color:var(--accent);font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">🐾 Post About a Pet</button>
+        <button onclick="isMob()?mTab('pets',null):openFormSidebar('pets')" style="width:100%;margin-top:.5rem;padding:.5rem;border:1px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.3);border-radius:8px;background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.08);color:var(--accent);font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">Post About a Pet</button>
       </div>
     </div>
 
@@ -514,7 +514,7 @@ function googleTranslateInit() {
         <div style="background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.08);border:1px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.2);border-radius:14px;padding:1.2rem;margin-bottom:1rem"><div style="font-size:1.15rem;font-weight:800;color:var(--accent);margin-bottom:.25rem">Offer a Spare Room</div><div style="font-size:.82rem;color:rgba(255,255,255,.5);line-height:1.5">Your contact will be visible so stranded people nearby can reach you directly.</div></div>
         <div class="post-form">
           <input type="hidden" id="offer-type" value="Housing / spare room">
-          <div class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Your <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Location</label><div style="display:flex;gap:.4rem;align-items:center"><div class="loc-ac-wrap" style="flex:1"><input type="text" id="offer-location" placeholder="Start typing an address…" autocomplete="off" class="modal-input"><input type="hidden" id="offer-lat"><input type="hidden" id="offer-lng"><div class="loc-ac-list" id="offer-location-ac"></div></div><button type="button" onclick="useMyLocation('offer')" class="gps-btn" title="Use my location"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2"/></svg></button></div></div>
+          <div class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Your Location</label><div style="display:flex;gap:.4rem;align-items:center"><div class="loc-ac-wrap" style="flex:1"><input type="text" id="offer-location" placeholder="Start typing an address…" autocomplete="off" class="modal-input"><input type="hidden" id="offer-lat"><input type="hidden" id="offer-lng"><div class="loc-ac-list" id="offer-location-ac"></div></div><button type="button" onclick="useMyLocation('offer')" class="gps-btn" title="Use my location"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2"/></svg></button></div></div>
           <div class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Details</label><textarea id="offer-body" placeholder="Describe what you can offer…" class="modal-input" style="min-height:90px;resize:none"></textarea></div>
           <div class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Your Name</label><input type="text" id="offer-name" placeholder="First name or handle" class="modal-input"></div>
 
@@ -560,7 +560,7 @@ function googleTranslateInit() {
     <!-- Panel: Stranded Pets -->
     <div id="help-panel-pets" style="display:none;max-width:560px;margin:0 auto">
       <div style="background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.08);border:1px solid rgba(255,159,28,.2);border-radius:14px;padding:1.2rem;margin-bottom:1rem">
-        <div style="font-size:1.15rem;font-weight:800;color:var(--accent);margin-bottom:.25rem">🐾 Stranded Pets</div>
+        <div style="font-size:1.15rem;font-weight:800;color:var(--accent);margin-bottom:.25rem">Stranded Pets</div>
         <div style="font-size:.82rem;color:rgba(255,255,255,.5);line-height:1.5">Report a pet that needs help, a found stray, or offer to foster. Contacts are public so people nearby can reach out.</div>
       </div>
       <div class="post-form">
@@ -615,6 +615,24 @@ function googleTranslateInit() {
               <svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
             </div>
             <input type="text" id="pet-pet-xhandle" readonly placeholder="Link X to add @handle" class="linked-input-field">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label class="modal-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            Photo <span style="opacity:.4;font-weight:400">(optional)</span>
+          </label>
+          <div id="pet-photo-wrap" style="display:flex;flex-direction:column;gap:.4rem">
+            <label style="display:flex;align-items:center;gap:.5rem;padding:.5rem .7rem;background:#1a1c1e;border:1.5px dashed rgba(255,255,255,.15);border-radius:8px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.45);font-family:Inter,sans-serif">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <span id="pet-photo-label">Tap to upload photo</span>
+              <input type="file" id="pet-pet-photo" accept="image/*" style="display:none" onchange="previewPetPhoto(this,'pet')">
+            </label>
+            <div id="pet-photo-preview" style="display:none;position:relative">
+              <img id="pet-photo-preview-img" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px;display:block" alt="">
+              <button onclick="clearPetPhoto('pet')" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.7);border:none;border-radius:50%;width:22px;height:22px;color:#fff;cursor:pointer;font-size:.7rem;display:flex;align-items:center;justify-content:center">✕</button>
+            </div>
           </div>
         </div>
 
@@ -983,7 +1001,7 @@ function googleTranslateInit() {
               <option value="found_stray">Found stray</option>
               <option value="can_foster">Can foster</option>
             </select>
-            <button onclick="mTab('pets',null)" style="width:100%;margin-top:.5rem;padding:.5rem;border:1px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.3);border-radius:8px;background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.08);color:var(--accent);font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">🐾 Post About a Pet</button>
+            <button onclick="mTab('pets',null)" style="width:100%;margin-top:.5rem;padding:.5rem;border:1px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.3);border-radius:8px;background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.08);color:var(--accent);font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">Post About a Pet</button>
           </div>
         </div>
         <!-- SUCCESS STORIES -->
@@ -1053,7 +1071,7 @@ function googleTranslateInit() {
       </div>
       <div id="m-offer-content" style="display:none">
         <div class="m-form-note">Your contact will be public so people who need help can reach you.</div>
-        <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Your <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Location</label><div style="display:flex;gap:.3rem;align-items:center"><div class="loc-ac-wrap" style="flex:1"><input type="text" id="m-offer-location" placeholder="Start typing an address…" autocomplete="off"><input type="hidden" id="m-offer-lat"><input type="hidden" id="m-offer-lng"><div class="loc-ac-list" id="m-offer-location-ac"></div></div><button type="button" onclick="useMyLocation('m-offer')" class="gps-btn" title="Use my location"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2"/></svg></button></div></div>
+        <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Your Location</label><div style="display:flex;gap:.3rem;align-items:center"><div class="loc-ac-wrap" style="flex:1"><input type="text" id="m-offer-location" placeholder="Start typing an address…" autocomplete="off"><input type="hidden" id="m-offer-lat"><input type="hidden" id="m-offer-lng"><div class="loc-ac-list" id="m-offer-location-ac"></div></div><button type="button" onclick="useMyLocation('m-offer')" class="gps-btn" title="Use my location"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2"/></svg></button></div></div>
         <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Details</label><textarea id="m-offer-body" placeholder="Describe what you can offer&hellip;"></textarea></div>
         <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Your Name</label><input type="text" id="m-offer-name" placeholder="First name or handle"></div>
 
@@ -1088,7 +1106,7 @@ function googleTranslateInit() {
         <button class="m-submit" onclick="mSubmitOffer()">List Spare Room</button>
       </div>
       <div id="m-pets-content" style="display:none">
-        <div style="font-size:.85rem;color:rgba(255,255,255,.45);margin-bottom:1rem;line-height:1.5"><strong style="color:var(--accent)">🐾 Stranded Pets</strong> — report a pet that needs help, a found stray, or offer to foster.</div>
+        <div style="font-size:.85rem;color:rgba(255,255,255,.45);margin-bottom:1rem;line-height:1.5"><strong style="color:var(--accent)">Stranded Pets</strong> — report a pet that needs help, a found stray, or offer to foster.</div>
         <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="none" class="m-field-icon"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg>Situation</label>
           <select id="m-pet-pet-status" style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem;color-scheme:dark">
             <option value="">Select...</option>
@@ -1134,6 +1152,23 @@ function googleTranslateInit() {
           </div>
         </div>
         <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>Phone <span style="opacity:.4;font-weight:400">(optional)</span></label><input type="tel" id="m-pet-pet-phone" placeholder="+971 50 123 4567" style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem"></div>
+        <div class="m-form-row">
+          <label class="m-form-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            Photo <span style="opacity:.4;font-weight:400">(optional)</span>
+          </label>
+          <div id="m-pet-photo-wrap" style="display:flex;flex-direction:column;gap:.4rem">
+            <label style="display:flex;align-items:center;gap:.5rem;padding:.55rem .7rem;background:#1a1c1e;border:1.5px dashed rgba(255,255,255,.15);border-radius:8px;cursor:pointer;font-size:.78rem;color:rgba(255,255,255,.45);font-family:Inter,sans-serif">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <span id="m-pet-photo-label">Tap to upload photo</span>
+              <input type="file" id="m-pet-pet-photo" accept="image/*" capture="environment" style="display:none" onchange="previewPetPhoto(this,'m-pet')">
+            </label>
+            <div id="m-pet-photo-preview" style="display:none;position:relative">
+              <img id="m-pet-photo-preview-img" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px;display:block" alt="">
+              <button onclick="clearPetPhoto('m-pet')" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.7);border:none;border-radius:50%;width:24px;height:24px;color:#fff;cursor:pointer;font-size:.75rem;display:flex;align-items:center;justify-content:center">✕</button>
+            </div>
+          </div>
+        </div>
         <button id="m-pet-pet-submit" class="m-submit" style="background:var(--accent);color:#000" onclick="submitPet('m-pet')">Submit Pet Post</button>
       </div>
       <div id="m-edit-content" style="display:none">

@@ -5925,7 +5925,7 @@ function initStrandedRealtime() {
 // ============================================================
 const PET_STATUS_LABELS = { need_foster:'Needs Foster', found_stray:'Found Stray', can_foster:'Can Foster' };
 const PET_STATUS_COLORS = { need_foster:'#ff9f1c', found_stray:'#ec3452', can_foster:'#22c55e' };
-const PET_ANIMAL_ICONS  = { dog:'🐕', cat:'🐈', bird:'🐦', other:'🐾' };
+const PET_ANIMAL_ICONS  = { dog:'Dog', cat:'Cat', bird:'Bird', other:'Pet' };
 
 async function loadPets() {
   try {
@@ -5965,10 +5965,11 @@ function renderPetsOnMap(map, isMobile) {
     const popHtml = `
       <div style="font-family:Inter,sans-serif">
         <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem">
-          <span style="font-size:1.2rem">${animalIcon}</span>
+          <span style="font-size:.72rem;font-weight:800;text-transform:capitalize;color:rgba(255,255,255,.7)">${p.animal_type || 'pet'}</span>
           <span style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:${statusColor};letter-spacing:.04em">${statusLabel}</span>
           <span style="font-size:.55rem;color:rgba(255,255,255,.3);margin-left:auto">${age}</span>
         </div>
+        ${p.photo_url ? '<img src="'+esc(p.photo_url)+'" style="width:100%;max-height:140px;object-fit:cover;border-radius:8px;margin-bottom:.4rem;display:block" loading="lazy" alt="pet photo">' : ''}
         ${p.pet_name ? '<div style="font-size:.95rem;font-weight:800;color:#fff;margin-bottom:.15rem">'+esc(p.pet_name)+'</div>' : ''}
         <div style="font-size:.72rem;font-weight:600;color:rgba(255,255,255,.5);margin-bottom:.15rem;text-transform:capitalize">${p.animal_type}</div>
         <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.2rem">📍 ${esc(p.location)}</div>
@@ -6018,10 +6019,11 @@ function renderFilteredPets(map, isMobile, filteredPets) {
     const popHtml = `
       <div style="font-family:Inter,sans-serif">
         <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem">
-          <span style="font-size:1.2rem">${animalIcon}</span>
+          <span style="font-size:.72rem;font-weight:800;text-transform:capitalize;color:rgba(255,255,255,.7)">${p.animal_type || 'pet'}</span>
           <span style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:${statusColor};letter-spacing:.04em">${statusLabel}</span>
           <span style="font-size:.55rem;color:rgba(255,255,255,.3);margin-left:auto">${age}</span>
         </div>
+        ${p.photo_url ? '<img src="'+esc(p.photo_url)+'" style="width:100%;max-height:140px;object-fit:cover;border-radius:8px;margin-bottom:.4rem;display:block" loading="lazy" alt="pet photo">' : ''}
         ${p.pet_name ? '<div style="font-size:.95rem;font-weight:800;color:#fff;margin-bottom:.15rem">'+esc(p.pet_name)+'</div>' : ''}
         <div style="font-size:.72rem;font-weight:600;color:rgba(255,255,255,.5);margin-bottom:.15rem;text-transform:capitalize">${p.animal_type}</div>
         <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.2rem">📍 ${esc(p.location)}</div>
@@ -6054,6 +6056,74 @@ function initPetRealtime() {
   }).subscribe();
 }
 
+// ============================================================
+// PET PHOTO — client-side compress + Supabase Storage upload
+// ============================================================
+function previewPetPhoto(input, prefix) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById(prefix + '-photo-preview-img');
+    const wrap = document.getElementById(prefix + '-photo-preview');
+    const lbl  = document.getElementById(prefix + '-pet-photo-label');
+    if (img) img.src = e.target.result;
+    if (wrap) wrap.style.display = 'block';
+    if (lbl)  lbl.textContent = file.name.length > 24 ? file.name.slice(0,22)+'…' : file.name;
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearPetPhoto(prefix) {
+  const input = document.getElementById(prefix + '-pet-photo');
+  const wrap  = document.getElementById(prefix + '-photo-preview');
+  const lbl   = document.getElementById(prefix + '-pet-photo-label');
+  if (input) input.value = '';
+  if (wrap)  wrap.style.display = 'none';
+  if (lbl)   lbl.textContent = 'Tap to upload photo';
+}
+
+async function compressToWebP(file, maxPx = 1200, quality = 0.75) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width > maxPx || height > maxPx) {
+        if (width > height) { height = Math.round(height * maxPx / width); width = maxPx; }
+        else                { width  = Math.round(width  * maxPx / height); height = maxPx; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Canvas export failed')), 'image/webp', quality);
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+async function uploadPetPhoto(prefix) {
+  const input = document.getElementById(prefix + '-pet-photo');
+  if (!input?.files?.[0]) return null;
+  const file = input.files[0];
+  try {
+    const blob = await compressToWebP(file);
+    const ext  = 'webp';
+    const path = `pets/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { data, error } = await _sb.storage.from('pet-photos').upload(path, blob, {
+      contentType: 'image/webp', upsert: false
+    });
+    if (error) throw error;
+    const { data: { publicUrl } } = _sb.storage.from('pet-photos').getPublicUrl(path);
+    return publicUrl;
+  } catch(e) {
+    console.warn('[uploadPetPhoto] failed:', e.message);
+    return null; // non-fatal — post still submits without photo
+  }
+}
+
 async function submitPet(prefix) {
   const status = document.getElementById(prefix + '-pet-status')?.value;
   const animalType = document.getElementById(prefix + '-pet-animal')?.value;
@@ -6073,25 +6143,29 @@ async function submitPet(prefix) {
   if (!contact) return alert('Please enter contact info.');
 
   const btn = document.getElementById(prefix + '-pet-submit');
-  if (btn) { btn.disabled = true; btn.textContent = 'Posting...'; }
+  if (btn) { btn.disabled = true; btn.textContent = 'Uploading...'; }
 
   try {
+    const photoUrl = await uploadPetPhoto(prefix);
+
+    if (btn) btn.textContent = 'Posting...';
     const row = {
       pet_status: status, animal_type: animalType, pet_name: petName || null,
       description: desc, location: loc, lat, lng, name, contact,
       xhandle: (_currentProfile?.x_handle) || null,
       user_id: _currentUser?.id || null,
       avatar_url: _currentProfile?.avatar_url || '',
+      photo_url: photoUrl || null,
       flagged: containsLink(desc)
     };
     const { error } = await _sb.from('stranded_pets').insert(row);
     if (error) throw error;
     alert('Pet post submitted! It will appear on the map shortly.');
-    // Clear form
     ['pet-status','pet-animal','pet-name','pet-desc','pet-location','pet-lat','pet-lng','pet-poster','pet-contact'].forEach(f => {
       const el = document.getElementById(prefix + '-' + f);
       if (el) el.value = '';
     });
+    clearPetPhoto(prefix);
     loadPets();
   } catch(e) {
     alert('Error: ' + e.message);
