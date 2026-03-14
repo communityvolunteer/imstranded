@@ -6756,12 +6756,12 @@ async function updateActionButtons() {
   if (mOffer) {
     const mSvg = mOffer.querySelector('svg');
     if (_hasActiveStranded) {
-      if (mSvg) mSvg.outerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+      if (mSvg) mSvg.outerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
       const rBubble = `<span style="display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;border-radius:8px;font-size:.5rem;font-weight:800;padding:0 .25rem;${_roomsOfferedCount > 0 ? 'background:var(--accent);color:#fff' : 'background:#000;color:#fff'}">${_roomsOfferedCount}</span>`;
       mOffer.querySelector('.m-stat-label').innerHTML = `<span style="color:#1a1a2e;font-size:.55rem;font-weight:800;letter-spacing:.06em">OFFERS ${rBubble}</span>`;
       mOffer.onclick = () => mTab('manage-stranded', null);
     } else {
-      if (mSvg) mSvg.outerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+      if (mSvg) mSvg.outerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
       mOffer.querySelector('.m-stat-label').innerHTML = '<span style="color:#1a1a2e">HELP · I\'M STRANDED</span>';
       mOffer.onclick = () => mTab('stranded', null);
     }
@@ -6773,7 +6773,7 @@ async function updateActionButtons() {
       mTabSpare.style.color = '#1a1a2e';
       mTabSpare.onclick = () => mTab('manage-room', null);
     } else {
-      mTabSpare.innerHTML = '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> OFFER A SPARE ROOM';
+      mTabSpare.innerHTML = '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> OFFER A SPARE ROOM';
       mTabSpare.style.color = '';
       mTabSpare.onclick = () => mTab('offer', null);
     }
@@ -7084,13 +7084,13 @@ function resetActionButtons() {
   const mOffer = document.getElementById('mss-offer');
   if (mOffer) {
     const mSvg = mOffer.querySelector('svg');
-    if (mSvg) mSvg.outerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+    if (mSvg) mSvg.outerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
     mOffer.querySelector('.m-stat-label').innerHTML = '<span style="color:#1a1a2e">HELP · I\'M STRANDED</span>';
     mOffer.onclick = () => mTab('stranded', null);
   }
   const mTabSpare = document.getElementById('mtab-spare');
   if (mTabSpare) {
-    mTabSpare.innerHTML = '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> OFFER A SPARE ROOM';
+    mTabSpare.innerHTML = '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> OFFER A SPARE ROOM';
     mTabSpare.style.color = '';
     mTabSpare.onclick = () => mTab('offer', null);
   }
