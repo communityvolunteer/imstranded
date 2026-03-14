@@ -870,7 +870,7 @@ function _drawChart(canvasEl, metric, accentOverride) {
   if (!data) return;
   const { pts, vals, maxVal, pad, ch, dpr } = data;
   const peakIdx = vals.indexOf(Math.max(...vals));
-  const accent  = accentOverride || getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#3498ec';
+  const accent  = accentOverride || getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || accentHex();
 
   canvasEl.width  = w * dpr;
   canvasEl.height = h * dpr;
@@ -979,7 +979,7 @@ function _attachChartHover(canvasEl, metric, peakLabelId) {
     }
     if (minDist > 25) { tip.style.opacity = '0'; return; }
 
-    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#3498ec';
+    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || accentHex();
     const day    = `Mar ${parseInt(closest.date.slice(3))}`;
     const label  = metric === 'stranded' ? 'people' : 'flights';
     tip.innerHTML = `<span style="color:rgba(255,255,255,.45);font-size:.65rem">${day}</span><br><span style="color:${accent};font-weight:800;font-size:.85rem">${closest.val.toLocaleString()}</span> <span style="color:rgba(255,255,255,.4);font-size:.65rem">${label}</span>`;
@@ -2271,7 +2271,7 @@ function setAccent(name) {
   // Excludes offer/spare room UI which intentionally stays blue as its own brand color.
   const hex = t.hex;
   const rgbStr = `${t.r},${t.g},${t.b}`;
-  const offerSelectors = '.help-panel-offer, .post-form-header--offer, .post-form-header--live, .submit-btn--offer, [data-offer], .help-tab-dot--offer, #ss-offer-room, #m-stat-offer, .m-tab-spare, #mtab-spare, .accent-opt, .accent-opt-dot, .accent-dropdown, .accent-picker-wrap';
+  const offerSelectors = '.accent-opt, .accent-opt-dot, .accent-dropdown, .accent-picker-wrap';
   const offerEls = new Set(document.querySelectorAll(offerSelectors));
   const isInOffer = el => {
     let n = el;
@@ -2281,17 +2281,20 @@ function setAccent(name) {
   document.querySelectorAll('[style]').forEach(el => {
     if (isInOffer(el)) return;
     const st = el.getAttribute('style');
-    if (!st.includes('#3498ec') && !st.includes('52,152,236')) return;
+    if (!st.includes(accentHex()) && !st.includes('52,152,236')) return;
     el.setAttribute('style',
       st.replace(/#3498ec/gi, hex)
         .replace(/rgba\(52,\s*152,\s*236,\s*([\d.]+)\)/g, `rgba(${rgbStr},$1)`)
+        .replace(/#ff9f1c/gi, hex)
+        .replace(/rgba\(255,\s*159,\s*28,\s*([\d.]+)\)/g, `rgba(${rgbStr},$1)`)
     );
   });
   // SVG fill/stroke attributes
-  document.querySelectorAll('[fill="#3498ec"],[stroke="#3498ec"]').forEach(el => {
+  document.querySelectorAll('[fill="#3498ec"],[stroke="#3498ec"],[fill="#ff9f1c"],[stroke="#ff9f1c"]').forEach(el => {
     if (isInOffer(el)) return;
-    if (el.getAttribute('fill') === '#3498ec') el.setAttribute('fill', hex);
-    if (el.getAttribute('stroke') === '#3498ec') el.setAttribute('stroke', hex);
+    if (el.closest('[class*="verified"],[id*="verified"],[class*="p-verify"]')) return;
+    if (el.getAttribute('fill') === '#3498ec' || el.getAttribute('fill') === '#ff9f1c') el.setAttribute('fill', hex);
+    if (el.getAttribute('stroke') === '#3498ec' || el.getAttribute('stroke') === '#ff9f1c') el.setAttribute('stroke', hex);
   });
 }
 
@@ -2822,7 +2825,7 @@ function openPostSidebar(post, postType) {
     const isOffer = (postType === 'offer');
     badgeEl.textContent  = isOffer ? 'Spare Room' : 'Stranded';
     badgeEl.style.cssText = isOffer
-      ? `background:rgba(52,152,236,.18);color:#3498ec;`
+      ? `background:'+accentRgba(.18)+';color:'+accentHex()+';`
       : `background:rgba(236,52,82,.18);color:#ec3452;`;
   }
 
@@ -3208,7 +3211,7 @@ function buildTipButton(xhandle, hasUserId) {
   const tipIcon = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>';
   if (!xhandle || !hasUserId) return '';
   const tweetText = encodeURIComponent(`@bankrbot Tip 1 $HELP to @${xhandle}`);
-  return `<a href="https://x.com/intent/tweet?text=${tweetText}" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:4px;margin-top:.4rem;padding:.32rem .65rem;background:#3498ec;color:#fff;font-size:.66rem;font-weight:700;border-radius:6px;text-decoration:none;font-family:Inter,sans-serif">${tipIcon} Tip $HELP</a>`;
+  return `<a href="https://x.com/intent/tweet?text=${tweetText}" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:4px;margin-top:.4rem;padding:.32rem .65rem;background:'+accentHex()+';color:#fff;font-size:.66rem;font-weight:700;border-radius:6px;text-decoration:none;font-family:Inter,sans-serif">${tipIcon} Tip $HELP</a>`;
 }
 
 function buildSendHelpButton(xhandle, hasUserId) {
@@ -3247,10 +3250,10 @@ function buildFlagButton(table, id) {
 function buildUserDot(type, num, subtitle, minSz) {
   // type: 'offer' (blue), 'stranded' (red), 'success' (green), 'pet' (amber)
   const colors = {
-    offer:    { bg:'rgba(52,152,236,.36)',  border:'rgba(52,152,236,.70)',  ring:'rgba(52,152,236,.24)' },
+    offer:    { bg:''+accentRgba(.36)+'',  border:''+accentRgba(.70)+'',  ring:''+accentRgba(.24)+'' },
     stranded: { bg:'rgba(236,52,82,.36)',   border:'rgba(236,52,82,.70)',   ring:'rgba(236,52,82,.24)' },
     success:  { bg:'rgba(34,197,94,.36)',   border:'rgba(34,197,94,.70)',   ring:'rgba(34,197,94,.24)' },
-    pet:      { bg:'rgba(255,159,28,.36)',  border:'rgba(255,159,28,.80)',  ring:'rgba(255,159,28,.24)' },
+    pet:      { bg:''+accentRgba(.36)+'',  border:''+accentRgba(.80)+'',  ring:''+accentRgba(.24)+'' },
   };
   const c = colors[type] || colors.offer;
   const label = num >= 1000000 ? (num/1000000).toFixed(1)+'M' : num >= 1000 ? Math.round(num/1000)+'k' : num.toString();
@@ -3443,7 +3446,7 @@ function renderResources() {
         const hasFullDir = typeof EMBASSIES_BY_HOST !== 'undefined' && embCC && EMBASSIES_BY_HOST[embCC];
         const embCount = hasFullDir ? Object.keys(EMBASSIES_BY_HOST[embCC].embassies).length : 0;
         const embSection = hasFullDir
-          ? `<div class="embassy-section"><a href="javascript:void(0)" onclick="document.getElementById('res-stuck-in').value='${embCC}';renderResources()" style="display:block;text-align:center;padding:.45rem;background:rgba(52,152,236,.1);border:1px solid rgba(52,152,236,.18);border-radius:8px;color:#3498ec;font-size:.72rem;font-weight:700;text-decoration:none;text-transform:uppercase;letter-spacing:.03em">\ud83c\udfdb\ufe0f ${embCount} Embassy contacts — tap to filter</a></div>`
+          ? `<div class="embassy-section"><a href="javascript:void(0)" onclick="document.getElementById('res-stuck-in').value='${embCC}';renderResources()" style="display:block;text-align:center;padding:.45rem;background:'+accentRgba(.1)+';border:1px solid '+accentRgba(.18)+';border-radius:8px;color:'+accentHex()+';font-size:.72rem;font-weight:700;text-decoration:none;text-transform:uppercase;letter-spacing:.03em">\ud83c\udfdb\ufe0f ${embCount} Embassy contacts — tap to filter</a></div>`
           : `<div class="embassy-section"><div class="embassy-title">Emergency Contacts</div>${Object.entries(c.embassy).map(([key,info]) => {
               const M = EMBASSY_META[key]||{flag:'',role:key.toUpperCase()};
               const phone = info.phone||info.alt||null;
@@ -3488,7 +3491,7 @@ function renderResources() {
         matchCount += entries.length;
 
         html += `<div class="country-card warn" id="emb-${cc}" style="grid-column:1/-1">
-          <div class="card-header"><div class="card-name">${host.name}</div><span class="status-badge" style="background:rgba(52,152,236,.15);color:#3498ec">${entries.length} EMBASSIES</span></div>
+          <div class="card-header"><div class="card-name">${host.name}</div><span class="status-badge" style="background:'+accentRgba(.15)+';color:'+accentHex()+'">${entries.length} EMBASSIES</span></div>
           ${host.emergency ? '<div style="font-size:.78rem;color:rgba(255,255,255,.5);margin:.3rem 0">Emergency: <strong style="color:#ec3452">'+host.emergency+'</strong></div>' : ''}
           ${host.crisis_note ? '<div style="font-size:.72rem;color:rgba(255,255,255,.35);font-style:italic;margin-bottom:.4rem">'+host.crisis_note+'</div>' : ''}
           <div class="embassy-section">`;
@@ -3502,7 +3505,7 @@ function renderResources() {
             </div>
             <div style="display:flex;gap:.3rem;align-items:center">
               ${phone ? '<a class="call-btn" href="tel:'+phone.replace(/[\s\-()]/g,'')+'">'+phone+'</a>' : ''}
-              ${info.web ? '<a href="'+info.web+'" target="_blank" style="font-size:.65rem;color:#3498ec;text-decoration:none;white-space:nowrap">[web]</a>' : ''}
+              ${info.web ? '<a href="'+info.web+'" target="_blank" style="font-size:.65rem;color:'+accentHex()+';text-decoration:none;white-space:nowrap">[web]</a>' : ''}
             </div>
           </div>`;
         }
@@ -3511,14 +3514,14 @@ function renderResources() {
 
       // Summary
       if (stuckIn || from || search) {
-        const summaryColor = matchCount > 0 ? '#3498ec' : 'rgba(255,255,255,.3)';
+        const summaryColor = matchCount > 0 ? accentHex() : 'rgba(255,255,255,.3)';
         html = `<div style="grid-column:1/-1;font-size:.78rem;color:${summaryColor};font-weight:600;margin-bottom:.3rem">${matchCount} result${matchCount !== 1 ? 's' : ''} found</div>` + html;
       }
     }
     
     // Global emergency hotlines (show when no filters)
     if (!stuckIn && !from && !search && typeof GLOBAL_EMERGENCY !== 'undefined') {
-      html += `<div class="country-card safe" id="emb-global" style="grid-column:1/-1;border-color:rgba(52,152,236,.2)">
+      html += `<div class="country-card safe" id="emb-global" style="grid-column:1/-1;border-color:'+accentRgba(.2)+'">
         <div class="card-header"><div class="card-name">Global Emergency Hotlines</div><span class="status-badge safe">24/7</span></div>
         <div style="font-size:.78rem;color:rgba(255,255,255,.45);margin-bottom:.5rem">Call your country's crisis line from anywhere</div>
         <div class="embassy-section">`;
@@ -3528,7 +3531,7 @@ function renderResources() {
           <div style="flex:1"><span class="embassy-name">${nat.flag} ${nat.name}</span>${info.note ? '<div class="embassy-note">'+info.note+'</div>' : ''}</div>
           <div style="display:flex;gap:.3rem;align-items:center">
             <a class="call-btn" href="tel:${info.phone.replace(/[\s\-()]/g,'')}">${info.phone}</a>
-            ${info.web ? '<a href="'+info.web+'" target="_blank" style="font-size:.65rem;color:#3498ec;text-decoration:none">[web]</a>' : ''}
+            ${info.web ? '<a href="'+info.web+'" target="_blank" style="font-size:.65rem;color:'+accentHex()+';text-decoration:none">[web]</a>' : ''}
           </div>
         </div>`;
       }
@@ -4102,7 +4105,7 @@ function openMCountryPopup(id){
     ${borderRows}
     <div class="m-popup-section-title">Embassy Emergency Contacts</div>
     ${embRows||'<div style="font-size:.78rem;color:var(--muted)">Check embassy website</div>'}
-    ${c.ngos?.length?`<div class="m-popup-section-title">Active NGOs</div><div class="ngo-tags" style="display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.3rem">${c.ngos.map(n=>`<span style="background:#eff6ff30;color:#3498ec;font-size:.63rem;font-weight:600;border-radius:4px;padding:.14rem .48rem">${n}</span>`).join('')}</div>`:''}
+    ${c.ngos?.length?`<div class="m-popup-section-title">Active NGOs</div><div class="ngo-tags" style="display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.3rem">${c.ngos.map(n=>`<span style="background:#eff6ff30;color:'+accentHex()+';font-size:.63rem;font-weight:600;border-radius:4px;padding:.14rem .48rem">${n}</span>`).join('')}</div>`:''}
     ${c.telegram?`<a href="${c.telegram}" target="_blank" style="display:inline-block;margin-top:.65rem;color:#2563eb;font-size:.8rem;font-weight:500">→ Telegram group</a>`:''}
   `;
   document.getElementById('m-country-popup').classList.add('open');
@@ -4296,7 +4299,7 @@ function mFilterResources() {
       if (!entries.length) continue;
       count += entries.length;
       html += `<div class="m-emb-section">
-        <div class="m-emb-country-title">${host.name} <span style="font-size:.55rem;background:rgba(52,152,236,.15);color:#3498ec;border-radius:4px;padding:.1rem .3rem;font-weight:700">${entries.length}</span></div>
+        <div class="m-emb-country-title">${host.name} <span style="font-size:.55rem;background:'+accentRgba(.15)+';color:'+accentHex()+';border-radius:4px;padding:.1rem .3rem;font-weight:700">${entries.length}</span></div>
         ${host.emergency ? '<div style="font-size:.65rem;color:rgba(255,255,255,.4);margin-bottom:.3rem">Emergency: <strong style="color:#ec3452">'+host.emergency+'</strong></div>' : ''}
         ${entries.map(([natCC, info]) => {
           const nat = (typeof EMB_NATIONS !== 'undefined' && EMB_NATIONS[natCC]) || {flag:'',name:natCC};
@@ -4304,13 +4307,13 @@ function mFilterResources() {
           return `<div class="m-emb-row"><div class="m-emb-who"><span class="m-emb-country">${nat.flag} ${nat.name}</span>${info.note?`<span class="m-emb-role">${info.note}</span>`:''}</div>
             <div style="display:flex;gap:.3rem;align-items:center">
               ${phone?`<a class="m-call-btn" href="tel:${phone.replace(/[\s\-()]/g,'')}">${PHONE_SVG} ${phone}</a>`:''}
-              ${info.web?`<a href="${info.web}" target="_blank" style="font-size:.55rem;color:#3498ec;text-decoration:none">[web]</a>`:''}
+              ${info.web?`<a href="${info.web}" target="_blank" style="font-size:.55rem;color:'+accentHex()+';text-decoration:none">[web]</a>`:''}
             </div></div>`;
         }).join('')}
       </div>`;
     }
     if (stuckIn || from || search) {
-      html = `<div style="font-size:.7rem;color:#3498ec;font-weight:600;margin-bottom:.4rem">${count} result${count!==1?'s':''}</div>` + html;
+      html = `<div style="font-size:.7rem;color:'+accentHex()+';font-weight:600;margin-bottom:.4rem">${count} result${count!==1?'s':''}</div>` + html;
     }
   }
 
@@ -5006,7 +5009,7 @@ async function renderProfilePosts() {
       <div style="font-size:.82rem;color:rgba(255,255,255,.55);line-height:1.5">${(p.body || '').slice(0, 150)}${(p.body || '').length > 150 ? '...' : ''}</div>
       ${buildContactButtons(p.contact, p.xhandle, p.name)}
       <div class="profile-post-actions">
-        <button onclick="profileEditPost('${p.id}')" style="background:rgba(52,152,236,.15);color:#3498ec;border:1px solid rgba(52,152,236,.25);border-radius:6px;padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Edit</button>
+        <button onclick="profileEditPost('${p.id}')" style="background:'+accentRgba(.15)+';color:'+accentHex()+';border:1px solid '+accentRgba(.25)+';border-radius:6px;padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Edit</button>
         <button onclick="profileDeletePost('${p.id}')" style="background:#ec3452;color:#fff;border:none;border-radius:6px;padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Delete</button>
       </div>
     </div>`;
@@ -5218,14 +5221,14 @@ async function mRenderProfilePosts() {
         <div style="font-size:.85rem;font-weight:600;color:#fff;margin-bottom:.15rem">📍 ${esc(p.location)}</div>
         <div style="font-size:.8rem;color:rgba(255,255,255,.7);line-height:1.5;margin-bottom:.6rem">${(p.body || '').slice(0, 120)}${(p.body || '').length > 120 ? '...' : ''}</div>
         <div style="display:flex;gap:.5rem">
-          <button onclick="mProfileEditPost('${p.id}')" style="background:rgba(52,152,236,.15);color:#3498ec;border:1px solid rgba(52,152,236,.25);border-radius:7px;padding:.35rem .8rem;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Edit</button>
+          <button onclick="mProfileEditPost('${p.id}')" style="background:'+accentRgba(.15)+';color:'+accentHex()+';border:1px solid '+accentRgba(.25)+';border-radius:7px;padding:.35rem .8rem;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Edit</button>
           <button onclick="mProfileDeletePost('${p.id}')" style="background:#ec3452;color:#fff;border:none;border-radius:7px;padding:.35rem .8rem;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Delete</button>
         </div>
       </div>`;
     }).join('');
     injectMatchNotifications('m-my-posts-list');
   } catch (e) {
-    list.innerHTML = `<div style="color:#ec3452;font-size:.82rem;padding:.5rem 0">Error: ${e.message} <button onclick="mRenderProfilePosts()" style="background:rgba(52,152,236,.15);color:#3498ec;border:none;border-radius:5px;padding:.2rem .5rem;font-size:.7rem;font-weight:600;cursor:pointer;margin-left:.3rem">Retry</button></div>`;
+    list.innerHTML = `<div style="color:#ec3452;font-size:.82rem;padding:.5rem 0">Error: ${e.message} <button onclick="mRenderProfilePosts()" style="background:'+accentRgba(.15)+';color:'+accentHex()+';border:none;border-radius:5px;padding:.2rem .5rem;font-size:.7rem;font-weight:600;cursor:pointer;margin-left:.3rem">Retry</button></div>`;
   }
 }
 
@@ -5300,7 +5303,7 @@ async function renderProfileStranded() {
         <button class="found-place-btn" style="${homeStyle}" onclick="${match?.offer_confirmed && !match?.home_lat ? "checkAndOpenGoHome('"+p.id+"')" : 'void(0)'}">
           ${homeLabel}
         </button>
-        <button onclick="editStrandedPost('${p.id}')" style="background:rgba(52,152,236,.15);color:#3498ec;border:1px solid rgba(52,152,236,.25);border-radius:6px;padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Edit</button>
+        <button onclick="editStrandedPost('${p.id}')" style="background:'+accentRgba(.15)+';color:'+accentHex()+';border:1px solid '+accentRgba(.25)+';border-radius:6px;padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Edit</button>
         <button onclick="deleteStrandedPost('${p.id}')" style="background:#ec3452;color:#fff;border:none;border-radius:6px;padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Delete</button>
       </div>
     </div>`);
@@ -5311,7 +5314,7 @@ async function renderProfileStranded() {
   } catch (e) {
     console.error('renderProfileStranded error:', e);
     [el, mel].forEach(list => {
-      if (list) list.innerHTML = `<div style="font-size:.82rem;color:#ec3452;padding:.3rem 0">Error loading: ${e.message} <button onclick="renderProfileStranded()" style="background:rgba(52,152,236,.15);color:#3498ec;border:none;border-radius:5px;padding:.2rem .5rem;font-size:.7rem;font-weight:600;cursor:pointer;margin-left:.3rem">Retry</button></div>`;
+      if (list) list.innerHTML = `<div style="font-size:.82rem;color:#ec3452;padding:.3rem 0">Error loading: ${e.message} <button onclick="renderProfileStranded()" style="background:'+accentRgba(.15)+';color:'+accentHex()+';border:none;border-radius:5px;padding:.2rem .5rem;font-size:.7rem;font-weight:600;cursor:pointer;margin-left:.3rem">Retry</button></div>`;
     });
   }
 }
@@ -6137,7 +6140,7 @@ function buildPetMatchButton(petPost) {
     // I need a foster — check if I have an active need_foster or found_stray post
     const myPetPost = _petPosts.find(p => p.user_id === myId && (p.pet_status === 'need_foster' || p.pet_status === 'found_stray'));
     if (myPetPost) {
-      return `<button onclick="requestPetMatch('${myPetPost.id}','${petPost.id}')" style="margin-top:.5rem;width:100%;padding:.5rem;background:rgba(255,159,28,.12);border:1px solid rgba(255,159,28,.25);border-radius:8px;color:#ff9f1c;font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">🐾 Request This Foster</button>`;
+      return `<button onclick="requestPetMatch('${myPetPost.id}','${petPost.id}')" style="margin-top:.5rem;width:100%;padding:.5rem;background:'+accentRgba(.12)+';border:1px solid '+accentRgba(.25)+';border-radius:8px;color:'+accentHex()+';font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">🐾 Request This Foster</button>`;
     }
   } else if ((petPost.pet_status === 'need_foster' || petPost.pet_status === 'found_stray') && petPost.user_id !== myId) {
     // I can foster — check if I have an active can_foster post
@@ -6323,7 +6326,7 @@ function showSuccessTab(btn, tab, uid) {
 // ── Build success story tab HTML for a popup ─────────────────
 function buildSuccessTab(s, uid) {
   const sStory = s.stranded_story ? `<div style="font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.5;margin:.3rem 0;padding-left:.5rem;border-left:2px solid rgba(236,52,82,.4)">"${esc(s.stranded_story)}"<div style="font-size:.63rem;color:rgba(255,255,255,.25);margin-top:.15rem">— ${s.stranded_name||'Stranded person'}</div></div>` : '';
-  const oStory = s.offer_story ? `<div style="font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.5;margin:.3rem 0;padding-left:.5rem;border-left:2px solid rgba(52,152,236,.4)">"${esc(s.offer_story)}"<div style="font-size:.63rem;color:rgba(255,255,255,.25);margin-top:.15rem">— ${s.offer_name||'Host'}</div></div>` : '';
+  const oStory = s.offer_story ? `<div style="font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.5;margin:.3rem 0;padding-left:.5rem;border-left:2px solid '+accentRgba(.4)+'">"${esc(s.offer_story)}"<div style="font-size:.63rem;color:rgba(255,255,255,.25);margin-top:.15rem">— ${s.offer_name||'Host'}</div></div>` : '';
   const homeNote = s.home_location ? `<div style="font-size:.68rem;color:#22c55e;margin-top:.35rem">🏠 Made it home to ${s.home_location}</div>` : '';
   const date = s.confirmed_at ? new Date(s.confirmed_at).toLocaleDateString() : '';
   return `<div data-sptab="story">
@@ -6735,11 +6738,11 @@ async function updateActionButtons() {
         ? `<span style="display:inline-block;background:#ec3452;color:#fff;font-size:.55rem;font-weight:800;border-radius:10px;padding:.1rem .4rem;margin-left:.3rem;vertical-align:middle">${_pendingRequestCount}</span>`
         : `<span style="display:inline-block;background:rgba(255,255,255,.12);color:rgba(255,255,255,.4);font-size:.55rem;font-weight:800;border-radius:10px;padding:.1rem .4rem;margin-left:.3rem;vertical-align:middle">0</span>`;
       pcOffer.querySelector('.sitrep-sub').innerHTML = 'Requests' + badge;
-      pcOffer.querySelector('svg').outerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
+      pcOffer.querySelector('svg').outerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke=accentHex() stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
       pcOffer.onclick = () => openManageSidebar('offer');
     } else {
       pcOffer.querySelector('.sitrep-label').textContent = 'Offer Spare Room';
-      pcOffer.querySelector('.sitrep-label').style.color = '#3498ec';
+      pcOffer.querySelector('.sitrep-label').style.color = accentHex();
       pcOffer.querySelector('.sitrep-sub').textContent = 'tap · help someone';
       pcOffer.onclick = () => isMob() ? mTab('offer', null) : openFormSidebar('offer');
     }
@@ -6820,10 +6823,10 @@ function openManageSidebar(type) {
   if (sb.classList.contains('open')) closeFormSidebar();
   setTimeout(() => {
     body.innerHTML = '<div id="pc-manage-content"></div>';
-    const heroColor = type === 'offer' ? '#3498ec' : '#ec3452';
+    const heroColor = type === 'offer' ? accentHex() : '#ec3452';
     const heroIcon = type === 'stranded'
       ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:.3rem"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
-      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:.3rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
+      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke=accentHex() stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:.3rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
     if (title) {
       title.innerHTML = heroIcon + (type === 'offer' ? 'MY ROOM' : 'MY STATUS');
       title.style.color = heroColor;
@@ -6933,7 +6936,7 @@ async function renderManageDashboard(type) {
     } catch(e) {}
 
     const step = match ? 2 : 1;
-    container.innerHTML = buildProgressTracker(step, ['Listed', 'Matched', 'Success'], '#3498ec') + buildOfferCard(p, match, pending, step);
+    container.innerHTML = buildProgressTracker(step, ['Listed', 'Matched', 'Success'], accentHex()) + buildOfferCard(p, match, pending, step);
   }
 }
 
@@ -6957,7 +6960,7 @@ function buildProgressTracker(currentStep, labels, color) {
 
 const _svgPin = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
 const _svgHome = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
-const _svgPerson = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+const _svgPerson = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke=accentHex() stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
 
 function buildStrandedCard(p, match, step) {
   const t = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
@@ -7082,7 +7085,7 @@ function resetActionButtons() {
   const pcStranded = document.getElementById('ss-im-stranded');
   if (pcOffer) {
     pcOffer.querySelector('.sitrep-label').textContent = 'Offer Spare Room';
-    pcOffer.querySelector('.sitrep-label').style.color = '#3498ec';
+    pcOffer.querySelector('.sitrep-label').style.color = accentHex();
     pcOffer.querySelector('.sitrep-sub').textContent = 'tap · help someone';
     pcOffer.onclick = () => isMob() ? mTab('offer', null) : openFormSidebar('offer');
   }
@@ -7198,9 +7201,9 @@ async function renderAdminPanel(container) {
 
   const toggleHtml = `<div style="display:flex;background:rgba(255,255,255,.06);border-radius:8px;padding:2px;margin-bottom:1rem;border:1px solid rgba(255,255,255,.08)">
     <button onclick="_adminTab='flagged';renderAdminPanel(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="flex:1;padding:.4rem;border:none;border-radius:6px;font-family:Inter,sans-serif;font-size:.65rem;font-weight:700;cursor:pointer;${_adminTab==='flagged'?'background:rgba(236,52,82,.15);color:#ec3452':'background:transparent;color:rgba(255,255,255,.3)'}">Flagged</button>
-    <button onclick="_adminTab='rooms';renderAdminPanel(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="flex:1;padding:.4rem;border:none;border-radius:6px;font-family:Inter,sans-serif;font-size:.65rem;font-weight:700;cursor:pointer;${_adminTab==='rooms'?'background:rgba(52,152,236,.15);color:#3498ec':'background:transparent;color:rgba(255,255,255,.3)'}">Rooms</button>
+    <button onclick="_adminTab='rooms';renderAdminPanel(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="flex:1;padding:.4rem;border:none;border-radius:6px;font-family:Inter,sans-serif;font-size:.65rem;font-weight:700;cursor:pointer;${_adminTab==='rooms'?'background:'+accentRgba(.15)+';color:'+accentHex()+'':'background:transparent;color:rgba(255,255,255,.3)'}">Rooms</button>
     <button onclick="_adminTab='stranded';renderAdminPanel(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="flex:1;padding:.4rem;border:none;border-radius:6px;font-family:Inter,sans-serif;font-size:.65rem;font-weight:700;cursor:pointer;${_adminTab==='stranded'?'background:rgba(236,52,82,.15);color:#ec3452':'background:transparent;color:rgba(255,255,255,.3)'}">Stranded</button>
-    <button onclick="_adminTab='pets';renderAdminPanel(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="flex:1;padding:.4rem;border:none;border-radius:6px;font-family:Inter,sans-serif;font-size:.65rem;font-weight:700;cursor:pointer;${_adminTab==='pets'?'background:rgba(255,159,28,.15);color:#ff9f1c':'background:transparent;color:rgba(255,255,255,.3)'}">Pets</button>
+    <button onclick="_adminTab='pets';renderAdminPanel(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="flex:1;padding:.4rem;border:none;border-radius:6px;font-family:Inter,sans-serif;font-size:.65rem;font-weight:700;cursor:pointer;${_adminTab==='pets'?'background:'+accentRgba(.15)+';color:'+accentHex()+'':'background:transparent;color:rgba(255,255,255,.3)'}">Pets</button>
     ${isAdmin() ? `<button onclick="_adminTab='mods';renderAdminPanel(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="flex:1;padding:.4rem;border:none;border-radius:6px;font-family:Inter,sans-serif;font-size:.65rem;font-weight:700;cursor:pointer;${_adminTab==='mods'?'background:rgba(168,85,247,.15);color:#a855f7':'background:transparent;color:rgba(255,255,255,.3)'}">Mods</button>` : ''}
   </div>`;
 
@@ -7465,8 +7468,8 @@ function openResourcesSidebar(hostCC) {
     setTimeout(() => {
       body.innerHTML = '<div id="pc-manage-content"></div>';
       if (title) {
-        title.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3498ec" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:.3rem"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> RESOURCES';
-        title.style.color = '#3498ec';
+        title.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke=accentHex() stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:.3rem"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> RESOURCES';
+        title.style.color = accentHex();
         title.style.fontSize = '.85rem';
       }
       sb.classList.add('open');
@@ -7532,7 +7535,7 @@ function renderResourcesSidebar(container) {
   if (!hostCC) {
     html += '<div style="text-align:center;padding:2rem 0;color:rgba(255,255,255,.25);font-size:.82rem">Select a country to see embassy contacts and local resources</div>';
     // Show the full resources page link
-    html += `<a href="javascript:void(0)" onclick="${isMob() ? "mTab('resources',null)" : "closeFormSidebar();showView('resources')"}" style="display:block;text-align:center;padding:.5rem;background:rgba(52,152,236,.08);border:1px solid rgba(52,152,236,.15);border-radius:8px;color:#3498ec;font-size:.72rem;font-weight:700;text-decoration:none;margin-top:.5rem">View Full Resources Directory →</a>`;
+    html += `<a href="javascript:void(0)" onclick="${isMob() ? "mTab('resources',null)" : "closeFormSidebar();showView('resources')"}" style="display:block;text-align:center;padding:.5rem;background:'+accentRgba(.08)+';border:1px solid '+accentRgba(.15)+';border-radius:8px;color:'+accentHex()+';font-size:.72rem;font-weight:700;text-decoration:none;margin-top:.5rem">View Full Resources Directory →</a>`;
     container.innerHTML = html;
     return;
   }
@@ -7559,7 +7562,7 @@ function renderResourcesSidebar(container) {
         <div style="flex:1"><span style="font-size:.78rem;font-weight:600;color:#fff">${nat.flag} ${nat.name}</span>${info.note ? '<div style="font-size:.6rem;color:rgba(255,255,255,.3)">'+info.note+'</div>' : ''}</div>
         <div style="display:flex;gap:.3rem;align-items:center;flex-shrink:0">
           ${info.phone ? '<a href="tel:'+info.phone.replace(/[\s\-()]/g,'')+'" style="font-size:.68rem;color:#22c55e;text-decoration:none;font-weight:600;white-space:nowrap">'+info.phone+'</a>' : ''}
-          ${info.web ? '<a href="'+info.web+'" target="_blank" style="font-size:.6rem;color:#3498ec;text-decoration:none">[web]</a>' : ''}
+          ${info.web ? '<a href="'+info.web+'" target="_blank" style="font-size:.6rem;color:'+accentHex()+';text-decoration:none">[web]</a>' : ''}
         </div>
       </div>`;
     }
@@ -7580,7 +7583,7 @@ function renderResourcesSidebar(container) {
         <div style="font-size:.8rem;font-weight:700;color:#fff;margin-bottom:.15rem">${r.name}</div>
         <div style="font-size:.7rem;color:rgba(255,255,255,.45);line-height:1.5;margin-bottom:.3rem">${r.desc}</div>
         <div style="display:flex;gap:.4rem;align-items:center">
-          <a href="${r.url}" target="_blank" style="font-size:.65rem;color:#3498ec;text-decoration:none;font-weight:600">Open →</a>
+          <a href="${r.url}" target="_blank" style="font-size:.65rem;color:'+accentHex()+';text-decoration:none;font-weight:600">Open →</a>
           ${r.phone ? `<a href="tel:${r.phone.replace(/[\s\-()]/g,'')}" style="font-size:.65rem;color:#22c55e;text-decoration:none;font-weight:600">${r.phone}</a>` : ''}
         </div>
       </div>`;
@@ -7588,7 +7591,7 @@ function renderResourcesSidebar(container) {
   }
 
   // Always show link to full directory
-  html += `<a href="javascript:void(0)" onclick="${isMob() ? "mTab('resources',null)" : "closeFormSidebar();showView('resources')"}" style="display:block;text-align:center;padding:.5rem;background:rgba(52,152,236,.08);border:1px solid rgba(52,152,236,.15);border-radius:8px;color:#3498ec;font-size:.72rem;font-weight:700;text-decoration:none;margin-top:.8rem">View Full Directory (${typeof EMBASSIES_BY_HOST !== 'undefined' ? Object.values(EMBASSIES_BY_HOST).reduce((s,h)=>s+Object.keys(h.embassies).length,0) : '850'}+ contacts) →</a>`;
+  html += `<a href="javascript:void(0)" onclick="${isMob() ? "mTab('resources',null)" : "closeFormSidebar();showView('resources')"}" style="display:block;text-align:center;padding:.5rem;background:'+accentRgba(.08)+';border:1px solid '+accentRgba(.15)+';border-radius:8px;color:'+accentHex()+';font-size:.72rem;font-weight:700;text-decoration:none;margin-top:.8rem">View Full Directory (${typeof EMBASSIES_BY_HOST !== 'undefined' ? Object.values(EMBASSIES_BY_HOST).reduce((s,h)=>s+Object.keys(h.embassies).length,0) : '850'}+ contacts) →</a>`;
 
   container.innerHTML = html;
 }
