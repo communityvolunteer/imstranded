@@ -6205,12 +6205,24 @@ function setPetMode(prefix, mode) {
   const takeEl       = document.getElementById(prefix + '-take-fields');
   const photoNameEl  = document.getElementById(prefix + '-needs-photo-name');
   const descLabelEl  = document.getElementById(prefix + '-desc-label-text');
+  const animalRow    = document.getElementById(prefix + '-animal-row');
+  const descTextarea = document.getElementById(prefix + '-pet-desc');
   if (needsBtn) needsBtn.classList.toggle('active', mode === 'needs');
   if (takeBtn)  takeBtn.classList.toggle('active', mode === 'take');
   if (needsEl)  needsEl.style.display      = mode === 'needs' ? '' : 'none';
   if (takeEl)   takeEl.style.display       = mode === 'take'  ? '' : 'none';
   if (photoNameEl) photoNameEl.style.display = mode === 'needs' ? '' : 'none';
-  if (descLabelEl) descLabelEl.textContent   = mode === 'take' ? 'Additional Info' : 'Description';
+  if (animalRow) animalRow.style.display     = mode === 'take' ? 'none' : '';
+  if (descLabelEl) {
+    descLabelEl.textContent = mode === 'take' ? 'Additional Info' : 'Description';
+    descLabelEl.style.fontSize = '1rem';
+    descLabelEl.style.color    = '#fff';
+  }
+  if (descTextarea) {
+    descTextarea.placeholder = mode === 'take'
+      ? 'Can take 1 dog tonight, dog food is a plus!'
+      : 'Breed, age, temperament, what\'s needed...';
+  }
 }
 
 function getPetStatus(prefix) {
@@ -6286,7 +6298,12 @@ async function uploadPetPhoto(prefix) {
 
 async function submitPet(prefix) {
   const status = getPetStatus(prefix);
-  const animalType = document.getElementById(prefix + '-pet-animal')?.value;
+  let animalType = document.getElementById(prefix + '-pet-animal')?.value;
+  // In "take" mode, read multiselect chips instead of single select
+  if (status === 'can_foster') {
+    const chips = [...document.querySelectorAll('#' + prefix + '-take-animal-chips input:checked')].map(c => c.value);
+    animalType = chips.length ? chips.join(',') : '';
+  }
   const petName = document.getElementById(prefix + '-pet-name')?.value?.trim() || '';
   const desc = document.getElementById(prefix + '-pet-desc')?.value?.trim();
   const loc = document.getElementById(prefix + '-pet-location')?.value?.trim();
@@ -6296,7 +6313,7 @@ async function submitPet(prefix) {
   const contact = document.getElementById(prefix + '-pet-contact')?.value?.trim();
 
   if (!status) return alert('Please select a situation.');
-  if (!animalType) return alert('Please select the animal type.');
+  if (!animalType) return alert(status === 'can_foster' ? 'Please select at least one animal type.' : 'Please select the animal type.');
   if (!desc || desc.length < 5) return alert('Please describe the situation (min 5 chars).');
   if (!loc) return alert('Please enter a location.');
   if (!name) return alert('Please enter your name.');

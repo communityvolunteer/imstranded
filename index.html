@@ -587,25 +587,33 @@ function googleTranslateInit() {
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1.4rem">
         <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="none" style="margin-bottom:.6rem"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg>
         <div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">STRANDED PETS</div>
-        <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">Report a pet that needs help, a found stray, or offer to foster.</div>
+        <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">Report a pet needing help or a home.</div>
       </div>
       <div class="post-form">
 <div class="help-toggle-bar" id="pet-mode-toggle" style="width:100%;margin-bottom:1rem">
           <button type="button" id="pet-mode-needs" onclick="setPetMode('pet','needs')" class="help-toggle-btn active">PET NEEDS HOME</button>
-          <button type="button" id="pet-mode-take" onclick="setPetMode('pet','take')" class="help-toggle-btn">CAN TAKE A PET</button>
+          <button type="button" id="pet-mode-take" onclick="setPetMode('pet','take')" class="help-toggle-btn">I CAN TAKE A PET</button>
         </div>
         <div id="pet-needs-fields">
         <div class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="none" class="m-field-icon"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg>Situation</label>
           <select id="pet-pet-status" class="modal-input" style="color-scheme:dark">
             <option value="">Select...</option>
-            <option value="need_foster">My pet needs a foster / I can't take them</option>
+            <option value="need_foster">My pet needs a home</option>
             <option value="found_stray">I found an abandoned pet</option>
           </select>
         </div></div>
         <div id="pet-take-fields" style="display:none">
         <input type="hidden" id="pet-pet-status-foster" value="can_foster">
+        <div class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="none" class="m-field-icon"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg>Animal type <span style="opacity:.4;font-weight:400">(select all that apply)</span></label>
+          <div style="display:flex;flex-wrap:wrap;gap:.4rem" id="pet-take-animal-chips">
+            <label class="need-chip"><input type="checkbox" value="dog"> Dog</label>
+            <label class="need-chip"><input type="checkbox" value="cat"> Cat</label>
+            <label class="need-chip"><input type="checkbox" value="bird"> Bird</label>
+            <label class="need-chip"><input type="checkbox" value="other"> Other</label>
+          </div>
         </div>
-        <div class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="none" class="m-field-icon"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg>Animal type</label>
+        </div>
+        <div id="pet-animal-row" class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="none" class="m-field-icon"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg>Animal type</label>
           <select id="pet-pet-animal" class="modal-input" style="color-scheme:dark">
             <option value="">Select...</option>
             <option value="dog">Dog</option>
@@ -634,7 +642,7 @@ function googleTranslateInit() {
         </div>
         <div class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Pet name <span style="color:rgba(255,255,255,.25)">(optional)</span></label><input type="text" id="pet-pet-name" placeholder="e.g. Bruno, Mochi..." class="modal-input"></div>
         </div>
-        <div class="form-row"><label class="modal-label" id="pet-desc-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span id="pet-desc-label-text">Description</span></label><textarea id="pet-pet-desc" placeholder="Breed, age, temperament, what's needed..." class="modal-input" style="min-height:80px;resize:none"></textarea></div>
+        <div class="form-row"><label class="modal-label" id="pet-desc-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span id="pet-desc-label-text" style="font-size:1rem;color:#fff">Description</span></label><textarea id="pet-pet-desc" placeholder="Breed, age, temperament, what's needed..." class="modal-input" style="min-height:80px;resize:none"></textarea></div>
         <div class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Location</label>
           <div style="display:flex;gap:.4rem;align-items:center">
             <div class="loc-ac-wrap" style="flex:1"><input type="text" id="pet-pet-location" placeholder="Where is the pet?" autocomplete="off" class="modal-input"><input type="hidden" id="pet-pet-lat"><input type="hidden" id="pet-pet-lng"><div class="loc-ac-list" id="pet-location-ac"></div></div>
@@ -1161,24 +1169,32 @@ function googleTranslateInit() {
         <div style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1.2rem"><button onclick="mSheetToggle()" style="position:absolute;top:.7rem;right:.7rem;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.6);font-size:.9rem;flex-shrink:0">✕</button>
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="none" style="margin-bottom:.5rem"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg>
           <div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">STRANDED PETS</div>
-          <div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-top:.35rem">Report a pet needing help or foster.</div>
+          <div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-top:.35rem">Report a pet needing help or a home.</div>
         </div>
 <div class="help-toggle-bar" id="m-pet-mode-toggle" style="width:100%;margin-bottom:1rem">
           <button type="button" id="m-pet-mode-needs" onclick="setPetMode('m-pet','needs')" class="help-toggle-btn active">PET NEEDS HOME</button>
-          <button type="button" id="m-pet-mode-take" onclick="setPetMode('m-pet','take')" class="help-toggle-btn">CAN TAKE A PET</button>
+          <button type="button" id="m-pet-mode-take" onclick="setPetMode('m-pet','take')" class="help-toggle-btn">I CAN TAKE A PET</button>
         </div>
         <div id="m-pet-needs-fields">
         <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="none" class="m-field-icon"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg>Situation</label>
           <select id="m-pet-pet-status" style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem;color-scheme:dark">
             <option value="">Select...</option>
-            <option value="need_foster">My pet needs a foster</option>
+            <option value="need_foster">My pet needs a home</option>
             <option value="found_stray">I found an abandoned pet</option>
           </select>
         </div></div>
         <div id="m-pet-take-fields" style="display:none">
         <input type="hidden" id="m-pet-pet-status-foster" value="can_foster">
+        <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="none" class="m-field-icon"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg>Animal type <span style="opacity:.4;font-weight:400">(select all that apply)</span></label>
+          <div style="display:flex;flex-wrap:wrap;gap:.4rem" id="m-pet-take-animal-chips">
+            <label class="need-chip"><input type="checkbox" value="dog"> Dog</label>
+            <label class="need-chip"><input type="checkbox" value="cat"> Cat</label>
+            <label class="need-chip"><input type="checkbox" value="bird"> Bird</label>
+            <label class="need-chip"><input type="checkbox" value="other"> Other</label>
+          </div>
         </div>
-        <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="none" class="m-field-icon"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg>Animal type</label>
+        </div>
+        <div id="m-pet-animal-row" class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="none" class="m-field-icon"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg>Animal type</label>
           <select id="m-pet-pet-animal" style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem;color-scheme:dark">
             <option value="">Select...</option>
             <option value="dog">Dog 🐕</option>
@@ -1197,7 +1213,7 @@ function googleTranslateInit() {
             <label style="display:flex;align-items:center;gap:.5rem;padding:.55rem .7rem;background:#1a1c1e;border:1.5px dashed rgba(255,255,255,.15);border-radius:8px;cursor:pointer;font-size:.78rem;color:rgba(255,255,255,.45);font-family:Inter,sans-serif">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               <span id="m-pet-photo-label">Tap to upload photo</span>
-              <input type="file" id="m-pet-pet-photo" accept="image/*" capture="environment" style="display:none" onchange="previewPetPhoto(this,'m-pet')">
+              <input type="file" id="m-pet-pet-photo" accept="image/*" style="display:none" onchange="previewPetPhoto(this,'m-pet')">
             </label>
             <div id="m-pet-photo-preview" style="display:none;position:relative">
               <img id="m-pet-photo-preview-img" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px;display:block" alt="">
@@ -1207,7 +1223,7 @@ function googleTranslateInit() {
         </div>
         <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Pet name <span style="color:rgba(255,255,255,.25)">(optional)</span></label><input type="text" id="m-pet-pet-name" placeholder="e.g. Bruno, Mochi..." style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem"></div>
         </div>
-        <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span id="m-pet-desc-label-text">Description</span></label><textarea id="m-pet-pet-desc" placeholder="Breed, age, temperament, what's needed..." style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem;min-height:70px;resize:none"></textarea></div>
+        <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span id="m-pet-desc-label-text" style="font-size:1rem;color:#fff">Description</span></label><textarea id="m-pet-pet-desc" placeholder="Breed, age, temperament, what's needed..." style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem;min-height:70px;resize:none"></textarea></div>
         <div class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="m-field-icon"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Location</label>
           <div style="display:flex;gap:.3rem;align-items:center">
             <div class="loc-ac-wrap" style="flex:1"><input type="text" id="m-pet-pet-location" placeholder="Where is the pet?" autocomplete="off"><input type="hidden" id="m-pet-pet-lat"><input type="hidden" id="m-pet-pet-lng"><div class="loc-ac-list" id="m-pet-location-ac"></div></div>
