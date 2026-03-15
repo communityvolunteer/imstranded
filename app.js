@@ -2641,6 +2641,14 @@ function buildDualPopup(iata) {
         'Offer a Spare Room' +
       '</button>' +
       '<div style="font-size:.62rem;color:rgba(255,255,255,.35);text-align:center;margin-top:.45rem;line-height:1.5">Help folks providing rooms by tweeting $HELP to <a href="https://x.com/intent/tweet?text=%40bankrbot%20send%201000000%20%24HELP%20to%20%40imstrandedorg" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:600">@imstrandedorg</a></div>' +
+      '<button onclick="if(isMob()){mTab(\'pets\',null);setTimeout(function(){setPetMode(\'m-pet\',\'take\')},100)}else{openFormSidebar(\'pets\');setTimeout(function(){setPetMode(\'pet\',\'take\')},100)}" ' +
+        'style="width:100%;margin-top:.5rem;padding:.65rem .8rem;border-radius:10px;cursor:pointer;font-family:Inter,sans-serif;font-size:.76rem;font-weight:800;letter-spacing:.02em;' +
+        'background:'+accentRgba(.12)+';color:'+accentHex()+';border:1px solid '+accentRgba(.28)+';' +
+        'display:flex;align-items:center;justify-content:center;gap:.45rem;transition:background .15s" ' +
+        'onmouseover="this.style.background=\''+accentRgba(.22)+'\'" onmouseout="this.style.background=\''+accentRgba(.12)+'\'">' +
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="none"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="currentColor"/><circle cx="6.5" cy="10" r="2" fill="currentColor"/><circle cx="17.5" cy="10" r="2" fill="currentColor"/><circle cx="10" cy="6.5" r="1.8" fill="currentColor"/><circle cx="14" cy="6.5" r="1.8" fill="currentColor"/></svg>' +
+        'Offer a Home to a Pet' +
+      '</button>' +
     '</div>';
 
   // CTA: Are You Stranded Here?
@@ -6069,7 +6077,15 @@ function renderPetsOnMap(map, isMobile) {
     maxClusterRadius: 60, spiderfyOnMaxZoom: true, showCoverageOnHover: false, zoomToBoundsOnClick: true,
     iconCreateFunction: function(c) {
       const count = c.getChildCount();
-      const d = buildUserDot('pet', count, 'pets', 50);
+      const kids = c.getAllChildMarkers();
+      let label = 'Pets';
+      if (count === 1 && kids[0]?._petAnimalType) {
+        label = PET_ANIMAL_ICONS[kids[0]._petAnimalType] || 'Pet';
+      } else if (count > 1) {
+        const types = new Set(kids.map(k => k._petAnimalType).filter(Boolean));
+        if (types.size === 1) label = PET_ANIMAL_ICONS[types.values().next().value] + 's';
+      }
+      const d = buildUserDot('pet', count, label, 50);
       return L.divIcon({ html: d.html, className: '', iconSize: [d.sz, d.sz], iconAnchor: [d.sz/2, d.sz/2] });
     }
   });
@@ -6084,6 +6100,7 @@ function renderPetsOnMap(map, isMobile) {
     const _pd = buildUserDot(_petIsMatched ? 'success' : 'pet', 1, _petIsMatched ? '✓' : animalIcon, 50);
     const icon = L.divIcon({ className: '', html: _pd.html, iconSize: [_pd.sz, _pd.sz], iconAnchor: [_pd.sz/2, _pd.sz/2] });
     const marker = L.marker([p.lat, p.lng], { icon });
+    marker._petAnimalType = p.animal_type;
     const popHtml = `
       <div style="font-family:Inter,sans-serif">
         <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem">
@@ -6130,7 +6147,15 @@ function renderFilteredPets(map, isMobile, filteredPets) {
     maxClusterRadius: 60, spiderfyOnMaxZoom: true, showCoverageOnHover: false, zoomToBoundsOnClick: true,
     iconCreateFunction: function(c) {
       const count = c.getChildCount();
-      const d = buildUserDot('pet', count, 'pets', 50);
+      const kids = c.getAllChildMarkers();
+      let label = 'Pets';
+      if (count === 1 && kids[0]?._petAnimalType) {
+        label = PET_ANIMAL_ICONS[kids[0]._petAnimalType] || 'Pet';
+      } else if (count > 1) {
+        const types = new Set(kids.map(k => k._petAnimalType).filter(Boolean));
+        if (types.size === 1) label = PET_ANIMAL_ICONS[types.values().next().value] + 's';
+      }
+      const d = buildUserDot('pet', count, label, 50);
       return L.divIcon({ html: d.html, className: '', iconSize: [d.sz, d.sz], iconAnchor: [d.sz/2, d.sz/2] });
     }
   });
@@ -6145,6 +6170,7 @@ function renderFilteredPets(map, isMobile, filteredPets) {
     const _pd = buildUserDot(_petIsMatched ? 'success' : 'pet', 1, _petIsMatched ? '✓' : animalIcon, 50);
     const icon = L.divIcon({ className: '', html: _pd.html, iconSize: [_pd.sz, _pd.sz], iconAnchor: [_pd.sz/2, _pd.sz/2] });
     const marker = L.marker([p.lat, p.lng], { icon });
+    marker._petAnimalType = p.animal_type;
     const popHtml = `
       <div style="font-family:Inter,sans-serif">
         <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem">
@@ -6214,15 +6240,48 @@ function setPetMode(prefix, mode) {
   if (photoNameEl) photoNameEl.style.display = mode === 'needs' ? '' : 'none';
   if (animalRow) animalRow.style.display     = mode === 'take' ? 'none' : '';
   if (descLabelEl) {
-    descLabelEl.textContent = mode === 'take' ? 'Additional Info' : 'Description';
-    descLabelEl.style.fontSize = '1rem';
-    descLabelEl.style.color    = '#fff';
+    descLabelEl.textContent = mode === 'take' ? 'ADDITIONAL INFO' : 'DESCRIPTION';
+    descLabelEl.style.textTransform = 'uppercase';
+    descLabelEl.style.letterSpacing = '.06em';
+    descLabelEl.style.fontWeight    = '700';
+    descLabelEl.style.color         = '#fff';
   }
   if (descTextarea) {
     descTextarea.placeholder = mode === 'take'
       ? 'Can take 1 dog tonight, dog food is a plus!'
       : 'Breed, age, temperament, what\'s needed...';
   }
+  renderNearbyPets(prefix, mode);
+}
+
+function renderNearbyPets(prefix, mode) {
+  const wrap = document.getElementById(prefix + '-nearby-pets');
+  if (!wrap) return;
+  if (mode !== 'take') { wrap.innerHTML = ''; return; }
+  const needHelp = (_petPosts || []).filter(p => p.pet_status === 'need_foster' || p.pet_status === 'found_stray');
+  if (!needHelp.length) { wrap.innerHTML = ''; return; }
+  const animalIcons = { dog:'🐕', cat:'🐈', bird:'🐦', other:'🐾' };
+  let html = '<div style="margin-top:1.2rem;padding-top:.8rem;border-top:1px solid rgba(255,255,255,.06)">' +
+    '<div style="font-size:1.05rem;font-weight:800;color:#fff;margin-bottom:.2rem">Pets Who Need a Home Near You</div>' +
+    '<div style="font-size:.7rem;color:rgba(255,255,255,.45);margin-bottom:.6rem">These pets are looking for someone like you</div>';
+  needHelp.slice(0, 8).forEach(p => {
+    const icon = animalIcons[p.animal_type] || '🐾';
+    const type = (p.animal_type || 'pet').charAt(0).toUpperCase() + (p.animal_type || 'pet').slice(1);
+    const status = p.pet_status === 'found_stray' ? 'Found stray' : 'Needs a home';
+    const loc = p.location ? esc(p.location) : '';
+    html += '<div style="padding:.55rem 0;border-bottom:1px solid rgba(255,255,255,.04)">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.25rem">' +
+        '<div>' +
+          '<div style="font-size:.85rem;font-weight:700;color:#fff">' + icon + ' ' + (p.pet_name ? esc(p.pet_name) + ' <span style=\'font-size:.7rem;color:rgba(255,255,255,.4)\'>' + type + '</span>' : type) + '</div>' +
+          '<div style="font-size:.7rem;color:rgba(255,255,255,.5)">' + loc + '</div>' +
+          '<div style="font-size:.6rem;color:#f59e0b">' + status + '</div>' +
+        '</div>' +
+        buildContactIcons(p.contact, p.xhandle, p.name) +
+      '</div>' +
+    '</div>';
+  });
+  html += '</div>';
+  wrap.innerHTML = html;
 }
 
 function getPetStatus(prefix) {
