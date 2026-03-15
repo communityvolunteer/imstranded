@@ -2841,12 +2841,12 @@ function openPostSidebar(post, postType) {
       <button onclick="closePostSidebar()" style="position:absolute;top:.5rem;right:0;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.5);font-size:.85rem">✕</button>
       <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="${accentHex()}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.6rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       <div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">SPARE ROOM</div>
-      <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">${esc(post.name||'Anonymous')} ${buildBadge(!!post.user_id)} · <span style="color:rgba(255,255,255,.3)">${timeAgo(post.created_at)}</span></div>
+      <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">${esc(post.name||'Anonymous')} ${buildBadge(!!post.user_id)} ${post.xhandle ? buildTipButton(post.xhandle, !!post.user_id) : ''} · <span style="color:rgba(255,255,255,.3)">${timeAgo(post.created_at)}</span></div>
     </div>`;
     // Spare room post
     html += `<div class="post-sidebar-section">
       <div class="post-sidebar-label">Location</div>
-      <div class="post-sidebar-value">📍 ${post.location || '—'}</div>
+      <div class="post-sidebar-value">${_svgLocAccent}  ${post.location || '—'}</div>
     </div>`;
     if (post.post_type) {
       html += `<div class="post-sidebar-section">
@@ -2867,13 +2867,13 @@ function openPostSidebar(post, postType) {
       <button onclick="closePostSidebar()" style="position:absolute;top:.5rem;right:0;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.5);font-size:.85rem">✕</button>
       <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.6rem"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">I'M STRANDED</div>
-      <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">${esc(post.name||'Anonymous')} ${buildBadge(!!post.user_id)} · <span style="color:rgba(255,255,255,.3)">${timeAgo(post.created_at)}</span></div>
+      <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">${esc(post.name||'Anonymous')} ${buildBadge(!!post.user_id)} ${post.xhandle ? buildSendHelpButton(post.xhandle, !!post.user_id) : ''} · <span style="color:rgba(255,255,255,.3)">${timeAgo(post.created_at)}</span></div>
     </div>`;
     // Stranded post
     const needsList = (post.needs || []).map(n => NEED_LABELS[n] || n).join(', ');
     html += `<div class="post-sidebar-section">
       <div class="post-sidebar-label">Currently At</div>
-      <div class="post-sidebar-value">📍 ${post.current_location || post.location || '—'}</div>
+      <div class="post-sidebar-value">${_svgLocAccent}  ${post.current_location || post.location || '—'}</div>
     </div>`;
     html += `<div class="post-sidebar-section">
       <div class="post-sidebar-label">Trying to Reach</div>
@@ -2907,16 +2907,19 @@ function openPostSidebar(post, postType) {
   }
 
   html += `<hr class="post-sidebar-divider">`;
-  html += `<div style="display:flex;flex-direction:column;gap:.5rem">`;
-  html += buildContactButtons(post.contact, post.xhandle, post.name);
-  html += postType === 'offer'
+  const tipOrHelp = postType === 'offer'
     ? buildTipButton(post.xhandle, !!post.user_id)
     : buildSendHelpButton(post.xhandle, !!post.user_id);
-  html += buildFlagButton(postType === 'offer' ? 'help_posts' : 'stranded_people', post.id);
-  html += postType === 'offer'
-    ? shareIcon(shareRoomText(post), 'room='+post.id, 'Share this room offer')
-    : shareIcon(shareStrandedText(post), '', 'Share to help this person');
-  html += `</div>`;
+  const flagBtn = buildFlagButton(postType === 'offer' ? 'help_posts' : 'stranded_people', post.id);
+  const shareBig = postType === 'offer'
+    ? bigShareBtn(shareRoomText(post), 'room='+post.id, 'Share this room offer')
+    : bigShareBtn(shareStrandedText(post), '', 'Share to help this person');
+  html += postFooter(
+    buildContactButtons(post.contact, post.xhandle, post.name),
+    tipOrHelp,
+    flagBtn,
+    shareBig
+  );
 
   body.innerHTML = html;
 
@@ -2962,7 +2965,8 @@ function openPetSidebar(p, statusLabel, statusColor, animalIcon, petMatchHtml) {
     <button onclick="closePostSidebar()" style="position:absolute;top:.5rem;right:0;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.5);font-size:.85rem">✕</button>
     <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="none" style="margin-bottom:.6rem"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="${accentHex()}"/><circle cx="6.5" cy="10" r="2" fill="${accentHex()}"/><circle cx="17.5" cy="10" r="2" fill="${accentHex()}"/><circle cx="10" cy="6.5" r="1.8" fill="${accentHex()}"/><circle cx="14" cy="6.5" r="1.8" fill="${accentHex()}"/></svg>
     <div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">STRANDED PETS</div>
-    <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">${esc(p.animal_type || 'Pet')} · <span style="color:${statusColor};font-weight:700">${statusLabel}</span></div>
+    <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">${esc(p.name)} ${buildBadge(!!p.user_id)} <span style="color:${statusColor};font-weight:700">${statusLabel}</span></div>
+    ${(p.animal_type||'').includes(',') ? '<div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-top:.25rem">Can take: '+(p.animal_type||'').split(',').map(t=>t.trim().charAt(0).toUpperCase()+t.trim().slice(1)).join(', ')+'</div>' : ''}
   </div>`;
 
   // Photo thumbnails
@@ -2970,16 +2974,20 @@ function openPetSidebar(p, statusLabel, statusColor, animalIcon, petMatchHtml) {
   if (p.pet_name) {
     html += `<div class="post-sidebar-section"><div class="post-sidebar-label">Name</div><div class="post-sidebar-value" style="font-size:1.1rem;font-weight:800;color:#fff">${esc(p.pet_name)}</div></div>`;
   }
-  html += `<div class="post-sidebar-section"><div class="post-sidebar-label">Animal</div><div class="post-sidebar-value" style="text-transform:capitalize">${esc(p.animal_type || '—')}</div></div>`;
-  html += `<div class="post-sidebar-section"><div class="post-sidebar-label">Location</div><div class="post-sidebar-value">📍 ${esc(p.location)}</div></div>`;
+  if (!(p.animal_type||'').includes(',')) {
+    html += `<div class="post-sidebar-section"><div class="post-sidebar-label">Animal</div><div class="post-sidebar-value" style="text-transform:capitalize">${esc(p.animal_type || '—')}</div></div>`;
+  }
+  html += `<div class="post-sidebar-section"><div class="post-sidebar-label">Location</div><div class="post-sidebar-value"><span style="display:inline-flex;align-items:center;gap:.3rem">${_svgLocAccent} ${esc(p.location)}</span></div></div>`;
   if (p.description) {
     html += `<hr class="post-sidebar-divider"><div class="post-sidebar-section"><div class="post-sidebar-label">Situation</div><div class="post-sidebar-value">${esc(p.description)}</div></div>`;
   }
-  html += `<div class="post-sidebar-section"><div class="post-sidebar-label">Posted by</div><div class="post-sidebar-value"><strong style="color:#fff">${esc(p.name)}</strong></div></div>`;
-  html += buildContactButtons(p.contact, p.xhandle, p.name);
   html += petMatchHtml;
-  html += buildFlagButton('stranded_pets', p.id);
-  html += shareIcon(sharePetText(p), 'pet='+p.id, 'Share this pet post');
+  html += postFooter(
+    buildContactButtons(p.contact, p.xhandle, p.name),
+    '',
+    buildFlagButton('stranded_pets', p.id),
+    bigShareBtn(sharePetText(p), 'pet='+p.id, 'Share this pet post')
+  );
 
   body.innerHTML = html;
 
@@ -7439,6 +7447,27 @@ function buildProgressTracker(currentStep, labels, color) {
 }
 
 const _svgPin = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+const _svgLocAccent = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="'+accentHex()+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+
+function bigShareBtn(text, deepLink, title) {
+  const safeText = esc(text).replace(/'/g,"\\'").replace(/\n/g,' ');
+  const safeTitle = title ? esc(title).replace(/'/g,"\\'") : '';
+  const safeDL = deepLink ? esc(deepLink).replace(/'/g,"\\'") : '';
+  return `<button onclick="event.stopPropagation();openShareTray('${safeText}','${safeDL}','${safeTitle}')" style="width:100%;padding:.6rem;border-radius:10px;border:none;background:${accentHex()};color:#000;font-family:Inter,sans-serif;font-size:.78rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:filter .15s" onmouseover="this.style.filter='brightness(1.15)'" onmouseout="this.style.filter=''">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+    Share This Post
+  </button>`;
+}
+
+function postFooter(contactHtml, tipOrHelpHtml, flagHtml, shareBtnHtml) {
+  return `<hr class="post-sidebar-divider">
+    <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">
+      ${contactHtml}
+      <span style="margin-left:auto;display:flex;gap:.3rem">${flagHtml}</span>
+    </div>
+    ${tipOrHelpHtml}
+    <div style="margin-top:.5rem">${shareBtnHtml}</div>`;
+}
 const _svgHome = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
 const _svgPerson = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="'+accentHex()+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
 
