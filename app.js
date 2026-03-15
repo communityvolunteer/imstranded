@@ -4271,6 +4271,7 @@ function mTab(tab,btn){
   else if(tab==='profile')   { mShowSheetContent('profile',''); renderMobileProfileView(); }
   else if(tab==='manage-room')     { mShowSheetContent('manage',''); renderManageDashboard('offer'); }
   else if(tab==='manage-stranded') { mShowSheetContent('manage',''); renderManageDashboard('stranded'); }
+  else if(tab==='manage-pets')     { mShowSheetContent('manage',''); renderManageDashboard('pets'); }
 }
 
 function mShowSheetContent(which,title){
@@ -7035,6 +7036,7 @@ window.downloadPoolCSV = downloadPoolCSV;
 // ── Context-aware action buttons ──────────────────────────
 let _hasActiveOffer = false;
 let _hasActiveStranded = false;
+let _hasActivePets = false;
 let _pendingRequestCount = 0;  // for room owners: how many stranded people requested your room
 let _roomsOfferedCount = 0;    // for stranded: how many rooms have been offered/matched
 
@@ -7042,6 +7044,7 @@ async function updateActionButtons() {
   if (!isLoggedIn() || !SB_ON) {
     _hasActiveOffer = false;
     _hasActiveStranded = false;
+    _hasActivePets = false;
     _pendingRequestCount = 0;
     _roomsOfferedCount = 0;
     resetActionButtons();
@@ -7050,6 +7053,7 @@ async function updateActionButtons() {
   // Use already-loaded data if available, else query
   _hasActiveOffer = posts.some(p => p.user_id === _currentUser.id);
   _hasActiveStranded = _strandedPeople.some(p => p.user_id === _currentUser.id);
+  _hasActivePets = _petPosts.some(p => p.user_id === _currentUser.id);
   
   // If data hasn't loaded yet, check DB
   if (!posts.length && !_strandedPeople.length) {
@@ -7196,7 +7200,7 @@ async function updateActionButtons() {
 
 // ── Manage Dashboard ─────────────────────────────────────
 function openManageSidebar(type) {
-  if (isMob()) { mTab(type === 'offer' ? 'manage-room' : 'manage-stranded', null); return; }
+  if (isMob()) { mTab(type === 'offer' ? 'manage-room' : type === 'pets' ? 'manage-pets' : 'manage-stranded', null); return; }
   // PC: render into form sidebar body directly
   const sb = document.getElementById('form-sidebar');
   const body = document.getElementById('form-sidebar-body');
@@ -7205,12 +7209,14 @@ function openManageSidebar(type) {
   if (sb.classList.contains('open')) closeFormSidebar();
   setTimeout(() => {
     body.innerHTML = '<div id="pc-manage-content"></div>';
-    const heroColor = type === 'offer' ? accentHex() : '#ec3452';
+    const heroColor = type === 'pets' ? accentHex() : type === 'offer' ? accentHex() : '#ec3452';
     const heroIcon = type === 'stranded'
       ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:.3rem"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
+      : type === 'pets'
+      ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="none" style="vertical-align:middle;margin-right:.3rem"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="'+accentHex()+'"/><circle cx="6.5" cy="10" r="2" fill="'+accentHex()+'"/><circle cx="17.5" cy="10" r="2" fill="'+accentHex()+'"/><circle cx="10" cy="6.5" r="1.8" fill="'+accentHex()+'"/><circle cx="14" cy="6.5" r="1.8" fill="'+accentHex()+'"/></svg>'
       : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="'+accentHex()+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:.3rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
     if (title) {
-      title.innerHTML = heroIcon + (type === 'offer' ? 'MY ROOM' : 'MY STATUS');
+      title.innerHTML = heroIcon + (type === 'offer' ? 'MY ROOM' : type === 'pets' ? 'MY PETS' : 'MY STATUS');
       title.style.color = heroColor;
       title.style.fontSize = '.85rem';
     }
@@ -7283,7 +7289,7 @@ async function renderManageDashboard(type) {
     container.innerHTML = strandedHero + buildProgressTracker(step, ['Registered', 'Matched', 'Home'], '#ec3452') + buildStrandedCard(p, match, step);
 
   // ── OFFER ──
-  } else {
+  } else if (type === 'offer') {
     // 1. Try cache
     let p = posts.find(o => o.user_id === _currentUser.id);
     let match = p ? (_successByOffer[p.id] || null) : null;
@@ -7325,6 +7331,43 @@ async function renderManageDashboard(type) {
       ? `<div style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1rem"><button onclick="mSheetToggle()" style="position:absolute;top:.3rem;right:.3rem;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.6);font-size:.9rem">✕</button><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="${accentHex()}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.5rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">MY ROOM</div></div>`
       : `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1.4rem"><svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="${accentHex()}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.6rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">MY ROOM</div><div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">Manage your spare room listing and incoming requests.</div></div>`;
     container.innerHTML = offerHero + buildProgressTracker(step, ['Listed', 'Matched', 'Success'], accentHex()) + buildOfferCard(p, match, pending, step);
+
+  // ── PETS ──
+  } else if (type === 'pets') {
+    container.innerHTML = '<div style="text-align:center;padding:1rem 0;color:rgba(255,255,255,.4)">Loading...</div>';
+    let myPets = _petPosts.filter(p => p.user_id === _currentUser.id);
+    if (!myPets.length) {
+      try {
+        const { data } = await withTimeout(_sb.from('stranded_pets')
+          .select('*').eq('user_id', _currentUser.id).eq('flagged', false)
+          .order('created_at', { ascending: false }), 6000);
+        myPets = data || [];
+      } catch(e) {
+        container.innerHTML = `<div style="text-align:center;padding:1.5rem 0"><div style="color:rgba(255,255,255,.5);font-size:.85rem;margin-bottom:.6rem">Connection timed out</div><button onclick="renderManageDashboard('pets')" style="${btnStyle('accent')}">Try Again</button></div>`;
+        return;
+      }
+    }
+    const pawSvg = '<svg width="__SZ__" height="__SZ__" viewBox="0 0 24 24" fill="none" stroke="none" style="margin-bottom:.5rem"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="'+accentHex()+'"/><circle cx="6.5" cy="10" r="2" fill="'+accentHex()+'"/><circle cx="17.5" cy="10" r="2" fill="'+accentHex()+'"/><circle cx="10" cy="6.5" r="1.8" fill="'+accentHex()+'"/><circle cx="14" cy="6.5" r="1.8" fill="'+accentHex()+'"/></svg>';
+    const petHero = isMob()
+      ? `<div style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1rem"><button onclick="mSheetToggle()" style="position:absolute;top:.3rem;right:.3rem;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.6);font-size:.9rem">✕</button>${pawSvg.replace(/__SZ__/g,'48')}<div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">MY PETS</div></div>`
+      : `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1.4rem">${pawSvg.replace(/__SZ__/g,'54')}<div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">MY PETS</div><div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">Manage your pet posts, matches, and reunions.</div></div>`;
+
+    if (!myPets.length) {
+      container.innerHTML = petHero + '<div style="text-align:center;padding:1.5rem 0;color:rgba(255,255,255,.4)">No pet posts yet.</div>' +
+        `<button onclick="isMob()?mTab('pets',null):openFormSidebar('pets')" style="display:block;margin:0 auto;${btnStyle('accent')}">Post About a Pet</button>`;
+      return;
+    }
+
+    let cardsHtml = '';
+    for (const p of myPets) {
+      const match = _petMatchByPet[p.id] || _petMatchByFoster[p.id] || null;
+      const step = match?.reunited ? 3 : match?.foster_confirmed ? 2 : 1;
+      const stepLabels = p.pet_status === 'can_foster' ? ['Offered', 'Fostering', 'Reunited'] : ['Posted', 'Fostered', 'Reunited'];
+      cardsHtml += buildProgressTracker(step, stepLabels, accentHex()) + buildPetCard(p, match, step);
+    }
+    // Add post button at bottom
+    cardsHtml += `<div style="text-align:center;margin-top:1rem;padding-top:.8rem;border-top:1px solid rgba(255,255,255,.06)"><button onclick="isMob()?mTab('pets',null):openFormSidebar('pets')" style="${btnStyle('accent')}">+ Post Another Pet</button></div>`;
+    container.innerHTML = petHero + cardsHtml;
   }
 }
 
@@ -7466,6 +7509,184 @@ function buildOfferCard(p, match, pending, step) {
 
   html += '</div>';
   return html;
+}
+
+// ── PET MANAGEMENT ──────────────────────────────────────────
+const _svgPaw = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="none" style="flex-shrink:0"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="'+accentHex()+'"/><circle cx="6.5" cy="10" r="2" fill="'+accentHex()+'"/><circle cx="17.5" cy="10" r="2" fill="'+accentHex()+'"/><circle cx="10" cy="6.5" r="1.8" fill="'+accentHex()+'"/><circle cx="14" cy="6.5" r="1.8" fill="'+accentHex()+'"/></svg>';
+
+function buildPetCard(p, match, step) {
+  const t = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
+  const statusLabel = PET_STATUS_LABELS[p.pet_status] || p.pet_status;
+  const statusColor = PET_STATUS_COLORS[p.pet_status] || '#ff9f1c';
+  const animalType = (p.animal_type || 'pet').charAt(0).toUpperCase() + (p.animal_type || 'pet').slice(1);
+  const animalIcons = { dog:'🐕', cat:'🐈', bird:'🐦', other:'🐾' };
+  const icon = animalIcons[p.animal_type] || '🐾';
+  let html = `<div style="padding:.5rem 0;margin-bottom:.8rem;border-bottom:1px solid rgba(255,255,255,.06)">
+    <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.4rem">
+      <span style="font-size:1.3rem">${icon}</span>
+      <div>
+        <div style="font-size:1.15rem;font-weight:800;color:#fff;line-height:1.2">${p.pet_name ? esc(p.pet_name) : animalType}</div>
+        <div style="display:flex;align-items:center;gap:.4rem;margin-top:.1rem">
+          <span style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:${statusColor};letter-spacing:.04em">${statusLabel}</span>
+          <span style="font-size:.6rem;color:rgba(255,255,255,.3)">${t}</span>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:.35rem;font-size:.85rem;color:rgba(255,255,255,.7);margin-bottom:.25rem">${_svgPaw} ${esc(p.location || '')}</div>
+    ${p.description ? '<div style="font-size:.82rem;color:rgba(255,255,255,.55);line-height:1.5;margin-bottom:.4rem">'+esc(p.description).slice(0,150)+'</div>' : ''}
+    ${p.photo_url ? '<img src="'+esc(p.photo_url)+'" style="width:100%;max-height:120px;object-fit:cover;border-radius:8px;margin-bottom:.5rem;display:block" loading="lazy" alt="">' : ''}`;
+
+  // Match status
+  if (step >= 2 && match) {
+    const reunitedLabel = match.reunited ? '🏠 Reunited!' : '✅ Fostered';
+    const matchName = match.foster_name || match.pet_name || '';
+    html += `<div style="background:rgba(34,197,94,.15);border:none;border-radius:10px;padding:.65rem;margin:.4rem 0">
+      <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.2rem">${reunitedLabel}${match.confirmed_at ? ' · ' + new Date(match.confirmed_at).toLocaleDateString() : ''}</div>
+      <div style="font-size:.88rem;color:#fff;font-weight:700">${matchName ? esc(matchName) : 'A kind person'} ${esc(match.foster_location || match.pet_location || '')}</div>
+      ${match.reunion_story ? '<div style="font-size:.75rem;color:rgba(255,255,255,.55);margin-top:.25rem;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.3)">"'+esc(match.reunion_story)+'"</div>' : ''}
+    </div>`;
+  }
+
+  // Reunited step 3
+  if (step >= 3 && match?.reunited) {
+    html += `<div style="background:rgba(34,197,94,.25);border:none;border-radius:10px;padding:.65rem;margin:.4rem 0">
+      <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.2rem">🏠 Reunited with owner</div>
+    </div>`;
+  }
+
+  // Action buttons
+  html += '<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.5rem">';
+  if (step === 1 && p.pet_status !== 'can_foster') {
+    // Pet needs home — show "Found a foster?" if there are can_foster posts
+    const fosters = _petPosts.filter(fp => fp.pet_status === 'can_foster' && fp.user_id !== _currentUser?.id);
+    if (fosters.length) {
+      html += `<button onclick="alert('Browse the map for foster offers and click their pin to request a match!')" style="flex:1;${btnStyle('green')}">Find a Foster →</button>`;
+    }
+  }
+  if (step === 2 && match && !match.reunited && match.foster_confirmed) {
+    html += `<button onclick="markPetReunited('${match.id}')" style="flex:1;${btnStyle('green')}">Reunited? →</button>`;
+  }
+  html += `<button onclick="editPetPost('${p.id}')" style="${btnStyle('accent')}">Edit</button>`;
+  html += `<button onclick="deletePetPost('${p.id}')" style="${btnStyle('danger')}">Delete</button>`;
+  html += '</div></div>';
+  return html;
+}
+
+let _editingPetId = null;
+
+async function editPetPost(id) {
+  if (!await ensureSession()) { alert('Please sign in first.'); return; }
+  const { data } = await _sb.from('stranded_pets').select('*').eq('id', id).eq('user_id', _currentUser.id).single();
+  if (!data) { alert('Post not found.'); return; }
+  _editingPetId = id;
+  const isMobile = isMob();
+  const prefix = isMobile ? 'm-pet' : 'pet';
+
+  // Switch to correct mode
+  const mode = data.pet_status === 'can_foster' ? 'take' : 'needs';
+  if (isMobile) {
+    mTab('pets', null);
+    setTimeout(() => { setPetMode(prefix, mode); populatePetForm(prefix, data); }, 200);
+  } else {
+    const sb = document.getElementById('form-sidebar');
+    const body = document.getElementById('form-sidebar-body');
+    if (sb && body) { _fsReturnMounted(); body.innerHTML = ''; sb.dataset.panel = ''; sb.classList.remove('open'); }
+    requestAnimationFrame(() => {
+      openFormSidebar('pets');
+      setTimeout(() => { setPetMode(prefix, mode); populatePetForm(prefix, data); }, 200);
+    });
+  }
+
+  // Change submit button
+  setTimeout(() => {
+    const btn = document.getElementById(prefix + '-pet-submit');
+    if (btn) {
+      btn.textContent = 'Update Pet Post';
+      btn._origOnclick = btn.onclick;
+      btn.onclick = () => submitPetEdit(prefix);
+    }
+  }, 500);
+}
+
+function populatePetForm(prefix, data) {
+  const setVal = (fid, v) => { const el = document.getElementById(fid); if (el) el.value = v || ''; };
+  // Status dropdown (needs mode)
+  if (data.pet_status !== 'can_foster') {
+    setVal(prefix + '-pet-status', data.pet_status);
+  }
+  // Animal type
+  if (data.pet_status === 'can_foster') {
+    // Check the multiselect chips
+    const types = (data.animal_type || '').split(',');
+    document.querySelectorAll('#' + prefix + '-take-animal-chips input').forEach(cb => {
+      cb.checked = types.includes(cb.value);
+    });
+  } else {
+    setVal(prefix + '-pet-animal', data.animal_type);
+  }
+  setVal(prefix + '-pet-name', data.pet_name);
+  setVal(prefix + '-pet-desc', data.description);
+  setVal(prefix + '-pet-location', data.location);
+  setVal(prefix + '-pet-lat', data.lat);
+  setVal(prefix + '-pet-lng', data.lng);
+  setVal(prefix + '-pet-poster', data.name);
+}
+
+async function submitPetEdit(prefix) {
+  if (!_editingPetId || !isLoggedIn()) return;
+  const status = getPetStatus(prefix);
+  let animalType = document.getElementById(prefix + '-pet-animal')?.value;
+  if (status === 'can_foster') {
+    const chips = [...document.querySelectorAll('#' + prefix + '-take-animal-chips input:checked')].map(c => c.value);
+    animalType = chips.length ? chips.join(',') : '';
+  }
+  const desc = document.getElementById(prefix + '-pet-desc')?.value?.trim();
+  const loc = document.getElementById(prefix + '-pet-location')?.value?.trim();
+  const lat = parseFloat(document.getElementById(prefix + '-pet-lat')?.value) || null;
+  const lng = parseFloat(document.getElementById(prefix + '-pet-lng')?.value) || null;
+  const name = document.getElementById(prefix + '-pet-poster')?.value?.trim();
+  const petName = document.getElementById(prefix + '-pet-name')?.value?.trim() || null;
+
+  if (!animalType) return alert('Please select the animal type.');
+  if (!desc || desc.length < 5) return alert('Please describe the situation.');
+  if (!loc) return alert('Please enter a location.');
+
+  const btn = document.getElementById(prefix + '-pet-submit');
+  if (btn) { btn.disabled = true; btn.textContent = 'Updating...'; }
+
+  try {
+    const photoUrl = await uploadPetPhoto(prefix);
+    const updates = {
+      pet_status: status, animal_type: animalType, pet_name: petName,
+      description: desc, location: loc, lat, lng, name,
+      flagged: containsLink(desc)
+    };
+    if (photoUrl) updates.photo_url = photoUrl;
+    const { error } = await _sb.from('stranded_pets').update(updates).eq('id', _editingPetId).eq('user_id', _currentUser.id);
+    if (error) throw error;
+    alert('Pet post updated!');
+    _editingPetId = null;
+    loadPets();
+    if (isMob()) mTab('manage-pets', null);
+    else openManageSidebar('pets');
+  } catch(e) {
+    alert('Error: ' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Submit Pet Post'; }
+  }
+}
+
+async function deletePetPost(id) {
+  if (!confirm('Delete this pet post? This cannot be undone.')) return;
+  try {
+    const { error } = await _sb.from('stranded_pets').delete().eq('id', id).eq('user_id', _currentUser.id);
+    if (error) throw error;
+    _petPosts = _petPosts.filter(p => p.id !== id);
+    loadPets();
+    updateActionButtons();
+    if (isMob()) mTab('manage-pets', null);
+    else openManageSidebar('pets');
+  } catch (e) { alert('Failed to delete: ' + e.message); }
 }
 
 function resetActionButtons() {

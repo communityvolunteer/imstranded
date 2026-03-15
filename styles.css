@@ -365,7 +365,7 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 /* ── PROFILE ───────────────────────────────────────────── */
 #profile-view{padding:2.5rem 0;background:#000;}
 .profile-btn{
-  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.08);border:1px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.31);
   color:rgba(255,255,255,.85);border-radius:50%;width:36px;height:36px;
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;transition:all .15s;overflow:hidden;padding:0;

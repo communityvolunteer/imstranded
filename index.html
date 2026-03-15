@@ -820,6 +820,10 @@ function googleTranslateInit() {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           <span id="pc-profile-btn-stranded-text">I'm Stranded</span>
         </button>
+        <button id="pc-profile-btn-pets" class="manage-action-btn manage-action-btn--accent" onclick="_hasActivePets?openManageSidebar('pets'):openFormSidebar('pets')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="none"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="currentColor"/><circle cx="6.5" cy="10" r="2" fill="currentColor"/><circle cx="17.5" cy="10" r="2" fill="currentColor"/><circle cx="10" cy="6.5" r="1.8" fill="currentColor"/><circle cx="14" cy="6.5" r="1.8" fill="currentColor"/></svg>
+          <span id="pc-profile-btn-pets-text">Pets</span>
+        </button>
       </div>
 
       <!-- Delete Account -->
@@ -1361,6 +1365,10 @@ function googleTranslateInit() {
             <button id="m-profile-btn-stranded" class="manage-action-btn manage-action-btn--red" onclick="isMob()?(_hasActiveStranded?mTab('manage-stranded',null):mTab('stranded',null)):(_hasActiveStranded?openManageSidebar('stranded'):openFormSidebar('stranded'))">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               <span id="m-profile-btn-stranded-text">I'm Stranded</span>
+            </button>
+            <button id="m-profile-btn-pets" class="manage-action-btn manage-action-btn--accent" onclick="isMob()?(_hasActivePets?mTab('manage-pets',null):mTab('pets',null)):(_hasActivePets?openManageSidebar('pets'):openFormSidebar('pets'))">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="none"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="currentColor"/><circle cx="6.5" cy="10" r="2" fill="currentColor"/><circle cx="17.5" cy="10" r="2" fill="currentColor"/><circle cx="10" cy="6.5" r="1.8" fill="currentColor"/><circle cx="14" cy="6.5" r="1.8" fill="currentColor"/></svg>
+              <span id="m-profile-btn-pets-text">Pets</span>
             </button>
           </div>
 
