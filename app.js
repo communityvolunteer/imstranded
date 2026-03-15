@@ -8456,10 +8456,18 @@ function handleDeepLink() {
       }, 800);
     } else if (airportIata) {
       const iata = airportIata.toUpperCase();
-      if (!window.globalDisruptionByIata?.[iata]) return;
+      const ap = typeof findAirport === 'function' ? findAirport(iata) : null;
+      if (!ap) { clearInterval(tryDeepLink); return; }
       clearInterval(tryDeepLink);
-      const gd = window.globalDisruptionByIata[iata];
-      if (gd.lat && gd.lng) map.flyTo([gd.lat, gd.lng], 12);
+      map.flyTo([ap.lat, ap.lng], 8);
+      // If there's disruption data, try to trigger the popup after fly
+      setTimeout(() => {
+        const gd = _globalDisruptions.find(g => g.iata === iata);
+        if (gd) {
+          // Find and click the marker if possible — otherwise user sees the zoomed location
+          console.log('[DeepLink] Airport', iata, 'has disruption data:', gd.cancelled, 'cancelled');
+        }
+      }, 1500);
     } else if (roomId) {
       const p = posts.find(x => x.id === roomId);
       if (!p) return;
