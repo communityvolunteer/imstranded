@@ -2825,34 +2825,9 @@ function openPostSidebar(post, postType) {
   const pinSb = document.getElementById('pin-sidebar');
   if (pinSb) pinSb.classList.remove('open');
 
-  // ── Avatar ──
-  const initEl  = document.getElementById('post-sidebar-avatar-initials');
-  const imgEl   = document.getElementById('post-sidebar-avatar-img');
-  const initials = (post.name || '?').trim().charAt(0).toUpperCase();
-  if (initEl) initEl.textContent = initials;
-  if (imgEl) {
-    if (post.avatar_url) {
-      imgEl.src = post.avatar_url;
-      imgEl.style.display = 'block';
-      imgEl.onerror = function() { imgEl.style.display = 'none'; };
-    } else {
-      imgEl.style.display = 'none';
-    }
-  }
-
-  // ── Header ──
-  const nameEl  = document.getElementById('post-sidebar-name');
-  const badgeEl = document.getElementById('post-sidebar-type-badge');
-  const timeEl  = document.getElementById('post-sidebar-time');
-  if (nameEl) nameEl.innerHTML = (post.name || 'Anonymous') + ' ' + buildBadge(!!post.user_id);
-  if (timeEl) timeEl.textContent = timeAgo(post.created_at);
-  if (badgeEl) {
-    const isOffer = (postType === 'offer');
-    badgeEl.textContent  = isOffer ? 'Spare Room' : 'Stranded';
-    badgeEl.style.cssText = isOffer
-      ? `background:'+accentRgba(.18)+';color:'+accentHex()+';`
-      : `background:rgba(236,52,82,.18);color:#ec3452;`;
-  }
+  // Hide shared header — each type has its own hero
+  const header = document.getElementById('post-sidebar-header');
+  if (header) header.style.display = 'none';
 
   // ── Body ──
   const body = document.getElementById('post-sidebar-body');
@@ -2861,6 +2836,13 @@ function openPostSidebar(post, postType) {
   let html = '';
 
   if (postType === 'offer') {
+    // Hero
+    html += `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1rem 0 1.2rem;position:relative">
+      <button onclick="closePostSidebar()" style="position:absolute;top:.5rem;right:0;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.5);font-size:.85rem">✕</button>
+      <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="${accentHex()}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.6rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">SPARE ROOM</div>
+      <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">${esc(post.name||'Anonymous')} ${buildBadge(!!post.user_id)} · <span style="color:rgba(255,255,255,.3)">${timeAgo(post.created_at)}</span></div>
+    </div>`;
     // Spare room post
     html += `<div class="post-sidebar-section">
       <div class="post-sidebar-label">Location</div>
@@ -2880,6 +2862,13 @@ function openPostSidebar(post, postType) {
       </div>`;
     }
   } else {
+    // Hero
+    html += `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1rem 0 1.2rem;position:relative">
+      <button onclick="closePostSidebar()" style="position:absolute;top:.5rem;right:0;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.5);font-size:.85rem">✕</button>
+      <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.6rem"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">I'M STRANDED</div>
+      <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">${esc(post.name||'Anonymous')} ${buildBadge(!!post.user_id)} · <span style="color:rgba(255,255,255,.3)">${timeAgo(post.created_at)}</span></div>
+    </div>`;
     // Stranded post
     const needsList = (post.needs || []).map(n => NEED_LABELS[n] || n).join(', ');
     html += `<div class="post-sidebar-section">
@@ -2958,21 +2947,9 @@ function openPetSidebar(p, statusLabel, statusColor, animalIcon, petMatchHtml) {
   const pinSb = document.getElementById('pin-sidebar');
   if (pinSb) pinSb.classList.remove('open');
 
-  // Header
-  const initEl = document.getElementById('post-sidebar-avatar-initials');
-  const imgEl  = document.getElementById('post-sidebar-avatar-img');
-  if (initEl) initEl.textContent = animalIcon || '🐾';
-  if (imgEl) imgEl.style.display = 'none';
-
-  const nameEl  = document.getElementById('post-sidebar-name');
-  const badgeEl = document.getElementById('post-sidebar-type-badge');
-  const timeEl  = document.getElementById('post-sidebar-time');
-  if (nameEl)  nameEl.innerHTML = esc(p.pet_name || (p.animal_type ? p.animal_type.charAt(0).toUpperCase()+p.animal_type.slice(1) : 'Pet'));
-  if (timeEl)  timeEl.textContent = timeAgo(p.created_at);
-  if (badgeEl) {
-    badgeEl.textContent = statusLabel;
-    badgeEl.style.cssText = `background:${statusColor}22;color:${statusColor};border-radius:5px;padding:.1rem .45rem;font-size:.62rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase`;
-  }
+  // Hide shared header — pet sidebar has its own hero
+  const header = document.getElementById('post-sidebar-header');
+  if (header) header.style.display = 'none';
 
   // Body
   const body = document.getElementById('post-sidebar-body');
@@ -2980,15 +2957,16 @@ function openPetSidebar(p, statusLabel, statusColor, animalIcon, petMatchHtml) {
 
   let html = '';
 
-  // Photo thumbnails (no hero section)
-  const photos = [p.photo_url, p.photo_url_2, p.photo_url_3].filter(Boolean);
-  if (photos.length) {
-    html += `<div style="display:flex;gap:.4rem;margin-bottom:.8rem">`;
-    photos.forEach(url => {
-      html += `<img src="${esc(url)}" onclick="openLightbox('${esc(url)}')" style="width:${photos.length===1?'100%':'calc(33.33% - .27rem)'};height:80px;object-fit:cover;border-radius:8px;cursor:pointer;display:block" loading="lazy" alt="">`;
-    });
-    html += `</div>`;
-  }
+  // Hero icon + title
+  html += `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1rem 0 1.2rem;position:relative">
+    <button onclick="closePostSidebar()" style="position:absolute;top:.5rem;right:0;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.5);font-size:.85rem">✕</button>
+    <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="none" style="margin-bottom:.6rem"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="${accentHex()}"/><circle cx="6.5" cy="10" r="2" fill="${accentHex()}"/><circle cx="17.5" cy="10" r="2" fill="${accentHex()}"/><circle cx="10" cy="6.5" r="1.8" fill="${accentHex()}"/><circle cx="14" cy="6.5" r="1.8" fill="${accentHex()}"/></svg>
+    <div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">STRANDED PETS</div>
+    <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">${esc(p.animal_type || 'Pet')} · <span style="color:${statusColor};font-weight:700">${statusLabel}</span></div>
+  </div>`;
+
+  // Photo thumbnails
+  html += buildPetThumbs(p);
   if (p.pet_name) {
     html += `<div class="post-sidebar-section"><div class="post-sidebar-label">Name</div><div class="post-sidebar-value" style="font-size:1.1rem;font-weight:800;color:#fff">${esc(p.pet_name)}</div></div>`;
   }
