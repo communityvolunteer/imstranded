@@ -784,6 +784,9 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
 .need-chip{display:flex;align-items:center;gap:.3rem;padding:.3rem .65rem;background:rgba(255,255,255,.06);border:none;border-radius:20px;font-size:.72rem;color:rgba(255,255,255,.6);cursor:pointer;font-family:Inter,sans-serif;transition:all .15s;}
 .need-chip:has(input:checked){background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.15);border-color:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.3);color:var(--accent);}
 .need-chip input{display:none;}
+.pet-take-chip{display:flex;align-items:center;gap:.3rem;padding:.35rem .75rem;background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.12);border:1.5px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.35);border-radius:20px;font-size:.75rem;font-weight:600;color:var(--accent);cursor:pointer;font-family:Inter,sans-serif;transition:all .15s;}
+.pet-take-chip:has(input:checked){background:var(--accent);border-color:var(--accent);color:#fff;}
+.pet-take-chip input{display:none;}
 
 /* Stranded pins */
 .stranded-pin{
