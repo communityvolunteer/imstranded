@@ -1787,9 +1787,9 @@ html.translated-ltr body,html.translated-rtl body{top:0 !important;}
 .gd-cluster-ring {
   position: absolute;
   border-radius: 50%;
-  border: 2px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.99);
+  border: 8px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.99);
   pointer-events: none;
-  animation: gdPulse 3s ease-in-out infinite;
+  animation: gdPulse 4s ease-in-out infinite;
 }
 @keyframes gdPulse {
   0%, 100% { opacity: .5; transform: scale(1); }
