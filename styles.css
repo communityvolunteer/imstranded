@@ -2114,3 +2114,32 @@ font-size: clamp(.45rem, 1.2vw, .58rem);
 #form-sidebar-body #help-panel-pets .post-form {
   padding: 0 !important;
 }
+
+
+/* Resources sidebar — override OS blue select highlight */
+#pc-manage-content select,
+#m-manage-content select {
+  background:#111 !important;
+  color:#fff !important;
+  color-scheme:dark;
+}
+#pc-manage-content select option,
+#m-manage-content select option {
+  background:#111;
+  color:#fff;
+}
+#pc-manage-content select optgroup,
+#m-manage-content select optgroup {
+  background:#111;
+  color:rgba(255,255,255,.4);
+}
+
+/* Override OS blue selection highlight on all resource dropdowns */
+#pc-manage-content select,
+#m-manage-content select,
+#res-stuck-in, #res-from,
+#m-res-stuck, #m-res-from,
+#res-sb-host, #res-sb-nat {
+  accent-color: var(--accent);
+  color-scheme: dark;
+}

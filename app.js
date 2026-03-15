@@ -4308,7 +4308,7 @@ function mRenderResources(){
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem">
       <div>
         <label style="font-size:.5rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);display:block;margin-bottom:.2rem">I'm stuck in</label>
-        <select id="m-res-stuck" onchange="mFilterResources()" style="width:100%;background:#111;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:.4rem;color:#fff;font-family:Inter,sans-serif;font-size:.72rem;font-weight:600;color-scheme:dark">
+        <select id="m-res-stuck" onchange="mFilterResources()" style="width:100%;background:#111;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:.4rem;color:#fff;font-family:Inter,sans-serif;font-size:.72rem;font-weight:600;color-scheme:dark;accent-color:var(--accent)">
           <option value="">All</option>
         </select>
       </div>
@@ -5303,7 +5303,7 @@ async function renderMobileProfileView() {
     // Profile photo — inline next to name (no longer shown, hero above handles it)
     const avatarPhoto = document.getElementById('m-profile-avatar-photo');
     const avatarSvg   = document.getElementById('m-profile-avatar-svg');
-
+    // these elements are removed from DOM, guard silently
     if (avatarPhoto && _currentProfile?.avatar_url) {
       avatarPhoto.src = _currentProfile.avatar_url;
       avatarPhoto.style.display = 'block';
@@ -7798,11 +7798,11 @@ function renderResourcesSidebar(container) {
 
   html += `<div style="margin-bottom:.8rem">
     <label style="font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);display:block;margin-bottom:.2rem">I'm stuck in</label>
-    <select id="res-sb-host" onchange="_resHostCC=this.value;renderResourcesSidebar(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="width:100%;background:#111;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:.45rem;color:#fff;font-family:Inter,sans-serif;font-size:.78rem;font-weight:600;color-scheme:dark">${hostOpts}</select>
+    <select id="res-sb-host" onchange="_resHostCC=this.value;renderResourcesSidebar(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="width:100%;background:#111;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:.45rem;color:#fff;font-family:Inter,sans-serif;font-size:.78rem;font-weight:600;color-scheme:dark;accent-color:var(--accent)">${hostOpts}</select>
   </div>
   <div style="margin-bottom:.8rem">
     <label style="font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);display:block;margin-bottom:.2rem">I'm from</label>
-    <select id="res-sb-nat" onchange="_resNatCC=this.value;renderResourcesSidebar(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="width:100%;background:#111;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:.45rem;color:#fff;font-family:Inter,sans-serif;font-size:.78rem;font-weight:600;color-scheme:dark">${natOpts}</select>
+    <select id="res-sb-nat" onchange="_resNatCC=this.value;renderResourcesSidebar(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="width:100%;background:#111;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:.45rem;color:#fff;font-family:Inter,sans-serif;font-size:.78rem;font-weight:600;color-scheme:dark;accent-color:var(--accent)">${natOpts}</select>
   </div>`;
 
   if (!hostCC) {
