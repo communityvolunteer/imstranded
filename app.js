@@ -4307,13 +4307,13 @@ function mRenderResources(){
   html += `<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:.8rem;margin-bottom:.8rem">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem">
       <div>
-        <label style="font-size:.5rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.3);display:block;margin-bottom:.2rem">I'm stuck in</label>
+        <label style="font-size:.5rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);display:block;margin-bottom:.2rem">I'm stuck in</label>
         <select id="m-res-stuck" onchange="mFilterResources()" style="width:100%;background:#111;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:.4rem;color:#fff;font-family:Inter,sans-serif;font-size:.72rem;font-weight:600;color-scheme:dark">
           <option value="">All</option>
         </select>
       </div>
       <div>
-        <label style="font-size:.5rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.3);display:block;margin-bottom:.2rem">I'm from</label>
+        <label style="font-size:.5rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);display:block;margin-bottom:.2rem">I'm from</label>
         <select id="m-res-from" onchange="mFilterResources()" style="width:100%;background:#111;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:.4rem;color:#fff;font-family:Inter,sans-serif;font-size:.72rem;font-weight:600;color-scheme:dark">
           <option value="">All</option>
         </select>
@@ -5303,6 +5303,7 @@ async function renderMobileProfileView() {
     // Profile photo — inline next to name (no longer shown, hero above handles it)
     const avatarPhoto = document.getElementById('m-profile-avatar-photo');
     const avatarSvg   = document.getElementById('m-profile-avatar-svg');
+
     if (avatarPhoto && _currentProfile?.avatar_url) {
       avatarPhoto.src = _currentProfile.avatar_url;
       avatarPhoto.style.display = 'block';
@@ -7796,18 +7797,18 @@ function renderResourcesSidebar(container) {
   let html = `<div style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1.4rem">${isMobile ? '<button onclick="mSheetToggle()" style="position:absolute;top:.3rem;right:.3rem;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.6);font-size:.9rem">✕</button>' : ''}${GRID_SVG}<div style="font-size:${titleSize};font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">RESOURCES</div><div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">Embassies, NGOs &amp; emergency contacts</div></div>`;
 
   html += `<div style="margin-bottom:.8rem">
-    <label style="font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.3);display:block;margin-bottom:.2rem">I'm stuck in</label>
+    <label style="font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);display:block;margin-bottom:.2rem">I'm stuck in</label>
     <select id="res-sb-host" onchange="_resHostCC=this.value;renderResourcesSidebar(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="width:100%;background:#111;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:.45rem;color:#fff;font-family:Inter,sans-serif;font-size:.78rem;font-weight:600;color-scheme:dark">${hostOpts}</select>
   </div>
   <div style="margin-bottom:.8rem">
-    <label style="font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.3);display:block;margin-bottom:.2rem">I'm from</label>
+    <label style="font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);display:block;margin-bottom:.2rem">I'm from</label>
     <select id="res-sb-nat" onchange="_resNatCC=this.value;renderResourcesSidebar(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="width:100%;background:#111;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:.45rem;color:#fff;font-family:Inter,sans-serif;font-size:.78rem;font-weight:600;color-scheme:dark">${natOpts}</select>
   </div>`;
 
   if (!hostCC) {
     html += '<div style="text-align:center;padding:2rem 0;color:rgba(255,255,255,.25);font-size:.82rem">Select a country to see embassy contacts and local resources</div>';
     // Show the full resources page link
-    html += `<a href="javascript:void(0)" onclick="${isMob() ? "mTab('resources',null)" : "closeFormSidebar();showView('resources')"}" style="display:block;text-align:center;padding:.65rem;background:'+accentHex()+';border-radius:8px;color:#000;font-size:.75rem;font-weight:800;text-decoration:none;margin-top:.6rem">View Full Resources Directory →</a>`;
+    html += `<a href="javascript:void(0)" onclick="${isMob() ? "mTab('resources',null)" : "closeFormSidebar();showView('resources')"}" style="display:block;text-align:center;padding:.65rem;background:${accentHex()};border-radius:8px;color:#000;font-size:.75rem;font-weight:800;text-decoration:none;margin-top:.6rem">View Full Resources Directory →</a>`;
     container.innerHTML = html;
     return;
   }
@@ -7855,7 +7856,7 @@ function renderResourcesSidebar(container) {
         <div style="font-size:.8rem;font-weight:700;color:#fff;margin-bottom:.15rem">${r.name}</div>
         <div style="font-size:.7rem;color:rgba(255,255,255,.45);line-height:1.5;margin-bottom:.3rem">${r.desc}</div>
         <div style="display:flex;gap:.4rem;align-items:center">
-          <a href="${r.url}" target="_blank" style="font-size:.65rem;color:'+accentHex()+';text-decoration:none;font-weight:600">Open →</a>
+          <a href="${r.url}" target="_blank" style="font-size:.65rem;color:${accentHex()};text-decoration:none;font-weight:600">Open →</a>
           ${r.phone ? `<a href="tel:${r.phone.replace(/[\s\-()]/g,'')}" style="font-size:.65rem;color:#22c55e;text-decoration:none;font-weight:600">${r.phone}</a>` : ''}
         </div>
       </div>`;
@@ -7863,7 +7864,7 @@ function renderResourcesSidebar(container) {
   }
 
   // Always show link to full directory
-  html += `<a href="javascript:void(0)" onclick="${isMob() ? "mTab('resources',null)" : "closeFormSidebar();showView('resources')"}" style="display:block;text-align:center;padding:.5rem;background:'+accentRgba(.08)+';border:1px solid '+accentRgba(.15)+';border-radius:8px;color:'+accentHex()+';font-size:.72rem;font-weight:700;text-decoration:none;margin-top:.8rem">View Full Directory (${typeof EMBASSIES_BY_HOST !== 'undefined' ? Object.values(EMBASSIES_BY_HOST).reduce((s,h)=>s+Object.keys(h.embassies).length,0) : '850'}+ contacts) →</a>`;
+  html += `<a href="javascript:void(0)" onclick="${isMob() ? "mTab('resources',null)" : "closeFormSidebar();showView('resources')"}" style="display:block;text-align:center;padding:.65rem;background:${accentHex()};border-radius:8px;color:#000;font-size:.72rem;font-weight:800;text-decoration:none;margin-top:.8rem">View Full Directory (${typeof EMBASSIES_BY_HOST !== 'undefined' ? Object.values(EMBASSIES_BY_HOST).reduce((s,h)=>s+Object.keys(h.embassies).length,0) : '850'}+ contacts) →</a>`;
 
   container.innerHTML = html;
 }
