@@ -8324,15 +8324,15 @@ function renderResourcesSidebar(container) {
 // SHARE SYSTEM — Social sharing tray for all content types
 // ============================================================
 const SHARE_PLATFORMS = [
-  { id:'x',         label:'X',         bg:'#000',    border:'rgba(255,255,255,.2)', icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>', url: (t,u) => 'https://x.com/intent/tweet?text='+encodeURIComponent(t+' @imstrandedorg')+'&url='+encodeURIComponent(u) },
-  { id:'whatsapp',  label:'WhatsApp',  bg:'#25D366', icon:'<svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.49l4.608-1.467A11.949 11.949 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.29 0-4.403-.764-6.102-2.05l-.427-.318-2.732.87.905-2.65-.35-.454A9.934 9.934 0 012 12C2 6.486 6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></svg>', url: (t,u) => 'https://wa.me/?text='+encodeURIComponent(t+' '+u) },
+  { id:'x',         label:'X',         bg:'#000',    border:'rgba(255,255,255,.2)', icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>', url: (t,u) => 'https://x.com/intent/tweet?text='+encodeURIComponent(t+'\n\n@imstrandedorg')+'&url='+encodeURIComponent(u) },
+  { id:'whatsapp',  label:'WhatsApp',  bg:'#25D366', icon:'<svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.49l4.608-1.467A11.949 11.949 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.29 0-4.403-.764-6.102-2.05l-.427-.318-2.732.87.905-2.65-.35-.454A9.934 9.934 0 012 12C2 6.486 6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></svg>', url: (t,u) => 'https://wa.me/?text='+encodeURIComponent(t+'\n\n'+u) },
   { id:'telegram',  label:'Telegram',  bg:'#229ED9', icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>', url: (t,u) => 'https://t.me/share/url?url='+encodeURIComponent(u)+'&text='+encodeURIComponent(t) },
   { id:'facebook',  label:'Facebook',  bg:'#1877F2', icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>', url: (t,u) => 'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(u)+'&quote='+encodeURIComponent(t) },
-  { id:'bluesky',   label:'Bluesky',   bg:'#0085FF', icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.785 2.627 3.6 3.476 6.178 3.14-3.958.55-7.5 1.77-3.867 6.258C6.284 24 9.353 19.38 12 15.093c2.647 4.288 5.066 8.625 9.065 4.552 3.633-4.488.091-5.708-3.867-6.258 2.578.336 5.393-.513 6.178-3.14.246-.828.624-5.789.624-6.479 0-.688-.139-1.86-.902-2.203-.659-.3-1.664-.62-4.3 1.24C16.046 4.748 13.087 8.687 12 10.8z"/></svg>', url: (t,u) => 'https://bsky.app/intent/compose?text='+encodeURIComponent(t+' '+u) },
-  { id:'threads',   label:'Threads',   bg:'#000',    border:'rgba(255,255,255,.2)', icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.96-.065-1.17.408-2.258 1.332-3.064.88-.768 2.152-1.216 3.576-1.262 1.06-.035 2.04.097 2.94.349-.023-1.177-.493-2.07-1.398-2.647-.653-.417-1.486-.64-2.476-.664l.032-2.116c1.357.02 2.517.36 3.45.962 1.59 1.026 2.464 2.726 2.522 4.918v.033c.004.205.003.41-.004.614.654.38 1.216.852 1.67 1.404.9 1.096 1.321 2.413 1.222 3.812-.136 1.907-.885 3.58-2.163 4.834-1.623 1.594-3.84 2.412-6.588 2.433zm.098-8.235c-1.06.035-1.878.344-2.357.744-.467.39-.533.817-.509 1.246.044.776.794 1.632 2.486 1.54 1.075-.058 1.9-.464 2.453-1.152.36-.448.59-.988.72-1.595-.874-.286-1.82-.446-2.793-.783z"/></svg>', url: (t,u) => 'https://www.threads.net/intent/post?text='+encodeURIComponent(t+' '+u) },
+  { id:'bluesky',   label:'Bluesky',   bg:'#0085FF', icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.785 2.627 3.6 3.476 6.178 3.14-3.958.55-7.5 1.77-3.867 6.258C6.284 24 9.353 19.38 12 15.093c2.647 4.288 5.066 8.625 9.065 4.552 3.633-4.488.091-5.708-3.867-6.258 2.578.336 5.393-.513 6.178-3.14.246-.828.624-5.789.624-6.479 0-.688-.139-1.86-.902-2.203-.659-.3-1.664-.62-4.3 1.24C16.046 4.748 13.087 8.687 12 10.8z"/></svg>', url: (t,u) => 'https://bsky.app/intent/compose?text='+encodeURIComponent(t+'\n\n'+u) },
+  { id:'threads',   label:'Threads',   bg:'#000',    border:'rgba(255,255,255,.2)', icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.96-.065-1.17.408-2.258 1.332-3.064.88-.768 2.152-1.216 3.576-1.262 1.06-.035 2.04.097 2.94.349-.023-1.177-.493-2.07-1.398-2.647-.653-.417-1.486-.64-2.476-.664l.032-2.116c1.357.02 2.517.36 3.45.962 1.59 1.026 2.464 2.726 2.522 4.918v.033c.004.205.003.41-.004.614.654.38 1.216.852 1.67 1.404.9 1.096 1.321 2.413 1.222 3.812-.136 1.907-.885 3.58-2.163 4.834-1.623 1.594-3.84 2.412-6.588 2.433zm.098-8.235c-1.06.035-1.878.344-2.357.744-.467.39-.533.817-.509 1.246.044.776.794 1.632 2.486 1.54 1.075-.058 1.9-.464 2.453-1.152.36-.448.59-.988.72-1.595-.874-.286-1.82-.446-2.793-.783z"/></svg>', url: (t,u) => 'https://www.threads.net/intent/post?text='+encodeURIComponent(t+'\n\n'+u) },
   { id:'linkedin',  label:'LinkedIn',  bg:'#0A66C2', icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>', url: (t,u) => 'https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent(u) },
   { id:'reddit',    label:'Reddit',    bg:'#FF5700', icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 0-.462.342.342 0 0 0-.462 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.205-.096z"/></svg>', url: (t,u) => 'https://reddit.com/submit?url='+encodeURIComponent(u)+'&title='+encodeURIComponent(t) },
-  { id:'signal',    label:'Signal',    bg:'#3A76F0', icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zM7.5 14.5l-2-1 4-8 2 1-4 8zm9 0l-4-8 2-1 4 8-2 1z"/></svg>', url: (t,u) => 'https://signal.me/#p/'+encodeURIComponent(t+' '+u) },
+  { id:'signal',    label:'Signal',    bg:'#3A76F0', icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zM7.5 14.5l-2-1 4-8 2 1-4 8zm9 0l-4-8 2-1 4 8-2 1z"/></svg>', url: (t,u) => 'https://signal.me/#p/'+encodeURIComponent(t+'\n\n'+u) },
   { id:'email',     label:'Email',     bg:'#555',    icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>', url: (t,u) => 'mailto:?subject='+encodeURIComponent('ImStranded.org — Help needed')+'&body='+encodeURIComponent(t+'\n\n'+u) },
   { id:'copy',      label:'Copy Link', bg:'rgba(255,255,255,.12)', icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>', url: null },
 ];
@@ -8345,7 +8345,7 @@ function openShareTray(text, deepLink, title) {
   const titleEl = document.getElementById('share-tray-title');
   const previewEl = document.getElementById('share-tray-preview');
   if (!overlay || !grid) return;
-  const url = deepLink ? SITE_URL + '#' + deepLink : SITE_URL;
+  const url = deepLink ? SITE_URL + '/?' + deepLink : SITE_URL;
   if (titleEl) titleEl.textContent = title || 'Share';
   if (previewEl) previewEl.textContent = text.length > 120 ? text.slice(0,118)+'…' : text;
   let html = '';
@@ -8401,44 +8401,86 @@ function shareAirportText(city, est) { return `✈️ An estimated ${est?.toLoca
 function shareSuccessText(s) { return `🏠 ${s.stranded_name||'Someone'} found help through ImStranded.org! ${_successStories.length} matches so far.`; }
 function shareEmbassyText(name, phone, host) { return `🏛️ ${name} in ${host}: ${phone||'see contact details'}. Share with your fellow citizens nearby.`; }
 
-// ── Deep link handler — parse hash on page load ──
+// ── Deep link handler — parse ?dl= param on page load ──
 function handleDeepLink() {
-  const hash = window.location.hash?.slice(1);
-  if (!hash) return;
-  const params = new URLSearchParams(hash);
-  // ?pet=ID — fly to pet pin
-  if (params.has('pet')) {
-    setTimeout(() => {
-      const id = params.get('pet');
-      const p = _petPosts.find(x => x.id === id);
-      if (p?.lat && p?.lng) {
-        const map = isMob() ? window._mobileMap : window._crisisMap;
-        if (map) map.flyTo([p.lat, p.lng], 14);
-      }
-    }, 3000);
-  }
-  // ?airport=IATA — open airport popup
-  if (params.has('airport')) {
-    setTimeout(() => {
-      const iata = params.get('airport').toUpperCase();
-      if (window.globalDisruptionByIata?.[iata]) {
-        const gd = window.globalDisruptionByIata[iata];
-        const map = isMob() ? window._mobileMap : window._crisisMap;
-        if (map && gd.lat && gd.lng) map.flyTo([gd.lat, gd.lng], 12);
-      }
-    }, 3000);
-  }
-  // ?room=ID — fly to room pin
-  if (params.has('room')) {
-    setTimeout(() => {
-      const id = params.get('room');
-      const p = posts.find(x => x.id === id);
-      if (p?.lat && p?.lng) {
-        const map = isMob() ? window._mobileMap : window._crisisMap;
-        if (map) map.flyTo([p.lat, p.lng], 14);
-      }
-    }, 3000);
-  }
+  const params = new URLSearchParams(window.location.search);
+  // Check for direct deep link params: ?pet=ID, ?airport=IATA, ?room=ID
+  const petId = params.get('pet');
+  const airportIata = params.get('airport');
+  const roomId = params.get('room');
+  if (!petId && !airportIata && !roomId) return;
+  console.log('[DeepLink]', petId ? 'pet='+petId : airportIata ? 'airport='+airportIata : 'room='+roomId);
+  // Wait for data to load and overlay to dismiss, then act
+  let attempts = 0;
+  const tryDeepLink = setInterval(() => {
+    attempts++;
+    if (attempts > 40) { clearInterval(tryDeepLink); return; } // give up after 20s
+    const overlay = document.getElementById('intro-overlay');
+    if (overlay && overlay.style.display !== 'none' && !overlay._dismissed) return; // still loading
+    const map = isMob() ? window._mobileMap : window._crisisMap;
+    if (!map) return;
+
+    if (petId) {
+      const p = _petPosts.find(x => x.id === petId);
+      if (!p) return; // data not loaded yet
+      clearInterval(tryDeepLink);
+      map.flyTo([p.lat, p.lng], 14);
+      setTimeout(() => {
+        if (isMob()) {
+          const animalIcon = PET_ANIMAL_ICONS[p.animal_type] || '🐾';
+          const statusLabel = PET_STATUS_LABELS[p.pet_status] || p.pet_status;
+          const statusColor = PET_STATUS_COLORS[p.pet_status] || '#ff9f1c';
+          const age = timeAgo(p.created_at);
+          const popHtml = `<div style="font-family:Inter,sans-serif">
+            <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem">
+              <span style="font-size:.72rem;font-weight:800;text-transform:capitalize;color:rgba(255,255,255,.7)">${p.animal_type || 'pet'}</span>
+              <span style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:${statusColor};letter-spacing:.04em">${statusLabel}</span>
+              <span style="font-size:.55rem;color:rgba(255,255,255,.3);margin-left:auto">${age}</span>
+            </div>
+            ${p.photo_url ? '<img src="'+esc(p.photo_url)+'" style="width:100%;max-height:140px;object-fit:cover;border-radius:8px;margin-bottom:.4rem;display:block" loading="lazy" alt="">' : ''}
+            ${p.pet_name ? '<div style="font-size:.95rem;font-weight:800;color:#fff;margin-bottom:.15rem">'+esc(p.pet_name)+'</div>' : ''}
+            <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.2rem">📍 ${esc(p.location)}</div>
+            <div style="font-size:.78rem;color:rgba(255,255,255,.5);line-height:1.5;margin-bottom:.4rem">${esc(p.description)}</div>
+            <div style="font-size:.72rem;color:rgba(255,255,255,.45);margin-bottom:.3rem">Posted by <strong style="color:#fff">${esc(p.name)}</strong></div>
+            ${buildContactButtons(p.contact, p.xhandle, p.name)}
+            ${buildPetMatchButton(p)}
+          </div>`;
+          openMPinSheet(popHtml);
+        } else {
+          const animalIcon = PET_ANIMAL_ICONS[p.animal_type] || '🐾';
+          const statusLabel = PET_STATUS_LABELS[p.pet_status] || p.pet_status;
+          const statusColor = PET_STATUS_COLORS[p.pet_status] || '#ff9f1c';
+          const matchHtml = buildPetMatchButton(p);
+          openPetSidebar(p, statusLabel, statusColor, animalIcon, matchHtml);
+        }
+      }, 800);
+    } else if (airportIata) {
+      const iata = airportIata.toUpperCase();
+      if (!window.globalDisruptionByIata?.[iata]) return;
+      clearInterval(tryDeepLink);
+      const gd = window.globalDisruptionByIata[iata];
+      if (gd.lat && gd.lng) map.flyTo([gd.lat, gd.lng], 12);
+    } else if (roomId) {
+      const p = posts.find(x => x.id === roomId);
+      if (!p) return;
+      clearInterval(tryDeepLink);
+      if (p.lat && p.lng) map.flyTo([p.lat, p.lng], 14);
+      setTimeout(() => {
+        if (isMob()) {
+          const popupHtml = `<div style="font-family:Inter,sans-serif">
+            <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#93c5fd;margin-bottom:.25rem">SPARE ROOM</div>
+            <div style="font-weight:600;font-size:.95rem;margin-bottom:.2rem;color:#fff">${esc(p.name)} ${buildBadge(!!p.user_id)}</div>
+            <div style="font-size:.82rem;color:rgba(255,255,255,.75);line-height:1.55;margin-bottom:.4rem">${esc(p.body)||''}</div>
+            <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:.4rem">📍 ${esc(p.location)}</div>
+            ${buildContactButtons(p.contact, p.xhandle, p.name)}
+          </div>`;
+          openMPinSheet(popupHtml);
+        } else {
+          openPostSidebar(p, 'offer');
+        }
+      }, 800);
+    }
+  }, 500);
 }
 
 window.addEventListener('DOMContentLoaded',()=>{
