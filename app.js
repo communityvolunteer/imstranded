@@ -6054,7 +6054,7 @@ function initStrandedRealtime() {
 // ============================================================
 // STRANDED PETS
 // ============================================================
-const PET_STATUS_LABELS = { need_foster:'Needs Foster', found_stray:'Found Stray', can_foster:'Can Foster' };
+const PET_STATUS_LABELS = { need_foster:'Needs a Home', found_stray:'Found Stray', can_foster:'Can Take a Pet' };
 const PET_STATUS_COLORS = { need_foster:'#ff9f1c', found_stray:'#ec3452', can_foster:'#22c55e' };
 const PET_ANIMAL_ICONS  = { dog:'Dog', cat:'Cat', bird:'Bird', other:'Pet' };
 
@@ -6461,7 +6461,7 @@ function buildPetMatchButton(petPost) {
   // Check if already matched
   if (_petMatchByPet[petPost.id]) {
     const m = _petMatchByPet[petPost.id];
-    const reunitedLabel = m.reunited ? '🏠 Reunited!' : '✅ Fostered';
+    const reunitedLabel = m.reunited ? '🏠 Reunited!' : '✅ Housed';
     return `<div style="margin-top:.5rem;padding:.45rem .6rem;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);border-radius:8px;text-align:center;font-size:.7rem;font-weight:700;color:#22c55e">${reunitedLabel}${m.foster_name ? ' by '+esc(m.foster_name) : ''}</div>`;
   }
 
@@ -6470,13 +6470,13 @@ function buildPetMatchButton(petPost) {
     // I need a foster — check if I have an active need_foster or found_stray post
     const myPetPost = _petPosts.find(p => p.user_id === myId && (p.pet_status === 'need_foster' || p.pet_status === 'found_stray'));
     if (myPetPost) {
-      return `<button onclick="requestPetMatch('${myPetPost.id}','${petPost.id}')" style="margin-top:.5rem;width:100%;padding:.5rem;background:'+accentRgba(.12)+';border:1px solid '+accentRgba(.25)+';border-radius:8px;color:'+accentHex()+';font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">🐾 Request This Foster</button>`;
+      return `<button onclick="requestPetMatch('${myPetPost.id}','${petPost.id}')" style="margin-top:.5rem;width:100%;padding:.5rem;background:'+accentRgba(.12)+';border:1px solid '+accentRgba(.25)+';border-radius:8px;color:'+accentHex()+';font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">🐾 Request This Home</button>`;
     }
   } else if ((petPost.pet_status === 'need_foster' || petPost.pet_status === 'found_stray') && petPost.user_id !== myId) {
     // I can foster — check if I have an active can_foster post
     const myFosterPost = _petPosts.find(p => p.user_id === myId && p.pet_status === 'can_foster');
     if (myFosterPost) {
-      return `<button onclick="requestPetMatch('${petPost.id}','${myFosterPost.id}')" style="margin-top:.5rem;width:100%;padding:.5rem;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);border-radius:8px;color:#22c55e;font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">🐾 Offer to Foster This Pet</button>`;
+      return `<button onclick="requestPetMatch('${petPost.id}','${myFosterPost.id}')" style="margin-top:.5rem;width:100%;padding:.5rem;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);border-radius:8px;color:#22c55e;font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">🐾 Offer a Home to This Pet</button>`;
     }
   }
   return '';
@@ -6496,7 +6496,7 @@ async function requestPetMatch(petPostId, fosterPostId) {
   const fosterPost = _petPosts.find(p => p.id === fosterPostId);
   if (!petPost || !fosterPost) { alert('Could not find the posts.'); return; }
 
-  if (!confirm(`Match "${petPost.pet_name || petPost.animal_type}" with foster "${fosterPost.name}"?`)) return;
+  if (!confirm(`Match "${petPost.pet_name || petPost.animal_type}" with "${fosterPost.name}"?`)) return;
 
   try {
     const { error } = await _sb.from('pet_matches').insert({
@@ -6515,14 +6515,14 @@ async function requestPetMatch(petPostId, fosterPostId) {
       foster_name: fosterPost.name,
     });
     if (error) throw error;
-    alert('✅ Match request sent! The foster will see it in their notifications.');
+    alert('✅ Match request sent! They will see it in their notifications.');
     loadPetMatches();
   } catch(e) { alert('Error: ' + e.message); }
 }
 
 async function confirmPetMatch(matchId) {
   if (!isLoggedIn()) return;
-  if (!confirm('Confirm you are fostering this pet?')) return;
+  if (!confirm('Confirm you are giving this pet a home?')) return;
   try {
     const { error } = await _sb.from('pet_matches').update({
       foster_confirmed: true,
@@ -6728,13 +6728,13 @@ function renderSuccessOnMap(map, showHome = true) {
     const animalLabel = (PET_ANIMAL_ICONS[m.animal_type] || 'Pet') + ' housed';
     const _petSuccD = buildUserDot('success', 1, animalLabel, 50);
     const icon = L.divIcon({ className: '', html: _petSuccD.html, iconSize: [_petSuccD.sz, _petSuccD.sz], iconAnchor: [_petSuccD.sz/2, _petSuccD.sz/2] });
-    const reunitedLabel = m.reunited ? '🏠 Reunited with owner!' : '✅ Fostered';
+    const reunitedLabel = m.reunited ? '🏠 Reunited with owner!' : '✅ Housed';
     const popHtml = `<div style="font-family:Inter,sans-serif">
       <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">${reunitedLabel}</div>
       <div style="font-size:.95rem;font-weight:800;color:#fff;margin-bottom:.15rem">${esc(m.pet_name || m.animal_type || 'Pet')}</div>
       <div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.15rem;text-transform:capitalize">${m.animal_type || 'Pet'}</div>
       <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.2rem">📍 ${esc(m.foster_location || m.pet_location || '')}</div>
-      ${m.foster_name ? '<div style="font-size:.72rem;color:rgba(255,255,255,.45)">Fostered by <strong style=color:#fff>'+esc(m.foster_name)+'</strong></div>' : ''}
+      ${m.foster_name ? '<div style="font-size:.72rem;color:rgba(255,255,255,.45)">Housed by <strong style=color:#fff>'+esc(m.foster_name)+'</strong></div>' : ''}
       ${m.reunion_story ? '<div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:.35rem;line-height:1.5;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.4)">"'+esc(m.reunion_story)+'"</div>' : ''}
     </div>`;
     const marker = L.marker([lat, lng], { icon });
@@ -6764,7 +6764,7 @@ function drawSuccessArcs(map) {
       L.polyline(pts2, { color:'#22c55e', weight:2.2, opacity:.6, className:'success-arc', interactive:false }).addTo(window[key]);
     }
   }
-  // Pet match arcs: pet location → foster location
+  // Pet match arcs: pet location → new home location
   for (const m of _petMatches) {
     if (!m.foster_confirmed) continue;
     if (m.pet_lat && m.pet_lng && m.foster_lat && m.foster_lng) {
@@ -7129,21 +7129,55 @@ async function updateActionButtons() {
   }
 
   // ── Pets sitrep + paw subtitle ──
+  const pcPets = document.getElementById('ss-pets');
+  const mPawPill = document.getElementById('m-pets-pill');
   try {
-    const myPetPost = _petPosts.find(p => p.user_id === _currentUser?.id);
+    const myPetPosts = _petPosts.filter(p => p.user_id === _currentUser?.id);
     const petSub  = document.getElementById('ss-pets-sub');
     const pawSub  = document.getElementById('m-pets-pill-sub');
-    if (myPetPost) {
-      // Count pet_matches where this user's post was involved
-      const { count } = await withTimeout(
-        _sb.from('pet_matches').select('id', { count: 'exact', head: true })
-          .or(`pet_post_id.eq.${myPetPost.id},foster_post_id.eq.${myPetPost.id}`), 4000);
-      const txt = count > 0 ? `${count} response${count > 1 ? 's' : ''}` : 'tap · report';
-      if (petSub) petSub.textContent = txt;
-      if (pawSub) pawSub.textContent = count > 0 ? `${count} response${count > 1 ? 's' : ''}` : '';
+    if (myPetPosts.length) {
+      // Count pet_matches for all user's posts
+      let matchCount = 0;
+      try {
+        const ids = myPetPosts.map(p => p.id);
+        for (const id of ids) {
+          const r = await withTimeout(
+            _sb.from('pet_matches').select('id', { count: 'exact', head: true })
+              .or(`pet_post_id.eq.${id},foster_post_id.eq.${id}`), 4000);
+          matchCount += (r.count || 0);
+        }
+      } catch(e) {}
+      // PC: change label & onclick
+      if (pcPets) {
+        pcPets.querySelector('.sitrep-label').textContent = 'My Pets';
+        const badge = matchCount > 0
+          ? `<span style="display:inline-block;background:var(--accent);color:#fff;font-size:.55rem;font-weight:800;border-radius:10px;padding:.1rem .4rem;margin-left:.3rem;vertical-align:middle">${matchCount}</span>`
+          : `<span style="display:inline-block;background:rgba(255,255,255,.12);color:rgba(255,255,255,.4);font-size:.55rem;font-weight:800;border-radius:10px;padding:.1rem .4rem;margin-left:.3rem;vertical-align:middle">${myPetPosts.length}</span>`;
+        if (petSub) petSub.innerHTML = (myPetPosts.length === 1 ? '1 post' : myPetPosts.length + ' posts') + ' ' + badge;
+        pcPets.onclick = () => isMob() ? mTab('manage-pets', null) : openManageSidebar('pets');
+      }
+      // Mobile: change paw pill onclick
+      if (mPawPill) {
+        mPawPill.onclick = (e) => { e.preventDefault(); mTab('manage-pets', null); return false; };
+      }
+      if (pawSub) pawSub.textContent = myPetPosts.length === 1 ? '1 post' : myPetPosts.length + ' posts';
+      // Update profile button labels
+      ['pc-profile-btn-pets-text','m-profile-btn-pets-text'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.textContent = 'My Pets';
+      });
     } else {
       if (petSub) petSub.textContent = 'tap · report';
       if (pawSub) pawSub.textContent = '';
+      if (pcPets) {
+        pcPets.querySelector('.sitrep-label').textContent = 'Pets';
+        pcPets.onclick = () => isMob() ? mTab('pets', null) : openFormSidebar('pets');
+      }
+      if (mPawPill) {
+        mPawPill.onclick = (e) => { e.preventDefault(); mTab('pets', null); return false; };
+      }
+      ['pc-profile-btn-pets-text','m-profile-btn-pets-text'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.textContent = 'Pets';
+      });
     }
   } catch(e) {
     const petSub = document.getElementById('ss-pets-sub');
@@ -7362,7 +7396,7 @@ async function renderManageDashboard(type) {
     for (const p of myPets) {
       const match = _petMatchByPet[p.id] || _petMatchByFoster[p.id] || null;
       const step = match?.reunited ? 3 : match?.foster_confirmed ? 2 : 1;
-      const stepLabels = p.pet_status === 'can_foster' ? ['Offered', 'Fostering', 'Reunited'] : ['Posted', 'Fostered', 'Reunited'];
+      const stepLabels = p.pet_status === 'can_foster' ? ['Offered', 'Caring', 'Reunited'] : ['Posted', 'Housed', 'Reunited'];
       cardsHtml += buildProgressTracker(step, stepLabels, accentHex()) + buildPetCard(p, match, step);
     }
     // Add post button at bottom
@@ -7538,7 +7572,7 @@ function buildPetCard(p, match, step) {
 
   // Match status
   if (step >= 2 && match) {
-    const reunitedLabel = match.reunited ? '🏠 Reunited!' : '✅ Fostered';
+    const reunitedLabel = match.reunited ? '🏠 Reunited!' : '✅ Housed';
     const matchName = match.foster_name || match.pet_name || '';
     html += `<div style="background:rgba(34,197,94,.15);border:none;border-radius:10px;padding:.65rem;margin:.4rem 0">
       <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.2rem">${reunitedLabel}${match.confirmed_at ? ' · ' + new Date(match.confirmed_at).toLocaleDateString() : ''}</div>
@@ -7560,7 +7594,7 @@ function buildPetCard(p, match, step) {
     // Pet needs home — show "Found a foster?" if there are can_foster posts
     const fosters = _petPosts.filter(fp => fp.pet_status === 'can_foster' && fp.user_id !== _currentUser?.id);
     if (fosters.length) {
-      html += `<button onclick="alert('Browse the map for foster offers and click their pin to request a match!')" style="flex:1;${btnStyle('green')}">Find a Foster →</button>`;
+      html += `<button onclick="alert('Browse the map for people offering homes to pets and click their pin to request a match!')" style="flex:1;${btnStyle('green')}">Find a Home →</button>`;
     }
   }
   if (step === 2 && match && !match.reunited && match.foster_confirmed) {
@@ -7704,10 +7738,17 @@ function resetActionButtons() {
     pcStranded.querySelector('.sitrep-sub').textContent = 'tap · register';
     pcStranded.onclick = () => isMob() ? mTab('stranded', null) : openFormSidebar('stranded');
   }
+  const pcPets = document.getElementById('ss-pets');
   const petSub = document.getElementById('ss-pets-sub');
+  if (pcPets) {
+    pcPets.querySelector('.sitrep-label').textContent = 'Pets';
+    pcPets.onclick = () => isMob() ? mTab('pets', null) : openFormSidebar('pets');
+  }
   if (petSub) petSub.textContent = 'tap · report';
   const pawSub = document.getElementById('m-pets-pill-sub');
   if (pawSub) pawSub.textContent = '';
+  const mPawPill = document.getElementById('m-pets-pill');
+  if (mPawPill) mPawPill.onclick = (e) => { e.preventDefault(); mTab('pets', null); return false; };
   const mOffer = document.getElementById('mss-offer');
   if (mOffer) {
     const mSvg = mOffer.querySelector('svg');
