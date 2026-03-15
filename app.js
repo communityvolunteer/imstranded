@@ -1514,8 +1514,8 @@ function updateFilterBadges() {
   setBadge('fp-badge-stranded', strandedCount || '');
   setBadge('mfp-badge-stranded', strandedCount || '');
 
-  // Success stories
-  const successCount = _successStories ? _successStories.length : 0;
+  // Success stories (rooms + pet matches)
+  const successCount = (_successStories ? _successStories.length : 0) + (_petMatches ? _petMatches.length : 0);
   setBadge('fp-badge-success', successCount || '');
   setBadge('mfp-badge-success', successCount || '');
 
@@ -6315,24 +6315,33 @@ function clearPetPhoto(prefix) {
 }
 
 async function compressToWebP(file, maxPx = 1200, quality = 0.75) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      let { width, height } = img;
-      if (width > maxPx || height > maxPx) {
-        if (width > height) { height = Math.round(height * maxPx / width); width = maxPx; }
-        else                { width  = Math.round(width  * maxPx / height); height = maxPx; }
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = width; canvas.height = height;
-      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Canvas export failed')), 'image/webp', quality);
-    };
-    img.onerror = reject;
-    img.src = url;
-  });
+  const TIMEOUT = 8000; // 8s timeout for mobile
+  return Promise.race([
+    new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        let { width, height } = img;
+        if (width > maxPx || height > maxPx) {
+          if (width > height) { height = Math.round(height * maxPx / width); width = maxPx; }
+          else                { width  = Math.round(width  * maxPx / height); height = maxPx; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        // Try WebP first, fall back to JPEG
+        canvas.toBlob(blob => {
+          if (blob) return resolve(blob);
+          // WebP not supported — fall back to JPEG
+          canvas.toBlob(jpgBlob => jpgBlob ? resolve(jpgBlob) : reject(new Error('Canvas export failed')), 'image/jpeg', quality);
+        }, 'image/webp', quality);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image load failed')); };
+      img.src = url;
+    }),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('Compress timeout')), TIMEOUT))
+  ]);
 }
 
 async function uploadPetPhoto(prefix) {
@@ -6341,10 +6350,12 @@ async function uploadPetPhoto(prefix) {
   const file = input.files[0];
   try {
     const blob = await compressToWebP(file);
-    const ext  = 'webp';
+    const isWebP = blob.type === 'image/webp';
+    const ext  = isWebP ? 'webp' : 'jpg';
+    const mime = isWebP ? 'image/webp' : 'image/jpeg';
     const path = `pets/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     const { data, error } = await _sb.storage.from('pet-photos').upload(path, blob, {
-      contentType: 'image/webp', upsert: false
+      contentType: mime, upsert: false
     });
     if (error) throw error;
     const { data: { publicUrl } } = _sb.storage.from('pet-photos').getPublicUrl(path);
@@ -6430,6 +6441,14 @@ async function loadPetMatches() {
   for (const m of _petMatches) {
     _petMatchByPet[m.pet_post_id] = m;
     _petMatchByFoster[m.foster_post_id] = m;
+  }
+  // Re-render success layer to include pet match pins + arcs
+  if (_petMatches.length) {
+    renderSuccessOnMap(window._crisisMap, true);
+    renderSuccessOnMap(window._mobileMap, true);
+    drawSuccessArcs(window._crisisMap);
+    drawSuccessArcs(window._mobileMap);
+    updateFilterBadges();
   }
 }
 
@@ -6699,6 +6718,29 @@ function renderSuccessOnMap(map, showHome = true) {
       window[key].addLayer(hm);
     }
   }
+  // Pet match success pins
+  for (const m of _petMatches) {
+    if (!m.foster_confirmed) continue;
+    const lat = m.foster_lat || m.pet_lat;
+    const lng = m.foster_lng || m.pet_lng;
+    if (!lat || !lng) continue;
+    const animalLabel = (PET_ANIMAL_ICONS[m.animal_type] || 'Pet') + ' housed';
+    const _petSuccD = buildUserDot('success', 1, animalLabel, 50);
+    const icon = L.divIcon({ className: '', html: _petSuccD.html, iconSize: [_petSuccD.sz, _petSuccD.sz], iconAnchor: [_petSuccD.sz/2, _petSuccD.sz/2] });
+    const reunitedLabel = m.reunited ? '🏠 Reunited with owner!' : '✅ Fostered';
+    const popHtml = `<div style="font-family:Inter,sans-serif">
+      <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">${reunitedLabel}</div>
+      <div style="font-size:.95rem;font-weight:800;color:#fff;margin-bottom:.15rem">${esc(m.pet_name || m.animal_type || 'Pet')}</div>
+      <div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.15rem;text-transform:capitalize">${m.animal_type || 'Pet'}</div>
+      <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.2rem">📍 ${esc(m.foster_location || m.pet_location || '')}</div>
+      ${m.foster_name ? '<div style="font-size:.72rem;color:rgba(255,255,255,.45)">Fostered by <strong style=color:#fff>'+esc(m.foster_name)+'</strong></div>' : ''}
+      ${m.reunion_story ? '<div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:.35rem;line-height:1.5;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.4)">"'+esc(m.reunion_story)+'"</div>' : ''}
+    </div>`;
+    const marker = L.marker([lat, lng], { icon });
+    if (isMobileM) marker.on('click', e => { L.DomEvent.stopPropagation(e); openMPinSheet(popHtml); });
+    else marker.bindPopup(popHtml, { className: 'dark-popup', maxWidth: 280 });
+    window[key].addLayer(marker);
+  }
   map.addLayer(window[key]);
 }
 
@@ -6719,6 +6761,14 @@ function drawSuccessArcs(map) {
     if (s.lat && s.lng && s.home_lat && s.home_lng) {
       const pts2 = arcPoints([s.lat, s.lng], [s.home_lat, s.home_lng]);
       L.polyline(pts2, { color:'#22c55e', weight:2.2, opacity:.6, className:'success-arc', interactive:false }).addTo(window[key]);
+    }
+  }
+  // Pet match arcs: pet location → foster location
+  for (const m of _petMatches) {
+    if (!m.foster_confirmed) continue;
+    if (m.pet_lat && m.pet_lng && m.foster_lat && m.foster_lng) {
+      const pts = arcPoints([m.pet_lat, m.pet_lng], [m.foster_lat, m.foster_lng]);
+      L.polyline(pts, { color:'#22c55e', weight:1.8, opacity:.45, dashArray:'5,5', className:'success-arc', interactive:false }).addTo(window[key]);
     }
   }
   map.addLayer(window[key]);
