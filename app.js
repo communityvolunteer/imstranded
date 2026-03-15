@@ -7602,7 +7602,59 @@ function buildPetCard(p, match, step) {
   }
   html += `<button onclick="editPetPost('${p.id}')" style="${btnStyle('accent')}">Edit</button>`;
   html += `<button onclick="deletePetPost('${p.id}')" style="${btnStyle('danger')}">Delete</button>`;
-  html += '</div></div>';
+  html += '</div>';
+
+  // Discovery: nearby matches
+  const lat = p.lat, lng = p.lng;
+  if (p.pet_status === 'need_foster' || p.pet_status === 'found_stray') {
+    // Show people willing to take in pets nearby
+    let nearby = _petPosts.filter(fp => fp.pet_status === 'can_foster' && fp.user_id !== _currentUser?.id && fp.lat && fp.lng);
+    if (lat && lng) nearby = nearby.map(fp => ({...fp, _d: haversineKm(lat, lng, fp.lat, fp.lng)})).sort((a,b) => a._d - b._d);
+    if (nearby.length) {
+      html += `<div style="margin-top:1rem;padding-top:.7rem;border-top:1px solid rgba(255,255,255,.06)">
+        <div style="font-size:1rem;font-weight:800;color:#fff;margin-bottom:.15rem">People Offering a Home Nearby</div>
+        <div style="font-size:.65rem;color:rgba(255,255,255,.4);margin-bottom:.5rem">Someone near you can take in a pet</div>`;
+      html += nearby.slice(0, 5).map(fp => {
+        const icon = animalIcons[fp.animal_type] || '🐾';
+        const types = (fp.animal_type || '').split(',').map(t => t.trim()).filter(Boolean);
+        const typeLabel = types.length > 1 ? types.map(t => (t.charAt(0).toUpperCase()+t.slice(1))).join(', ') : (fp.animal_type||'Pet').charAt(0).toUpperCase()+(fp.animal_type||'pet').slice(1);
+        return `<div style="padding:.45rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.2rem">
+            <div><div style="font-size:.82rem;font-weight:700;color:#fff">${esc(fp.name)||'Anonymous'} ${buildBadge(!!fp.user_id)}</div>
+              <div style="font-size:.65rem;color:rgba(255,255,255,.45)">${esc(fp.location)}${fp._d!=null?' · '+Math.round(fp._d)+'km':''}</div>
+              <div style="font-size:.6rem;color:var(--accent)">${icon} Can take: ${typeLabel}</div></div>
+            ${buildContactIcons(fp.contact, fp.xhandle, fp.name)}
+          </div>
+        </div>`;
+      }).join('');
+      html += '</div>';
+    }
+  } else if (p.pet_status === 'can_foster') {
+    // Show pets needing homes nearby
+    let nearby = _petPosts.filter(fp => (fp.pet_status === 'need_foster' || fp.pet_status === 'found_stray') && fp.user_id !== _currentUser?.id && fp.lat && fp.lng);
+    if (lat && lng) nearby = nearby.map(fp => ({...fp, _d: haversineKm(lat, lng, fp.lat, fp.lng)})).sort((a,b) => a._d - b._d);
+    if (nearby.length) {
+      html += `<div style="margin-top:1rem;padding-top:.7rem;border-top:1px solid rgba(255,255,255,.06)">
+        <div style="font-size:1rem;font-weight:800;color:#fff;margin-bottom:.15rem">Pets Who Need a Home Nearby</div>
+        <div style="font-size:.65rem;color:rgba(255,255,255,.4);margin-bottom:.5rem">These pets are looking for someone like you</div>`;
+      html += nearby.slice(0, 5).map(fp => {
+        const icon = animalIcons[fp.animal_type] || '🐾';
+        const type = (fp.animal_type||'pet').charAt(0).toUpperCase()+(fp.animal_type||'pet').slice(1);
+        const status = fp.pet_status === 'found_stray' ? 'Found stray' : 'Needs a home';
+        return `<div style="padding:.45rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.2rem">
+            <div><div style="font-size:.82rem;font-weight:700;color:#fff">${icon} ${fp.pet_name?esc(fp.pet_name)+' <span style="font-size:.65rem;color:rgba(255,255,255,.4)">'+type+'</span>':type}</div>
+              <div style="font-size:.65rem;color:rgba(255,255,255,.45)">${esc(fp.location)}${fp._d!=null?' · '+Math.round(fp._d)+'km':''}</div>
+              <div style="font-size:.6rem;color:#f59e0b">${status}</div></div>
+            ${buildContactIcons(fp.contact, fp.xhandle, fp.name)}
+          </div>
+        </div>`;
+      }).join('');
+      html += '</div>';
+    }
+  }
+
+  html += '</div>';
   return html;
 }
 
