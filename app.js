@@ -3323,7 +3323,7 @@ function buildContactIcons(contact, xhandle, name) {
 }
 
 function buildFlagButton(table, id) {
-  return `<button onclick="event.stopPropagation();flagPost('${table}','${id}')" style="display:inline-flex;align-items:center;gap:3px;margin-top:.35rem;padding:.2rem .5rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:5px;color:rgba(255,255,255,.3);font-size:.55rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif" title="Flag for review"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> Flag</button>`;
+  return `<button onclick="event.stopPropagation();flagPost('${table}','${id}')" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;width:32px;height:28px;background:#222;border:1px solid rgba(255,255,255,.08);border-radius:6px;color:rgba(255,255,255,.35);font-size:.55rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;flex-shrink:0" title="Flag for review"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></button>`;
 }
 
 // ── User dot builder (matches IMPACTED dot style) ────────────
