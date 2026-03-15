@@ -7622,13 +7622,11 @@ async function editPetPost(id) {
     mTab('pets', null);
     setTimeout(() => { setPetMode(prefix, mode); populatePetForm(prefix, data); }, 200);
   } else {
-    const sb = document.getElementById('form-sidebar');
-    const body = document.getElementById('form-sidebar-body');
-    if (sb && body) { _fsReturnMounted(); body.innerHTML = ''; sb.dataset.panel = ''; sb.classList.remove('open'); }
-    requestAnimationFrame(() => {
+    closeFormSidebar();
+    setTimeout(() => {
       openFormSidebar('pets');
       setTimeout(() => { setPetMode(prefix, mode); populatePetForm(prefix, data); }, 200);
-    });
+    }, 100);
   }
 
   // Change submit button
@@ -7639,7 +7637,7 @@ async function editPetPost(id) {
       btn._origOnclick = btn.onclick;
       btn.onclick = () => submitPetEdit(prefix);
     }
-  }, 500);
+  }, 600);
 }
 
 function populatePetForm(prefix, data) {
