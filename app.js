@@ -2980,15 +2980,14 @@ function openPetSidebar(p, statusLabel, statusColor, animalIcon, petMatchHtml) {
 
   let html = '';
 
-  // Hero icon + title
-  html += `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1rem 0 1.2rem">
-    <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="none" style="margin-bottom:.6rem"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="${accentHex()}"/><circle cx="6.5" cy="10" r="2" fill="${accentHex()}"/><circle cx="17.5" cy="10" r="2" fill="${accentHex()}"/><circle cx="10" cy="6.5" r="1.8" fill="${accentHex()}"/><circle cx="14" cy="6.5" r="1.8" fill="${accentHex()}"/></svg>
-    <div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">STRANDED PETS</div>
-    <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">${esc(p.animal_type || 'Pet')} · <span style="color:${statusColor};font-weight:700">${statusLabel}</span></div>
-  </div>`;
-
-  if (p.photo_url) {
-    html += `<img src="${esc(p.photo_url)}" style="width:100%;max-height:200px;object-fit:cover;border-radius:10px;margin-bottom:.8rem;display:block" loading="lazy" alt="pet photo">`;
+  // Photo thumbnails (no hero section)
+  const photos = [p.photo_url, p.photo_url_2, p.photo_url_3].filter(Boolean);
+  if (photos.length) {
+    html += `<div style="display:flex;gap:.4rem;margin-bottom:.8rem">`;
+    photos.forEach(url => {
+      html += `<img src="${esc(url)}" onclick="openLightbox('${esc(url)}')" style="width:${photos.length===1?'100%':'calc(33.33% - .27rem)'};height:80px;object-fit:cover;border-radius:8px;cursor:pointer;display:block" loading="lazy" alt="">`;
+    });
+    html += `</div>`;
   }
   if (p.pet_name) {
     html += `<div class="post-sidebar-section"><div class="post-sidebar-label">Name</div><div class="post-sidebar-value" style="font-size:1.1rem;font-weight:800;color:#fff">${esc(p.pet_name)}</div></div>`;
@@ -6118,7 +6117,7 @@ function renderPetsOnMap(map, isMobile) {
           <span style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:${statusColor};letter-spacing:.04em">${statusLabel}</span>
           <span style="font-size:.55rem;color:rgba(255,255,255,.3);margin-left:auto">${age}</span>
         </div>
-        ${p.photo_url ? '<img src="'+esc(p.photo_url)+'" style="width:100%;max-height:140px;object-fit:cover;border-radius:8px;margin-bottom:.4rem;display:block" loading="lazy" alt="pet photo">' : ''}
+        ${buildPetThumbs(p)}
         ${p.pet_name ? '<div style="font-size:.95rem;font-weight:800;color:#fff;margin-bottom:.15rem">'+esc(p.pet_name)+'</div>' : ''}
         <div style="font-size:.72rem;font-weight:600;color:rgba(255,255,255,.5);margin-bottom:.15rem;text-transform:capitalize">${p.animal_type}</div>
         <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.2rem">📍 ${esc(p.location)}</div>
@@ -6189,7 +6188,7 @@ function renderFilteredPets(map, isMobile, filteredPets) {
           <span style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:${statusColor};letter-spacing:.04em">${statusLabel}</span>
           <span style="font-size:.55rem;color:rgba(255,255,255,.3);margin-left:auto">${age}</span>
         </div>
-        ${p.photo_url ? '<img src="'+esc(p.photo_url)+'" style="width:100%;max-height:140px;object-fit:cover;border-radius:8px;margin-bottom:.4rem;display:block" loading="lazy" alt="pet photo">' : ''}
+        ${buildPetThumbs(p)}
         ${p.pet_name ? '<div style="font-size:.95rem;font-weight:800;color:#fff;margin-bottom:.15rem">'+esc(p.pet_name)+'</div>' : ''}
         <div style="font-size:.72rem;font-weight:600;color:rgba(255,255,255,.5);margin-bottom:.15rem;text-transform:capitalize">${p.animal_type}</div>
         <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.2rem">📍 ${esc(p.location)}</div>
@@ -6303,27 +6302,35 @@ function getPetStatus(prefix) {
 }
 
 function previewPetPhoto(input, prefix) {
+  previewPetPhotoSlot(input, prefix, 0);
+}
+
+function previewPetPhotoSlot(input, prefix, slot) {
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
   reader.onload = e => {
-    const img = document.getElementById(prefix + '-photo-preview-img');
-    const wrap = document.getElementById(prefix + '-photo-preview');
-    const lbl  = document.getElementById(prefix + '-pet-photo-label');
+    const img = document.getElementById(prefix + '-photo-preview-img-' + slot);
+    const preview = document.getElementById(prefix + '-photo-preview-' + slot);
+    const slotEl = document.getElementById(prefix + '-photo-slot-' + slot);
     if (img) img.src = e.target.result;
-    if (wrap) wrap.style.display = 'block';
-    if (lbl)  lbl.textContent = file.name.length > 24 ? file.name.slice(0,22)+'…' : file.name;
+    if (preview) preview.style.display = 'block';
+    if (slotEl) { const lbl = slotEl.querySelector('label'); if (lbl) lbl.style.display = 'none'; }
   };
   reader.readAsDataURL(file);
 }
 
-function clearPetPhoto(prefix) {
-  const input = document.getElementById(prefix + '-pet-photo');
-  const wrap  = document.getElementById(prefix + '-photo-preview');
-  const lbl   = document.getElementById(prefix + '-pet-photo-label');
+function clearPetPhoto(prefix) { clearPetPhotoSlot(prefix, 0); }
+
+function clearPetPhotoSlot(prefix, slot) {
+  const suffixes = ['', '-2', '-3'];
+  const inputId = prefix + '-pet-photo' + suffixes[slot];
+  const input = document.getElementById(inputId);
+  const preview = document.getElementById(prefix + '-photo-preview-' + slot);
+  const slotEl = document.getElementById(prefix + '-photo-slot-' + slot);
   if (input) input.value = '';
-  if (wrap)  wrap.style.display = 'none';
-  if (lbl)   lbl.textContent = 'Tap to upload photo';
+  if (preview) preview.style.display = 'none';
+  if (slotEl) { const lbl = slotEl.querySelector('label'); if (lbl) lbl.style.display = 'flex'; }
 }
 
 async function compressToWebP(file, maxPx = 1200, quality = 0.75) {
@@ -6357,7 +6364,13 @@ async function compressToWebP(file, maxPx = 1200, quality = 0.75) {
 }
 
 async function uploadPetPhoto(prefix) {
-  const input = document.getElementById(prefix + '-pet-photo');
+  return await uploadPetPhotoSlot(prefix, 0);
+}
+
+async function uploadPetPhotoSlot(prefix, slot) {
+  const suffixes = ['', '-2', '-3'];
+  const inputId = prefix + '-pet-photo' + suffixes[slot];
+  const input = document.getElementById(inputId);
   if (!input?.files?.[0]) return null;
   const file = input.files[0];
   try {
@@ -6365,7 +6378,7 @@ async function uploadPetPhoto(prefix) {
     const isWebP = blob.type === 'image/webp';
     const ext  = isWebP ? 'webp' : 'jpg';
     const mime = isWebP ? 'image/webp' : 'image/jpeg';
-    const path = `pets/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const path = `pets/${Date.now()}-${slot}-${Math.random().toString(36).slice(2)}.${ext}`;
     const { data, error } = await _sb.storage.from('pet-photos').upload(path, blob, {
       contentType: mime, upsert: false
     });
@@ -6373,9 +6386,18 @@ async function uploadPetPhoto(prefix) {
     const { data: { publicUrl } } = _sb.storage.from('pet-photos').getPublicUrl(path);
     return publicUrl;
   } catch(e) {
-    console.warn('[uploadPetPhoto] failed:', e.message);
-    return null; // non-fatal — post still submits without photo
+    console.warn('[uploadPetPhoto] slot', slot, 'failed:', e.message);
+    return null;
   }
+}
+
+async function uploadAllPetPhotos(prefix) {
+  const urls = await Promise.all([
+    uploadPetPhotoSlot(prefix, 0),
+    uploadPetPhotoSlot(prefix, 1),
+    uploadPetPhotoSlot(prefix, 2),
+  ]);
+  return { photo_url: urls[0] || null, photo_url_2: urls[1] || null, photo_url_3: urls[2] || null };
 }
 
 async function submitPet(prefix) {
@@ -6405,7 +6427,7 @@ async function submitPet(prefix) {
   if (btn) { btn.disabled = true; btn.textContent = 'Uploading...'; }
 
   try {
-    const photoUrl = await uploadPetPhoto(prefix);
+    const photos = await uploadAllPetPhotos(prefix);
 
     if (btn) btn.textContent = 'Posting...';
     const row = {
@@ -6414,7 +6436,9 @@ async function submitPet(prefix) {
       xhandle: (_currentProfile?.x_handle) || null,
       user_id: _currentUser?.id || null,
       avatar_url: _currentProfile?.avatar_url || '',
-      photo_url: photoUrl || null,
+      photo_url: photos.photo_url,
+      photo_url_2: photos.photo_url_2,
+      photo_url_3: photos.photo_url_3,
       flagged: containsLink(desc)
     };
     const { error } = await _sb.from('stranded_pets').insert(row);
@@ -6424,7 +6448,7 @@ async function submitPet(prefix) {
       const el = document.getElementById(prefix + '-' + f);
       if (el) el.value = '';
     });
-    clearPetPhoto(prefix);
+    [0,1,2].forEach(s => clearPetPhotoSlot(prefix, s));
     loadPets();
   } catch(e) {
     alert('Error: ' + e.message);
@@ -7581,9 +7605,7 @@ function buildPetCard(p, match, step) {
     </div>
     <div style="display:flex;align-items:center;gap:.35rem;font-size:.85rem;color:rgba(255,255,255,.7);margin-bottom:.25rem">${_svgPaw} ${esc(p.location || '')}</div>
     ${p.description ? '<div style="font-size:.82rem;color:rgba(255,255,255,.55);line-height:1.5;margin-bottom:.4rem">'+esc(p.description).slice(0,150)+'</div>' : ''}
-    ${p.photo_url ? '<img src="'+esc(p.photo_url)+'" style="width:100%;max-height:120px;object-fit:cover;border-radius:8px;margin-bottom:.5rem;display:block" loading="lazy" alt="">' : ''}`;
-
-  // Match status
+    ${buildPetThumbs(p)}`;
   if (step >= 2 && match) {
     const reunitedLabel = match.reunited ? '🏠 Reunited!' : '✅ Housed';
     const matchName = match.foster_name || match.pet_name || '';
@@ -7752,13 +7774,15 @@ async function submitPetEdit(prefix) {
   if (btn) { btn.disabled = true; btn.textContent = 'Updating...'; }
 
   try {
-    const photoUrl = await uploadPetPhoto(prefix);
+    const photos = await uploadAllPetPhotos(prefix);
     const updates = {
       pet_status: status, animal_type: animalType, pet_name: petName,
       description: desc, location: loc, lat, lng, name,
       flagged: containsLink(desc)
     };
-    if (photoUrl) updates.photo_url = photoUrl;
+    if (photos.photo_url) updates.photo_url = photos.photo_url;
+    if (photos.photo_url_2) updates.photo_url_2 = photos.photo_url_2;
+    if (photos.photo_url_3) updates.photo_url_3 = photos.photo_url_3;
     const { error } = await _sb.from('stranded_pets').update(updates).eq('id', _editingPetId).eq('user_id', _currentUser.id);
     if (error) throw error;
     alert('Pet post updated!');
@@ -8389,6 +8413,29 @@ function shareIcon(text, deepLink, title) {
 }
 
 // ── Share text generators for each content type ──
+function buildPetThumbs(p) {
+  const photos = [p.photo_url, p.photo_url_2, p.photo_url_3].filter(Boolean);
+  if (!photos.length) return '';
+  const w = photos.length === 1 ? '100%' : photos.length === 2 ? 'calc(50% - .2rem)' : 'calc(33.33% - .27rem)';
+  return '<div style="display:flex;gap:.4rem;margin-bottom:.4rem">' +
+    photos.map(url => `<img src="${esc(url)}" onclick="openLightbox('${esc(url).replace(/'/g,"\\'")}')" style="width:${w};height:70px;object-fit:cover;border-radius:6px;cursor:pointer;display:block" loading="lazy" alt="">`).join('') +
+    '</div>';
+}
+
+function openLightbox(url) {
+  let lb = document.getElementById('pet-lightbox');
+  if (!lb) {
+    lb = document.createElement('div');
+    lb.id = 'pet-lightbox';
+    lb.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:1rem';
+    lb.onclick = () => lb.style.display = 'none';
+    lb.innerHTML = '<img style="max-width:95%;max-height:90vh;object-fit:contain;border-radius:10px" alt="">';
+    document.body.appendChild(lb);
+  }
+  lb.querySelector('img').src = url;
+  lb.style.display = 'flex';
+}
+
 function sharePetText(p) {
   const type = (p.animal_type||'Pet').charAt(0).toUpperCase()+(p.animal_type||'pet').slice(1);
   if (p.pet_status === 'can_foster') return `🐾 Someone in ${p.location||'the Gulf'} can give a ${type.toLowerCase()} a home! Know a pet that needs help?`;
@@ -8437,7 +8484,7 @@ function handleDeepLink() {
               <span style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:${statusColor};letter-spacing:.04em">${statusLabel}</span>
               <span style="font-size:.55rem;color:rgba(255,255,255,.3);margin-left:auto">${age}</span>
             </div>
-            ${p.photo_url ? '<img src="'+esc(p.photo_url)+'" style="width:100%;max-height:140px;object-fit:cover;border-radius:8px;margin-bottom:.4rem;display:block" loading="lazy" alt="">' : ''}
+            ${buildPetThumbs(p)}
             ${p.pet_name ? '<div style="font-size:.95rem;font-weight:800;color:#fff;margin-bottom:.15rem">'+esc(p.pet_name)+'</div>' : ''}
             <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.2rem">📍 ${esc(p.location)}</div>
             <div style="font-size:.78rem;color:rgba(255,255,255,.5);line-height:1.5;margin-bottom:.4rem">${esc(p.description)}</div>
