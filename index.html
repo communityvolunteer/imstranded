@@ -364,9 +364,9 @@ function googleTranslateInit() {
         <div class="fp-label">Situation</div>
         <select id="fp-pet-status" class="fp-select" onchange="applyFilters()">
           <option value="">All</option>
-          <option value="need_foster">Needs foster/boarding</option>
+          <option value="need_foster">Needs a home</option>
           <option value="found_stray">Found stray</option>
-          <option value="can_foster">Can foster</option>
+          <option value="can_foster">Can take a pet</option>
         </select>
         <button onclick="isMob()?mTab('pets',null):openFormSidebar('pets')" style="width:100%;margin-top:.5rem;padding:.5rem;border:1px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.3);border-radius:8px;background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.08);color:var(--accent);font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">Post About a Pet</button>
       </div>
@@ -1057,9 +1057,9 @@ function googleTranslateInit() {
             <div class="fp-label">Situation</div>
             <select id="mfp-pet-status" class="fp-select" onchange="applyFilters()">
               <option value="">All</option>
-              <option value="need_foster">Needs foster</option>
+              <option value="need_foster">Needs a home</option>
               <option value="found_stray">Found stray</option>
-              <option value="can_foster">Can foster</option>
+              <option value="can_foster">Can take a pet</option>
             </select>
             <button onclick="mTab('pets',null)" style="width:100%;margin-top:.5rem;padding:.5rem;border:1px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.3);border-radius:8px;background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.08);color:var(--accent);font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">Post About a Pet</button>
           </div>
@@ -1713,5 +1713,14 @@ function googleTranslateInit() {
 
 </div> 
 
+<!-- ═══ SHARE TRAY ═══ -->
+<div class="share-overlay" id="share-overlay" onclick="if(event.target===this)closeShareTray()">
+  <div class="share-tray">
+    <div class="share-tray-handle"></div>
+    <div class="share-tray-title" id="share-tray-title">Share</div>
+    <div class="share-tray-preview" id="share-tray-preview"></div>
+    <div class="share-grid" id="share-grid"></div>
+  </div>
+</div>
 </body>
 </html>

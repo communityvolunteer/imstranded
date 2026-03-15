@@ -2146,3 +2146,21 @@ font-size: clamp(.45rem, 1.2vw, .58rem);
   accent-color: var(--accent);
   color-scheme: dark;
 }
+/* ── Share Tray ────────────────────────────────────── */
+.share-overlay{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center;}
+.share-overlay.open{display:flex;}
+.share-tray{background:#111;border-radius:20px 20px 0 0;padding:1.2rem 1rem 1.6rem;width:100%;max-width:480px;animation:shareTrayUp .25s ease-out;}
+@keyframes shareTrayUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.share-tray-handle{width:36px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;margin:0 auto .8rem;}
+.share-tray-title{font-size:.9rem;font-weight:800;color:#fff;text-align:center;margin-bottom:.15rem;}
+.share-tray-preview{font-size:.72rem;color:rgba(255,255,255,.45);text-align:center;margin-bottom:1rem;line-height:1.5;max-height:2.8em;overflow:hidden;}
+.share-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.6rem;}
+@media(max-width:400px){.share-grid{grid-template-columns:repeat(4,1fr);}}
+.share-btn{display:flex;flex-direction:column;align-items:center;gap:.3rem;padding:.5rem .2rem;border:none;background:transparent;cursor:pointer;border-radius:10px;transition:background .15s;font-family:Inter,sans-serif;}
+.share-btn:hover{background:rgba(255,255,255,.06);}
+.share-btn-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;}
+.share-btn-label{font-size:.52rem;font-weight:600;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.03em;}
+.share-inline{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);cursor:pointer;transition:all .15s;flex-shrink:0;}
+.share-inline:hover{background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.15);border-color:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.3);}
+.share-inline svg{width:12px;height:12px;stroke:rgba(255,255,255,.45);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
+.share-inline:hover svg{stroke:var(--accent);}
