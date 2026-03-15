@@ -8458,16 +8458,22 @@ function handleDeepLink() {
       const iata = airportIata.toUpperCase();
       const ap = typeof findAirport === 'function' ? findAirport(iata) : null;
       if (!ap) { clearInterval(tryDeepLink); return; }
+      // Wait for disruption data to be available before opening popup
+      const gd = _globalDisruptions.find(g => g.iata === iata);
+      if (!gd && _globalDisruptions.length === 0) return; // data not loaded yet
       clearInterval(tryDeepLink);
       map.flyTo([ap.lat, ap.lng], 8);
-      // If there's disruption data, try to trigger the popup after fly
       setTimeout(() => {
-        const gd = _globalDisruptions.find(g => g.iata === iata);
-        if (gd) {
-          // Find and click the marker if possible — otherwise user sees the zoomed location
-          console.log('[DeepLink] Airport', iata, 'has disruption data:', gd.cancelled, 'cancelled');
+        _activePopupIata = iata;
+        _activePopupMode = 'leave';
+        if (isMob()) {
+          openMPinSheet(buildDualPopup(iata));
+          drawPopupArcs(iata, 'leave');
+        } else {
+          closePostSidebar();
+          openPinSidebar(iata);
         }
-      }, 1500);
+      }, 1200);
     } else if (roomId) {
       const p = posts.find(x => x.id === roomId);
       if (!p) return;
