@@ -60,13 +60,13 @@ export default async function middleware(request) {
     // ── Airport deep link ──
     else if (airportId) {
       const iata = airportId.toUpperCase();
-      // Try to get disruption stats from route_daily
+      // Try to get disruption stats from airport_daily (cumulative since crisis start)
       const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/route_daily?dep_iata=eq.${iata}&select=sum(cancelled)`,
+        `${SUPABASE_URL}/rest/v1/airport_daily?iata=eq.${iata}&select=cancelled&order=date.desc&limit=1`,
         { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` } }
       );
       const data = await res.json();
-      const cancelled = data?.[0]?.['sum(cancelled)'] || 0;
+      const cancelled = data?.[0]?.cancelled || 0;
       const estStranded = Math.round(cancelled * 185 * 0.2);
       title = `✈️ ${iata} — ${estStranded > 0 ? estStranded.toLocaleString() + ' estimated stranded' : 'Gulf Crisis Impact'}`;
       description = `See the live impact data for ${iata} airport. ${cancelled > 0 ? cancelled.toLocaleString() + ' flights cancelled since March 1.' : 'Real-time crisis map at ImStranded.org.'}`;
