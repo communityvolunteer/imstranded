@@ -6506,16 +6506,21 @@ async function loadPetMatches() {
     _petMatches = data || [];
   } catch(e) { /* table may not exist yet */ }
 
-  // Also load pending matches visible to the current user (foster side hasn't confirmed yet)
-  // so fosters see incoming requests in their dashboard
+  // Also load pending matches visible to the current user
   let _pendingMatches = [];
   if (isLoggedIn()) {
     try {
-      const { data: pending } = await withTimeout(_sb.from('pet_matches')
+      // Old flow: I'm a foster and someone requested me (foster_confirmed = false)
+      const { data: p1 } = await withTimeout(_sb.from('pet_matches')
         .select('*').eq('foster_confirmed', false)
         .eq('foster_user_id', _currentUser.id)
         .order('created_at', { ascending: false }).limit(50));
-      _pendingMatches = pending || [];
+      // New flow: someone offered a home to my pet (pet_confirmed = false)
+      const { data: p2 } = await withTimeout(_sb.from('pet_matches')
+        .select('*').eq('pet_confirmed', false)
+        .eq('pet_user_id', _currentUser.id)
+        .order('created_at', { ascending: false }).limit(50));
+      _pendingMatches = [...(p1 || []), ...(p2 || [])];
     } catch(e) { /* silent */ }
   }
   window._pendingPetMatches = _pendingMatches;
@@ -6766,6 +6771,35 @@ async function confirmPetMatch(matchId) {
     alert('🎉 Confirmed! This match will appear as a green pin on the map.');
     loadPetMatches();
     loadPets();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function acceptPetOffer(matchId) {
+  if (!isLoggedIn()) return;
+  if (!confirm('Accept this home offer for your pet?')) return;
+  try {
+    const { error } = await _sb.from('pet_matches').update({
+      pet_confirmed: true,
+      foster_confirmed: true,
+      confirmed_at: new Date().toISOString()
+    }).eq('id', matchId).eq('pet_user_id', _currentUser.id);
+    if (error) throw error;
+    alert('🎉 Offer accepted! Your pet has found a home. This will appear on the map as a success story.');
+    loadPetMatches();
+    loadPets();
+    renderManageDashboard('pets');
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function declinePetOffer(matchId) {
+  if (!isLoggedIn()) return;
+  if (!confirm('Decline this offer?')) return;
+  try {
+    const { error } = await _sb.from('pet_matches').delete().eq('id', matchId).eq('pet_user_id', _currentUser.id);
+    if (error) throw error;
+    alert('Offer declined.');
+    loadPetMatches();
+    renderManageDashboard('pets');
   } catch(e) { alert('Error: ' + e.message); }
 }
 
@@ -8177,6 +8211,27 @@ function buildPetCard(p, match, step) {
   html += `<button onclick="editPetPost('${p.id}')" style="${btnStyle('accent')}">Edit</button>`;
   html += `<button onclick="deletePetPost('${p.id}')" style="${btnStyle('danger')}">Delete</button>`;
   html += '</div>';
+
+  // Incoming offers (someone offered a home to my pet)
+  if ((p.pet_status === 'need_foster' || p.pet_status === 'found_stray') && window._pendingPetMatches?.length) {
+    const offers = window._pendingPetMatches.filter(m => m.pet_post_id === p.id && !m.pet_confirmed);
+    if (offers.length) {
+      html += `<div style="margin-top:.8rem;padding-top:.7rem;border-top:1px solid rgba(255,255,255,.06)">
+        <div style="font-size:1rem;font-weight:800;color:#22c55e;margin-bottom:.15rem">🏠 Incoming Offers (${offers.length})</div>
+        <div style="font-size:.65rem;color:rgba(255,255,255,.4);margin-bottom:.5rem">Someone wants to give your pet a home!</div>`;
+      for (const offer of offers) {
+        html += `<div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.15);border-radius:10px;padding:.65rem;margin-bottom:.5rem">
+          <div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:.2rem">${esc(offer.foster_name || 'Someone')}</div>
+          ${offer.foster_location ? '<div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.3rem">📍 '+esc(offer.foster_location)+'</div>' : ''}
+          <div style="display:flex;gap:.4rem;margin-top:.4rem">
+            <button onclick="acceptPetOffer('${offer.id}')" style="flex:1;padding:.45rem .6rem;border-radius:8px;border:none;background:#22c55e;color:#fff;font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">✅ Accept Offer</button>
+            <button onclick="declinePetOffer('${offer.id}')" style="padding:.45rem .6rem;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:transparent;color:rgba(255,255,255,.4);font-family:Inter,sans-serif;font-size:.72rem;font-weight:600;cursor:pointer">Decline</button>
+          </div>
+        </div>`;
+      }
+      html += '</div>';
+    }
+  }
 
   // Discovery: nearby matches
   const lat = p.lat, lng = p.lng;
