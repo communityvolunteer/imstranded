@@ -1052,7 +1052,7 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
 .hstep-btn--x.done{background:var(--accent);color:#fff;border-color:var(--accent);pointer-events:none;}
 .hstep-btn--blue.done,.hstep-btn--purple.done{background:var(--accent);color:#fff;border-color:var(--accent);}
 .hstep-btn--ghost.done{background:var(--accent);color:#fff;border-color:var(--accent);}
-.hstep-btn--blue{background:rgba(52,152,236,.13);color:#3498ec;border:1px solid rgba(52,152,236,.22);}
+.hstep-btn--blue{background:var(--accent);color:#fff;border:1px solid var(--accent);}
 .hstep-btn--purple{background:rgba(52,152,236,.13);color:#3498ec;border:1px solid rgba(52,152,236,.22);}
 .hstep-btn--red{background:#ec3452;color:#fff;border:1px solid #ec3452;}
 .hstep-btn--ghost{background:rgba(255,255,255,.05);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.1);}
