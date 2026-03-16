@@ -4486,6 +4486,7 @@ let _realtimeChannels = [];
 let _loginTime = Date.now();
 let _lastVisible = Date.now();
 let _lastSessionRefresh = 0;
+let _updateActionBtnTimer = null; // debounce timer
 const SESSION_MAX_MS = 2 * 60 * 60 * 1000; // 2 hours
 
 function setProfileAvatar(imageUrl) {
@@ -7336,7 +7337,13 @@ let _hasActivePets = false;
 let _pendingRequestCount = 0;  // for room owners: how many stranded people requested your room
 let _roomsOfferedCount = 0;    // for stranded: how many rooms have been offered/matched
 
-async function updateActionButtons() {
+function updateActionButtons() {
+  // Debounce — coalesces rapid calls from parallel loaders into one
+  clearTimeout(_updateActionBtnTimer);
+  _updateActionBtnTimer = setTimeout(() => _updateActionButtonsNow(), 300);
+}
+
+async function _updateActionButtonsNow() {
   if (!isLoggedIn() || !SB_ON) {
     _hasActiveOffer = false;
     _hasActiveStranded = false;
@@ -7351,15 +7358,17 @@ async function updateActionButtons() {
   _hasActiveStranded = _strandedPeople.some(p => p.user_id === _currentUser.id);
   _hasActivePets = _petPosts.some(p => p.user_id === _currentUser.id);
   
-  // If data hasn't loaded yet, check DB
-  if (!posts.length && !_strandedPeople.length) {
+  // If data hasn't loaded yet, check DB directly
+  if (!posts.length && !_strandedPeople.length && !_petPosts.length) {
     try {
-      const [offerRes, strandedRes] = await Promise.all([
+      const [offerRes, strandedRes, petsRes] = await Promise.all([
         _sb.from('help_posts').select('id', { count: 'exact', head: true }).eq('user_id', _currentUser.id).eq('type', 'offer').eq('flagged', false),
-        _sb.from('stranded_people').select('id', { count: 'exact', head: true }).eq('user_id', _currentUser.id).eq('status', 'active')
+        _sb.from('stranded_people').select('id', { count: 'exact', head: true }).eq('user_id', _currentUser.id).eq('status', 'active'),
+        _sb.from('stranded_pets').select('id', { count: 'exact', head: true }).eq('user_id', _currentUser.id).eq('flagged', false)
       ]);
       _hasActiveOffer = (offerRes.count || 0) > 0;
       _hasActiveStranded = (strandedRes.count || 0) > 0;
+      _hasActivePets = (petsRes.count || 0) > 0;
     } catch(e) { return; }
   }
 
