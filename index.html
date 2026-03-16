@@ -655,13 +655,14 @@ function googleTranslateInit() {
         </div>
         </div>
         <div id="pet-animal-row" class="form-row"><label class="modal-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="none" class="m-field-icon"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg>Animal type</label>
-          <select id="pet-pet-animal" class="modal-input" style="color-scheme:dark">
+          <select id="pet-pet-animal" class="modal-input" style="color-scheme:dark" onchange="document.getElementById('pet-animal-other-wrap').style.display=this.value==='other'?'block':'none'">
             <option value="">Select...</option>
             <option value="dog">Dog</option>
             <option value="cat">Cat</option>
             <option value="bird">Bird</option>
             <option value="other">Other</option>
           </select>
+          <div id="pet-animal-other-wrap" style="display:none;margin-top:.35rem"><input type="text" id="pet-pet-animal-other" placeholder="e.g. Rabbit, Turtle, Hamster..." class="modal-input" style="font-size:.85rem"></div>
         </div>
         <div id="pet-needs-photo-name">
         <div class="form-row">
@@ -1262,13 +1263,14 @@ function googleTranslateInit() {
         </div>
         </div>
         <div id="m-pet-animal-row" class="m-form-row"><label class="m-form-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="none" class="m-field-icon"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg>Animal type</label>
-          <select id="m-pet-pet-animal" style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem;color-scheme:dark">
+          <select id="m-pet-pet-animal" style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem;color-scheme:dark" onchange="document.getElementById('m-pet-animal-other-wrap').style.display=this.value==='other'?'block':'none'">
             <option value="">Select...</option>
             <option value="dog">Dog 🐕</option>
             <option value="cat">Cat 🐈</option>
             <option value="bird">Bird 🐦</option>
             <option value="other">Other 🐾</option>
           </select>
+          <div id="m-pet-animal-other-wrap" style="display:none;margin-top:.35rem"><input type="text" id="m-pet-pet-animal-other" placeholder="e.g. Rabbit, Turtle, Hamster..." style="width:100%;padding:.5rem;background:#1a1c1e;border:none;border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.85rem"></div>
         </div>
         <div id="m-pet-needs-photo-name">
         <div class="m-form-row">

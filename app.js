@@ -2965,7 +2965,7 @@ function openPetSidebar(p, statusLabel, statusColor, animalIcon, petMatchHtml) {
     <button onclick="closePostSidebar()" style="position:absolute;top:.5rem;right:0;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.5);font-size:.85rem">✕</button>
     <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="none" style="margin-bottom:.6rem"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="${accentHex()}"/><circle cx="6.5" cy="10" r="2" fill="${accentHex()}"/><circle cx="17.5" cy="10" r="2" fill="${accentHex()}"/><circle cx="10" cy="6.5" r="1.8" fill="${accentHex()}"/><circle cx="14" cy="6.5" r="1.8" fill="${accentHex()}"/></svg>
     <div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">STRANDED PETS</div>
-    <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">${esc(p.name)} ${buildBadge(!!p.user_id)} <span style="color:${statusColor};font-weight:700">${statusLabel}</span></div>
+    <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">by ${esc(p.name)} ${buildBadge(!!p.user_id)} <span style="color:${statusColor};font-weight:700">${p.pet_status === 'can_foster' ? statusLabel : ((p.animal_type||'Pet').charAt(0).toUpperCase()+(p.animal_type||'pet').slice(1)) + ' · ' + statusLabel}</span></div>
     ${(p.animal_type||'').includes(',') ? '<div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-top:.25rem">Can take: '+(p.animal_type||'').split(',').map(t=>t.trim().charAt(0).toUpperCase()+t.trim().slice(1)).join(', ')+'</div>' : ''}
   </div>`;
 
@@ -2973,9 +2973,6 @@ function openPetSidebar(p, statusLabel, statusColor, animalIcon, petMatchHtml) {
   html += buildPetThumbs(p);
   if (p.pet_name) {
     html += `<div class="post-sidebar-section"><div class="post-sidebar-label">Name</div><div class="post-sidebar-value" style="font-size:1.1rem;font-weight:800;color:#fff">${esc(p.pet_name)}</div></div>`;
-  }
-  if (!(p.animal_type||'').includes(',')) {
-    html += `<div class="post-sidebar-section"><div class="post-sidebar-label">Animal</div><div class="post-sidebar-value" style="text-transform:capitalize">${esc(p.animal_type || '—')}</div></div>`;
   }
   html += `<div class="post-sidebar-section"><div class="post-sidebar-label">Location</div><div class="post-sidebar-value"><span style="display:inline-flex;align-items:center;gap:.3rem">${_svgLocAccent} ${esc(p.location)}</span></div></div>`;
   if (p.description) {
@@ -6389,6 +6386,11 @@ async function uploadAllPetPhotos(prefix) {
 async function submitPet(prefix) {
   const status = getPetStatus(prefix);
   let animalType = document.getElementById(prefix + '-pet-animal')?.value;
+  // If "other" selected, use custom input value
+  if (animalType === 'other') {
+    const custom = document.getElementById(prefix + '-pet-animal-other')?.value?.trim();
+    if (custom) animalType = custom.toLowerCase();
+  }
   // In "take" mode, read multiselect chips instead of single select
   if (status === 'can_foster') {
     const chips = [...document.querySelectorAll('#' + prefix + '-take-animal-chips input:checked')].map(c => c.value);
@@ -7461,12 +7463,15 @@ function bigShareBtn(text, deepLink, title) {
 
 function postFooter(contactHtml, tipOrHelpHtml, flagHtml, shareBtnHtml) {
   return `<hr class="post-sidebar-divider">
-    <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">
+    <div style="display:flex;align-items:flex-end;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">
       ${contactHtml}
-      <span style="margin-left:auto;display:flex;gap:.3rem">${flagHtml}</span>
+      <div style="margin-left:auto;display:flex;flex-direction:column;align-items:center;gap:.15rem">
+        <span style="font-size:.42rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.25)">Flag Post</span>
+        ${flagHtml}
+      </div>
     </div>
     ${tipOrHelpHtml}
-    <div style="margin-top:.5rem">${shareBtnHtml}</div>`;
+    <div style="margin-top:20px">${shareBtnHtml}</div>`;
 }
 const _svgHome = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
 const _svgPerson = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="'+accentHex()+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
@@ -7762,6 +7767,10 @@ async function submitPetEdit(prefix) {
   if (!_editingPetId || !isLoggedIn()) return;
   const status = getPetStatus(prefix);
   let animalType = document.getElementById(prefix + '-pet-animal')?.value;
+  if (animalType === 'other') {
+    const custom = document.getElementById(prefix + '-pet-animal-other')?.value?.trim();
+    if (custom) animalType = custom.toLowerCase();
+  }
   if (status === 'can_foster') {
     const chips = [...document.querySelectorAll('#' + prefix + '-take-animal-chips input:checked')].map(c => c.value);
     animalType = chips.length ? chips.join(',') : '';
