@@ -7912,6 +7912,7 @@ async function renderManageDashboard(type) {
   // ── PETS ──
   } else if (type === 'pets') {
     container.innerHTML = '<div style="text-align:center;padding:1rem 0;color:rgba(255,255,255,.4)">Loading...</div>';
+    await loadPetMatches();
     let myPets = _petPosts.filter(p => p.user_id === _currentUser.id);
     if (!myPets.length) {
       try {
