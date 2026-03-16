@@ -7659,6 +7659,53 @@ function buildStrandedCard(p, match, step) {
   const t = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
   const needsList = (p.needs || []).join(', ');
   const _verified = _currentProfile?.google_verified || _currentProfile?.x_verified || _currentProfile?.tg_verified;
+
+  // ── MATCHED: show success summary ──
+  if (step >= 2 && match) {
+    const matchDate = match.confirmed_at ? new Date(match.confirmed_at).toLocaleDateString() : '';
+    const gPin = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+
+    let html = `<div style="padding:.5rem 0">
+      <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.6rem">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <div style="font-size:1.1rem;font-weight:900;color:#22c55e">SUCCESS STORY</div>
+      </div>`;
+
+    // Timeline
+    const strandedSince = p.stranded_since ? new Date(p.stranded_since).toLocaleDateString() : t;
+    html += `<div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.8rem;padding:.4rem .5rem;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.12);border-radius:8px;font-size:.65rem">
+      <div style="flex:1;text-align:center"><div style="font-weight:700;color:rgba(255,255,255,.3)">STRANDED</div><div style="font-weight:800;color:#ec3452">${strandedSince}</div></div>
+      <span style="color:rgba(255,255,255,.12)">→</span>
+      <div style="flex:1;text-align:center"><div style="font-weight:700;color:rgba(255,255,255,.3)">MATCHED</div><div style="font-weight:800;color:#22c55e">${matchDate}</div></div>
+      ${match.home_lat ? '<span style="color:rgba(255,255,255,.12)">→</span><div style="flex:1;text-align:center"><div style="font-weight:700;color:rgba(255,255,255,.3)">HOME</div><div style="font-weight:800;color:#22c55e">✓</div></div>' : ''}
+    </div>`;
+
+    // Summary
+    html += `<div style="font-size:.85rem;color:rgba(255,255,255,.6);line-height:1.6;margin-bottom:.6rem">
+      <strong style="color:#fff">${esc(p.name)}</strong> was stranded in <strong style="color:#fff">${esc(p.current_location)}</strong>
+      ${p.destination ? ', trying to reach <strong style="color:#fff">'+esc(p.destination)+'</strong>' : ''}.
+      Matched with <strong style="color:#fff">${esc(match.offer_name)||'a host'}</strong> in <strong style="color:#fff">${esc(match.offer_location)||'nearby'}</strong> on ${matchDate}.
+    </div>`;
+
+    // Made it home section
+    if (match.home_lat) {
+      html += `<div style="background:rgba(34,197,94,.15);border:none;border-radius:10px;padding:.65rem;margin-bottom:.5rem">
+        <div style="display:flex;align-items:center;gap:.3rem;font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.2rem">${gPin} Made It Home</div>
+        <div style="font-size:.9rem;color:#fff;font-weight:600">${esc(match.home_location)||''}</div>
+        ${match.home_story ? '<div style="font-size:.78rem;color:rgba(255,255,255,.5);margin-top:.25rem;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.3);line-height:1.5">"'+esc(match.home_story)+'"</div>' : ''}
+      </div>`;
+    }
+
+    // Actions — only "Made it home?" if not yet home
+    html += '<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.6rem">';
+    if (!match.home_lat) {
+      html += `<button onclick="checkAndOpenGoHome('${p.id}')" style="flex:1;${btnStyle('green')}">Made it home? →</button>`;
+    }
+    html += '</div></div>';
+    return html;
+  }
+
+  // ── UNMATCHED: show full editable card ──
   let html = `<div style="padding:.5rem 0">
     <div style="font-size:1.35rem;font-weight:800;color:#fff;margin-bottom:.5rem;line-height:1.2">${esc(p.name) || 'Anonymous'} ${buildBadge(_verified)} <span style="font-size:.7rem;color:rgba(255,255,255,.4);font-weight:400">${t}</span></div>
     <div style="display:flex;align-items:center;gap:.35rem;font-size:.9rem;color:rgba(255,255,255,.85);margin-bottom:.25rem">${_svgPin} ${esc(p.current_location)}</div>
@@ -7666,33 +7713,13 @@ function buildStrandedCard(p, match, step) {
     ${needsList ? '<div style="font-size:.8rem;color:#f59e0b;margin-top:.3rem;margin-bottom:.4rem">Needs: '+needsList+'</div>' : ''}
     ${p.details ? '<div style="font-size:.85rem;color:rgba(255,255,255,.65);line-height:1.5;margin-bottom:.6rem">'+esc(p.details).slice(0,150)+'</div>' : ''}`;
 
-  if (step >= 2 && match) {
-    html += `<div style="background:#22c55e4a;border:none;border-radius:10px;padding:.75rem;margin:.5rem 0">
-      <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">✓ Matched${match.confirmed_at ? ' · ' + new Date(match.confirmed_at).toLocaleDateString() : ''}</div>
-      <div style="font-size:.95rem;color:#fff;font-weight:700">${esc(match.offer_name) || 'A host'} in ${esc(match.offer_location) || 'nearby'}</div>
-      ${match.offer_story ? '<div style="font-size:.8rem;color:rgba(255,255,255,.65);margin-top:.3rem;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.3)">"'+match.offer_story+'"</div>' : ''}
-    </div>`;
-  }
-
-  if (step >= 3 && match?.home_lat) {
-    html += `<div style="background:#22c55e87;border:none;border-radius:10px;padding:.75rem;margin:.5rem 0">
-      <div style="display:flex;align-items:center;gap:.35rem;font-size:.65rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">${_svgHome} Made it home</div>
-      <div style="font-size:.95rem;color:#fff;font-weight:600">${esc(match.home_location) || ''}</div>
-    </div>`;
-  }
-
   html += '<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.6rem">';
-  if (step === 1) {
-    html += `<button onclick="openMatchPicker('${p.id}','${p.current_lat||0}','${p.current_lng||0}','${(p.name||'').replace(/'/g,"\\'")}','${(p.current_location||'').replace(/'/g,"\\'")}')" style="flex:1;${btnStyle('green')}">Found a place? →</button>`;
-  }
-  if (step === 2 && !match?.home_lat) {
-    html += `<button onclick="checkAndOpenGoHome('${p.id}')" style="flex:1;${btnStyle('green')}">Made it home? →</button>`;
-  }
+  html += `<button onclick="openMatchPicker('${p.id}','${p.current_lat||0}','${p.current_lng||0}','${(p.name||'').replace(/'/g,"\\'")}','${(p.current_location||'').replace(/'/g,"\\'")}')" style="flex:1;${btnStyle('green')}">Found a place? →</button>`;
   html += `<button onclick="editStrandedPost('${p.id}')" style="${btnStyle('accent')}">Edit</button>`;
   html += `<button onclick="deleteStrandedPost('${p.id}')" style="${btnStyle('danger')}">Remove</button>`;
   html += '</div>';
 
-  // Discovery: nearby rooms
+  // Discovery: nearby rooms (only when unmatched)
   const lat = p.current_lat, lng = p.current_lng;
   let nearby = posts.filter(o => o.lat && o.lng && o.user_id);
   if (lat && lng) nearby = nearby.map(o => ({...o, _d: haversineKm(lat, lng, o.lat, o.lng)})).sort((a,b) => a._d - b._d);
