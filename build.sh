@@ -17,6 +17,7 @@ if [ -z "$SUPABASE_ANON" ]; then
 fi
 
 echo "Injecting Supabase config into app.js..."
-sed -i "s|%%SUPABASE_URL%%|${SUPABASE_URL}|g" app.js
-sed -i "s|%%SUPABASE_ANON_KEY%%|${SUPABASE_ANON}|g" app.js
+# Path is relative to Vercel's working directory (Stranded/) not the script location
+sed -i "s|%%SUPABASE_URL%%|${SUPABASE_URL}|g" imstranded/app.js
+sed -i "s|%%SUPABASE_ANON_KEY%%|${SUPABASE_ANON}|g" imstranded/app.js
 echo "Done."
