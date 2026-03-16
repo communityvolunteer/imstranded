@@ -1176,15 +1176,16 @@ function getFilterState() {
   const showHome        = v('show-home')       ?? true;
 
   const showPets        = v('show-pets')       ?? true;
-  const petStatus       = v('pet-status')      || '';
+  const petAnimalTypes  = chk('pet-animal');
   const showFostering   = v('show-fostering')  ?? true;
+  const fosterAnimalTypes = chk('foster-animal');
 
   const destCountry = val(P + '-filter-dest-country') || val(S + '-filter-dest-country') || '';
   const destAirport = val(P + '-filter-dest-airport') || val(S + '-filter-dest-airport') || '';
   const atIata = _filterAtIata || val(P + '-at-iata') || val(S + '-at-iata') || '';
   const toIata = _filterToIata || val(P + '-to-iata') || val(S + '-to-iata') || '';
 
-  return { showOffers, offersVerified, offerTypes, showStranded, strandedVerified, nationality, strandedNeeds, groupSize, showWorldwide, destCountry, destAirport, showArcs, atIata, toIata, showSuccess, showSuccessArcs, showHome, showPets, petStatus, showFostering };
+  return { showOffers, offersVerified, offerTypes, showStranded, strandedVerified, nationality, strandedNeeds, groupSize, showWorldwide, destCountry, destAirport, showArcs, atIata, toIata, showSuccess, showSuccessArcs, showHome, showPets, petAnimalTypes, showFostering, fosterAnimalTypes };
 }
 
 function applyFilters() {
@@ -1346,12 +1347,24 @@ function applyFilters() {
   }
   
   // ── Filter & re-render pets ──
+  function matchesAnimalFilter(animalType, filterTypes) {
+    if (!filterTypes.length) return true; // no filter = show all
+    const types = (animalType || '').split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
+    if (!types.length) return filterTypes.includes('other'); // no type set = treat as other
+    return types.some(t => {
+      if (filterTypes.includes(t)) return true;
+      if (filterTypes.includes('other') && !['dog','cat','bird'].includes(t)) return true;
+      return false;
+    });
+  }
   const filteredPets = _petPosts.filter(p => {
     const isFostering = p.pet_status === 'can_foster';
-    if (isFostering) return f.showFostering;
+    if (isFostering) {
+      if (!f.showFostering) return false;
+      return matchesAnimalFilter(p.animal_type, f.fosterAnimalTypes);
+    }
     if (!f.showPets) return false;
-    if (f.petStatus && p.pet_status !== f.petStatus) return false;
-    return true;
+    return matchesAnimalFilter(p.animal_type, f.petAnimalTypes);
   });
   // Update filter badges
   const needCount = filteredPets.filter(p => p.pet_status !== 'can_foster').length;
@@ -1484,13 +1497,13 @@ function syncFilterPanels() {
     const dst = document.getElementById(isMobile ? d : m);
     if (src && dst) dst.checked = src.checked;
   });
-  [['fp-nationality','mfp-nationality'],['fp-group-size','mfp-group-size'],['fp-at-search','mfp-at-search'],['fp-at-iata','mfp-at-iata'],['fp-to-search','mfp-to-search'],['fp-to-iata','mfp-to-iata'],['fp-pet-status','mfp-pet-status']].forEach(([d,m]) => {
+  [['fp-nationality','mfp-nationality'],['fp-group-size','mfp-group-size'],['fp-at-search','mfp-at-search'],['fp-at-iata','mfp-at-iata'],['fp-to-search','mfp-to-search'],['fp-to-iata','mfp-to-iata']].forEach(([d,m]) => {
     const src = document.getElementById(isMobile ? m : d);
     const dst = document.getElementById(isMobile ? d : m);
     if (src && dst) dst.value = src.value;
   });
   // Sync chip checkboxes
-  [['fp-offer-type','mfp-offer-type'],['fp-stranded-needs','mfp-stranded-needs']].forEach(([d,m]) => {
+  [['fp-offer-type','mfp-offer-type'],['fp-stranded-needs','mfp-stranded-needs'],['fp-pet-animal','mfp-pet-animal'],['fp-foster-animal','mfp-foster-animal']].forEach(([d,m]) => {
     const srcId = isMobile ? m : d, dstId = isMobile ? d : m;
     const srcChecked = [...document.querySelectorAll('#'+srcId+' input:checked')].map(c=>c.value);
     document.querySelectorAll('#'+dstId+' input').forEach(c => c.checked = srcChecked.includes(c.value));
@@ -2665,10 +2678,10 @@ function buildDualPopup(iata) {
   
   var lEstStranded = Math.round(lCancelled * 185 * 0.20);
   var estBlock =
-    '<div id="gest-' + uid + '" style="background:rgba(236,52,82,.1);border:none;border-radius:12px;padding:.8rem 1rem;margin-bottom:.6rem;text-align:center">' +
-      '<div style="font-size:.52rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(236,52,82,.7);margin-bottom:.2rem">Estimated Stranded in ' + city + '</div>' +
-      '<div style="font-size:2rem;font-weight:900;color:#ec3452;line-height:1;letter-spacing:-.04em">' + lEstStranded.toLocaleString() + '</div>' +
-      '<div style="font-size:.56rem;color:rgba(255,255,255,.3);margin-top:.25rem">active stranded estimate · updated live</div>' +
+    '<div id="gest-' + uid + '" style="background:#ec3452;border:none;border-radius:12px;padding:.8rem 1rem;margin-bottom:.6rem;text-align:center">' +
+      '<div style="font-size:.52rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.85);margin-bottom:.2rem">Estimated Stranded in ' + city + '</div>' +
+      '<div style="font-size:2rem;font-weight:900;color:#fff;line-height:1;letter-spacing:-.04em">' + lEstStranded.toLocaleString() + '</div>' +
+      '<div style="font-size:.56rem;color:rgba(255,255,255,.55);margin-top:.25rem">active stranded estimate · updated live</div>' +
     '</div>';
 
   // CTA: Can You Help?
@@ -2677,18 +2690,18 @@ function buildDualPopup(iata) {
       '<div class="popup-section-title" style="font-size:.99rem;font-weight:800;color:#fff;margin-bottom:.5rem;text-align:center">Can You Help?</div>' +
       '<button onclick="isMob()?mTab(\'offer\',null):openFormSidebar(\'offer\')" ' +
         'style="width:100%;padding:.65rem .8rem;border-radius:10px;cursor:pointer;font-family:Inter,sans-serif;font-size:.76rem;font-weight:800;letter-spacing:.02em;' +
-        'background:'+accentRgba(.12)+';color:'+accentHex()+';border:1px solid '+accentRgba(.28)+';' +
-        'display:flex;align-items:center;justify-content:center;gap:.45rem;transition:background .15s" ' +
-        'onmouseover="this.style.background=\''+accentRgba(.22)+'\'" onmouseout="this.style.background=\''+accentRgba(.12)+'\'">' +
+        'background:'+accentHex()+';color:#1a1a2e;border:none;' +
+        'display:flex;align-items:center;justify-content:center;gap:.45rem;transition:opacity .15s" ' +
+        'onmouseover="this.style.opacity=\'.88\'" onmouseout="this.style.opacity=\'1\'">' +
         '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>' +
         'Offer a Spare Room' +
       '</button>' +
       '<div style="font-size:.62rem;color:rgba(255,255,255,.35);text-align:center;margin-top:.45rem;line-height:1.5">Help folks providing rooms by tweeting $HELP to <a href="https://x.com/intent/tweet?text=%40bankrbot%20send%201000000%20%24HELP%20to%20%40imstrandedorg" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:600">@imstrandedorg</a></div>' +
       '<button onclick="if(isMob()){mTab(\'pets\',null);setTimeout(function(){setPetMode(\'m-pet\',\'take\')},100)}else{openFormSidebar(\'pets\');setTimeout(function(){setPetMode(\'pet\',\'take\')},100)}" ' +
         'style="width:100%;margin-top:.5rem;padding:.65rem .8rem;border-radius:10px;cursor:pointer;font-family:Inter,sans-serif;font-size:.76rem;font-weight:800;letter-spacing:.02em;' +
-        'background:'+accentRgba(.12)+';color:'+accentHex()+';border:1px solid '+accentRgba(.28)+';' +
-        'display:flex;align-items:center;justify-content:center;gap:.45rem;transition:background .15s" ' +
-        'onmouseover="this.style.background=\''+accentRgba(.22)+'\'" onmouseout="this.style.background=\''+accentRgba(.12)+'\'">' +
+        'background:#1a1a2e;color:'+accentHex()+';border:1.5px solid '+accentHex()+';' +
+        'display:flex;align-items:center;justify-content:center;gap:.45rem;transition:opacity .15s" ' +
+        'onmouseover="this.style.opacity=\'.88\'" onmouseout="this.style.opacity=\'1\'">' +
         '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="none"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="currentColor"/><circle cx="6.5" cy="10" r="2" fill="currentColor"/><circle cx="17.5" cy="10" r="2" fill="currentColor"/><circle cx="10" cy="6.5" r="1.8" fill="currentColor"/><circle cx="14" cy="6.5" r="1.8" fill="currentColor"/></svg>' +
         'Offer a Home to a Pet' +
       '</button>' +
@@ -2700,9 +2713,9 @@ function buildDualPopup(iata) {
       '<div class="popup-section-title" style="font-size:.99rem;font-weight:800;color:#fff;margin-bottom:.5rem;text-align:center">Are You Stranded Here?</div>' +
       '<button onclick="isMob()?mTab(\'stranded\',null):openFormSidebar(\'stranded\')" ' +
         'style="width:100%;padding:.65rem .8rem;border-radius:10px;cursor:pointer;font-family:Inter,sans-serif;font-size:.76rem;font-weight:800;letter-spacing:.02em;' +
-        'background:'+accentRgba(.12)+';color:'+accentHex()+';border:1px solid '+accentRgba(.28)+';' +
-        'display:flex;align-items:center;justify-content:center;gap:.45rem;transition:background .15s" ' +
-        'onmouseover="this.style.background=\''+accentRgba(.22)+'\'" onmouseout="this.style.background=\''+accentRgba(.12)+'\'">' +
+        'background:#1a1a2e;color:'+accentHex()+';border:1.5px solid '+accentHex()+';' +
+        'display:flex;align-items:center;justify-content:center;gap:.45rem;transition:opacity .15s" ' +
+        'onmouseover="this.style.opacity=\'.88\'" onmouseout="this.style.opacity=\'1\'">' +
         '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>' +
         'Add Yourself to the Map' +
       '</button>' +

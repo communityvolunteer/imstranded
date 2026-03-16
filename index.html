@@ -390,6 +390,13 @@ function googleTranslateInit() {
       </div>
       <div class="fp-section-body" style="display:none">
         <label class="fp-toggle"><input type="checkbox" id="fp-show-fostering" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show on map</label>
+        <div class="fp-label">Animal type</div>
+        <div class="fp-chips" id="fp-foster-animal">
+          <label class="fp-chip"><input type="checkbox" value="dog" onchange="applyFilters()"> 🐕 Dogs</label>
+          <label class="fp-chip"><input type="checkbox" value="cat" onchange="applyFilters()"> 🐈 Cats</label>
+          <label class="fp-chip"><input type="checkbox" value="bird" onchange="applyFilters()"> 🐦 Birds</label>
+          <label class="fp-chip"><input type="checkbox" value="other" onchange="applyFilters()"> 🐾 Other Animals</label>
+        </div>
       </div>
     </div>
 
@@ -403,13 +410,13 @@ function googleTranslateInit() {
       </div>
       <div class="fp-section-body">
         <label class="fp-toggle"><input type="checkbox" id="fp-show-pets" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show on map</label>
-        <div class="fp-label">Situation</div>
-        <select id="fp-pet-status" class="fp-select" onchange="applyFilters()">
-          <option value="">All</option>
-          <option value="need_foster">Needs a home</option>
-          <option value="found_stray">Found stray</option>
-          <option value="can_foster">Can take a pet</option>
-        </select>
+        <div class="fp-label">Animal type</div>
+        <div class="fp-chips" id="fp-pet-animal">
+          <label class="fp-chip fp-chip--red"><input type="checkbox" value="dog" onchange="applyFilters()"> 🐕 Dogs in Need</label>
+          <label class="fp-chip fp-chip--red"><input type="checkbox" value="cat" onchange="applyFilters()"> 🐈 Cats in Need</label>
+          <label class="fp-chip fp-chip--red"><input type="checkbox" value="bird" onchange="applyFilters()"> 🐦 Birds in Need</label>
+          <label class="fp-chip fp-chip--red"><input type="checkbox" value="other" onchange="applyFilters()"> 🐾 Other Animals</label>
+        </div>
       </div>
     </div>
 
@@ -1105,6 +1112,13 @@ function googleTranslateInit() {
           </div>
           <div class="fp-section-body" style="display:none">
             <label class="fp-toggle"><input type="checkbox" id="mfp-show-fostering" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show on map</label>
+            <div class="fp-label">Animal type</div>
+            <div class="fp-chips" id="mfp-foster-animal">
+              <label class="fp-chip"><input type="checkbox" value="dog" onchange="applyFilters()"> 🐕 Dogs</label>
+              <label class="fp-chip"><input type="checkbox" value="cat" onchange="applyFilters()"> 🐈 Cats</label>
+              <label class="fp-chip"><input type="checkbox" value="bird" onchange="applyFilters()"> 🐦 Birds</label>
+              <label class="fp-chip"><input type="checkbox" value="other" onchange="applyFilters()"> 🐾 Other Animals</label>
+            </div>
           </div>
         </div>
         <!-- STRANDED PETS -->
@@ -1116,13 +1130,13 @@ function googleTranslateInit() {
           </div>
           <div class="fp-section-body">
             <label class="fp-toggle"><input type="checkbox" id="mfp-show-pets" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show on map</label>
-            <div class="fp-label">Situation</div>
-            <select id="mfp-pet-status" class="fp-select" onchange="applyFilters()">
-              <option value="">All</option>
-              <option value="need_foster">Needs a home</option>
-              <option value="found_stray">Found stray</option>
-              <option value="can_foster">Can take a pet</option>
-            </select>
+            <div class="fp-label">Animal type</div>
+            <div class="fp-chips" id="mfp-pet-animal">
+              <label class="fp-chip fp-chip--red"><input type="checkbox" value="dog" onchange="applyFilters()"> 🐕 Dogs in Need</label>
+              <label class="fp-chip fp-chip--red"><input type="checkbox" value="cat" onchange="applyFilters()"> 🐈 Cats in Need</label>
+              <label class="fp-chip fp-chip--red"><input type="checkbox" value="bird" onchange="applyFilters()"> 🐦 Birds in Need</label>
+              <label class="fp-chip fp-chip--red"><input type="checkbox" value="other" onchange="applyFilters()"> 🐾 Other Animals</label>
+            </div>
           </div>
         </div>
         <!-- SUCCESS STORIES -->
