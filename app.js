@@ -6644,9 +6644,12 @@ function quickOfferHome(petPostId) {
 
       <div style="margin-bottom:.8rem">
         <label style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);margin-bottom:.3rem;display:block">Your Location</label>
-        <div class="loc-ac-wrap">
-          <input type="text" id="qoh-location" placeholder="Type city or address..." style="width:100%;padding:.5rem .7rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.82rem;box-sizing:border-box;cursor:text" onfocus="this.select()" />
-          <div class="loc-ac-list" id="qoh-location-ac"></div>
+        <div style="display:flex;gap:.4rem;align-items:center">
+          <div class="loc-ac-wrap" style="flex:1">
+            <input type="text" id="qoh-location" placeholder="Type city or address..." style="width:100%;padding:.5rem .7rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.82rem;box-sizing:border-box;cursor:text" onfocus="this.select()" />
+            <div class="loc-ac-list" id="qoh-location-ac"></div>
+          </div>
+          <button type="button" onclick="useMyLocation('qoh')" class="gps-btn" title="Use my location"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2"/></svg></button>
         </div>
         <input type="hidden" id="qoh-lat"><input type="hidden" id="qoh-lng">
       </div>
