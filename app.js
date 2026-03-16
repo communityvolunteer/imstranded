@@ -32,7 +32,7 @@ function btnStyle(type, size) {
   const pad = size === 'sm' ? '.25rem .5rem' : '.5rem .8rem';
   const fs = size === 'sm' ? '.62rem' : '.72rem';
   const base = 'border:none;border-radius:8px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;padding:'+pad+';font-size:'+fs+';';
-  if (type === 'accent') return base + 'background:'+accentHex()+';color:#fff;';
+  if (type === 'accent') return base + 'background:var(--accent);color:#fff;';
   if (type === 'green') return base + 'background:#22c55e;color:#000;';
   if (type === 'danger') return base + 'background:#ec3452;color:#fff;';
   return base + 'background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);';
@@ -1627,8 +1627,8 @@ function updateStrandedLabel(atIata, toIata, filteredGlobal, reverseData) {
       const todayEl = document.getElementById('stat-stranded-today');
       const todayVal = todayEl ? todayEl.textContent : '';
       pcSub.innerHTML = todayVal
-        ? `<span id="stat-stranded-today" style="color:${accentHex()};font-weight:700">${todayVal}</span><span id="stat-stranded-today-label"> today</span>`
-        : `<span id="stat-stranded-today" style="color:${accentHex()};font-weight:700"></span><span id="stat-stranded-today-label">tap · see how</span>`;
+        ? `<span id="stat-stranded-today" style="color:var(--accent);font-weight:700">${todayVal}</span><span id="stat-stranded-today-label"> today</span>`
+        : `<span id="stat-stranded-today" style="color:var(--accent);font-weight:700"></span><span id="stat-stranded-today-label">tap · see how</span>`;
     }
     if (mLabel) mLabel.innerHTML = 'PEOPLE IMPACTED <span style="font-size:.52rem;color:var(--accent);font-weight:700;letter-spacing:.01em">· SINCE MAR 1</span>';
     refreshStrandedCount();
@@ -2249,6 +2249,10 @@ function toggleMapTheme() {
 
 function setAccent(name) {
   const t = ACCENT_THEMES[name]; if (!t) return;
+  // Capture old accent BEFORE updating — needed by the sweep below
+  const oldTheme = ACCENT_THEMES[_currentAccent] || ACCENT_THEMES.blue;
+  const oldHex = oldTheme.hex;
+  const oldR = oldTheme.r, oldG = oldTheme.g, oldB = oldTheme.b;
   _currentAccent = name;
   const root = document.documentElement;
   root.style.setProperty('--accent', t.hex);
@@ -2301,35 +2305,40 @@ function setAccent(name) {
   if (typeof renderTimelineChart === 'function') renderTimelineChart();
   renderImpactSheetChart();
 
-  // Sweep inline-style elements that hardcode #3498ec / rgba(52,152,236,...)
-  // Excludes offer/spare room UI which intentionally stays blue as its own brand color.
+  // Sweep inline-style elements that use the OLD accent color.
+  // Replaces old hex / rgba with the new accent so elements stay in sync.
   const hex = t.hex;
   const rgbStr = `${t.r},${t.g},${t.b}`;
-  const offerSelectors = '.accent-opt, .accent-opt-dot, .accent-dropdown, .accent-picker-wrap';
-  const offerEls = new Set(document.querySelectorAll(offerSelectors));
-  const isInOffer = el => {
+  const oldRgbStr = `${oldR},${oldG},${oldB}`;
+  const pickerEls = new Set(document.querySelectorAll('.accent-opt, .accent-opt-dot, .accent-dropdown, .accent-picker-wrap'));
+  const isInPicker = el => {
     let n = el;
-    while (n) { if (offerEls.has(n)) return true; n = n.parentElement; }
+    while (n) { if (pickerEls.has(n)) return true; n = n.parentElement; }
     return false;
   };
+  // Build regex for old hex (case-insensitive)
+  const oldHexRe = new RegExp(oldHex.replace('#', '#'), 'gi');
+  const oldRgbaRe = new RegExp(`rgba\\(${oldR},\\s*${oldG},\\s*${oldB},\\s*([\\d.]+)\\)`, 'g');
   document.querySelectorAll('[style]').forEach(el => {
-    if (isInOffer(el)) return;
+    if (isInPicker(el)) return;
     const st = el.getAttribute('style');
-    if (!st.includes(accentHex()) && !st.includes('52,152,236')) return;
+    if (!st.includes(oldHex) && !st.includes(`${oldR},${oldG},${oldB}`)) return;
     el.setAttribute('style',
-      st.replace(/#3498ec/gi, hex)
-        .replace(/rgba\(52,\s*152,\s*236,\s*([\d.]+)\)/g, `rgba(${rgbStr},$1)`)
-        .replace(/#ff9f1c/gi, hex)
-        .replace(/rgba\(255,\s*159,\s*28,\s*([\d.]+)\)/g, `rgba(${rgbStr},$1)`)
+      st.replace(oldHexRe, hex)
+        .replace(oldRgbaRe, `rgba(${rgbStr},$1)`)
     );
   });
-  // SVG fill/stroke attributes
-  document.querySelectorAll('[fill="#3498ec"],[stroke="#3498ec"],[fill="#ff9f1c"],[stroke="#ff9f1c"]').forEach(el => {
-    if (isInOffer(el)) return;
+  // SVG fill/stroke attributes — replace old accent hex with new
+  document.querySelectorAll(`[fill="${oldHex}"],[stroke="${oldHex}"]`).forEach(el => {
+    if (isInPicker(el)) return;
     if (el.closest('[class*="verified"],[id*="verified"],[class*="p-verify"]')) return;
-    if (el.getAttribute('fill') === '#3498ec' || el.getAttribute('fill') === '#ff9f1c') el.setAttribute('fill', hex);
-    if (el.getAttribute('stroke') === '#3498ec' || el.getAttribute('stroke') === '#ff9f1c') el.setAttribute('stroke', hex);
+    if (el.getAttribute('fill') === oldHex) el.setAttribute('fill', hex);
+    if (el.getAttribute('stroke') === oldHex) el.setAttribute('stroke', hex);
   });
+
+  // Re-render accent-colored elements that were built with accentHex() inline
+  // This catches the sitrep home icon and similar dynamically-created SVGs
+  updateActionButtons();
 }
 
 function toggleImpactSheet() {
@@ -2859,7 +2868,7 @@ function openPostSidebar(post, postType) {
     // Hero
     html += `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1rem 0 1.2rem;position:relative">
       <button onclick="closePostSidebar()" style="position:absolute;top:.5rem;right:0;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.5);font-size:.85rem">✕</button>
-      <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="${accentHex()}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.6rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.6rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       <div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">SPARE ROOM</div>
       <div style="font-size:.72rem;color:rgba(255,255,255,.25);margin-top:.3rem">posted ${timeAgo(post.created_at)}</div>
       <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.3rem">by ${esc(post.name||'Anonymous')} ${buildBadge(!!post.user_id)} ${post.xhandle ? buildTipButton(post.xhandle, !!post.user_id) : ''}</div>
@@ -2982,7 +2991,7 @@ function openPetSidebar(p, statusLabel, statusColor, animalIcon, petMatchHtml) {
   // Hero icon + title
   html += `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1rem 0 1.2rem;position:relative">
     <button onclick="closePostSidebar()" style="position:absolute;top:.5rem;right:0;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.5);font-size:.85rem">✕</button>
-    <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="none" style="margin-bottom:.6rem"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="${accentHex()}"/><circle cx="6.5" cy="10" r="2" fill="${accentHex()}"/><circle cx="17.5" cy="10" r="2" fill="${accentHex()}"/><circle cx="10" cy="6.5" r="1.8" fill="${accentHex()}"/><circle cx="14" cy="6.5" r="1.8" fill="${accentHex()}"/></svg>
+    <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="none" style="margin-bottom:.6rem"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg>
     <div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">STRANDED PETS</div>
     <div style="font-size:.72rem;color:rgba(255,255,255,.25);margin-top:.3rem">posted ${timeAgo(p.created_at)}</div>
     <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.3rem">by ${esc(p.name)} ${buildBadge(!!p.user_id)} <span style="color:${statusColor};font-weight:700">${p.pet_status === 'can_foster' ? statusLabel : ((p.animal_type||'Pet').charAt(0).toUpperCase()+(p.animal_type||'pet').slice(1)) + ' · ' + statusLabel}</span></div>
@@ -7389,7 +7398,7 @@ async function updateActionButtons() {
           ? `<span style="display:inline-block;background:#ec3452;color:#fff;font-size:.55rem;font-weight:800;border-radius:10px;padding:.1rem .4rem;margin-left:.3rem;vertical-align:middle">${_pendingRequestCount}</span>`
           : `<span style="display:inline-block;background:rgba(255,255,255,.12);color:rgba(255,255,255,.4);font-size:.55rem;font-weight:800;border-radius:10px;padding:.1rem .4rem;margin-left:.3rem;vertical-align:middle">0</span>`;
         pcOffer.querySelector('.sitrep-sub').innerHTML = 'Requests' + badge;
-        try { pcOffer.querySelector('svg').outerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="'+accentHex()+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>'; } catch(e) {}
+        try { pcOffer.querySelector('svg').outerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>'; } catch(e) {}
         pcOffer.onclick = () => openManageSidebar('offer');
       }
     } else {
@@ -7560,12 +7569,12 @@ function openManageSidebar(type) {
   if (sb.classList.contains('open')) closeFormSidebar();
   setTimeout(() => {
     body.innerHTML = '<div id="pc-manage-content"></div>';
-    const heroColor = type === 'pets' ? accentHex() : type === 'offer' ? accentHex() : '#ec3452';
+    const heroColor = type === 'pets' ? 'var(--accent)' : type === 'offer' ? 'var(--accent)' : '#ec3452';
     const heroIcon = type === 'stranded'
       ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:.3rem"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
       : type === 'pets'
-      ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="none" style="vertical-align:middle;margin-right:.3rem"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="'+accentHex()+'"/><circle cx="6.5" cy="10" r="2" fill="'+accentHex()+'"/><circle cx="17.5" cy="10" r="2" fill="'+accentHex()+'"/><circle cx="10" cy="6.5" r="1.8" fill="'+accentHex()+'"/><circle cx="14" cy="6.5" r="1.8" fill="'+accentHex()+'"/></svg>'
-      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="'+accentHex()+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:.3rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
+      ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="none" style="vertical-align:middle;margin-right:.3rem"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg>'
+      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:.3rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
     if (title) {
       title.innerHTML = heroIcon + (type === 'offer' ? 'MY ROOM' : type === 'pets' ? 'PETS DASHBOARD' : 'MY STATUS');
       title.style.color = heroColor;
