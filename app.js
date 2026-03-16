@@ -6803,18 +6803,67 @@ async function declinePetOffer(matchId) {
   } catch(e) { alert('Error: ' + e.message); }
 }
 
-async function markPetReunited(matchId) {
+function markPetReunited(matchId) {
   if (!isLoggedIn()) return;
-  const story = prompt('How did the reunion go? (optional, 200 chars max)');
+  const match = _petMatches.find(m => m.id === matchId);
+  const animalType = match ? (match.animal_type || 'pet').charAt(0).toUpperCase() + (match.animal_type || 'pet').slice(1) : 'Pet';
+  const petName = match?.pet_name || animalType;
+
+  const formHtml = `
+    <div style="font-family:Inter,sans-serif;padding:.5rem 0">
+      <div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:.8rem 0 1.2rem">
+        <div style="font-size:2.5rem;margin-bottom:.4rem">🏠</div>
+        <div style="font-size:1.4rem;font-weight:900;color:#22c55e;letter-spacing:-.02em;line-height:1">PET REUNITED</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.35);margin-top:.35rem">Mark <strong style="color:#fff">${esc(petName)}</strong> as reunited</div>
+      </div>
+
+      ${match ? '<div style="background:rgba(34,197,94,.08);border:none;border-radius:12px;padding:.8rem;margin-bottom:1rem"><div style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:#22c55e;margin-bottom:.25rem">Housed by</div><div style="font-size:.88rem;font-weight:800;color:#fff">'+ esc(match.foster_name || 'A kind person') +'</div>'+(match.foster_location ? '<div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-top:.15rem;display:flex;align-items:center;gap:.3rem">'+_svgLocAccent+' '+esc(match.foster_location)+'</div>' : '')+'</div>' : ''}
+
+      <div style="margin-bottom:1rem">
+        <label style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);margin-bottom:.3rem;display:block">How did the reunion go? (optional)</label>
+        <textarea id="reunion-story" rows="4" maxlength="200" placeholder="Share the story — it'll appear on the map as a success story..." style="width:100%;padding:.5rem .7rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.78rem;resize:vertical;box-sizing:border-box"></textarea>
+        <div style="font-size:.55rem;color:rgba(255,255,255,.25);margin-top:.2rem;text-align:right">200 chars max</div>
+      </div>
+
+      <button id="reunion-submit-btn" onclick="submitReunited('${matchId}')" style="width:100%;padding:.7rem;border-radius:10px;border:none;background:#22c55e;color:#fff;font-family:Inter,sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:opacity .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+        🏠 Mark as Reunited
+      </button>
+    </div>`;
+
+  if (isMob()) {
+    openMPinSheet(formHtml);
+  } else {
+    const body = document.getElementById('post-sidebar-body');
+    const header = document.getElementById('post-sidebar-header');
+    if (header) header.style.display = 'none';
+    if (body) body.innerHTML = formHtml;
+    const sb = document.getElementById('post-sidebar');
+    if (sb) sb.classList.add('open');
+    document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '360px');
+  }
+}
+
+async function submitReunited(matchId) {
+  const btn = document.getElementById('reunion-submit-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+  const story = document.getElementById('reunion-story')?.value?.trim() || '';
   try {
     const { error } = await _sb.from('pet_matches').update({
       reunited: true,
       reunited_story: story ? story.slice(0, 200) : null
     }).eq('id', matchId);
     if (error) throw error;
-    alert('🏠 Marked as reunited! Thank you for the update.');
-    loadPetMatches();
-  } catch(e) { alert('Error: ' + e.message); }
+    if (btn) { btn.textContent = '🏠 Reunited!'; btn.style.background = '#16a34a'; }
+    setTimeout(() => {
+      loadPetMatches();
+      closePostSidebar();
+      if (isMob()) mSheetToggle();
+      renderManageDashboard('pets');
+    }, 1200);
+  } catch(e) {
+    alert('Error: ' + e.message);
+    if (btn) { btn.disabled = false; btn.textContent = '🏠 Mark as Reunited'; }
+  }
 }
 
 
@@ -7087,7 +7136,7 @@ function buildPetSuccessSidebarHtml(m) {
     <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.6rem"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
     <div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">${heroTitle}</div>
     <div style="font-size:.72rem;color:rgba(255,255,255,.25);margin-top:.3rem">${matchAgo}</div>
-    <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.3rem"><strong style="color:#fff">${esc(m.foster_name||'A kind person')}</strong> gave <strong style="color:#fff">${esc(petName)}</strong> a home</div>
+    <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.3rem"><strong style="color:#fff">${esc(m.foster_name||'A kind person')}</strong> ${buildBadge(_fullyVerifiedUsers.has(m.foster_user_id))} gave <strong style="color:#fff">${esc(petName)}</strong> a home</div>
   </div>`;
 
   // Timeline
@@ -7125,7 +7174,7 @@ function buildPetSuccessSidebarHtml(m) {
   // Who housed them
   html += `<hr class="post-sidebar-divider">`;
   html += `<div class="post-sidebar-section"><div class="post-sidebar-label" style="color:#fff">Housed By</div>
-    <div class="post-sidebar-value"><strong style="color:#fff">${esc(m.foster_name||'A kind person')}</strong></div>
+    <div class="post-sidebar-value"><strong style="color:#fff">${esc(m.foster_name||'A kind person')}</strong> ${buildBadge(_fullyVerifiedUsers.has(m.foster_user_id))}</div>
   </div>`;
   if (m.foster_location) {
     html += `<div class="post-sidebar-section"><div class="post-sidebar-label" style="color:#fff">Location</div>
@@ -8217,7 +8266,7 @@ function buildPetCard(p, match, step) {
   if ((p.pet_status === 'need_foster' || p.pet_status === 'found_stray') && window._pendingPetMatches?.length) {
     const offers = window._pendingPetMatches.filter(m => m.pet_post_id === p.id && !m.pet_confirmed);
     if (offers.length) {
-      html += `<div style="margin-top:.8rem;padding-top:.7rem;border-top:1px solid rgba(34,197,94,.15)">
+      html += `<div style="margin-top:.8rem;padding-top:.7rem;border-top:1px solid rgba(255,255,255,.06)">
         <div style="font-size:1rem;font-weight:800;color:#22c55e;margin-bottom:.15rem">🏠 Direct Offers On Your Post (${offers.length})</div>
         <div style="font-size:.65rem;color:rgba(255,255,255,.4);margin-bottom:.5rem">These people want to give your pet a home</div>`;
       for (const offer of offers) {
@@ -8225,13 +8274,13 @@ function buildPetCard(p, match, step) {
         const fosterPost = _petPosts.find(fp => fp.id === offer.foster_post_id);
         const message = fosterPost?.description || '';
         const showMessage = message && !message.startsWith('Offering a home to '); // skip auto-generated
-        html += `<div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.15);border-radius:10px;padding:.65rem;margin-bottom:.5rem">
-          <div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:.2rem">${esc(offer.foster_name || 'Someone')}</div>
-          ${offer.foster_location ? '<div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.3rem">📍 '+esc(offer.foster_location)+'</div>' : ''}
+        html += `<div style="background:rgba(34,197,94,.08);border:none;border-radius:10px;padding:.65rem;margin-bottom:.5rem">
+          <div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:.2rem">${esc(offer.foster_name || 'Someone')} ${buildBadge(_fullyVerifiedUsers.has(offer.foster_user_id))}</div>
+          ${offer.foster_location ? '<div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.3rem;display:flex;align-items:center;gap:.3rem">'+_svgLocAccent+' '+esc(offer.foster_location)+'</div>' : ''}
           ${showMessage ? '<div style="font-size:.75rem;color:rgba(255,255,255,.55);line-height:1.5;margin-bottom:.4rem;padding:.4rem .5rem;background:rgba(255,255,255,.04);border-radius:6px">"'+esc(message)+'"</div>' : ''}
           ${fosterPost ? buildContactButtons(fosterPost.contact, fosterPost.xhandle, fosterPost.name) : ''}
           <div style="display:flex;gap:.4rem;margin-top:.4rem">
-            <button onclick="acceptPetOffer('${offer.id}')" style="flex:1;padding:.45rem .6rem;border-radius:8px;border:none;background:#22c55e;color:#fff;font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">✅ Accept Offer</button>
+            <button onclick="acceptPetOffer('${offer.id}')" style="flex:1;padding:.45rem .6rem;border-radius:8px;border:none;background:#22c55e;color:#fff;font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">✓ Accept Offer</button>
             <button onclick="declinePetOffer('${offer.id}')" style="padding:.45rem .6rem;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:transparent;color:rgba(255,255,255,.4);font-family:Inter,sans-serif;font-size:.72rem;font-weight:600;cursor:pointer">Decline</button>
           </div>
         </div>`;
