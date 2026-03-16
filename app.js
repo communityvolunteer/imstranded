@@ -1175,6 +1175,7 @@ function applyFilters() {
   // ── Filter & re-render help posts (offers) ──
   const filteredPosts = posts.filter(p => {
     if (p.type !== 'offer') return false;
+    if (_successByOffer[p.id]) return false; // matched — in success layer
     if (!f.showOffers) return false;
     if (f.offersVerified && !p.user_id) return false;
     if (f.offerTypes.length && !f.offerTypes.includes(p.post_type)) return false;
@@ -1185,6 +1186,7 @@ function applyFilters() {
 
   // ── Filter & re-render stranded people ──
   const filteredStranded = _strandedPeople.filter(p => {
+    if (_successByStranded[p.id]) return false; // matched — in success layer
     if (!f.showStranded) return false;
     if (f.strandedVerified && !p.user_id) return false;
     if (f.nationality && p.nationality !== f.nationality) return false;
@@ -1212,23 +1214,18 @@ function applyFilters() {
     drawArcLines(window._mobileMap, filteredStranded);
   }
 
-  // ── Success stories — pins, arcs, home pins ──
+  // ── Success stories — re-render with showHome, then toggle visibility ──
+  renderSuccessOnMap(window._crisisMap, f.showHome);
+  renderSuccessOnMap(window._mobileMap, f.showHome);
   [
     { layer: '_successLayer',  map: window._crisisMap,  show: f.showSuccess && !pcMerge },
     { layer: '_mSuccessLayer', map: window._mobileMap,  show: f.showSuccess && !mobMerge },
-    { layer: '_arcLayer',      map: window._crisisMap,  show: f.showSuccessArcs && !pcMerge },
-    { layer: '_mArcLayer',     map: window._mobileMap,  show: f.showSuccessArcs && !mobMerge },
+    { layer: '_arcLayer',      map: window._crisisMap,  show: f.showSuccessArcs && f.showSuccess && f.showHome && !pcMerge },
+    { layer: '_mArcLayer',     map: window._mobileMap,  show: f.showSuccessArcs && f.showSuccess && f.showHome && !mobMerge },
   ].forEach(({ layer, map, show }) => {
     if (!map || !window[layer]) return;
     show ? window[layer].addTo(map) : map.removeLayer(window[layer]);
   });
-  // "Made it home" pins — re-render when showHome changes, suppress when merged
-  if (!f.showHome || !f.showSuccess || pcMerge) {
-    renderSuccessOnMap(window._crisisMap, f.showHome && f.showSuccess && !pcMerge);
-  }
-  if (!f.showHome || !f.showSuccess || mobMerge) {
-    renderSuccessOnMap(window._mobileMap, f.showHome && f.showSuccess && !mobMerge);
-  }
 
   // ── Worldwide markers ──
   if (_mk.worldwide) {
@@ -1504,13 +1501,13 @@ function updateFilterBadges() {
   setBadge('fp-badge-impacted', impactedLabel);
   setBadge('mfp-badge-impacted', impactedLabel);
 
-  // Spare rooms
-  const roomCount = (typeof posts !== 'undefined') ? posts.filter(p => p.type === 'offer').length : 0;
+  // Spare rooms (exclude matched — they're in success stories now)
+  const roomCount = (typeof posts !== 'undefined') ? posts.filter(p => p.type === 'offer' && !_successByOffer[p.id]).length : 0;
   setBadge('fp-badge-rooms', roomCount || '');
   setBadge('mfp-badge-rooms', roomCount || '');
 
-  // People stranded (registered)
-  const strandedCount = _strandedPeople ? _strandedPeople.length : 0;
+  // People stranded (exclude matched — they're in success stories now)
+  const strandedCount = _strandedPeople ? _strandedPeople.filter(p => !_successByStranded[p.id]).length : 0;
   setBadge('fp-badge-stranded', strandedCount || '');
   setBadge('mfp-badge-stranded', strandedCount || '');
 
