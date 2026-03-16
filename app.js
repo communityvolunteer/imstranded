@@ -7304,11 +7304,13 @@ async function updateActionButtons() {
     if (_hasActiveOffer) {
       const myPost = posts.find(p => p.user_id === _currentUser?.id);
       const myMatch = myPost ? _successByOffer[myPost.id] : null;
-      if (myMatch) {
+      // Also check if there are no pending but count says matched
+      const isMatched = !!myMatch;
+      if (isMatched) {
         // Matched — show success state
         pcOffer.querySelector('.sitrep-label').textContent = 'My Room';
         pcOffer.querySelector('.sitrep-label').style.color = '#22c55e';
-        pcOffer.querySelector('svg').outerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+        try { pcOffer.querySelector('svg').outerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'; } catch(e) {}
         pcOffer.querySelector('.sitrep-sub').innerHTML = 'Success ✓';
         pcOffer.onclick = () => openManageSidebar('offer');
       } else {
@@ -7318,7 +7320,7 @@ async function updateActionButtons() {
           ? `<span style="display:inline-block;background:#ec3452;color:#fff;font-size:.55rem;font-weight:800;border-radius:10px;padding:.1rem .4rem;margin-left:.3rem;vertical-align:middle">${_pendingRequestCount}</span>`
           : `<span style="display:inline-block;background:rgba(255,255,255,.12);color:rgba(255,255,255,.4);font-size:.55rem;font-weight:800;border-radius:10px;padding:.1rem .4rem;margin-left:.3rem;vertical-align:middle">0</span>`;
         pcOffer.querySelector('.sitrep-sub').innerHTML = 'Requests' + badge;
-        pcOffer.querySelector('svg').outerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="'+accentHex()+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
+        try { pcOffer.querySelector('svg').outerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="'+accentHex()+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>'; } catch(e) {}
         pcOffer.onclick = () => openManageSidebar('offer');
       }
     } else {
@@ -7332,12 +7334,13 @@ async function updateActionButtons() {
     if (_hasActiveStranded) {
       const myStranded = _strandedPeople.find(s => s.user_id === _currentUser?.id);
       const myMatch = myStranded ? _successByStranded[myStranded.id] : null;
-      if (myMatch) {
+      const isMatched = myMatch || _roomsOfferedCount > 0;
+      if (isMatched) {
         // Matched — show success state
         pcStranded.querySelector('.sitrep-label').textContent = 'My Status';
         pcStranded.querySelector('.sitrep-label').style.color = '#22c55e';
         pcStranded.querySelector('.sitrep-sub').innerHTML = 'Success ✓';
-        pcStranded.querySelector('svg').outerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+        try { pcStranded.querySelector('svg').outerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'; } catch(e) {}
         pcStranded.onclick = () => openManageSidebar('stranded');
       } else {
         pcStranded.querySelector('.sitrep-label').textContent = 'My Status';
@@ -7420,7 +7423,8 @@ async function updateActionButtons() {
     if (_hasActiveStranded) {
       const myStranded = _strandedPeople.find(s => s.user_id === _currentUser?.id);
       const myMatch = myStranded ? _successByStranded[myStranded.id] : null;
-      if (myMatch) {
+      const isMatched = myMatch || _roomsOfferedCount > 0;
+      if (isMatched) {
         // Matched — show success state
         if (mSvg) mSvg.outerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
         mOffer.querySelector('.m-stat-label').innerHTML = '<span style="color:#22c55e;font-size:.55rem;font-weight:800;letter-spacing:.06em">SUCCESS ✓</span>';
