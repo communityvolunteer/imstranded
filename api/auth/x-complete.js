@@ -32,7 +32,13 @@ function derivePassword(xId, secret) {
 }
 
 module.exports = async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const allowedOrigins = ['https://help.imstranded.org', 'https://imstranded.org', 'https://www.imstranded.org'];
+  const origin = req.headers.origin || '';
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigins[0]);
+  }
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -67,16 +73,21 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // Check if x_xxx user exists
+    // Check if x_xxx user exists — paginate through all users
     if (!userId) {
-      const listRes = await httpRequest('GET', host, `/auth/v1/admin/users?page=1&per_page=50`, H, null);
-      if (listRes.status === 200 && listRes.body?.users) {
+      let page = 1;
+      const perPage = 50;
+      while (!userId) {
+        const listRes = await httpRequest('GET', host, `/auth/v1/admin/users?page=${page}&per_page=${perPage}`, H, null);
+        if (listRes.status !== 200 || !listRes.body?.users || !listRes.body.users.length) break;
         const match = listRes.body.users.find(u => u.email === xEmail);
         if (match) {
           userId = match.id;
           signInEmail = xEmail;
           await httpRequest('PUT', host, `/auth/v1/admin/users/${userId}`, H, { password: xPassword });
         }
+        if (listRes.body.users.length < perPage) break;
+        page++;
       }
     }
 

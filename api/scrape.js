@@ -292,7 +292,7 @@ async function fetchCancelledFlights(apiKey) {
     ADE:{city:'Aden',        lat:12.830,lng:45.029, df:3,   pax:145,cc:'YE', cr:0.90,st:'CLOSED',    cn:3,  sc:0},
   };
 
-  const daysSinceCrisis = Math.max(1, Math.floor((Date.now() - new Date('2026-02-28').getTime()) / 86400000));
+  const daysSinceCrisis = Math.max(1, Math.floor((Date.now() - new Date('2026-03-01').getTime()) / 86400000));
   const findAltRate = Math.min(0.35, daysSinceCrisis * 0.04);
 
   // If we have an API key, do a quick check on 4 rotating airports to keep data fresh
@@ -421,8 +421,8 @@ module.exports = async function handler(req, res) {
   console.log('Scrape started:', new Date().toISOString());
   const start = Date.now();
 
-  // Run all fetchers in parallel
-  const [rss, reliefweb, stateDept, fcdo, gdelt, flightData] = await Promise.all([
+  // Run all fetchers in parallel — use allSettled so one failure doesn't kill the rest
+  const results = await Promise.allSettled([
     fetchRSSFeeds(),
     fetchReliefWeb(),
     fetchStateDept(),
@@ -430,6 +430,13 @@ module.exports = async function handler(req, res) {
     fetchGDELT(),
     fetchCancelledFlights(process.env.AVIATIONSTACK_KEY),
   ]);
+  const unwrap = (r, fallback) => r.status === 'fulfilled' ? r.value : (console.error('Fetcher failed:', r.reason?.message), fallback);
+  const rss       = unwrap(results[0], []);
+  const reliefweb = unwrap(results[1], []);
+  const stateDept = unwrap(results[2], []);
+  const fcdo      = unwrap(results[3], []);
+  const gdelt     = unwrap(results[4], []);
+  const flightData = unwrap(results[5], { cancelled: 0, totalStranded: 0, closedAirports: 0, airportStatus: [], methodology: '', sources: [] });
 
   const allArticles = [...rss, ...reliefweb, ...stateDept, ...fcdo, ...gdelt];
   console.log(`Fetched: RSS=${rss.length} RW=${reliefweb.length} State=${stateDept.length} FCDO=${fcdo.length} GDELT=${gdelt.length} ME-cancelled=${flightData.cancelled} ME-stranded=${flightData.totalStranded}`);
@@ -455,7 +462,7 @@ module.exports = async function handler(req, res) {
     id: 'current',
     cancelled_flights: flightData.cancelled || 0,
     est_stranded: flightData.totalStranded || 0,
-    avg_passengers_per_flight: 190,
+    avg_passengers_per_flight: 185,
     airports_closed: flightData.closedAirports || 0,
     airspace_closed_countries: dangerCountries,
     land_routes_open: 3,
@@ -478,10 +485,13 @@ module.exports = async function handler(req, res) {
       method: 'DELETE',
       headers: { 'apikey': serviceKey, 'Authorization': `Bearer ${serviceKey}` },
       timeout: 5000
-    }, () => {});
-    req2.on('error', () => {});
+    }, (delRes) => {
+      if (delRes.statusCode >= 400) console.warn(`[Cleanup] DELETE old articles returned status ${delRes.statusCode}`);
+      delRes.resume(); // drain response
+    });
+    req2.on('error', (e) => { console.warn('[Cleanup] DELETE old articles failed:', e.message); });
     req2.end();
-  } catch (e) {}
+  } catch (e) { console.warn('[Cleanup] DELETE old articles error:', e.message); }
 
   const duration = Date.now() - start;
   console.log(`Scrape done in ${duration}ms. ${newsResult.ok} articles written, ${newsResult.fail} failed.`);

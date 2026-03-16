@@ -6974,7 +6974,7 @@ async function loadSuccessStories() {
       .select('id,stranded_post_id,offer_post_id,offer_confirmed,stranded_lat,stranded_lng,stranded_location,stranded_name,lat,lng,offer_location,offer_xhandle,offer_name,stranded_story,offer_story,home_lat,home_lng,home_location,home_story,confirmed_at')
       .eq('offer_confirmed', true)
       .order('confirmed_at', { ascending: false })
-      .limit(500));
+      .limit(500), 12000);
     _successStories = data || [];
   } catch(e) { console.warn('[loadSuccessStories]', e.message); }
   buildSuccessLookups();
@@ -7634,7 +7634,7 @@ async function renderManageDashboard(type) {
           try {
             const mr = await withTimeout(_sb.from('success_stories')
               .select('id,offer_confirmed,offer_name,offer_location,home_lat,home_location,stranded_story,offer_story,confirmed_at')
-              .eq('stranded_post_id', p.id).eq('stranded_user_id', _currentUser.id).maybeSingle(), 6000);
+              .eq('stranded_post_id', p.id).eq('stranded_user_id', _currentUser.id).maybeSingle(), 10000);
             match = mr.data;
           } catch(e) {}
         }
@@ -7680,13 +7680,13 @@ async function renderManageDashboard(type) {
       try {
         const mr = await withTimeout(_sb.from('success_stories')
           .select('id,offer_confirmed,stranded_name,stranded_location,offer_story,stranded_story,confirmed_at')
-          .eq('offer_post_id', p.id).eq('offer_user_id', _currentUser.id).eq('offer_confirmed', true).maybeSingle(), 6000);
+          .eq('offer_post_id', p.id).eq('offer_user_id', _currentUser.id).eq('offer_confirmed', true).maybeSingle(), 10000);
         match = mr.data;
       } catch(e) {}
     }
     try {
       const pr = await withTimeout(_sb.from('success_stories')
-        .select('id,stranded_name').eq('offer_post_id', p.id).eq('offer_confirmed', false), 6000);
+        .select('id,stranded_name').eq('offer_post_id', p.id).eq('offer_confirmed', false), 10000);
       pending = pr.data;
     } catch(e) {}
 
@@ -9094,7 +9094,10 @@ window.addEventListener('DOMContentLoaded',()=>{
     if (_currentUser) {
       try {
         const { data: { session } } = await withTimeout(_sb.auth.getSession(), 5000);
-        if (session?.user) _currentUser = session.user;
+        if (session?.user) {
+          _currentUser = session.user;
+          _loginTime = Date.now(); // reset 2hr window — user is still actively here
+        }
       } catch(e) { /* silent — don't null out user on timeout */ }
     }
   }, 2 * 60 * 1000);
