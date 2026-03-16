@@ -2846,19 +2846,19 @@ function openPostSidebar(post, postType) {
     </div>`;
     // Spare room post
     html += `<div class="post-sidebar-section">
-      <div class="post-sidebar-label" style="color:${accentHex()}">Location</div>
+      <div class="post-sidebar-label" style="color:#fff">Location</div>
       <div class="post-sidebar-value">${_svgLocAccent}  ${post.location || '—'}</div>
     </div>`;
     if (post.post_type) {
       html += `<div class="post-sidebar-section">
-        <div class="post-sidebar-label" style="color:${accentHex()}">Room Type</div>
+        <div class="post-sidebar-label" style="color:#fff">Room Type</div>
         <div class="post-sidebar-value">${post.post_type}</div>
       </div>`;
     }
     if (post.body) {
       html += `<hr class="post-sidebar-divider">
       <div class="post-sidebar-section">
-        <div class="post-sidebar-label" style="color:${accentHex()}">About This Space</div>
+        <div class="post-sidebar-label" style="color:#fff">About This Space</div>
         <div class="post-sidebar-value">${post.body}</div>
       </div>`;
     }
@@ -2874,35 +2874,35 @@ function openPostSidebar(post, postType) {
     // Stranded post
     const needsList = (post.needs || []).map(n => NEED_LABELS[n] || n).join(', ');
     html += `<div class="post-sidebar-section">
-      <div class="post-sidebar-label" style="color:${accentHex()}">Currently At</div>
+      <div class="post-sidebar-label" style="color:#fff">Currently At</div>
       <div class="post-sidebar-value">${_svgLocAccent}  ${post.current_location || post.location || '—'}</div>
     </div>`;
     html += `<div class="post-sidebar-section">
-      <div class="post-sidebar-label" style="color:${accentHex()}">Trying to Reach</div>
+      <div class="post-sidebar-label" style="color:#fff">Trying to Reach</div>
       <div class="post-sidebar-value">${_svgLocAccent} <strong style="color:#fff">${post.destination || '—'}</strong>${post.dest_airport ? ' <span style="background:rgba(255,255,255,.1);padding:.1rem .4rem;border-radius:4px;font-size:.7rem;font-weight:600">'+post.dest_airport+'</span>' : ''}</div>
     </div>`;
     if (post.group_size > 1 || post.nationality) {
       html += `<div class="post-sidebar-section">
-        <div class="post-sidebar-label" style="color:${accentHex()}">Group</div>
+        <div class="post-sidebar-label" style="color:#fff">Group</div>
         <div class="post-sidebar-value">${post.group_size > 1 ? post.group_size + ' people' : '1 person'}${post.nationality ? ' &middot; ' + post.nationality : ''}</div>
       </div>`;
     }
     if (needsList) {
       html += `<div class="post-sidebar-section">
-        <div class="post-sidebar-label" style="color:${accentHex()}">Needs</div>
+        <div class="post-sidebar-label" style="color:#fff">Needs</div>
         <div class="post-sidebar-value" style="color:#e67e22">${needsList}</div>
       </div>`;
     }
     if (post.stranded_since) {
       html += `<div class="post-sidebar-section">
-        <div class="post-sidebar-label" style="color:${accentHex()}">Stranded Since</div>
+        <div class="post-sidebar-label" style="color:#fff">Stranded Since</div>
         <div class="post-sidebar-value">${new Date(post.stranded_since).toLocaleDateString()}</div>
       </div>`;
     }
     if (post.details) {
       html += `<hr class="post-sidebar-divider">
       <div class="post-sidebar-section">
-        <div class="post-sidebar-label" style="color:${accentHex()}">Details</div>
+        <div class="post-sidebar-label" style="color:#fff">Details</div>
         <div class="post-sidebar-value">${post.details}</div>
       </div>`;
     }
@@ -2972,11 +2972,11 @@ function openPetSidebar(p, statusLabel, statusColor, animalIcon, petMatchHtml) {
   // Photo thumbnails
   html += buildPetThumbs(p);
   if (p.pet_name) {
-    html += `<div class="post-sidebar-section"><div class="post-sidebar-label" style="color:${accentHex()}">Pet Name</div><div class="post-sidebar-value" style="font-size:1.1rem;font-weight:800;color:#fff">${esc(p.pet_name)}</div></div>`;
+    html += `<div class="post-sidebar-section"><div class="post-sidebar-label" style="color:#fff">Pet Name</div><div class="post-sidebar-value" style="font-size:1.1rem;font-weight:800;color:#fff">${esc(p.pet_name)}</div></div>`;
   }
-  html += `<div class="post-sidebar-section"><div class="post-sidebar-label" style="color:${accentHex()}">Location</div><div class="post-sidebar-value"><span style="display:inline-flex;align-items:center;gap:.3rem">${_svgLocAccent} ${esc(p.location)}</span></div></div>`;
+  html += `<div class="post-sidebar-section"><div class="post-sidebar-label" style="color:#fff">Location</div><div class="post-sidebar-value"><span style="display:inline-flex;align-items:center;gap:.3rem">${_svgLocAccent} ${esc(p.location)}</span></div></div>`;
   if (p.description) {
-    html += `<hr class="post-sidebar-divider"><div class="post-sidebar-section"><div class="post-sidebar-label" style="color:${accentHex()}">Situation</div><div class="post-sidebar-value">${esc(p.description)}</div></div>`;
+    html += `<hr class="post-sidebar-divider"><div class="post-sidebar-section"><div class="post-sidebar-label" style="color:#fff">Situation</div><div class="post-sidebar-value">${esc(p.description)}</div></div>`;
   }
   html += petMatchHtml;
   html += postFooter(
@@ -6692,6 +6692,230 @@ function buildSuccessTab(s, uid) {
   </div>`;
 }
 
+function buildSuccessSidebarHtml(s, mode) {
+  const isHome = mode === 'home';
+  const matchDate = s.confirmed_at ? new Date(s.confirmed_at).toLocaleDateString() : '';
+  const matchAgo = s.confirmed_at ? timeAgo(s.confirmed_at) : '';
+
+  // Look up original stranded post for rich context
+  const sp = _strandedPeople.find(p => p.id === s.stranded_post_id);
+  const roomPost = posts.find(p => p.id === s.offer_post_id);
+
+  // Derived data
+  const strandedName = s.stranded_name || sp?.name || 'Someone';
+  const hostName = s.offer_name || roomPost?.name || 'A kind stranger';
+  const strandedLoc = s.stranded_location || sp?.current_location || '';
+  const roomLoc = s.offer_location || roomPost?.location || '';
+  const strandedSince = sp?.stranded_since ? new Date(sp.stranded_since).toLocaleDateString() : '';
+  const destination = sp?.destination || '';
+  const destAirport = sp?.dest_airport || '';
+  const nationality = sp?.nationality || '';
+  const groupSize = sp?.group_size || 1;
+  const needs = sp?.needs ? (sp.needs || []).map(n => NEED_LABELS[n] || n).join(', ') : '';
+  const roomType = roomPost?.post_type || '';
+
+  // Green location pin
+  const gPin = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+
+  // ── Hero ──
+  const heroTitle = isHome ? "I'M HOME" : 'SUCCESS STORY';
+  const heroIcon = isHome
+    ? '<svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.6rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>'
+    : '<svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.6rem"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+
+  let html = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1rem 0 1.2rem;position:relative">
+    <button onclick="closePostSidebar()" style="position:absolute;top:.5rem;right:0;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.5);font-size:.85rem">✕</button>
+    ${heroIcon}
+    <div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">${heroTitle}</div>
+    <div style="font-size:.72rem;color:rgba(255,255,255,.25);margin-top:.3rem">matched ${matchAgo}</div>
+    <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.3rem"><strong style="color:#fff">${esc(hostName)}</strong> welcomed <strong style="color:#fff">${esc(strandedName)}</strong></div>
+  </div>`;
+
+  // ── Timeline ──
+  html += `<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;padding:.5rem .6rem;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.12);border-radius:8px">
+    <div style="flex:1;text-align:center">
+      <div style="font-size:.55rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.3)">Stranded</div>
+      <div style="font-size:.7rem;font-weight:800;color:#ec3452">${strandedSince || '—'}</div>
+    </div>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    <div style="flex:1;text-align:center">
+      <div style="font-size:.55rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.3)">Matched</div>
+      <div style="font-size:.7rem;font-weight:800;color:#22c55e">${matchDate}</div>
+    </div>
+    ${s.home_location ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg><div style="flex:1;text-align:center"><div style="font-size:.55rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.3)">Home</div><div style="font-size:.7rem;font-weight:800;color:#22c55e">✓</div></div>' : ''}
+  </div>`;
+
+  // ── The stranded person ──
+  html += `<div class="post-sidebar-section"><div class="post-sidebar-label" style="color:#fff">Who Was Stranded</div>
+    <div class="post-sidebar-value"><strong style="color:#fff">${esc(strandedName)}</strong>${nationality ? ' · ' + esc(nationality) : ''}${groupSize > 1 ? ' · ' + groupSize + ' people' : ''}</div>
+  </div>`;
+  if (strandedLoc) {
+    html += `<div class="post-sidebar-section"><div class="post-sidebar-label" style="color:#fff">Was Stuck In</div>
+      <div class="post-sidebar-value"><span style="display:inline-flex;align-items:center;gap:.3rem"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> ${esc(strandedLoc)}</span></div>
+    </div>`;
+  }
+  if (destination) {
+    html += `<div class="post-sidebar-section"><div class="post-sidebar-label" style="color:#fff">Trying to Reach</div>
+      <div class="post-sidebar-value"><span style="display:inline-flex;align-items:center;gap:.3rem">${gPin} <strong style="color:#fff">${esc(destination)}</strong></span>${destAirport ? ' <span style="background:rgba(255,255,255,.1);padding:.1rem .4rem;border-radius:4px;font-size:.7rem;font-weight:600">'+esc(destAirport)+'</span>' : ''}</div>
+    </div>`;
+  }
+  if (needs) {
+    html += `<div class="post-sidebar-section"><div class="post-sidebar-label" style="color:#fff">Needed</div>
+      <div class="post-sidebar-value" style="color:#e67e22">${needs}</div>
+    </div>`;
+  }
+
+  // ── The host / room ──
+  html += `<hr class="post-sidebar-divider">`;
+  html += `<div class="post-sidebar-section"><div class="post-sidebar-label" style="color:#fff">Welcomed By</div>
+    <div class="post-sidebar-value"><strong style="color:#fff">${esc(hostName)}</strong></div>
+  </div>`;
+  if (roomLoc) {
+    html += `<div class="post-sidebar-section"><div class="post-sidebar-label" style="color:#fff">Room Location</div>
+      <div class="post-sidebar-value"><span style="display:inline-flex;align-items:center;gap:.3rem">${gPin} ${esc(roomLoc)}</span></div>
+    </div>`;
+  }
+  if (roomType) {
+    html += `<div class="post-sidebar-section"><div class="post-sidebar-label" style="color:#fff">Room Type</div>
+      <div class="post-sidebar-value">${esc(roomType)}</div>
+    </div>`;
+  }
+
+  // ── Stories ──
+  if (s.stranded_story || s.offer_story) {
+    html += `<hr class="post-sidebar-divider">`;
+    html += `<div class="post-sidebar-section"><div class="post-sidebar-label" style="color:#fff">Their Stories</div></div>`;
+    if (s.stranded_story) {
+      html += `<div style="font-size:.82rem;color:rgba(255,255,255,.6);line-height:1.6;margin-bottom:.5rem;padding-left:.6rem;border-left:2px solid rgba(236,52,82,.4)">"${esc(s.stranded_story)}"<div style="font-size:.65rem;color:rgba(255,255,255,.3);margin-top:.15rem;font-style:normal">— ${esc(strandedName)}</div></div>`;
+    }
+    if (s.offer_story) {
+      html += `<div style="font-size:.82rem;color:rgba(255,255,255,.6);line-height:1.6;margin-bottom:.5rem;padding-left:.6rem;border-left:2px solid rgba(34,197,94,.4)">"${esc(s.offer_story)}"<div style="font-size:.65rem;color:rgba(255,255,255,.3);margin-top:.15rem;font-style:normal">— ${esc(hostName)}</div></div>`;
+    }
+  }
+
+  // ── Made it home ──
+  if (s.home_location) {
+    html += `<hr class="post-sidebar-divider">`;
+    html += `<div class="post-sidebar-section"><div class="post-sidebar-label" style="color:#22c55e">🏠 Made It Home</div>
+      <div class="post-sidebar-value"><span style="display:inline-flex;align-items:center;gap:.3rem">${gPin} ${esc(s.home_location)}</span></div>
+    </div>`;
+    if (s.home_story) {
+      html += `<div style="font-size:.82rem;color:rgba(255,255,255,.6);line-height:1.6;margin-top:.3rem;padding-left:.6rem;border-left:2px solid rgba(34,197,94,.4)">"${esc(s.home_story)}"</div>`;
+    }
+  }
+
+  html += `<div style="margin-top:20px">${bigShareBtn(shareSuccessText(s), '', 'Share this success story')}</div>`;
+  return html;
+}
+
+function openSuccessSidebar(s, mode) {
+  const pinSb = document.getElementById('pin-sidebar');
+  if (pinSb) pinSb.classList.remove('open');
+  const header = document.getElementById('post-sidebar-header');
+  if (header) header.style.display = 'none';
+  const body = document.getElementById('post-sidebar-body');
+  if (!body) return;
+  body.innerHTML = buildSuccessSidebarHtml(s, mode);
+  const sb = document.getElementById('post-sidebar');
+  if (sb) sb.classList.add('open');
+  document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '360px');
+  if (window._crisisMap && !window._crisisMap._postSidebarClose) {
+    window._crisisMap._postSidebarClose = function() { closePostSidebar(); };
+    window._crisisMap.on('click', window._crisisMap._postSidebarClose);
+  }
+}
+
+function buildPetSuccessSidebarHtml(m) {
+  const reunitedLabel = m.reunited ? 'Reunited with owner!' : 'Housed';
+  const heroTitle = m.reunited ? 'REUNITED' : 'PET HOUSED';
+  const date = m.confirmed_at ? new Date(m.confirmed_at).toLocaleDateString() : '';
+  const matchAgo = m.confirmed_at ? timeAgo(m.confirmed_at) : '';
+  const animalCap = (m.animal_type||'Pet').charAt(0).toUpperCase() + (m.animal_type||'pet').slice(1);
+  const petName = m.pet_name || m.animal_type || 'Pet';
+  const gPin = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+
+  // Look up original pet post for context
+  const petPost = _petPosts.find(p => p.id === m.pet_post_id);
+
+  let html = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1rem 0 1.2rem;position:relative">
+    <button onclick="closePostSidebar()" style="position:absolute;top:.5rem;right:0;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.5);font-size:.85rem">✕</button>
+    <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.6rem"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    <div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">${heroTitle}</div>
+    <div style="font-size:.72rem;color:rgba(255,255,255,.25);margin-top:.3rem">${matchAgo}</div>
+    <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.3rem"><strong style="color:#fff">${esc(m.foster_name||'A kind person')}</strong> gave <strong style="color:#fff">${esc(petName)}</strong> a home</div>
+  </div>`;
+
+  // Timeline
+  const postedDate = petPost?.created_at ? new Date(petPost.created_at).toLocaleDateString() : '';
+  html += `<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;padding:.5rem .6rem;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.12);border-radius:8px">
+    <div style="flex:1;text-align:center">
+      <div style="font-size:.55rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.3)">Reported</div>
+      <div style="font-size:.7rem;font-weight:800;color:${accentHex()}">${postedDate || '—'}</div>
+    </div>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    <div style="flex:1;text-align:center">
+      <div style="font-size:.55rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.3)">Housed</div>
+      <div style="font-size:.7rem;font-weight:800;color:#22c55e">${date}</div>
+    </div>
+    ${m.reunited ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg><div style="flex:1;text-align:center"><div style="font-size:.55rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.3)">Reunited</div><div style="font-size:.7rem;font-weight:800;color:#22c55e">✓</div></div>' : ''}
+  </div>`;
+
+  // Pet info
+  html += `<div class="post-sidebar-section"><div class="post-sidebar-label" style="color:#fff">Pet</div>
+    <div class="post-sidebar-value" style="font-size:1.05rem;font-weight:800;color:#fff">${esc(petName)} <span style="font-size:.72rem;font-weight:400;color:rgba(255,255,255,.4);text-transform:capitalize">${animalCap}</span></div>
+  </div>`;
+
+  // Where the pet was
+  if (m.pet_location) {
+    html += `<div class="post-sidebar-section"><div class="post-sidebar-label" style="color:#fff">Was Found In</div>
+      <div class="post-sidebar-value"><span style="display:inline-flex;align-items:center;gap:.3rem"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${accentHex()}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> ${esc(m.pet_location)}</span></div>
+    </div>`;
+  }
+  if (petPost?.description) {
+    html += `<div class="post-sidebar-section"><div class="post-sidebar-label" style="color:#fff">Original Report</div>
+      <div class="post-sidebar-value" style="color:rgba(255,255,255,.5)">${esc(petPost.description)}</div>
+    </div>`;
+  }
+
+  // Who housed them
+  html += `<hr class="post-sidebar-divider">`;
+  html += `<div class="post-sidebar-section"><div class="post-sidebar-label" style="color:#fff">Housed By</div>
+    <div class="post-sidebar-value"><strong style="color:#fff">${esc(m.foster_name||'A kind person')}</strong></div>
+  </div>`;
+  if (m.foster_location) {
+    html += `<div class="post-sidebar-section"><div class="post-sidebar-label" style="color:#fff">Location</div>
+      <div class="post-sidebar-value"><span style="display:inline-flex;align-items:center;gap:.3rem">${gPin} ${esc(m.foster_location)}</span></div>
+    </div>`;
+  }
+
+  // Story
+  if (m.reunion_story) {
+    html += `<hr class="post-sidebar-divider">`;
+    html += `<div class="post-sidebar-section"><div class="post-sidebar-label" style="color:#fff">The Story</div></div>`;
+    html += `<div style="font-size:.82rem;color:rgba(255,255,255,.6);line-height:1.6;padding-left:.6rem;border-left:2px solid rgba(34,197,94,.4)">"${esc(m.reunion_story)}"</div>`;
+  }
+
+  html += `<div style="margin-top:20px">${bigShareBtn('🏠 '+esc(petName)+' found a home through ImStranded.org!', '', 'Share this success')}</div>`;
+  return html;
+}
+
+function openPetSuccessSidebar(m) {
+  const pinSb = document.getElementById('pin-sidebar');
+  if (pinSb) pinSb.classList.remove('open');
+  const header = document.getElementById('post-sidebar-header');
+  if (header) header.style.display = 'none';
+  const body = document.getElementById('post-sidebar-body');
+  if (!body) return;
+  body.innerHTML = buildPetSuccessSidebarHtml(m);
+  const sb = document.getElementById('post-sidebar');
+  if (sb) sb.classList.add('open');
+  document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '360px');
+  if (window._crisisMap && !window._crisisMap._postSidebarClose) {
+    window._crisisMap._postSidebarClose = function() { closePostSidebar(); };
+    window._crisisMap.on('click', window._crisisMap._postSidebarClose);
+  }
+}
+
 // ── Load confirmed stories, build lookups, render everything ─
 async function loadSuccessStories() {
   if (!SB_ON) return;
@@ -6726,20 +6950,24 @@ function renderSuccessOnMap(map, showHome = true) {
       const uid = s.id.slice(0,8);
       const _sucD = buildUserDot('success', 1, 'success', 50, '✓');
       const icon = L.divIcon({ className: '', html: _sucD.html, iconSize: [_sucD.sz, _sucD.sz], iconAnchor: [_sucD.sz/2, _sucD.sz/2] });
-      const popHtml = `<div class="spt-wrap-${uid}" style="font-family:Inter,sans-serif">${buildSuccessTab(s, uid)}</div>`;
       const marker = L.marker([s.lat, s.lng], { icon });
-      if (isMobileM) marker.on('click', e => { L.DomEvent.stopPropagation(e); openMPinSheet(popHtml); });
-      else marker.bindPopup(popHtml, { className: 'dark-popup', maxWidth: 290 });
+      if (isMobileM) {
+        marker.on('click', e => { L.DomEvent.stopPropagation(e); openMPinSheet(buildSuccessSidebarHtml(s, 'story')); });
+      } else {
+        marker.on('click', e => { L.DomEvent.stopPropagation(e); openSuccessSidebar(s, 'story'); });
+      }
       window[key].addLayer(marker);
     }
     // Extra pin at home location if they made it
     if (showHome && s.home_lat && s.home_lng) {
       const _homeD = buildUserDot('success', 1, "i'm home", 50, '✓');
       const homeIcon = L.divIcon({ className: '', html: _homeD.html, iconSize: [_homeD.sz, _homeD.sz], iconAnchor: [_homeD.sz/2, _homeD.sz/2] });
-      const homePop = `<div style="font-family:Inter,sans-serif"><div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">🏠 Made it home</div><div style="font-size:.82rem;font-weight:700;color:#fff;margin-bottom:.15rem">${s.stranded_name||'Stranded person'}</div><div style="font-size:.73rem;color:rgba(255,255,255,.45)">${esc(s.home_location)||''}</div>${s.home_story?`<div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:.35rem;line-height:1.5;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.4)">"${esc(s.home_story)}"</div>`:''}</div>`;
       const hm = L.marker([s.home_lat, s.home_lng], { icon: homeIcon });
-      if (isMobileM) hm.on('click', e => { L.DomEvent.stopPropagation(e); openMPinSheet(homePop); });
-      else hm.bindPopup(homePop, { className: 'dark-popup', maxWidth: 260 });
+      if (isMobileM) {
+        hm.on('click', e => { L.DomEvent.stopPropagation(e); openMPinSheet(buildSuccessSidebarHtml(s, 'home')); });
+      } else {
+        hm.on('click', e => { L.DomEvent.stopPropagation(e); openSuccessSidebar(s, 'home'); });
+      }
       window[key].addLayer(hm);
     }
   }
@@ -6752,19 +6980,9 @@ function renderSuccessOnMap(map, showHome = true) {
     const animalLabel = (PET_ANIMAL_ICONS[m.animal_type] || 'Pet') + ' housed';
     const _petSuccD = buildUserDot('success', 1, animalLabel, 50);
     const icon = L.divIcon({ className: '', html: _petSuccD.html, iconSize: [_petSuccD.sz, _petSuccD.sz], iconAnchor: [_petSuccD.sz/2, _petSuccD.sz/2] });
-    const reunitedLabel = m.reunited ? '🏠 Reunited with owner!' : '✅ Housed';
-    const popHtml = `<div style="font-family:Inter,sans-serif">
-      <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">${reunitedLabel}</div>
-      <div style="font-size:.95rem;font-weight:800;color:#fff;margin-bottom:.15rem">${esc(m.pet_name || m.animal_type || 'Pet')}</div>
-      <div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.15rem;text-transform:capitalize">${m.animal_type || 'Pet'}</div>
-      <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.2rem">📍 ${esc(m.foster_location || m.pet_location || '')}</div>
-      ${m.foster_name ? '<div style="font-size:.72rem;color:rgba(255,255,255,.45)">Housed by <strong style=color:#fff>'+esc(m.foster_name)+'</strong></div>' : ''}
-      ${m.reunion_story ? '<div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:.35rem;line-height:1.5;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.4)">"'+esc(m.reunion_story)+'"</div>' : ''}
-      <div style="margin-top:.4rem">${shareIcon('🏠 '+esc(m.pet_name||m.animal_type||'A pet')+' found a home through ImStranded.org! '+(_petMatches.length)+' pets housed so far.', '', 'Share this success story')}</div>
-    </div>`;
     const marker = L.marker([lat, lng], { icon });
-    if (isMobileM) marker.on('click', e => { L.DomEvent.stopPropagation(e); openMPinSheet(popHtml); });
-    else marker.bindPopup(popHtml, { className: 'dark-popup', maxWidth: 280 });
+    if (isMobileM) marker.on('click', e => { L.DomEvent.stopPropagation(e); openMPinSheet(buildPetSuccessSidebarHtml(m)); });
+    else marker.on('click', e => { L.DomEvent.stopPropagation(e); openPetSuccessSidebar(m); });
     window[key].addLayer(marker);
   }
   map.addLayer(window[key]);
