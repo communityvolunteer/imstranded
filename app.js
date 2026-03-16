@@ -2926,7 +2926,7 @@ function openPostSidebar(post, postType) {
   // Open
   const sb = document.getElementById('post-sidebar');
   if (sb) sb.classList.add('open');
-  document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '320px');
+  document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '360px');
 
   // Close on bare map click
   if (window._crisisMap && !window._crisisMap._postSidebarClose) {
@@ -2972,11 +2972,11 @@ function openPetSidebar(p, statusLabel, statusColor, animalIcon, petMatchHtml) {
   // Photo thumbnails
   html += buildPetThumbs(p);
   if (p.pet_name) {
-    html += `<div class="post-sidebar-section"><div class="post-sidebar-label">Name</div><div class="post-sidebar-value" style="font-size:1.1rem;font-weight:800;color:#fff">${esc(p.pet_name)}</div></div>`;
+    html += `<div class="post-sidebar-section"><div class="post-sidebar-label" style="color:${accentHex()}">Pet Name</div><div class="post-sidebar-value" style="font-size:1.1rem;font-weight:800;color:#fff">${esc(p.pet_name)}</div></div>`;
   }
-  html += `<div class="post-sidebar-section"><div class="post-sidebar-label">Location</div><div class="post-sidebar-value"><span style="display:inline-flex;align-items:center;gap:.3rem">${_svgLocAccent} ${esc(p.location)}</span></div></div>`;
+  html += `<div class="post-sidebar-section"><div class="post-sidebar-label" style="color:${accentHex()}">Location</div><div class="post-sidebar-value"><span style="display:inline-flex;align-items:center;gap:.3rem">${_svgLocAccent} ${esc(p.location)}</span></div></div>`;
   if (p.description) {
-    html += `<hr class="post-sidebar-divider"><div class="post-sidebar-section"><div class="post-sidebar-label">Situation</div><div class="post-sidebar-value">${esc(p.description)}</div></div>`;
+    html += `<hr class="post-sidebar-divider"><div class="post-sidebar-section"><div class="post-sidebar-label" style="color:${accentHex()}">Situation</div><div class="post-sidebar-value">${esc(p.description)}</div></div>`;
   }
   html += petMatchHtml;
   html += postFooter(
@@ -2990,7 +2990,7 @@ function openPetSidebar(p, statusLabel, statusColor, animalIcon, petMatchHtml) {
 
   const sb = document.getElementById('post-sidebar');
   if (sb) sb.classList.add('open');
-  document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '320px');
+  document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '360px');
 
   // Close on bare map click
   if (window._crisisMap) {

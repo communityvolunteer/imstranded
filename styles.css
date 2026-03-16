@@ -1588,7 +1588,7 @@ html.translated-ltr body,html.translated-rtl body{top:0 !important;}
 #post-sidebar {
   position: absolute;
   top: 0; right: 0; bottom: 0;
-  width: 320px;
+  width: 360px;
   z-index: 950;
   background: rgba(7,7,12,.97);
   backdrop-filter: blur(18px);
