@@ -7638,11 +7638,7 @@ function buildPetCard(p, match, step) {
   // Action buttons
   html += '<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.5rem">';
   if (step === 1 && p.pet_status !== 'can_foster') {
-    // Pet needs home — show "Found a foster?" if there are can_foster posts
-    const fosters = _petPosts.filter(fp => fp.pet_status === 'can_foster' && fp.user_id !== _currentUser?.id);
-    if (fosters.length) {
-      html += `<button onclick="alert('Browse the map for people offering homes to pets and click their pin to request a match!')" style="flex:1;${btnStyle('green')}">Find a Home →</button>`;
-    }
+    html += `<button onclick="openHousedFlow('${p.id}')" style="flex:1;${btnStyle('green')}">Housed? →</button>`;
   }
   if (step === 2 && match && !match.reunited && match.foster_confirmed) {
     html += `<button onclick="markPetReunited('${match.id}')" style="flex:1;${btnStyle('green')}">Reunited? →</button>`;
@@ -7824,6 +7820,158 @@ async function deletePetPost(id) {
     if (isMob()) mTab('manage-pets', null);
     else openManageSidebar('pets');
   } catch (e) { alert('Failed to delete: ' + e.message); }
+}
+
+// ── Housed? Flow — mark a pet as housed with optional person + story ──
+function openHousedFlow(petPostId) {
+  const petPost = _petPosts.find(p => p.id === petPostId);
+  if (!petPost) return;
+  const fosters = _petPosts.filter(fp => fp.pet_status === 'can_foster' && fp.user_id !== _currentUser?.id && fp.lat && fp.lng);
+  const lat = petPost.lat, lng = petPost.lng;
+  let sorted = fosters;
+  if (lat && lng) sorted = fosters.map(fp => ({...fp, _d: haversineKm(lat, lng, fp.lat, fp.lng)})).sort((a,b) => a._d - b._d);
+  const animalIcons = { dog:'🐕', cat:'🐈', bird:'🐦', other:'🐾' };
+
+  let html = `<div style="font-family:Inter,sans-serif;padding:.5rem 0">
+    <div style="font-size:1.1rem;font-weight:800;color:#fff;margin-bottom:.3rem">🎉 Great news!</div>
+    <div style="font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:1rem">Who gave ${esc(petPost.pet_name || petPost.animal_type || 'this pet')} a home?</div>`;
+
+  // Person picker
+  if (sorted.length) {
+    html += `<div style="margin-bottom:.8rem">`;
+    sorted.slice(0, 6).forEach(fp => {
+      const icon = animalIcons[fp.animal_type] || '🐾';
+      html += `<label style="display:flex;align-items:center;gap:.5rem;padding:.5rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:8px;margin-bottom:.3rem;cursor:pointer">
+        <input type="radio" name="housed-person" value="${fp.id}" style="accent-color:${accentHex()}">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.82rem;font-weight:700;color:#fff">${esc(fp.name)} ${buildBadge(!!fp.user_id)}</div>
+          <div style="font-size:.65rem;color:rgba(255,255,255,.4)">${esc(fp.location)}${fp._d != null ? ' · '+Math.round(fp._d)+'km' : ''}</div>
+        </div>
+      </label>`;
+    });
+    html += `</div>`;
+  }
+
+  // Someone not on the site
+  html += `<label style="display:flex;align-items:center;gap:.5rem;padding:.5rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:8px;margin-bottom:.6rem;cursor:pointer">
+    <input type="radio" name="housed-person" value="_other" style="accent-color:${accentHex()}">
+    <div style="flex:1"><div style="font-size:.82rem;font-weight:600;color:#fff">Someone not on the site</div></div>
+  </label>
+  <input type="text" id="housed-other-name" placeholder="Their name (optional)" style="display:none;width:100%;padding:.45rem .6rem;background:#1a1c1e;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.82rem;margin-bottom:.6rem">`;
+
+  // Story
+  html += `<div style="margin-top:.4rem">
+    <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.35);margin-bottom:.25rem">Add a story <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></div>
+    <textarea id="housed-story" placeholder="How did the match happen? Any heartwarming details..." style="width:100%;padding:.45rem .6rem;background:#1a1c1e;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.82rem;min-height:60px;resize:none"></textarea>
+  </div>`;
+
+  // Buttons
+  html += `<div style="display:flex;gap:.4rem;margin-top:.8rem">
+    <button onclick="submitHousedFlow('${petPostId}')" style="flex:1;${btnStyle('green')}">Mark as Housed ✓</button>
+    <button onclick="submitHousedSkip('${petPostId}')" style="${btnStyle('accent')}">Skip</button>
+  </div></div>`;
+
+  // Show in sidebar body or mobile sheet
+  if (isMob()) {
+    openMPinSheet(html);
+  } else {
+    const body = document.getElementById('post-sidebar-body');
+    if (body) body.innerHTML = html;
+    const sb = document.getElementById('post-sidebar');
+    const header = document.getElementById('post-sidebar-header');
+    if (header) header.style.display = 'none';
+    if (sb) sb.classList.add('open');
+  }
+
+  // Show "other name" input when _other is selected
+  setTimeout(() => {
+    document.querySelectorAll('input[name="housed-person"]').forEach(r => {
+      r.onchange = () => {
+        const otherInput = document.getElementById('housed-other-name');
+        if (otherInput) otherInput.style.display = r.value === '_other' && r.checked ? 'block' : 'none';
+      };
+    });
+  }, 100);
+}
+
+async function submitHousedFlow(petPostId) {
+  if (!isLoggedIn()) return;
+  const selected = document.querySelector('input[name="housed-person"]:checked');
+  const story = document.getElementById('housed-story')?.value?.trim() || '';
+  const otherName = document.getElementById('housed-other-name')?.value?.trim() || '';
+
+  const petPost = _petPosts.find(p => p.id === petPostId);
+  if (!petPost) return;
+
+  let fosterPostId = null, fosterName = '', fosterLocation = '', fosterLat = null, fosterLng = null, fosterUserId = null;
+
+  if (selected && selected.value !== '_other') {
+    const fp = _petPosts.find(p => p.id === selected.value);
+    if (fp) {
+      fosterPostId = fp.id;
+      fosterName = fp.name;
+      fosterLocation = fp.location;
+      fosterLat = fp.lat;
+      fosterLng = fp.lng;
+      fosterUserId = fp.user_id;
+    }
+  } else if (selected && selected.value === '_other') {
+    fosterName = otherName || 'Someone kind';
+  }
+
+  try {
+    const { error } = await _sb.from('pet_matches').insert({
+      pet_post_id: petPostId,
+      foster_post_id: fosterPostId,
+      pet_user_id: petPost.user_id,
+      foster_user_id: fosterUserId,
+      pet_confirmed: true,
+      foster_confirmed: true,
+      confirmed_at: new Date().toISOString(),
+      pet_lat: petPost.lat, pet_lng: petPost.lng,
+      pet_location: petPost.location,
+      pet_name: petPost.pet_name || petPost.animal_type,
+      animal_type: petPost.animal_type,
+      foster_lat: fosterLat, foster_lng: fosterLng,
+      foster_location: fosterLocation,
+      foster_name: fosterName,
+      reunion_story: story || null,
+    });
+    if (error) throw error;
+    alert('🎉 Marked as housed! This will appear as a success story on the map.');
+    loadPetMatches();
+    loadPets();
+    if (isMob()) mTab('manage-pets', null);
+    else openManageSidebar('pets');
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function submitHousedSkip(petPostId) {
+  if (!isLoggedIn()) return;
+  const petPost = _petPosts.find(p => p.id === petPostId);
+  if (!petPost) return;
+  try {
+    const { error } = await _sb.from('pet_matches').insert({
+      pet_post_id: petPostId,
+      foster_post_id: null,
+      pet_user_id: petPost.user_id,
+      foster_user_id: null,
+      pet_confirmed: true,
+      foster_confirmed: true,
+      confirmed_at: new Date().toISOString(),
+      pet_lat: petPost.lat, pet_lng: petPost.lng,
+      pet_location: petPost.location,
+      pet_name: petPost.pet_name || petPost.animal_type,
+      animal_type: petPost.animal_type,
+      foster_name: 'A kind person',
+    });
+    if (error) throw error;
+    alert('✅ Marked as housed!');
+    loadPetMatches();
+    loadPets();
+    if (isMob()) mTab('manage-pets', null);
+    else openManageSidebar('pets');
+  } catch(e) { alert('Error: ' + e.message); }
 }
 
 function resetActionButtons() {
