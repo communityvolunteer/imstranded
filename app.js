@@ -5739,7 +5739,7 @@ function refreshHelpPanel() {
     s1num?.classList.add('done');
     const isVerified = xOk && tgOk && gOk;
     const badge = isVerified
-      ? '<span style="display:inline-flex;align-items:center;gap:.2rem;background:rgba(52,152,236,.15);border:1px solid rgba(52,152,236,.3);border-radius:6px;padding:.1rem .35rem;font-size:.55rem;font-weight:700;color:#3498ec;margin-left:.35rem;vertical-align:middle">✓ Verified</span>'
+      ? '<span style="display:inline-flex;align-items:center;gap:.2rem;background:rgba(52,152,236,.2);border:1.5px solid rgba(52,152,236,.5);border-radius:6px;padding:.1rem .35rem;font-size:.55rem;font-weight:700;color:#3498ec;margin-left:.35rem;vertical-align:middle">✓ Verified</span>'
       : '<span style="display:inline-flex;align-items:center;gap:.2rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.1rem .35rem;font-size:.55rem;font-weight:700;color:rgba(255,255,255,.35);margin-left:.35rem;vertical-align:middle">⚪ Unverified</span>';
     if (s1desc) s1desc.innerHTML = `Connected as <strong style="color:#fff">@${p.x_handle}</strong> ${badge}`;
     if (s1btn) {
