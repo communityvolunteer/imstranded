@@ -1,8 +1,8 @@
 // ============================================================
 // CONFIG
 // ============================================================
-const SUPABASE_URL  = window.__SB_URL__;
-const SUPABASE_ANON = window.__SB_ANON__;
+const SUPABASE_URL  = '%%SUPABASE_URL%%';
+const SUPABASE_ANON = '%%SUPABASE_ANON_KEY%%';
 const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 const SB_ON = true; // always on — URL is set; kept as kill-switch for local dev
 
@@ -5738,7 +5738,7 @@ function refreshHelpPanel() {
     s1num?.classList.add('done');
     const isVerified = xOk && tgOk && gOk;
     const badge = isVerified
-      ? '<span style="display:inline-flex;align-items:center;gap:.2rem;background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.15);border:1px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.3);border-radius:6px;padding:.1rem .35rem;font-size:.55rem;font-weight:700;color:var(--accent);margin-left:.35rem;vertical-align:middle">✓ Verified</span>'
+      ? '<span style="display:inline-flex;align-items:center;gap:.2rem;background:rgba(52,152,236,.15);border:1px solid rgba(52,152,236,.3);border-radius:6px;padding:.1rem .35rem;font-size:.55rem;font-weight:700;color:#3498ec;margin-left:.35rem;vertical-align:middle">✓ Verified</span>'
       : '<span style="display:inline-flex;align-items:center;gap:.2rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.1rem .35rem;font-size:.55rem;font-weight:700;color:rgba(255,255,255,.35);margin-left:.35rem;vertical-align:middle">⚪ Unverified</span>';
     if (s1desc) s1desc.innerHTML = `Connected as <strong style="color:#fff">@${p.x_handle}</strong> ${badge}`;
     if (s1btn) {
@@ -5789,7 +5789,7 @@ function refreshHelpPanel() {
     btn.textContent = linked ? '✓ Connected' : 'Connect';
     btn.classList.toggle('linked', linked);
     btn.disabled = linked;
-    if (linked) { btn.style.opacity = '1'; btn.style.color = '#fff'; btn.style.background = '#3498ec'; btn.style.borderColor = '#3498ec'; }
+    if (linked) { btn.style.opacity = '1'; btn.style.color = '#fff'; btn.style.background = accentHex(); btn.style.borderColor = accentHex(); }
     else { btn.style.opacity = ''; btn.style.color = ''; btn.style.background = ''; btn.style.borderColor = ''; }
   }
   setDot('hr-dot-x', xOk);  setLinkBtn('hr-btn-x', xOk);

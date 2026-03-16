@@ -1023,7 +1023,8 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
   font-size:.62rem;font-weight:800;color:rgba(255,255,255,.3);
   margin-top:.1rem;transition:all .3s;
 }
-.hstep-num.done{background:var(--accent);color:#fff;}
+.hstep-num.done{background:var(--accent);color:#fff;font-size:0;}
+.hstep-num.done::after{content:"✓";font-size:.62rem;font-weight:800;color:#fff;}
 .hstep-body{flex:1;min-width:0;}
 .hstep-title{font-size:.82rem;font-weight:700;color:#fff;margin-bottom:.22rem;}
 .hstep-desc{font-size:.74rem;color:rgba(255,255,255,.4);line-height:1.6;margin-bottom:.5rem;}
@@ -1051,9 +1052,9 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
 .hstep-btn--x.done{background:var(--accent);color:#fff;border-color:var(--accent);pointer-events:none;}
 .hstep-btn--blue.done,.hstep-btn--purple.done{background:var(--accent);color:#fff;border-color:var(--accent);}
 .hstep-btn--ghost.done{background:var(--accent);color:#fff;border-color:var(--accent);}
-.hstep-btn--blue{background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.13);color:var(--accent);border:1px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.22);}
-.hstep-btn--purple{background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.13);color:var(--accent);border:1px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.22);}
-.hstep-btn--red{background:rgba(236,52,82,.1);color:#ec3452;border:1px solid rgba(236,52,82,.18);}
+.hstep-btn--blue{background:rgba(52,152,236,.13);color:#3498ec;border:1px solid rgba(52,152,236,.22);}
+.hstep-btn--purple{background:rgba(52,152,236,.13);color:#3498ec;border:1px solid rgba(52,152,236,.22);}
+.hstep-btn--red{background:#ec3452;color:#fff;border:1px solid #ec3452;}
 .hstep-btn--ghost{background:rgba(255,255,255,.05);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.1);}
 .hstep-btn:disabled,.hstep-btn[disabled]{opacity:.25;pointer-events:none;}
 .hstep-muted{font-size:.68rem;color:rgba(255,255,255,.22);margin-top:.35rem;font-style:italic;}
