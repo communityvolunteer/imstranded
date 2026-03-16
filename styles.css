@@ -1033,8 +1033,8 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
 /* Verified badge inline */
 .hstep-badge{
   display:inline-flex;align-items:center;gap:.22rem;
-  background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.1);border:1px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.2);
-  border-radius:4px;padding:.08rem .32rem;font-size:.63rem;font-weight:700;color:var(--accent);
+  background:rgba(52,152,236,.1);border:1px solid rgba(52,152,236,.2);
+  border-radius:4px;padding:.08rem .32rem;font-size:.63rem;font-weight:700;color:#3498ec;
   vertical-align:middle;white-space:nowrap;
 }
 
@@ -1069,7 +1069,7 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
   width:7px;height:7px;border-radius:50%;flex-shrink:0;
   background:rgba(255,255,255,.1);transition:background .3s;
 }
-.hstep-social-dot.linked{background:#3498ec;box-shadow:0 0 5px rgba(52,152,236,.4);}
+.hstep-social-dot.linked{background:var(--accent);box-shadow:0 0 5px rgba(var(--accent-r),var(--accent-g),var(--accent-b),.4);}
 .hstep-link-btn{
   margin-left:auto;padding:.18rem .55rem;border-radius:6px;
   background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
@@ -1078,7 +1078,7 @@ select.modal-input{-webkit-appearance:menulist;appearance:menulist;color-scheme:
 }
 .hstep-link-btn:hover{background:rgba(255,255,255,.12);color:#fff;}
 .hstep-link-btn.linked{
-  background:#3498ec;border-color:#3498ec;
+  background:var(--accent);border-color:var(--accent);
   color:#fff;pointer-events:none;
 }
 

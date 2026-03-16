@@ -5789,8 +5789,11 @@ function refreshHelpPanel() {
     btn.textContent = linked ? '✓ Connected' : 'Connect';
     btn.classList.toggle('linked', linked);
     btn.disabled = linked;
-    if (linked) { btn.style.opacity = '1'; btn.style.color = '#fff'; btn.style.background = accentHex(); btn.style.borderColor = accentHex(); }
-    else { btn.style.opacity = ''; btn.style.color = ''; btn.style.background = ''; btn.style.borderColor = ''; }
+    // Let CSS handle all color — no inline styles that get stuck on accent change
+    btn.style.opacity = linked ? '1' : '';
+    btn.style.color = '';
+    btn.style.background = '';
+    btn.style.borderColor = '';
   }
   setDot('hr-dot-x', xOk);  setLinkBtn('hr-btn-x', xOk);
   setDot('hr-dot-tg', tgOk); setLinkBtn('hr-btn-tg', tgOk);
