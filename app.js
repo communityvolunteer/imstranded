@@ -6933,9 +6933,9 @@ function renderSuccessOnMap(map, showHome = true) {
       const homeIcon = L.divIcon({ className: '', html: _homeD.html, iconSize: [_homeD.sz, _homeD.sz], iconAnchor: [_homeD.sz/2, _homeD.sz/2] });
       const hm = L.marker([s.home_lat, s.home_lng], { icon: homeIcon });
       if (isMobileM) {
-        hm.on('click', e => { L.DomEvent.stopPropagation(e); openMPinSheet(buildSuccessSidebarHtml(s, 'home')); });
+        hm.on('click', e => { L.DomEvent.stopPropagation(e); openMPinSheet(buildSuccessSidebarHtml(s, 'story')); });
       } else {
-        hm.on('click', e => { L.DomEvent.stopPropagation(e); openSuccessSidebar(s, 'home'); });
+        hm.on('click', e => { L.DomEvent.stopPropagation(e); openSuccessSidebar(s, 'story'); });
       }
       window[key].addLayer(hm);
     }
@@ -6965,15 +6965,10 @@ function drawSuccessArcs(map) {
   if (window[key]) map.removeLayer(window[key]);
   window[key] = L.layerGroup();
   for (const s of _successStories) {
-    // Arc 1: stranded location → offer/room location
-    if (s.stranded_lat && s.stranded_lng && s.lat && s.lng) {
-      const pts = arcPoints([s.stranded_lat, s.stranded_lng], [s.lat, s.lng]);
-      L.polyline(pts, { color:'#22c55e', weight:1.8, opacity:.45, dashArray:'5,5', className:'success-arc', interactive:false }).addTo(window[key]);
-    }
-    // Arc 2: room → home (if they made it)
+    // Arc: SUCCESS pin (room) → I'M HOME pin
     if (s.lat && s.lng && s.home_lat && s.home_lng) {
-      const pts2 = arcPoints([s.lat, s.lng], [s.home_lat, s.home_lng]);
-      L.polyline(pts2, { color:'#22c55e', weight:2.2, opacity:.6, className:'success-arc', interactive:false }).addTo(window[key]);
+      const pts = arcPoints([s.lat, s.lng], [s.home_lat, s.home_lng]);
+      L.polyline(pts, { color:'#22c55e', weight:2.2, opacity:.6, className:'success-arc', interactive:false }).addTo(window[key]);
     }
   }
   // Pet match arcs: pet location → new home location
