@@ -6098,6 +6098,7 @@ async function loadPets() {
     renderPetsOnMap(window._crisisMap, false);
     renderPetsOnMap(window._mobileMap, true);
     updateFilterBadges();
+    updateActionButtons();
   } catch(e) { console.error('Load pets error:', e); }
 }
 
@@ -7358,19 +7359,20 @@ async function _updateActionButtonsNow() {
   _hasActiveStranded = _strandedPeople.some(p => p.user_id === _currentUser.id);
   _hasActivePets = _petPosts.some(p => p.user_id === _currentUser.id);
   
-  // If data hasn't loaded yet, check DB directly
-  if (!posts.length && !_strandedPeople.length && !_petPosts.length) {
-    try {
-      const [offerRes, strandedRes, petsRes] = await Promise.all([
-        _sb.from('help_posts').select('id', { count: 'exact', head: true }).eq('user_id', _currentUser.id).eq('type', 'offer').eq('flagged', false),
-        _sb.from('stranded_people').select('id', { count: 'exact', head: true }).eq('user_id', _currentUser.id).eq('status', 'active'),
-        _sb.from('stranded_pets').select('id', { count: 'exact', head: true }).eq('user_id', _currentUser.id).eq('flagged', false)
-      ]);
-      _hasActiveOffer = (offerRes.count || 0) > 0;
-      _hasActiveStranded = (strandedRes.count || 0) > 0;
-      _hasActivePets = (petsRes.count || 0) > 0;
-    } catch(e) { return; }
-  }
+  // If individual arrays haven't loaded yet, check DB for that specific type
+  try {
+    const checks = [];
+    if (!posts.length) checks.push(_sb.from('help_posts').select('id', { count: 'exact', head: true }).eq('user_id', _currentUser.id).eq('type', 'offer').eq('flagged', false));
+    else checks.push(null);
+    if (!_strandedPeople.length) checks.push(_sb.from('stranded_people').select('id', { count: 'exact', head: true }).eq('user_id', _currentUser.id).eq('status', 'active'));
+    else checks.push(null);
+    if (!_petPosts.length) checks.push(_sb.from('stranded_pets').select('id', { count: 'exact', head: true }).eq('user_id', _currentUser.id).eq('flagged', false));
+    else checks.push(null);
+    const [offerRes, strandedRes, petsRes] = await Promise.all(checks.map(q => q || Promise.resolve({ count: null })));
+    if (!posts.length) _hasActiveOffer = (offerRes.count || 0) > 0;
+    if (!_strandedPeople.length) _hasActiveStranded = (strandedRes.count || 0) > 0;
+    if (!_petPosts.length) _hasActivePets = (petsRes.count || 0) > 0;
+  } catch(e) { return; }
 
   // Fetch notification counts (fire-and-forget, don't block rendering)
   _pendingRequestCount = 0;
