@@ -1,8 +1,8 @@
 // ============================================================
 // CONFIG
 // ============================================================
-const SUPABASE_URL  = 'https://nzvlvqyitsjuxnafcuhl.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im56dmx2cXlpdHNqdXhuYWZjdWhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0MTQxOTEsImV4cCI6MjA4Nzk5MDE5MX0.K4JCnTJTBR7zQBaLmxbeZS2QBRCIxdVzbZKrmapOEkw';
+const SUPABASE_URL  = '%%SUPABASE_URL%%';
+const SUPABASE_ANON = '%%SUPABASE_ANON_KEY%%';
 const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 const SB_ON = true; // always on — URL is set; kept as kill-switch for local dev
 

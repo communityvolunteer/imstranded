@@ -3,8 +3,8 @@
 // fetches data from Supabase, returns HTML with dynamic OG meta tags.
 // Real users pass through to the normal SPA.
 
-const SUPABASE_URL  = 'https://nzvlvqyitsjuxnafcuhl.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im56dmx2cXlpdHNqdXhuYWZjdWhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0MTQxOTEsImV4cCI6MjA4Nzk5MDE5MX0.K4JCnTJTBR7zQBaLmxbeZS2QBRCIxdVzbZKrmapOEkw';
+const SUPABASE_URL  = process.env.SUPABASE_URL;
+const SUPABASE_ANON = process.env.SUPABASE_ANON;
 const SITE_URL      = 'https://help.imstranded.org';
 const DEFAULT_IMG   = SITE_URL + '/og-default.png';
 
