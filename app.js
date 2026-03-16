@@ -2841,23 +2841,24 @@ function openPostSidebar(post, postType) {
       <button onclick="closePostSidebar()" style="position:absolute;top:.5rem;right:0;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.5);font-size:.85rem">✕</button>
       <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="${accentHex()}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.6rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       <div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">SPARE ROOM</div>
-      <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">${esc(post.name||'Anonymous')} ${buildBadge(!!post.user_id)} ${post.xhandle ? buildTipButton(post.xhandle, !!post.user_id) : ''} · <span style="color:rgba(255,255,255,.3)">${timeAgo(post.created_at)}</span></div>
+      <div style="font-size:.72rem;color:rgba(255,255,255,.25);margin-top:.3rem">posted ${timeAgo(post.created_at)}</div>
+      <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.3rem">by ${esc(post.name||'Anonymous')} ${buildBadge(!!post.user_id)} ${post.xhandle ? buildTipButton(post.xhandle, !!post.user_id) : ''}</div>
     </div>`;
     // Spare room post
     html += `<div class="post-sidebar-section">
-      <div class="post-sidebar-label">Location</div>
+      <div class="post-sidebar-label" style="color:${accentHex()}">Location</div>
       <div class="post-sidebar-value">${_svgLocAccent}  ${post.location || '—'}</div>
     </div>`;
     if (post.post_type) {
       html += `<div class="post-sidebar-section">
-        <div class="post-sidebar-label">Room Type</div>
+        <div class="post-sidebar-label" style="color:${accentHex()}">Room Type</div>
         <div class="post-sidebar-value">${post.post_type}</div>
       </div>`;
     }
     if (post.body) {
       html += `<hr class="post-sidebar-divider">
       <div class="post-sidebar-section">
-        <div class="post-sidebar-label">About This Space</div>
+        <div class="post-sidebar-label" style="color:${accentHex()}">About This Space</div>
         <div class="post-sidebar-value">${post.body}</div>
       </div>`;
     }
@@ -2867,56 +2868,54 @@ function openPostSidebar(post, postType) {
       <button onclick="closePostSidebar()" style="position:absolute;top:.5rem;right:0;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.5);font-size:.85rem">✕</button>
       <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.6rem"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">I'M STRANDED</div>
-      <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">${esc(post.name||'Anonymous')} ${buildBadge(!!post.user_id)} ${post.xhandle ? buildSendHelpButton(post.xhandle, !!post.user_id) : ''} · <span style="color:rgba(255,255,255,.3)">${timeAgo(post.created_at)}</span></div>
+      <div style="font-size:.72rem;color:rgba(255,255,255,.25);margin-top:.3rem">posted ${timeAgo(post.created_at)}</div>
+      <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.3rem">by ${esc(post.name||'Anonymous')} ${buildBadge(!!post.user_id)} ${post.xhandle ? buildSendHelpButton(post.xhandle, !!post.user_id) : ''}</div>
     </div>`;
     // Stranded post
     const needsList = (post.needs || []).map(n => NEED_LABELS[n] || n).join(', ');
     html += `<div class="post-sidebar-section">
-      <div class="post-sidebar-label">Currently At</div>
+      <div class="post-sidebar-label" style="color:${accentHex()}">Currently At</div>
       <div class="post-sidebar-value">${_svgLocAccent}  ${post.current_location || post.location || '—'}</div>
     </div>`;
     html += `<div class="post-sidebar-section">
-      <div class="post-sidebar-label">Trying to Reach</div>
-      <div class="post-sidebar-value">✈ <strong style="color:#fff">${post.destination || '—'}</strong>${post.dest_airport ? ' <span style="background:rgba(255,255,255,.1);padding:.1rem .4rem;border-radius:4px;font-size:.7rem;font-weight:600">'+post.dest_airport+'</span>' : ''}</div>
+      <div class="post-sidebar-label" style="color:${accentHex()}">Trying to Reach</div>
+      <div class="post-sidebar-value">${_svgLocAccent} <strong style="color:#fff">${post.destination || '—'}</strong>${post.dest_airport ? ' <span style="background:rgba(255,255,255,.1);padding:.1rem .4rem;border-radius:4px;font-size:.7rem;font-weight:600">'+post.dest_airport+'</span>' : ''}</div>
     </div>`;
     if (post.group_size > 1 || post.nationality) {
       html += `<div class="post-sidebar-section">
-        <div class="post-sidebar-label">Group</div>
+        <div class="post-sidebar-label" style="color:${accentHex()}">Group</div>
         <div class="post-sidebar-value">${post.group_size > 1 ? post.group_size + ' people' : '1 person'}${post.nationality ? ' &middot; ' + post.nationality : ''}</div>
       </div>`;
     }
     if (needsList) {
       html += `<div class="post-sidebar-section">
-        <div class="post-sidebar-label">Needs</div>
+        <div class="post-sidebar-label" style="color:${accentHex()}">Needs</div>
         <div class="post-sidebar-value" style="color:#e67e22">${needsList}</div>
       </div>`;
     }
     if (post.stranded_since) {
       html += `<div class="post-sidebar-section">
-        <div class="post-sidebar-label">Stranded Since</div>
+        <div class="post-sidebar-label" style="color:${accentHex()}">Stranded Since</div>
         <div class="post-sidebar-value">${new Date(post.stranded_since).toLocaleDateString()}</div>
       </div>`;
     }
     if (post.details) {
       html += `<hr class="post-sidebar-divider">
       <div class="post-sidebar-section">
-        <div class="post-sidebar-label">Details</div>
+        <div class="post-sidebar-label" style="color:${accentHex()}">Details</div>
         <div class="post-sidebar-value">${post.details}</div>
       </div>`;
     }
   }
 
   html += `<hr class="post-sidebar-divider">`;
-  const tipOrHelp = postType === 'offer'
-    ? buildTipButton(post.xhandle, !!post.user_id)
-    : buildSendHelpButton(post.xhandle, !!post.user_id);
   const flagBtn = buildFlagButton(postType === 'offer' ? 'help_posts' : 'stranded_people', post.id);
   const shareBig = postType === 'offer'
     ? bigShareBtn(shareRoomText(post), 'room='+post.id, 'Share this room offer')
     : bigShareBtn(shareStrandedText(post), '', 'Share to help this person');
   html += postFooter(
     buildContactButtons(post.contact, post.xhandle, post.name),
-    tipOrHelp,
+    '',
     flagBtn,
     shareBig
   );
@@ -2965,7 +2964,8 @@ function openPetSidebar(p, statusLabel, statusColor, animalIcon, petMatchHtml) {
     <button onclick="closePostSidebar()" style="position:absolute;top:.5rem;right:0;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.5);font-size:.85rem">✕</button>
     <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="none" style="margin-bottom:.6rem"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="${accentHex()}"/><circle cx="6.5" cy="10" r="2" fill="${accentHex()}"/><circle cx="17.5" cy="10" r="2" fill="${accentHex()}"/><circle cx="10" cy="6.5" r="1.8" fill="${accentHex()}"/><circle cx="14" cy="6.5" r="1.8" fill="${accentHex()}"/></svg>
     <div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">STRANDED PETS</div>
-    <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">by ${esc(p.name)} ${buildBadge(!!p.user_id)} <span style="color:${statusColor};font-weight:700">${p.pet_status === 'can_foster' ? statusLabel : ((p.animal_type||'Pet').charAt(0).toUpperCase()+(p.animal_type||'pet').slice(1)) + ' · ' + statusLabel}</span></div>
+    <div style="font-size:.72rem;color:rgba(255,255,255,.25);margin-top:.3rem">posted ${timeAgo(p.created_at)}</div>
+    <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.3rem">by ${esc(p.name)} ${buildBadge(!!p.user_id)} <span style="color:${statusColor};font-weight:700">${p.pet_status === 'can_foster' ? statusLabel : ((p.animal_type||'Pet').charAt(0).toUpperCase()+(p.animal_type||'pet').slice(1)) + ' · ' + statusLabel}</span></div>
     ${(p.animal_type||'').includes(',') ? '<div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-top:.25rem">Can take: '+(p.animal_type||'').split(',').map(t=>t.trim().charAt(0).toUpperCase()+t.trim().slice(1)).join(', ')+'</div>' : ''}
   </div>`;
 
@@ -3285,17 +3285,17 @@ function buildContactButtons(contact, xhandle, name) {
 }
 
 function buildTipButton(xhandle, hasUserId) {
-  const tipIcon = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>';
+  const tipIcon = '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>';
   if (!xhandle || !hasUserId) return '';
   const tweetText = encodeURIComponent(`@bankrbot Tip 1 $HELP to @${xhandle}`);
-  return `<a href="https://x.com/intent/tweet?text=${tweetText}" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:4px;margin-top:.4rem;padding:.32rem .65rem;background:'+accentHex()+';color:#fff;font-size:.66rem;font-weight:700;border-radius:6px;text-decoration:none;font-family:Inter,sans-serif">${tipIcon} Tip $HELP</a>`;
+  return `<a href="https://x.com/intent/tweet?text=${tweetText}" target="_blank" style="display:inline-flex;align-items:center;gap:3px;padding:.15rem .45rem;background:${accentHex()};color:#000;font-size:.55rem;font-weight:700;border-radius:5px;text-decoration:none;font-family:Inter,sans-serif;vertical-align:middle;margin-left:3px">${tipIcon} Tip $HELP</a>`;
 }
 
 function buildSendHelpButton(xhandle, hasUserId) {
-  const tipIcon = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>';
+  const tipIcon = '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>';
   if (!xhandle || !hasUserId) return '';
   const tweetText = encodeURIComponent(`@bankrbot Tip 1 $HELP to @${xhandle}`);
-  return `<a href="https://x.com/intent/tweet?text=${tweetText}" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:4px;margin-top:.4rem;padding:.32rem .65rem;background:#ec3452;color:#fff;font-size:.66rem;font-weight:700;border-radius:6px;text-decoration:none;font-family:Inter,sans-serif">${tipIcon} Send $HELP</a>`;
+  return `<a href="https://x.com/intent/tweet?text=${tweetText}" target="_blank" style="display:inline-flex;align-items:center;gap:3px;padding:.15rem .45rem;background:#ec3452;color:#fff;font-size:.55rem;font-weight:700;border-radius:5px;text-decoration:none;font-family:Inter,sans-serif;vertical-align:middle;margin-left:3px">${tipIcon} Send $HELP</a>`;
 }
 
 // Compact inline contact icons for discovery cards
@@ -3324,7 +3324,7 @@ function buildFlagButton(table, id) {
 }
 
 // ── User dot builder (matches IMPACTED dot style) ────────────
-function buildUserDot(type, num, subtitle, minSz) {
+function buildUserDot(type, num, subtitle, minSz, labelOverride) {
   // type: 'offer' (blue), 'stranded' (red), 'success' (green), 'pet' (amber)
   const colors = {
     offer:    { bg:''+accentRgba(.36)+'',  border:''+accentRgba(.70)+'',  ring:''+accentRgba(.24)+'' },
@@ -3333,7 +3333,7 @@ function buildUserDot(type, num, subtitle, minSz) {
     pet:      { bg:''+accentRgba(.36)+'',  border:''+accentRgba(.80)+'',  ring:''+accentRgba(.24)+'' },
   };
   const c = colors[type] || colors.offer;
-  const label = num >= 1000000 ? (num/1000000).toFixed(1)+'M' : num >= 1000 ? Math.round(num/1000)+'k' : num.toString();
+  const label = labelOverride || (num >= 1000000 ? (num/1000000).toFixed(1)+'M' : num >= 1000 ? Math.round(num/1000)+'k' : num.toString());
   const sz = Math.max(minSz || 50, num >= 100 ? 56 : num >= 10 ? 52 : 50);
   const ring = num >= 100 ? 8 : 6;
   const html = '<div class="gd-cluster gd-cluster--'+type+'" style="width:'+sz+'px;height:'+sz+'px;background:'+c.bg+';border:1.5px solid '+c.border+'">' +
@@ -6724,7 +6724,7 @@ function renderSuccessOnMap(map, showHome = true) {
     // Green pin at room location
     if (s.lat && s.lng) {
       const uid = s.id.slice(0,8);
-      const _sucD = buildUserDot('success', 1, 'story', 50);
+      const _sucD = buildUserDot('success', 1, 'success', 50, '✓');
       const icon = L.divIcon({ className: '', html: _sucD.html, iconSize: [_sucD.sz, _sucD.sz], iconAnchor: [_sucD.sz/2, _sucD.sz/2] });
       const popHtml = `<div class="spt-wrap-${uid}" style="font-family:Inter,sans-serif">${buildSuccessTab(s, uid)}</div>`;
       const marker = L.marker([s.lat, s.lng], { icon });
@@ -6734,7 +6734,7 @@ function renderSuccessOnMap(map, showHome = true) {
     }
     // Extra pin at home location if they made it
     if (showHome && s.home_lat && s.home_lng) {
-      const _homeD = buildUserDot('success', 1, 'home', 50);
+      const _homeD = buildUserDot('success', 1, "i'm home", 50, '✓');
       const homeIcon = L.divIcon({ className: '', html: _homeD.html, iconSize: [_homeD.sz, _homeD.sz], iconAnchor: [_homeD.sz/2, _homeD.sz/2] });
       const homePop = `<div style="font-family:Inter,sans-serif"><div style="font-size:.6rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">🏠 Made it home</div><div style="font-size:.82rem;font-weight:700;color:#fff;margin-bottom:.15rem">${s.stranded_name||'Stranded person'}</div><div style="font-size:.73rem;color:rgba(255,255,255,.45)">${esc(s.home_location)||''}</div>${s.home_story?`<div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:.35rem;line-height:1.5;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.4)">"${esc(s.home_story)}"</div>`:''}</div>`;
       const hm = L.marker([s.home_lat, s.home_lng], { icon: homeIcon });
