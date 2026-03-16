@@ -4111,7 +4111,7 @@ function initMobile(){
     mmap.on('zoomend', () => applyFilters());
 
     try {
-      window._mTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mmap);
+      window._mTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mmap);
 
       mmap.createPane('worldwidePane');
       mmap.getPane('worldwidePane').style.zIndex = 580;
@@ -4153,23 +4153,6 @@ function initMobile(){
       }
 
       mRenderResources();
-
-      // Mobile defaults to light map
-      _mapDark = false;
-      document.body.classList.add('map-light');
-      document.querySelectorAll('.leaflet-control-zoom').forEach(el => el.classList.add('theme-light'));
-      ['','m-'].forEach(prefix => {
-        const sun = document.getElementById(prefix + 'theme-icon-sun');
-        const moon = document.getElementById(prefix + 'theme-icon-moon');
-        if (sun) sun.style.display = 'none';
-        if (moon) moon.style.display = 'block';
-      });
-
-      // Mobile: turn off route arcs by default
-      ['mfp-worldwide-arcs','mfp-show-success-arcs'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.checked = false;
-      });
 
     } catch(e) {
       console.error('[initMobile] init error:', e.message, e.stack);
@@ -7432,6 +7415,7 @@ async function _updateActionButtonsNow() {
       pcOffer.querySelector('.sitrep-label').textContent = 'Offer Spare Room';
       pcOffer.querySelector('.sitrep-label').style.color = '#fff';
       pcOffer.querySelector('.sitrep-sub').textContent = 'tap · help someone';
+      try { pcOffer.querySelector('svg').outerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'; } catch(e) {}
       pcOffer.onclick = () => isMob() ? mTab('offer', null) : openFormSidebar('offer');
     }
   }
@@ -7454,12 +7438,14 @@ async function _updateActionButtonsNow() {
           ? `<span style="display:inline-block;background:var(--accent);color:#fff;font-size:.55rem;font-weight:800;border-radius:10px;padding:.1rem .4rem;margin-left:.3rem;vertical-align:middle">${_roomsOfferedCount}</span>`
           : `<span style="display:inline-block;background:rgba(255,255,255,.12);color:rgba(255,255,255,.4);font-size:.55rem;font-weight:800;border-radius:10px;padding:.1rem .4rem;margin-left:.3rem;vertical-align:middle">0</span>`;
         pcStranded.querySelector('.sitrep-sub').innerHTML = 'Offers' + badge;
+        try { pcStranded.querySelector('svg').outerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'; } catch(e) {}
         pcStranded.onclick = () => openManageSidebar('stranded');
       }
     } else {
       pcStranded.querySelector('.sitrep-label').textContent = "I'm Stranded";
       pcStranded.querySelector('.sitrep-label').style.color = '#ec3452';
       pcStranded.querySelector('.sitrep-sub').textContent = 'tap · register';
+      try { pcStranded.querySelector('svg').outerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'; } catch(e) {}
       pcStranded.onclick = () => isMob() ? mTab('stranded', null) : openFormSidebar('stranded');
     }
   }
@@ -8357,12 +8343,14 @@ function resetActionButtons() {
     pcOffer.querySelector('.sitrep-label').textContent = 'Offer Spare Room';
     pcOffer.querySelector('.sitrep-label').style.color = '#fff';
     pcOffer.querySelector('.sitrep-sub').textContent = 'tap · help someone';
+    try { pcOffer.querySelector('svg').outerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'; } catch(e) {}
     pcOffer.onclick = () => isMob() ? mTab('offer', null) : openFormSidebar('offer');
   }
   if (pcStranded) {
     pcStranded.querySelector('.sitrep-label').textContent = "I'm Stranded";
     pcStranded.querySelector('.sitrep-label').style.color = '#ec3452';
     pcStranded.querySelector('.sitrep-sub').textContent = 'tap · register';
+    try { pcStranded.querySelector('svg').outerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'; } catch(e) {}
     pcStranded.onclick = () => isMob() ? mTab('stranded', null) : openFormSidebar('stranded');
   }
   const pcPets = document.getElementById('ss-pets');

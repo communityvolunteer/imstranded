@@ -392,10 +392,10 @@ function googleTranslateInit() {
         <label class="fp-toggle"><input type="checkbox" id="fp-show-fostering" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show on map</label>
         <div class="fp-label">Animal type</div>
         <div class="fp-chips" id="fp-foster-animal">
-          <label class="fp-chip"><input type="checkbox" value="dog" onchange="applyFilters()"> 🐕 Dogs</label>
-          <label class="fp-chip"><input type="checkbox" value="cat" onchange="applyFilters()"> 🐈 Cats</label>
-          <label class="fp-chip"><input type="checkbox" value="bird" onchange="applyFilters()"> 🐦 Birds</label>
-          <label class="fp-chip"><input type="checkbox" value="other" onchange="applyFilters()"> 🐾 Other Animals</label>
+          <label class="fp-chip fp-chip--blue"><input type="checkbox" value="dog" onchange="applyFilters()"> 🐕 Home for Dogs</label>
+          <label class="fp-chip fp-chip--blue"><input type="checkbox" value="cat" onchange="applyFilters()"> 🐈 Home for Cats</label>
+          <label class="fp-chip fp-chip--blue"><input type="checkbox" value="bird" onchange="applyFilters()"> 🐦 Home for Birds</label>
+          <label class="fp-chip fp-chip--blue"><input type="checkbox" value="other" onchange="applyFilters()"> 🐾 Home for Other Animals</label>
         </div>
       </div>
     </div>
@@ -412,10 +412,10 @@ function googleTranslateInit() {
         <label class="fp-toggle"><input type="checkbox" id="fp-show-pets" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show on map</label>
         <div class="fp-label">Animal type</div>
         <div class="fp-chips" id="fp-pet-animal">
-          <label class="fp-chip fp-chip--red"><input type="checkbox" value="dog" onchange="applyFilters()"> 🐕 Dogs in Need</label>
-          <label class="fp-chip fp-chip--red"><input type="checkbox" value="cat" onchange="applyFilters()"> 🐈 Cats in Need</label>
-          <label class="fp-chip fp-chip--red"><input type="checkbox" value="bird" onchange="applyFilters()"> 🐦 Birds in Need</label>
-          <label class="fp-chip fp-chip--red"><input type="checkbox" value="other" onchange="applyFilters()"> 🐾 Other Animals</label>
+          <label class="fp-chip fp-chip--blue"><input type="checkbox" value="dog" onchange="applyFilters()"> 🐕 Dogs in Need</label>
+          <label class="fp-chip fp-chip--blue"><input type="checkbox" value="cat" onchange="applyFilters()"> 🐈 Cats in Need</label>
+          <label class="fp-chip fp-chip--blue"><input type="checkbox" value="bird" onchange="applyFilters()"> 🐦 Birds in Need</label>
+          <label class="fp-chip fp-chip--blue"><input type="checkbox" value="other" onchange="applyFilters()"> 🐾 Other Animals</label>
         </div>
       </div>
     </div>
@@ -1114,10 +1114,10 @@ function googleTranslateInit() {
             <label class="fp-toggle"><input type="checkbox" id="mfp-show-fostering" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show on map</label>
             <div class="fp-label">Animal type</div>
             <div class="fp-chips" id="mfp-foster-animal">
-              <label class="fp-chip"><input type="checkbox" value="dog" onchange="applyFilters()"> 🐕 Dogs</label>
-              <label class="fp-chip"><input type="checkbox" value="cat" onchange="applyFilters()"> 🐈 Cats</label>
-              <label class="fp-chip"><input type="checkbox" value="bird" onchange="applyFilters()"> 🐦 Birds</label>
-              <label class="fp-chip"><input type="checkbox" value="other" onchange="applyFilters()"> 🐾 Other Animals</label>
+              <label class="fp-chip fp-chip--blue"><input type="checkbox" value="dog" onchange="applyFilters()"> 🐕 Home for Dogs</label>
+              <label class="fp-chip fp-chip--blue"><input type="checkbox" value="cat" onchange="applyFilters()"> 🐈 Home for Cats</label>
+              <label class="fp-chip fp-chip--blue"><input type="checkbox" value="bird" onchange="applyFilters()"> 🐦 Home for Birds</label>
+              <label class="fp-chip fp-chip--blue"><input type="checkbox" value="other" onchange="applyFilters()"> 🐾 Home for Other Animals</label>
             </div>
           </div>
         </div>
@@ -1132,10 +1132,10 @@ function googleTranslateInit() {
             <label class="fp-toggle"><input type="checkbox" id="mfp-show-pets" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show on map</label>
             <div class="fp-label">Animal type</div>
             <div class="fp-chips" id="mfp-pet-animal">
-              <label class="fp-chip fp-chip--red"><input type="checkbox" value="dog" onchange="applyFilters()"> 🐕 Dogs in Need</label>
-              <label class="fp-chip fp-chip--red"><input type="checkbox" value="cat" onchange="applyFilters()"> 🐈 Cats in Need</label>
-              <label class="fp-chip fp-chip--red"><input type="checkbox" value="bird" onchange="applyFilters()"> 🐦 Birds in Need</label>
-              <label class="fp-chip fp-chip--red"><input type="checkbox" value="other" onchange="applyFilters()"> 🐾 Other Animals</label>
+              <label class="fp-chip fp-chip--blue"><input type="checkbox" value="dog" onchange="applyFilters()"> 🐕 Dogs in Need</label>
+              <label class="fp-chip fp-chip--blue"><input type="checkbox" value="cat" onchange="applyFilters()"> 🐈 Cats in Need</label>
+              <label class="fp-chip fp-chip--blue"><input type="checkbox" value="bird" onchange="applyFilters()"> 🐦 Birds in Need</label>
+              <label class="fp-chip fp-chip--blue"><input type="checkbox" value="other" onchange="applyFilters()"> 🐾 Other Animals</label>
             </div>
           </div>
         </div>
@@ -1640,7 +1640,7 @@ function googleTranslateInit() {
               Offer a Room
             </button>
             <button id="hr-s2-pet-btn" class="hstep-btn hstep-btn--blue" onclick="dismissHelp();setTimeout(function(){if(isMob()){mTab('pets',null);setTimeout(function(){setPetMode('m-pet','take')},100)}else{openFormSidebar('pets');setTimeout(function(){setPetMode('pet','take')},100)}},150)">
-              🐾 Help a Pet
+              Help a Pet
             </button>
             <button id="hr-s2-stranded-btn" class="hstep-btn hstep-btn--red" onclick="dismissHelp();setTimeout(function(){isMob()?mTab('stranded',null):openFormSidebar('stranded')},150)">
               
