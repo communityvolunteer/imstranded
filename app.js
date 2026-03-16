@@ -6211,6 +6211,8 @@ function setPetMode(prefix, mode) {
       ? 'Can take 1 dog tonight, dog food is a plus!'
       : 'Breed, age, temperament, what\'s needed...';
   }
+  const locInput = document.getElementById(prefix + '-pet-location');
+  if (locInput) locInput.placeholder = mode === 'take' ? 'Where are you located?' : 'Where is the pet?';
   renderNearbyPets(prefix, mode);
 }
 
@@ -8119,11 +8121,12 @@ function openHousedFlow(petPostId) {
   if (isMob()) {
     openMPinSheet(html);
   } else {
-    const body = document.getElementById('post-sidebar-body');
+    // Render into form-sidebar (same panel as MY PETS manage view)
+    const body = document.getElementById('form-sidebar-body');
+    const title = document.getElementById('form-sidebar-title');
     if (body) body.innerHTML = html;
-    const sb = document.getElementById('post-sidebar');
-    const header = document.getElementById('post-sidebar-header');
-    if (header) header.style.display = 'none';
+    if (title) { title.innerHTML = '🎉 HOUSED?'; title.style.color = '#22c55e'; }
+    const sb = document.getElementById('form-sidebar');
     if (sb) sb.classList.add('open');
   }
 
