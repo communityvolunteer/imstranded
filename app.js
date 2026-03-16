@@ -7494,7 +7494,7 @@ function openManageSidebar(type) {
       ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="none" style="vertical-align:middle;margin-right:.3rem"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="'+accentHex()+'"/><circle cx="6.5" cy="10" r="2" fill="'+accentHex()+'"/><circle cx="17.5" cy="10" r="2" fill="'+accentHex()+'"/><circle cx="10" cy="6.5" r="1.8" fill="'+accentHex()+'"/><circle cx="14" cy="6.5" r="1.8" fill="'+accentHex()+'"/></svg>'
       : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="'+accentHex()+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:.3rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
     if (title) {
-      title.innerHTML = heroIcon + (type === 'offer' ? 'MY ROOM' : type === 'pets' ? 'MY PETS' : 'MY STATUS');
+      title.innerHTML = heroIcon + (type === 'offer' ? 'MY ROOM' : type === 'pets' ? 'PETS DASHBOARD' : 'MY STATUS');
       title.style.color = heroColor;
       title.style.fontSize = '.85rem';
     }
@@ -7627,8 +7627,8 @@ async function renderManageDashboard(type) {
     }
     const pawSvg = '<svg width="__SZ__" height="__SZ__" viewBox="0 0 24 24" fill="none" stroke="none" style="margin-bottom:.5rem"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="'+accentHex()+'"/><circle cx="6.5" cy="10" r="2" fill="'+accentHex()+'"/><circle cx="17.5" cy="10" r="2" fill="'+accentHex()+'"/><circle cx="10" cy="6.5" r="1.8" fill="'+accentHex()+'"/><circle cx="14" cy="6.5" r="1.8" fill="'+accentHex()+'"/></svg>';
     const petHero = isMob()
-      ? `<div style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1rem"><button onclick="mSheetToggle()" style="position:absolute;top:.3rem;right:.3rem;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.6);font-size:.9rem">✕</button>${pawSvg.replace(/__SZ__/g,'48')}<div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">MY PETS</div></div>`
-      : `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1.4rem">${pawSvg.replace(/__SZ__/g,'54')}<div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">MY PETS</div><div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">Manage your pet posts, matches, and reunions.</div></div>`;
+      ? `<div style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1rem"><button onclick="mSheetToggle()" style="position:absolute;top:.3rem;right:.3rem;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.6);font-size:.9rem">✕</button>${pawSvg.replace(/__SZ__/g,'48')}<div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">PETS DASHBOARD</div></div>`
+      : `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1.4rem">${pawSvg.replace(/__SZ__/g,'54')}<div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">PETS DASHBOARD</div><div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">Manage your pet posts, matches, and reunions.</div></div>`;
 
     if (!myPets.length) {
       container.innerHTML = petHero + '<div style="text-align:center;padding:1.5rem 0;color:rgba(255,255,255,.4)">No pet posts yet.</div>' +
@@ -7637,11 +7637,25 @@ async function renderManageDashboard(type) {
     }
 
     let cardsHtml = '';
-    for (const p of myPets) {
-      const match = _petMatchByPet[p.id] || _petMatchByFoster[p.id] || null;
-      const step = match?.reunited ? 3 : match?.foster_confirmed ? 2 : 1;
-      const stepLabels = p.pet_status === 'can_foster' ? ['Offered', 'Caring', 'Reunited'] : ['Posted', 'Housed', 'Reunited'];
-      cardsHtml += buildProgressTracker(step, stepLabels, accentHex()) + buildPetCard(p, match, step);
+    const helpPets = myPets.filter(p => p.pet_status === 'can_foster');
+    const needPets = myPets.filter(p => p.pet_status !== 'can_foster');
+
+    if (needPets.length) {
+      cardsHtml += `<div style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:${accentHex()};margin-bottom:.4rem;padding-left:.2rem">🐾 Pets That Need a Home</div>`;
+      for (const p of needPets) {
+        const match = _petMatchByPet[p.id] || _petMatchByFoster[p.id] || null;
+        const step = match?.reunited ? 3 : match?.foster_confirmed ? 2 : 1;
+        cardsHtml += buildProgressTracker(step, ['Posted', 'Housed', 'Reunited'], accentHex()) + buildPetCard(p, match, step);
+      }
+    }
+    if (helpPets.length) {
+      if (needPets.length) cardsHtml += `<div style="height:1.2rem"></div>`;
+      cardsHtml += `<div style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#22c55e;margin-bottom:.4rem;padding-left:.2rem">🤝 Pets I Can Help</div>`;
+      for (const p of helpPets) {
+        const match = _petMatchByPet[p.id] || _petMatchByFoster[p.id] || null;
+        const step = match?.reunited ? 3 : match?.foster_confirmed ? 2 : 1;
+        cardsHtml += buildProgressTracker(step, ['Offered', 'Caring', 'Reunited'], '#22c55e') + buildPetCard(p, match, step);
+      }
     }
     // Add post button at bottom
     cardsHtml += `<div style="text-align:center;margin-top:1rem;padding-top:.8rem;border-top:1px solid rgba(255,255,255,.06)"><button onclick="isMob()?mTab('pets',null):openFormSidebar('pets')" style="${btnStyle('accent')}">+ Post Another Pet</button></div>`;
@@ -8121,7 +8135,7 @@ function openHousedFlow(petPostId) {
   if (isMob()) {
     openMPinSheet(html);
   } else {
-    // Render into form-sidebar (same panel as MY PETS manage view)
+    // Render into form-sidebar (same panel as PETS DASHBOARD manage view)
     const body = document.getElementById('form-sidebar-body');
     const title = document.getElementById('form-sidebar-title');
     if (body) body.innerHTML = html;
