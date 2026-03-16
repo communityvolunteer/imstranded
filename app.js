@@ -7637,11 +7637,13 @@ async function renderManageDashboard(type) {
     }
 
     let cardsHtml = '';
-    const helpPets = myPets.filter(p => p.pet_status === 'can_foster');
-    const needPets = myPets.filter(p => p.pet_status !== 'can_foster');
+    const sectionHero = (title) => `<div style="display:flex;align-items:center;gap:.5rem;padding:.8rem 0 .4rem">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="none"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="${accentHex()}"/><circle cx="6.5" cy="10" r="2" fill="${accentHex()}"/><circle cx="17.5" cy="10" r="2" fill="${accentHex()}"/><circle cx="10" cy="6.5" r="1.8" fill="${accentHex()}"/><circle cx="14" cy="6.5" r="1.8" fill="${accentHex()}"/></svg>
+      <div style="font-size:1.3rem;font-weight:900;color:#fff;letter-spacing:-.02em">${title}</div>
+    </div>`;
 
     if (needPets.length) {
-      cardsHtml += `<div style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:${accentHex()};margin-bottom:.4rem;padding-left:.2rem">🐾 Pets That Need a Home</div>`;
+      cardsHtml += sectionHero('NEEDING A HOME');
       for (const p of needPets) {
         const match = _petMatchByPet[p.id] || _petMatchByFoster[p.id] || null;
         const step = match?.reunited ? 3 : match?.foster_confirmed ? 2 : 1;
@@ -7649,8 +7651,8 @@ async function renderManageDashboard(type) {
       }
     }
     if (helpPets.length) {
-      if (needPets.length) cardsHtml += `<div style="height:1.2rem"></div>`;
-      cardsHtml += `<div style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#22c55e;margin-bottom:.4rem;padding-left:.2rem">🤝 Pets I Can Help</div>`;
+      if (needPets.length) cardsHtml += `<div style="height:.6rem"></div>`;
+      cardsHtml += sectionHero('PETS I CAN HELP');
       for (const p of helpPets) {
         const match = _petMatchByPet[p.id] || _petMatchByFoster[p.id] || null;
         const step = match?.reunited ? 3 : match?.foster_confirmed ? 2 : 1;
