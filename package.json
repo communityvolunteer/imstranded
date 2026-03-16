@@ -2,8 +2,6 @@
   "name": "imstranded",
   "version": "1.0.1",
   "private": true,
-  "description": "Crisis resource hub for stranded travelers.",
-  "scripts": {
-    "build": "bash build.sh"
-  }
+  "description": "Crisis resource hub for stranded travelers."
+
 } 
