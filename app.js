@@ -1,8 +1,8 @@
 // ============================================================
 // CONFIG
 // ============================================================
-const SUPABASE_URL  = '%%SUPABASE_URL%%';
-const SUPABASE_ANON = '%%SUPABASE_ANON_KEY%%';
+const SUPABASE_URL  = window.__SB_URL__;
+const SUPABASE_ANON = window.__SB_ANON__;
 const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 const SB_ON = true; // always on — URL is set; kept as kill-switch for local dev
 
