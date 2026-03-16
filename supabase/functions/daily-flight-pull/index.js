@@ -120,6 +120,8 @@ Deno.serve(async (_req) => {
     'dxb-arr': { hubs: ['DXB'],                                                    passes: 'arr' },
     'doh-dep': { hubs: ['DOH'],                                                    passes: 'dep' },
     'doh-arr': { hubs: ['DOH'],                                                    passes: 'arr' },
+    'dxb':     { hubs: ['DXB'],                                                    passes: 'both' },
+    'doh':     { hubs: ['DOH'],                                                    passes: 'both' },
     'auh':     { hubs: ['AUH','SHJ','DWC','RKT'],                                  passes: 'both' },
     '2':       { hubs: ['BAH','KWI','MCT','RUH','JED','DMM'],                      passes: 'both' },
     '3':       { hubs: ['MED','IKA','THR','MHD','SYZ','BGW','EBL','BSR','TLV','AMM','BEY'], passes: 'both' },
