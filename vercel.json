@@ -1,0 +1,18 @@
+{
+  "buildCommand": "bash build.sh",
+  "outputDirectory": ".",
+  "crons": [
+    {
+      "path": "/api/scrape",
+      "schedule": "*/15 * * * *"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/og-default.png",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400, s-maxage=86400" }
+      ]
+    }
+  ]
+}
