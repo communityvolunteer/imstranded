@@ -2728,15 +2728,15 @@ function buildDualPopup(iata) {
     // Est. stranded — above toggle, hidden on arrivals tab
     estBlock +
     
-    // CTA buttons
-    ctaOffer +
-    ctaStranded +
-    
-    // Share — full width solid white button with red text
-    '<button onclick="event.stopPropagation();openShareTray(\'' + shareAirportText(city, lEstStranded).replace(/'/g,"\\'") + '\',\'airport=' + iata + '\',\'Share crisis data for ' + city + '\')" style="width:100%;margin-top:.6rem;padding:.55rem;border-radius:10px;border:none;background:#fff;color:#ec3452;font-family:Inter,sans-serif;font-size:.75rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem" onmouseover="this.style.opacity=\'.88\'" onmouseout="this.style.opacity=\'1\'">' +
+    // Share — right under the red est. stranded block
+    '<button onclick="event.stopPropagation();openShareTray(\'' + shareAirportText(city, lEstStranded).replace(/'/g,"\\'") + '\',\'airport=' + iata + '\',\'Share crisis data for ' + city + '\')" style="width:100%;margin-top:.5rem;margin-bottom:.6rem;padding:.55rem;border-radius:10px;border:none;background:#fff;color:#ec3452;font-family:Inter,sans-serif;font-size:.75rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem" onmouseover="this.style.opacity=\'.88\'" onmouseout="this.style.opacity=\'1\'">' +
       '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>' +
       'Share this' +
     '</button>' +
+    
+    // CTA buttons
+    ctaOffer +
+    ctaStranded +
     
     // Section: The Full Impact
     fullImpactHeader +
