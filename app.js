@@ -4,7 +4,7 @@
 const SUPABASE_URL  = 'https://nzvlvqyitsjuxnafcuhl.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im56dmx2cXlpdHNqdXhuYWZjdWhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0MTQxOTEsImV4cCI6MjA4Nzk5MDE5MX0.K4JCnTJTBR7zQBaLmxbeZS2QBRCIxdVzbZKrmapOEkw';
 const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-const SB_ON = !SUPABASE_URL.includes('YOUR_PROJECT_ID');
+const SB_ON = true; // always on — URL is set; kept as kill-switch for local dev
 
 // ── Accent color system — MUST be at top, called throughout ──
 var ACCENT_THEMES = {
@@ -3308,10 +3308,10 @@ function buildContactButtons(contact, xhandle, name) {
   const tgMatch = c.match(/@([A-Za-z0-9_]{3,})/);
   if (tgMatch) btns.push(`<a href="https://t.me/${tgMatch[1]}" target="_blank" style="${s}" title="@${tgMatch[1]}">${tgIco}</a>`);
 
-  if (xhandle) btns.push(`<a href="https://x.com/${xhandle}" target="_blank" style="${s}" title="@${xhandle}">${xIco}</a>`);
+  if (xhandle) btns.push(`<a href="https://x.com/${esc(xhandle)}" target="_blank" style="${s}" title="@${esc(xhandle)}">${xIco}</a>`);
 
   if (!btns.length) return '';
-  return `<div style="margin-top:.5rem"><div style="font-size:.5rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#fff;margin-bottom:.25rem">${name ? "CONTACT " + name.toUpperCase() : "CONTACT"}</div><div style="display:flex;gap:3px">${btns.join('')}</div></div>`;
+  return `<div style="margin-top:.5rem"><div style="font-size:.5rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#fff;margin-bottom:.25rem">${name ? "CONTACT " + esc(name).toUpperCase() : "CONTACT"}</div><div style="display:flex;gap:3px">${btns.join('')}</div></div>`;
 }
 
 function buildTipButton(xhandle, hasUserId) {
@@ -3343,9 +3343,9 @@ function buildContactIcons(contact, xhandle, name) {
   if (phoneMatch) icons.push(`<a href="tel:${phoneMatch[0].replace(/[\s\-().]/g,'')}" style="${is}" title="Call">${phoneIco}</a>`);
   const tgMatch = c.match(/@([A-Za-z0-9_]{3,})/);
   if (tgMatch) icons.push(`<a href="https://t.me/${tgMatch[1]}" target="_blank" style="${is}" title="@${tgMatch[1]}">${tgIco}</a>`);
-  if (xhandle) icons.push(`<a href="https://x.com/${xhandle}" target="_blank" style="${is}" title="@${xhandle}">${xIco}</a>`);
+  if (xhandle) icons.push(`<a href="https://x.com/${esc(xhandle)}" target="_blank" style="${is}" title="@${esc(xhandle)}">${xIco}</a>`);
   if (!icons.length) return '';
-  const firstName = (name || 'them').split(' ')[0];
+  const firstName = esc((name || 'them').split(' ')[0]);
   return `<div style="font-size:.55rem;color:rgba(255,255,255,.35);margin-top:.2rem">Contact ${firstName} via <span style="display:inline-flex;gap:3px;vertical-align:middle;margin-left:2px">${icons.join('')}</span></div>`;
 }
 
@@ -3539,7 +3539,7 @@ function renderResources() {
         const hasFullDir = typeof EMBASSIES_BY_HOST !== 'undefined' && embCC && EMBASSIES_BY_HOST[embCC];
         const embCount = hasFullDir ? Object.keys(EMBASSIES_BY_HOST[embCC].embassies).length : 0;
         const embSection = hasFullDir
-          ? `<div class="embassy-section"><a href="javascript:void(0)" onclick="document.getElementById('res-stuck-in').value='${embCC}';renderResources()" style="display:block;text-align:center;padding:.45rem;background:'+accentRgba(.1)+';border:1px solid '+accentRgba(.18)+';border-radius:8px;color:'+accentHex()+';font-size:.72rem;font-weight:700;text-decoration:none;text-transform:uppercase;letter-spacing:.03em">\ud83c\udfdb\ufe0f ${embCount} Embassy contacts — tap to filter</a></div>`
+          ? `<div class="embassy-section"><a href="javascript:void(0)" onclick="document.getElementById('res-stuck-in').value='${embCC}';renderResources()" style="display:block;text-align:center;padding:.45rem;background:${accentRgba(.1)};border:1px solid ${accentRgba(.18)};border-radius:8px;color:${accentHex()};font-size:.72rem;font-weight:700;text-decoration:none;text-transform:uppercase;letter-spacing:.03em">\ud83c\udfdb\ufe0f ${embCount} Embassy contacts — tap to filter</a></div>`
           : `<div class="embassy-section"><div class="embassy-title">Emergency Contacts</div>${Object.entries(c.embassy).map(([key,info]) => {
               const M = EMBASSY_META[key]||{flag:'',role:key.toUpperCase()};
               const phone = info.phone||info.alt||null;
@@ -3584,7 +3584,7 @@ function renderResources() {
         matchCount += entries.length;
 
         html += `<div class="country-card warn" id="emb-${cc}" style="grid-column:1/-1">
-          <div class="card-header"><div class="card-name">${host.name}</div><span class="status-badge" style="background:'+accentRgba(.15)+';color:'+accentHex()+'">${entries.length} EMBASSIES</span></div>
+          <div class="card-header"><div class="card-name">${host.name}</div><span class="status-badge" style="background:${accentRgba(.15)};color:${accentHex()}">${entries.length} EMBASSIES</span></div>
           ${host.emergency ? '<div style="font-size:.78rem;color:rgba(255,255,255,.5);margin:.3rem 0">Emergency: <strong style="color:#ec3452">'+host.emergency+'</strong></div>' : ''}
           ${host.crisis_note ? '<div style="font-size:.72rem;color:rgba(255,255,255,.35);font-style:italic;margin-bottom:.4rem">'+host.crisis_note+'</div>' : ''}
           <div class="embassy-section">`;
@@ -3614,7 +3614,7 @@ function renderResources() {
     
     // Global emergency hotlines (show when no filters)
     if (!stuckIn && !from && !search && typeof GLOBAL_EMERGENCY !== 'undefined') {
-      html += `<div class="country-card safe" id="emb-global" style="grid-column:1/-1;border-color:'+accentRgba(.2)+'">
+      html += `<div class="country-card safe" id="emb-global" style="grid-column:1/-1;border-color:${accentRgba(.2)}">
         <div class="card-header"><div class="card-name">Global Emergency Hotlines</div><span class="status-badge safe">24/7</span></div>
         <div style="font-size:.78rem;color:rgba(255,255,255,.45);margin-bottom:.5rem">Call your country's crisis line from anywhere</div>
         <div class="embassy-section">`;
@@ -3672,7 +3672,7 @@ function renderResources() {
       }
     }
   }
-  grid.innerHTML = html || '<div class="empty-state" style="min-height:50vh;display:flex;align-items:center;justify-content:center">No items match this filter.</div>';
+  grid.innerHTML = html || '<div class="empty-state" style="min-height:45vh;display:flex;align-items:center;justify-content:center">No items match this filter.</div>';
 }
 
 // ============================================================
@@ -4206,7 +4206,7 @@ function openMCountryPopup(id){
     ${borderRows}
     <div class="m-popup-section-title">Embassy Emergency Contacts</div>
     ${embRows||'<div style="font-size:.78rem;color:var(--muted)">Check embassy website</div>'}
-    ${c.ngos?.length?`<div class="m-popup-section-title">Active NGOs</div><div class="ngo-tags" style="display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.3rem">${c.ngos.map(n=>`<span style="background:#eff6ff30;color:'+accentHex()+';font-size:.63rem;font-weight:600;border-radius:4px;padding:.14rem .48rem">${n}</span>`).join('')}</div>`:''}
+    ${c.ngos?.length?`<div class="m-popup-section-title">Active NGOs</div><div class="ngo-tags" style="display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.3rem">${c.ngos.map(n=>`<span style="background:#eff6ff30;color:${accentHex()};font-size:.63rem;font-weight:600;border-radius:4px;padding:.14rem .48rem">${n}</span>`).join('')}</div>`:''}
     ${c.telegram?`<a href="${c.telegram}" target="_blank" style="display:inline-block;margin-top:.65rem;color:#2563eb;font-size:.8rem;font-weight:500">→ Telegram group</a>`:''}
   `;
   document.getElementById('m-country-popup').classList.add('open');
@@ -4402,7 +4402,7 @@ function mFilterResources() {
       if (!entries.length) continue;
       count += entries.length;
       html += `<div class="m-emb-section">
-        <div class="m-emb-country-title">${host.name} <span style="font-size:.55rem;background:'+accentRgba(.15)+';color:'+accentHex()+';border-radius:4px;padding:.1rem .3rem;font-weight:700">${entries.length}</span></div>
+        <div class="m-emb-country-title">${host.name} <span style="font-size:.55rem;background:${accentRgba(.15)};color:${accentHex()};border-radius:4px;padding:.1rem .3rem;font-weight:700">${entries.length}</span></div>
         ${host.emergency ? '<div style="font-size:.65rem;color:rgba(255,255,255,.4);margin-bottom:.3rem">Emergency: <strong style="color:#ec3452">'+host.emergency+'</strong></div>' : ''}
         ${entries.map(([natCC, info]) => {
           const nat = (typeof EMB_NATIONS !== 'undefined' && EMB_NATIONS[natCC]) || {flag:'',name:natCC};
@@ -4410,13 +4410,13 @@ function mFilterResources() {
           return `<div class="m-emb-row"><div class="m-emb-who"><span class="m-emb-country">${nat.flag} ${nat.name}</span>${info.note?`<span class="m-emb-role">${info.note}</span>`:''}</div>
             <div style="display:flex;gap:.3rem;align-items:center">
               ${phone?`<a class="m-call-btn" href="tel:${phone.replace(/[\s\-()]/g,'')}">${PHONE_SVG} ${phone}</a>`:''}
-              ${info.web?`<a href="${info.web}" target="_blank" style="font-size:.55rem;color:'+accentHex()+';text-decoration:none">[web]</a>`:''}
+              ${info.web?`<a href="${info.web}" target="_blank" style="font-size:.55rem;color:${accentHex()};text-decoration:none">[web]</a>`:''}
             </div></div>`;
         }).join('')}
       </div>`;
     }
     if (stuckIn || from || search) {
-      html = `<div style="font-size:.7rem;color:'+accentHex()+';font-weight:600;margin-bottom:.4rem">${count} result${count!==1?'s':''}</div>` + html;
+      html = `<div style="font-size:.7rem;color:${accentHex()};font-weight:600;margin-bottom:.4rem">${count} result${count!==1?'s':''}</div>` + html;
     }
   }
 
@@ -4441,7 +4441,7 @@ function mFilterResources() {
     }
   }
 
-  results.innerHTML = html || '<div style="text-align:center;padding:3rem 0;min-height:40vh;color:rgba(255,255,255,.25);font-size:.78rem">No results found</div>';
+  results.innerHTML = html || '<div style="text-align:center;padding:3rem 0;min-height:45vh;color:rgba(255,255,255,.25);font-size:.78rem">No results found</div>';
 }
 
 async function mSubmitOffer(){
@@ -4485,6 +4485,7 @@ let _realtimeChannels = [];
 // Session timer — module-level so loadProfile() and the visibility handler share the same reference
 let _loginTime = Date.now();
 let _lastVisible = Date.now();
+let _lastSessionRefresh = 0;
 const SESSION_MAX_MS = 2 * 60 * 60 * 1000; // 2 hours
 
 function setProfileAvatar(imageUrl) {
@@ -4983,12 +4984,15 @@ function isLoggedIn() { return !!_currentUser; }
 
 // Fast session check — never hangs, never blocks UI
 async function ensureSession() {
-  // Fast path: we have a user in memory — trust it, validate in background
+  // Fast path: we have a user in memory — trust it, validate in background (max 1/min)
   if (_currentUser) {
-    // Fire-and-forget token refresh (don't await, don't block)
-    _sb.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) _currentUser = session.user;
-    }).catch(e => { console.warn('[ensureSession] background refresh failed:', e.message); });
+    const _now = Date.now();
+    if (_now - _lastSessionRefresh > 60000) {
+      _lastSessionRefresh = _now;
+      _sb.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) _currentUser = session.user;
+      }).catch(e => { console.warn('[ensureSession] background refresh failed:', e.message); });
+    }
     return true;
   }
   // Cold path: no user, try to restore
@@ -5152,7 +5156,7 @@ async function renderProfilePosts() {
       <div style="font-size:.82rem;color:rgba(255,255,255,.55);line-height:1.5">${(p.body || '').slice(0, 150)}${(p.body || '').length > 150 ? '...' : ''}</div>
       ${buildContactButtons(p.contact, p.xhandle, p.name)}
       <div class="profile-post-actions">
-        <button onclick="profileEditPost('${p.id}')" style="background:'+accentRgba(.15)+';color:'+accentHex()+';border:1px solid '+accentRgba(.25)+';border-radius:6px;padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Edit</button>
+        <button onclick="profileEditPost('${p.id}')" style="background:${accentRgba(.15)};color:${accentHex()};border:1px solid ${accentRgba(.25)};border-radius:6px;padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Edit</button>
         <button onclick="profileDeletePost('${p.id}')" style="background:#ec3452;color:#fff;border:none;border-radius:6px;padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Delete</button>
       </div>
     </div>`;
@@ -5387,14 +5391,14 @@ async function mRenderProfilePosts() {
         <div style="font-size:.85rem;font-weight:600;color:#fff;margin-bottom:.15rem">📍 ${esc(p.location)}</div>
         <div style="font-size:.8rem;color:rgba(255,255,255,.7);line-height:1.5;margin-bottom:.6rem">${(p.body || '').slice(0, 120)}${(p.body || '').length > 120 ? '...' : ''}</div>
         <div style="display:flex;gap:.5rem">
-          <button onclick="mProfileEditPost('${p.id}')" style="background:'+accentRgba(.15)+';color:'+accentHex()+';border:1px solid '+accentRgba(.25)+';border-radius:7px;padding:.35rem .8rem;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Edit</button>
+          <button onclick="mProfileEditPost('${p.id}')" style="background:${accentRgba(.15)};color:${accentHex()};border:1px solid ${accentRgba(.25)};border-radius:7px;padding:.35rem .8rem;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Edit</button>
           <button onclick="mProfileDeletePost('${p.id}')" style="background:#ec3452;color:#fff;border:none;border-radius:7px;padding:.35rem .8rem;font-size:.72rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Delete</button>
         </div>
       </div>`;
     }).join('');
     injectMatchNotifications('m-my-posts-list');
   } catch (e) {
-    list.innerHTML = `<div style="color:#ec3452;font-size:.82rem;padding:.5rem 0">Error: ${e.message} <button onclick="mRenderProfilePosts()" style="background:'+accentRgba(.15)+';color:'+accentHex()+';border:none;border-radius:5px;padding:.2rem .5rem;font-size:.7rem;font-weight:600;cursor:pointer;margin-left:.3rem">Retry</button></div>`;
+    list.innerHTML = `<div style="color:#ec3452;font-size:.82rem;padding:.5rem 0">Error: ${esc(e.message)} <button onclick="mRenderProfilePosts()" style="background:${accentRgba(.15)};color:${accentHex()};border:none;border-radius:5px;padding:.2rem .5rem;font-size:.7rem;font-weight:600;cursor:pointer;margin-left:.3rem">Retry</button></div>`;
   }
 }
 
@@ -5469,7 +5473,7 @@ async function renderProfileStranded() {
         <button class="found-place-btn" style="${homeStyle}" onclick="${match?.offer_confirmed && !match?.home_lat ? "checkAndOpenGoHome('"+p.id+"')" : 'void(0)'}">
           ${homeLabel}
         </button>
-        <button onclick="editStrandedPost('${p.id}')" style="background:'+accentRgba(.15)+';color:'+accentHex()+';border:1px solid '+accentRgba(.25)+';border-radius:6px;padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Edit</button>
+        <button onclick="editStrandedPost('${p.id}')" style="background:${accentRgba(.15)};color:${accentHex()};border:1px solid ${accentRgba(.25)};border-radius:6px;padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Edit</button>
         <button onclick="deleteStrandedPost('${p.id}')" style="background:#ec3452;color:#fff;border:none;border-radius:6px;padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">Delete</button>
       </div>
     </div>`);
@@ -5480,7 +5484,7 @@ async function renderProfileStranded() {
   } catch (e) {
     console.error('renderProfileStranded error:', e);
     [el, mel].forEach(list => {
-      if (list) list.innerHTML = `<div style="font-size:.82rem;color:#ec3452;padding:.3rem 0">Error loading: ${e.message} <button onclick="renderProfileStranded()" style="background:'+accentRgba(.15)+';color:'+accentHex()+';border:none;border-radius:5px;padding:.2rem .5rem;font-size:.7rem;font-weight:600;cursor:pointer;margin-left:.3rem">Retry</button></div>`;
+      if (list) list.innerHTML = `<div style="font-size:.82rem;color:#ec3452;padding:.3rem 0">Error loading: ${esc(e.message)} <button onclick="renderProfileStranded()" style="background:${accentRgba(.15)};color:${accentHex()};border:none;border-radius:5px;padding:.2rem .5rem;font-size:.7rem;font-weight:600;cursor:pointer;margin-left:.3rem">Retry</button></div>`;
     });
   }
 }
@@ -6544,7 +6548,7 @@ function buildPetMatchButton(petPost) {
     // I need a foster — check if I have an active need_foster or found_stray post
     const myPetPost = _petPosts.find(p => p.user_id === myId && (p.pet_status === 'need_foster' || p.pet_status === 'found_stray'));
     if (myPetPost) {
-      return `<button onclick="requestPetMatch('${myPetPost.id}','${petPost.id}')" style="margin-top:.5rem;width:100%;padding:.5rem;background:'+accentRgba(.12)+';border:1px solid '+accentRgba(.25)+';border-radius:8px;color:'+accentHex()+';font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">🐾 Request This Home</button>`;
+      return `<button onclick="requestPetMatch('${myPetPost.id}','${petPost.id}')" style="margin-top:.5rem;width:100%;padding:.5rem;background:${accentRgba(.12)};border:1px solid ${accentRgba(.25)};border-radius:8px;color:${accentHex()};font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">🐾 Request This Home</button>`;
     }
   } else if ((petPost.pet_status === 'need_foster' || petPost.pet_status === 'found_stray') && petPost.user_id !== myId) {
     // I can foster — check if I have an active can_foster post
@@ -6730,7 +6734,7 @@ function showSuccessTab(btn, tab, uid) {
 // ── Build success story tab HTML for a popup ─────────────────
 function buildSuccessTab(s, uid) {
   const sStory = s.stranded_story ? `<div style="font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.5;margin:.3rem 0;padding-left:.5rem;border-left:2px solid rgba(236,52,82,.4)">"${esc(s.stranded_story)}"<div style="font-size:.63rem;color:rgba(255,255,255,.25);margin-top:.15rem">— ${s.stranded_name||'Stranded person'}</div></div>` : '';
-  const oStory = s.offer_story ? `<div style="font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.5;margin:.3rem 0;padding-left:.5rem;border-left:2px solid '+accentRgba(.4)+'">"${esc(s.offer_story)}"<div style="font-size:.63rem;color:rgba(255,255,255,.25);margin-top:.15rem">— ${s.offer_name||'Host'}</div></div>` : '';
+  const oStory = s.offer_story ? `<div style="font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.5;margin:.3rem 0;padding-left:.5rem;border-left:2px solid ${accentRgba(.4)}">"${esc(s.offer_story)}"<div style="font-size:.63rem;color:rgba(255,255,255,.25);margin-top:.15rem">— ${s.offer_name||'Host'}</div></div>` : '';
   const homeNote = s.home_location ? `<div style="font-size:.68rem;color:#22c55e;margin-top:.35rem">🏠 Made it home to ${s.home_location}</div>` : '';
   const date = s.confirmed_at ? new Date(s.confirmed_at).toLocaleDateString() : '';
   return `<div data-sptab="story">
@@ -8632,14 +8636,14 @@ async function adminSearchUsers(q) {
         const isSelf = u.email === ADMIN_EMAIL;
         const isAlreadyMod = u.role === 'mod';
         return `<div style="display:flex;justify-content:space-between;align-items:center;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,.03)">
-          <div><span style="font-size:.72rem;font-weight:600;color:#fff">${u.display_name || 'No name'}</span>
-          <span style="font-size:.55rem;color:rgba(255,255,255,.25);margin-left:.3rem">${u.email || ''}</span>
+          <div><span style="font-size:.72rem;font-weight:600;color:#fff">${esc(u.display_name || 'No name')}</span>
+          <span style="font-size:.55rem;color:rgba(255,255,255,.25);margin-left:.3rem">${esc(u.email || '')}</span>
           ${isAlreadyMod ? '<span style="font-size:.5rem;background:#a855f7;color:#fff;border-radius:4px;padding:.05rem .25rem;margin-left:.2rem;font-weight:700">MOD</span>' : ''}
           ${isSelf ? '<span style="font-size:.5rem;background:#ec3452;color:#fff;border-radius:4px;padding:.05rem .25rem;margin-left:.2rem;font-weight:700">ADMIN</span>' : ''}</div>
           ${!isSelf && !isAlreadyMod ? `<button onclick="adminMakeMod('${u.id}')" style="${btnStyle('green','sm')}">Make Mod</button>` : ''}
         </div>`;
       }).join('');
-    } catch(e) { results.innerHTML = `<div style="font-size:.6rem;color:#ec3452">${e.message}</div>`; }
+    } catch(e) { results.innerHTML = `<div style="font-size:.6rem;color:#ec3452">${esc(e.message)}</div>`; }
   }, 300);
 }
 
@@ -9154,13 +9158,15 @@ window.addEventListener('DOMContentLoaded',()=>{
           }
         } catch(e) { console.warn('[Visibility] session check failed:', e.message); }
 
-        // Refresh all data — catches websocket drops silently
-        if (SB_ON) {
+        // Refresh all data — catches websocket drops silently (guard double-fire)
+        if (SB_ON && !window._visRefreshing) {
+          window._visRefreshing = true;
           loadPosts();
           loadStranded();
           loadPets?.();
           loadSuccessStories?.();
           refreshSitrep();
+          setTimeout(() => { window._visRefreshing = false; }, 5000);
         }
       }
     } else {
