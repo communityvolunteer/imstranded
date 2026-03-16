@@ -8393,9 +8393,11 @@ async function flagPost(table, id) {
   if (!verified) { alert('Only verified users can flag posts. Link Google, X, or Telegram in your profile.'); return; }
   if (!confirm('Flag this post for moderator review?')) return;
   try {
-    await withTimeout(_sb.from(table).update({ flagged: true }).eq('id', id), 5000);
+    const { error } = await withTimeout(_sb.from(table).update({ flagged: true }).eq('id', id), 5000);
+    if (error) { console.error('[Flag] RLS error:', error); alert('Could not flag post — you may not have permission. Error: ' + error.message); return; }
     alert('Post flagged for review. Thank you.');
     if (table === 'help_posts') loadPosts();
+    else if (table === 'stranded_pets') { if (typeof loadPets === 'function') loadPets(); }
     else loadStranded();
   } catch(e) { alert('Error: ' + e.message); }
 }
@@ -8458,6 +8460,7 @@ async function renderAdminPanel(container) {
     <button onclick="_adminTab='rooms';renderAdminPanel(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="flex:1;padding:.4rem;border:none;border-radius:6px;font-family:Inter,sans-serif;font-size:.65rem;font-weight:700;cursor:pointer;${_adminTab==='rooms'?'background:'+accentRgba(.15)+';color:'+accentHex()+'':'background:transparent;color:rgba(255,255,255,.3)'}">Rooms</button>
     <button onclick="_adminTab='stranded';renderAdminPanel(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="flex:1;padding:.4rem;border:none;border-radius:6px;font-family:Inter,sans-serif;font-size:.65rem;font-weight:700;cursor:pointer;${_adminTab==='stranded'?'background:rgba(236,52,82,.15);color:#ec3452':'background:transparent;color:rgba(255,255,255,.3)'}">Stranded</button>
     <button onclick="_adminTab='pets';renderAdminPanel(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="flex:1;padding:.4rem;border:none;border-radius:6px;font-family:Inter,sans-serif;font-size:.65rem;font-weight:700;cursor:pointer;${_adminTab==='pets'?'background:'+accentRgba(.15)+';color:'+accentHex()+'':'background:transparent;color:rgba(255,255,255,.3)'}">Pets</button>
+    <button onclick="_adminTab='stories';renderAdminPanel(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="flex:1;padding:.4rem;border:none;border-radius:6px;font-family:Inter,sans-serif;font-size:.65rem;font-weight:700;cursor:pointer;${_adminTab==='stories'?'background:rgba(34,197,94,.15);color:#22c55e':'background:transparent;color:rgba(255,255,255,.3)'}">Stories</button>
     ${isAdmin() ? `<button onclick="_adminTab='mods';renderAdminPanel(this.closest('#pc-manage-content')||document.getElementById('m-manage-content'))" style="flex:1;padding:.4rem;border:none;border-radius:6px;font-family:Inter,sans-serif;font-size:.65rem;font-weight:700;cursor:pointer;${_adminTab==='mods'?'background:rgba(168,85,247,.15);color:#a855f7':'background:transparent;color:rgba(255,255,255,.3)'}">Mods</button>` : ''}
   </div>`;
 
@@ -8482,6 +8485,7 @@ async function renderAdminPanel(container) {
       const d3 = r3.status === 'fulfilled' ? r3.value : { data: [], error: r3.reason };
       if (d1.error) console.warn('help_posts flagged query failed:', d1.error.message || d1.error);
       if (d2.error) console.warn('stranded_people flagged query failed:', d2.error.message || d2.error);
+      if (d3.error) console.warn('stranded_pets flagged query failed:', d3.error.message || d3.error);
       items = [
         ...(d1.data || []).map(p => ({ ...p, _table: 'help_posts', _type: 'Room' })),
         ...(d2.data || []).map(p => ({ ...p, _table: 'stranded_people', _type: 'Stranded', location: p.current_location, body: p.details })),
@@ -8495,6 +8499,10 @@ async function renderAdminPanel(container) {
       const { data, error } = await withTimeout(_sb.from('stranded_pets').select('id,name,location,description,animal_type,pet_status,created_at,flagged,user_id').order('created_at', { ascending: false }).limit(100), 6000);
       if (error) throw new Error(error.message);
       items = (data || []).map(p => ({ ...p, _table: 'stranded_pets', _type: 'Pet', body: p.description }));
+    } else if (_adminTab === 'stories') {
+      const { data, error } = await withTimeout(_sb.from('success_stories').select('id,stranded_name,offer_name,stranded_location,offer_location,stranded_story,offer_story,stranded_confirmed,offer_confirmed,created_at,confirmed_at,stranded_user_id,offer_user_id').order('created_at', { ascending: false }).limit(100), 6000);
+      if (error) throw new Error(error.message);
+      items = (data || []).map(p => ({ ...p, _table: 'success_stories', _type: 'Story' }));
     } else {
       const { data, error } = await withTimeout(_sb.from('stranded_people').select('id,name,current_location,details,created_at,flagged,user_id').order('created_at', { ascending: false }).limit(100), 6000);
       if (error) throw new Error(error.message);
@@ -8508,6 +8516,25 @@ async function renderAdminPanel(container) {
 
     container.innerHTML = toggleHtml + items.map(p => {
       const t = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
+      if (p._table === 'success_stories') {
+        const confirmed = p.stranded_confirmed && p.offer_confirmed;
+        const statusBadge = confirmed
+          ? '<span style="background:#22c55e;color:#fff;font-size:.5rem;font-weight:800;border-radius:4px;padding:.1rem .3rem;margin-left:.3rem">CONFIRMED</span>'
+          : '<span style="background:rgba(255,159,28,.8);color:#fff;font-size:.5rem;font-weight:800;border-radius:4px;padding:.1rem .3rem;margin-left:.3rem">PENDING</span>';
+        const story = p.stranded_story || p.offer_story || '';
+        return `<div style="padding:.5rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:.75rem;font-weight:700;color:#fff">${esc(p.stranded_name || 'Someone')} → ${esc(p.offer_name || 'Someone')} <span style="font-size:.55rem;color:rgba(255,255,255,.3)">Story · ${t}</span>${statusBadge}</div>
+              <div style="font-size:.65rem;color:rgba(255,255,255,.4)">${esc(p.stranded_location || '')} → ${esc(p.offer_location || '')}</div>
+              ${story ? `<div style="font-size:.65rem;color:rgba(255,255,255,.3);margin-top:.15rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(story).slice(0,100)}</div>` : ''}
+            </div>
+            <div style="display:flex;gap:.3rem;flex-shrink:0;margin-left:.5rem">
+              <button onclick="adminDelete('${p._table}','${p.id}')" style="${btnStyle('danger','sm')}">Delete</button>
+            </div>
+          </div>
+        </div>`;
+      }
       const flagBadge = p.flagged ? '<span style="background:#ec3452;color:#fff;font-size:.5rem;font-weight:800;border-radius:4px;padding:.1rem .3rem;margin-left:.3rem">FLAGGED</span>' : '';
       return `<div style="padding:.5rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
         <div style="display:flex;justify-content:space-between;align-items:flex-start">
@@ -8547,7 +8574,8 @@ async function adminDelete(table, id) {
 async function adminUnflag(table, id) {
   if (!isModOrAdmin()) return;
   try {
-    await withTimeout(_sb.from(table).update({ flagged: false }).eq('id', id), 5000);
+    const { error } = await withTimeout(_sb.from(table).update({ flagged: false }).eq('id', id), 5000);
+    if (error) { console.error('[Admin Unflag] RLS error:', error); alert('Unflag failed: ' + error.message); return; }
     loadPosts(); loadStranded();
     const c = document.getElementById('pc-manage-content') || document.getElementById('m-manage-content');
     if (c) renderAdminPanel(c);
@@ -8698,6 +8726,69 @@ CREATE POLICY "admin_mod_update_stranded" ON stranded_people FOR UPDATE
     OR auth.jwt()->>'email' = '${ADMIN_EMAIL}'
     OR (SELECT role FROM profiles WHERE id = auth.uid()) = 'mod'
   );
+
+-- Admin/mod can delete any stranded_pets
+CREATE POLICY "admin_mod_delete_pets" ON stranded_pets FOR DELETE
+  USING (
+    auth.jwt()->>'email' = '${ADMIN_EMAIL}'
+    OR (SELECT role FROM profiles WHERE id = auth.uid()) = 'mod'
+  );
+
+-- Admin/mod can update stranded_pets (flag/unflag)
+CREATE POLICY "admin_mod_update_pets" ON stranded_pets FOR UPDATE
+  USING (
+    auth.uid() = user_id
+    OR auth.jwt()->>'email' = '${ADMIN_EMAIL}'
+    OR (SELECT role FROM profiles WHERE id = auth.uid()) = 'mod'
+  );
+
+-- Admin/mod can read all flagged posts across tables
+CREATE POLICY "admin_mod_read_flagged_posts" ON help_posts FOR SELECT
+  USING (
+    flagged = false
+    OR auth.jwt()->>'email' = '${ADMIN_EMAIL}'
+    OR (SELECT role FROM profiles WHERE id = auth.uid()) = 'mod'
+  );
+
+CREATE POLICY "admin_mod_read_flagged_stranded" ON stranded_people FOR SELECT
+  USING (
+    flagged = false
+    OR auth.jwt()->>'email' = '${ADMIN_EMAIL}'
+    OR (SELECT role FROM profiles WHERE id = auth.uid()) = 'mod'
+  );
+
+CREATE POLICY "admin_mod_read_flagged_pets" ON stranded_pets FOR SELECT
+  USING (
+    flagged = false
+    OR auth.jwt()->>'email' = '${ADMIN_EMAIL}'
+    OR (SELECT role FROM profiles WHERE id = auth.uid()) = 'mod'
+  );
+
+-- Admin/mod can read and delete success_stories
+CREATE POLICY "admin_mod_read_stories" ON success_stories FOR SELECT
+  USING (
+    offer_confirmed = true
+    OR auth.uid() = stranded_user_id
+    OR auth.uid() = offer_user_id
+    OR auth.jwt()->>'email' = '${ADMIN_EMAIL}'
+    OR (SELECT role FROM profiles WHERE id = auth.uid()) = 'mod'
+  );
+
+CREATE POLICY "admin_mod_delete_stories" ON success_stories FOR DELETE
+  USING (
+    auth.jwt()->>'email' = '${ADMIN_EMAIL}'
+    OR (SELECT role FROM profiles WHERE id = auth.uid()) = 'mod'
+  );
+
+-- Any verified user can flag posts (update flagged column)
+CREATE POLICY "verified_user_flag_posts" ON help_posts FOR UPDATE
+  USING (true) WITH CHECK (true);
+
+CREATE POLICY "verified_user_flag_stranded" ON stranded_people FOR UPDATE
+  USING (true) WITH CHECK (true);
+
+CREATE POLICY "verified_user_flag_pets" ON stranded_pets FOR UPDATE
+  USING (true) WITH CHECK (true);
     `);
   }
 }
