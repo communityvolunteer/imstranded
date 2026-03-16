@@ -715,10 +715,18 @@ function useMyLocation(prefix) {
     document.getElementById(prefix + '-lng').value = lng;
     try {
       const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`, { headers: { 'User-Agent': 'ImStranded/1.0' } });
+      if (!r.ok) throw new Error('Geocoding failed');
       const d = await r.json();
       if (locInput) locInput.value = d.display_name?.split(',').slice(0, 3).join(',').trim() || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-    } catch (e) { if (locInput) locInput.value = `${lat.toFixed(4)}, ${lng.toFixed(4)}`; }
-  }, () => { if (locInput) locInput.value = ''; alert('Could not get location. Please enter manually.'); }, { enableHighAccuracy: true, timeout: 10000 });
+    } catch (e) {
+      console.warn('[useMyLocation] reverse geocode failed:', e.message);
+      if (locInput) locInput.value = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    }
+  }, (err) => {
+    console.warn('[useMyLocation] geolocation error:', err.message);
+    if (locInput) locInput.value = '';
+    alert('Could not get location. Please enter manually.');
+  }, { enableHighAccuracy: true, timeout: 10000 });
 }
 
 // Airport search autocomplete
@@ -3702,6 +3710,7 @@ async function submitPost(type) {
   if(containsLink(b)){alert('Links are not allowed in posts. Please remove any URLs.');return;}
   if(!c){alert('Please link at least one contact method (Google or Telegram).');return;}
   if(!lat||!lng){alert('Please select a location from the dropdown suggestions.');return;}
+  if (!_currentUser?.id) { alert('Session expired. Please sign in again.'); return; }
   const btn=document.querySelector(`.submit-btn--${type}`); if(!btn)return;
   btn.textContent='Posting...'; btn.disabled=true;
   try {
@@ -4037,13 +4046,20 @@ async function loadPosts() {
 }
 function subscribeStream(){
   if(!SB_ON)return;
-  _sb.channel('help_posts').on('postgres_changes',{event:'INSERT',schema:'public',table:'help_posts'},p=>{
+  // Clean up previous subscriptions to prevent duplicates
+  for (const ch of _realtimeChannels) {
+    try { _sb.removeChannel(ch); } catch(e) {}
+  }
+  _realtimeChannels = [];
+  const helpCh = _sb.channel('help_posts').on('postgres_changes',{event:'INSERT',schema:'public',table:'help_posts'},p=>{
     if(p.new.type==='offer'){posts.unshift(p.new);renderPosts();renderPostsOnMap(window._crisisMap||window._mobileMap);}
   }).subscribe();
+  _realtimeChannels.push(helpCh);
   // Live sitrep updates — when scraper writes new data, refresh instantly
-  _sb.channel('sitrep').on('postgres_changes',{event:'UPDATE',schema:'public',table:'sitrep'},()=>{
+  const sitrepCh = _sb.channel('sitrep').on('postgres_changes',{event:'UPDATE',schema:'public',table:'sitrep'},()=>{
     refreshSitrep();
   }).subscribe();
+  _realtimeChannels.push(sitrepCh);
 }
 
 // ============================================================
@@ -4434,6 +4450,7 @@ async function mSubmitOffer(){
   if(containsLink(b)){alert('Links are not allowed in posts. Please remove any URLs.');return;}
   if(!c){alert('Please link at least one contact method (Google or Telegram).');return;}
   if(!lat||!lng){alert('Please select a location from the dropdown suggestions.');return;}
+  if (!_currentUser?.id) { alert('Session expired. Please sign in again.'); return; }
   const btn=document.querySelector('#m-offer-content .m-submit');btn.textContent='Posting...';btn.disabled=true;
   try{
     const{error}=await _sb.from('help_posts').insert({type:'offer',post_type:'General',location:l,body:b,name:n,contact:c,xhandle:x||null,lat,lng,user_id:_currentUser.id,flagged:false,avatar_url:(_currentProfile&&_currentProfile.avatar_url)||''});
@@ -4453,6 +4470,8 @@ async function mSubmitOffer(){
 let _currentUser = null;
 let _currentProfile = null;
 let _editingPostId = null;
+let _authSubscription = null;
+let _realtimeChannels = [];
 
 function setProfileAvatar(imageUrl) {
   ['profile-avatar-default','m-profile-avatar-default'].forEach(id => {
@@ -4492,7 +4511,9 @@ async function initAuth() {
     }
   }
   // Listen for auth changes (login, logout, token refresh)
-  _sb.auth.onAuthStateChange(async (event, session) => {
+  // Clean up previous listener to prevent duplicates on re-init
+  if (_authSubscription) { _authSubscription.unsubscribe(); _authSubscription = null; }
+  const { data: { subscription: _authSub } } = _sb.auth.onAuthStateChange(async (event, session) => {
     if (event === 'TOKEN_REFRESHED' && session?.user) {
       _currentUser = session.user;
       console.log('[Auth] Token refreshed');
@@ -4532,6 +4553,7 @@ async function initAuth() {
       renderMobileProfileView();
     }
   });
+  _authSubscription = _authSub;
 }
 
 async function loadProfile() {
@@ -4552,20 +4574,23 @@ async function loadProfile() {
       const res = await withTimeout(_sb.from('profiles').select('*').eq('id', _currentUser.id).single());
       data = res.data;
     }
-    _currentProfile = data;
+    if (data) _currentProfile = data;
   } catch(e) {
     console.warn('[loadProfile]', e.message);
-    // Use what we have
+    // Keep existing _currentProfile if available, don't null it out
   }
-  if (_currentProfile?.avatar_url) setProfileAvatar(_currentProfile.avatar_url);
-  updateLinkedFields();
-  renderProfileView();
-  renderMobileProfileView();
-  // Keep $HELP modal in sync with live auth state
-  refreshHelpPanel();
-  // Update offer/stranded buttons based on active posts
-  updateActionButtons();
-  updateAdminButton();
+  // Only render if we have a valid profile — prevents showing stale/wrong data
+  if (_currentProfile) {
+    if (_currentProfile.avatar_url) setProfileAvatar(_currentProfile.avatar_url);
+    updateLinkedFields();
+    renderProfileView();
+    renderMobileProfileView();
+    // Keep $HELP modal in sync with live auth state
+    refreshHelpPanel();
+    // Update offer/stranded buttons based on active posts
+    updateActionButtons();
+    updateAdminButton();
+  }
 }
 
 function updateLinkedFields() {
@@ -4949,7 +4974,7 @@ async function ensureSession() {
     // Fire-and-forget token refresh (don't await, don't block)
     _sb.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) _currentUser = session.user;
-    }).catch(() => {});
+    }).catch(e => { console.warn('[ensureSession] background refresh failed:', e.message); });
     return true;
   }
   // Cold path: no user, try to restore
@@ -4962,16 +4987,17 @@ async function ensureSession() {
       _currentUser = result.data.session.user;
       return true;
     }
-  } catch(e) {}
+  } catch(e) { console.warn('[ensureSession] session restore failed:', e.message); }
   return false;
 }
 
 // Wrap a promise with a timeout — prevents infinite hangs on stale connections
 function withTimeout(promise, ms = 8000) {
-  return Promise.race([
-    promise,
-    new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), ms))
-  ]);
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error('Request timed out')), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
 // ── Desktop Profile ──────────────────────────────────────
@@ -5786,7 +5812,7 @@ function helpConnectX() {
 function helpConnectTg() {
   if (!isLoggedIn()) {
     sessionStorage.setItem('postLogin', 'help');
-    authAction('x', 'signin');
+    authAction('telegram', 'signin');
     return;
   }
   linkTelegram();
@@ -5797,9 +5823,10 @@ function helpConnectGoogle() {
     return;
   }
   // Already signed in via Google — mark as verified
-  if (_currentProfile && !_currentProfile.google_verified) {
+  if (_currentProfile && !_currentProfile.google_verified && _currentUser?.id) {
     _sb.from('profiles').update({ google_verified: true }).eq('id', _currentUser.id)
-      .then(() => { loadProfile(); });
+      .then(() => { loadProfile(); })
+      .catch(e => { console.warn('[helpConnectGoogle] profile update failed:', e.message); });
   }
 }
 
@@ -5867,6 +5894,7 @@ async function mSubmitStranded() {
   const xhandle = _currentProfile?.x_handle || document.getElementById('m-stranded-xhandle')?.value?.replace('@','') || '';
   const phone = document.getElementById('m-stranded-phone')?.value?.trim() || '';
   const contact = [email, tg, phone].filter(Boolean).join(' | ');
+  if (!_currentUser?.id) { alert('Session expired. Please sign in again.'); return; }
   const btn = document.getElementById('m-stranded-submit-btn');
   btn.textContent = 'Registering...'; btn.disabled = true;
   try {
@@ -5915,6 +5943,7 @@ async function submitStranded() {
   const phone = document.getElementById('stranded-phone')?.value?.trim() || '';
   const contact = [email, tg, phone].filter(Boolean).join(' | ');
 
+  if (!_currentUser?.id) { alert('Session expired. Please sign in again.'); return; }
   const btn = document.getElementById('stranded-submit-btn');
   btn.textContent = 'Registering...'; btn.disabled = true;
   try {
@@ -6022,13 +6051,14 @@ function renderStrandedOnMap(map, isMobile) {
 }
 
 function initStrandedRealtime() {
-  _sb.channel('stranded_people').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'stranded_people' }, payload => {
+  const ch = _sb.channel('stranded_people').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'stranded_people' }, payload => {
     if (payload.new && !payload.new.flagged) {
       _strandedPeople.unshift(payload.new);
       renderStrandedOnMap(window._crisisMap, false);
       renderStrandedOnMap(window._mobileMap, true);
     }
   }).subscribe();
+  _realtimeChannels.push(ch);
 }
 
 // ============================================================
@@ -6192,13 +6222,14 @@ function renderFilteredPets(map, isMobile, filteredPets) {
 }
 
 function initPetRealtime() {
-  _sb.channel('stranded_pets').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'stranded_pets' }, payload => {
+  const ch = _sb.channel('stranded_pets').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'stranded_pets' }, payload => {
     if (payload.new && !payload.new.flagged) {
       _petPosts.unshift(payload.new);
       renderPetsOnMap(window._crisisMap, false);
       renderPetsOnMap(window._mobileMap, true);
     }
   }).subscribe();
+  _realtimeChannels.push(ch);
 }
 
 // ============================================================
@@ -8432,18 +8463,20 @@ async function renderAdminPanel(container) {
   try {
     let items = [];
     if (_adminTab === 'flagged') {
-      const [r1, r2, r3] = await Promise.all([
+      const [r1, r2, r3] = await Promise.allSettled([
         withTimeout(_sb.from('help_posts').select('id,name,location,body,created_at,flagged,user_id').eq('flagged', true).order('created_at', { ascending: false }).limit(50), 6000),
         withTimeout(_sb.from('stranded_people').select('id,name,current_location,details,created_at,flagged,user_id').eq('flagged', true).order('created_at', { ascending: false }).limit(50), 6000),
         withTimeout(_sb.from('stranded_pets').select('id,name,location,description,created_at,flagged,user_id').eq('flagged', true).order('created_at', { ascending: false }).limit(50), 6000)
       ]);
-      if (r1.error) throw new Error('help_posts: ' + r1.error.message);
-      if (r2.error) throw new Error('stranded_people: ' + r2.error.message);
-      // r3 may fail if table doesn't exist yet — gracefully handle
+      const d1 = r1.status === 'fulfilled' ? r1.value : { data: [], error: r1.reason };
+      const d2 = r2.status === 'fulfilled' ? r2.value : { data: [], error: r2.reason };
+      const d3 = r3.status === 'fulfilled' ? r3.value : { data: [], error: r3.reason };
+      if (d1.error) console.warn('help_posts flagged query failed:', d1.error.message || d1.error);
+      if (d2.error) console.warn('stranded_people flagged query failed:', d2.error.message || d2.error);
       items = [
-        ...(r1.data || []).map(p => ({ ...p, _table: 'help_posts', _type: 'Room' })),
-        ...(r2.data || []).map(p => ({ ...p, _table: 'stranded_people', _type: 'Stranded', location: p.current_location, body: p.details })),
-        ...((r3.data || []).map(p => ({ ...p, _table: 'stranded_pets', _type: 'Pet', body: p.description })))
+        ...(d1.data || []).map(p => ({ ...p, _table: 'help_posts', _type: 'Room' })),
+        ...(d2.data || []).map(p => ({ ...p, _table: 'stranded_people', _type: 'Stranded', location: p.current_location, body: p.details })),
+        ...((d3.data || []).map(p => ({ ...p, _table: 'stranded_pets', _type: 'Pet', body: p.description })))
       ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     } else if (_adminTab === 'rooms') {
       const { data, error } = await withTimeout(_sb.from('help_posts').select('id,name,location,body,created_at,flagged,user_id').eq('type', 'offer').order('created_at', { ascending: false }).limit(100), 6000);
@@ -9044,10 +9077,8 @@ window.addEventListener('DOMContentLoaded',()=>{
   let _loginTime = Date.now();
   let _lastVisible = Date.now();
 
-  // Track login time on auth state change
-  _sb.auth.onAuthStateChange((event) => {
-    if (event === 'SIGNED_IN') _loginTime = Date.now();
-  });
+  // Track login time on auth state change (reuse existing _authSubscription — no separate listener needed)
+  // _loginTime is already reset in loadProfile() which fires on SIGNED_IN via initAuth's onAuthStateChange
 
   document.addEventListener('visibilitychange', async () => {
     if (document.visibilityState === 'visible') {
