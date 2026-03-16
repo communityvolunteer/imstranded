@@ -1477,6 +1477,7 @@ function syncFilterPanels() {
     ['fp-show-stranded','mfp-show-stranded'],['fp-stranded-verified','mfp-stranded-verified'],
     ['fp-show-worldwide','mfp-show-worldwide'],['fp-worldwide-arcs','mfp-worldwide-arcs'],
     ['fp-show-pets','mfp-show-pets'],
+    ['fp-show-fostering','mfp-show-fostering'],
   ];
   pairs.forEach(([d,m]) => {
     const src = document.getElementById(isMobile ? m : d);

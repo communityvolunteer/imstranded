@@ -308,14 +308,7 @@ function googleTranslateInit() {
       </div>
     </div>
 
-    <!-- Timeline chart: cancellations since crisis start -->
-    <div style="padding:.5rem .8rem .3rem;border-bottom:1px solid rgba(255,255,255,.06)">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">
-        <span style="font-size:.5rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.3)">Cancellations since Mar 1</span>
-        <span id="fp-timeline-peak" style="font-size:.55rem;color:var(--accent);font-weight:700"></span>
-      </div>
-      <canvas id="fp-timeline-canvas" height="56" style="width:100%;display:block;border-radius:4px"></canvas>
-    </div>
+    <!-- Timeline chart removed -->
 
     <div class="fp-section">
       <div class="fp-section-head" onclick="toggleFpSection(this)">
@@ -387,17 +380,16 @@ function googleTranslateInit() {
       </div>
     </div>
 
-    <!-- Section: HELPING WITH PETS -->
+    <!-- Section: HOMES FOR PETS -->
     <div class="fp-section">
       <div class="fp-section-head" onclick="toggleFpSection(this)">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="none" style="flex-shrink:0"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg>
-        <span style="font-size:.95rem">HELPING WITH PETS</span>
+        <span style="font-size:.95rem">HOMES FOR PETS</span>
         <span id="fp-badge-fostering" class="fp-badge fp-badge--lg" style="--badge-c:var(--accent)"></span>
         <svg class="fp-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
       <div class="fp-section-body" style="display:none">
         <label class="fp-toggle"><input type="checkbox" id="fp-show-fostering" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show on map</label>
-        <button onclick="isMob()?mTab('pets',null):openFormSidebar('pets')" style="width:100%;margin-top:.5rem;padding:.5rem;border:1px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.3);border-radius:8px;background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.08);color:var(--accent);font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">I Can Help a Pet</button>
       </div>
     </div>
 
@@ -418,7 +410,6 @@ function googleTranslateInit() {
           <option value="found_stray">Found stray</option>
           <option value="can_foster">Can take a pet</option>
         </select>
-        <button onclick="isMob()?mTab('pets',null):openFormSidebar('pets')" style="width:100%;margin-top:.5rem;padding:.5rem;border:1px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.3);border-radius:8px;background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.08);color:var(--accent);font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">Post About a Pet</button>
       </div>
     </div>
 
@@ -1105,16 +1096,15 @@ function googleTranslateInit() {
             <input type="hidden" id="mfp-filter-dest-country"><input type="hidden" id="mfp-filter-dest-airport">
           </div>
         </div>
-        <!-- HELPING WITH PETS -->
+        <!-- HOMES FOR PETS -->
         <div class="fp-section">
           <div class="fp-section-head" onclick="toggleFpSection(this)">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="none" style="flex-shrink:0"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg><span style="font-size:1rem">HELPING WITH PETS</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="none" style="flex-shrink:0"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg><span style="font-size:1rem">HOMES FOR PETS</span>
             <span id="mfp-badge-fostering" class="fp-badge fp-badge--lg" style="--badge-c:var(--accent)"></span>
             <svg class="fp-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
           <div class="fp-section-body" style="display:none">
             <label class="fp-toggle"><input type="checkbox" id="mfp-show-fostering" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show on map</label>
-            <button onclick="mTab('pets',null)" style="width:100%;margin-top:.5rem;padding:.5rem;border:1px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.3);border-radius:8px;background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.08);color:var(--accent);font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">I Can Help a Pet</button>
           </div>
         </div>
         <!-- STRANDED PETS -->
@@ -1133,7 +1123,6 @@ function googleTranslateInit() {
               <option value="found_stray">Found stray</option>
               <option value="can_foster">Can take a pet</option>
             </select>
-            <button onclick="mTab('pets',null)" style="width:100%;margin-top:.5rem;padding:.5rem;border:1px solid rgba(var(--accent-r),var(--accent-g),var(--accent-b),.3);border-radius:8px;background:rgba(var(--accent-r),var(--accent-g),var(--accent-b),.08);color:var(--accent);font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">Post About a Pet</button>
           </div>
         </div>
         <!-- SUCCESS STORIES -->
