@@ -432,6 +432,8 @@ function googleTranslateInit() {
         <label class="fp-toggle"><input type="checkbox" id="fp-show-success" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show matched pins</label>
         <label class="fp-toggle"><input type="checkbox" id="fp-show-success-arcs" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show connection arcs</label>
         <label class="fp-toggle"><input type="checkbox" id="fp-show-home" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show "made it home" pins</label>
+        <label class="fp-toggle"><input type="checkbox" id="fp-show-pets-housed" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show pets housed</label>
+        <label class="fp-toggle"><input type="checkbox" id="fp-show-pets-reunited" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show pets reunited</label>
       </div>
     </div>
 
@@ -795,8 +797,8 @@ function googleTranslateInit() {
       <div id="auth-panel-signup" style="max-width:340px;margin:0 auto;display:none">
         <div style="font-size:.84rem;color:rgba(255,255,255,.45);margin-bottom:1.2rem;line-height:1.55">Create your account. You can link additional accounts from your profile.</div>
 
-        <label id="tos-agree-wrap" style="display:flex;align-items:flex-start;gap:.5rem;margin-bottom:1rem;cursor:pointer">
-          <input type="checkbox" id="tos-agree" style="margin-top:.2rem;accent-color:var(--accent);width:16px;height:16px;flex-shrink:0">
+        <label id="tos-agree-wrap" style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;cursor:pointer">
+          <input type="checkbox" id="tos-agree" style="accent-color:var(--accent);width:16px;height:16px;flex-shrink:0">
           <span style="font-size:.68rem;color:rgba(255,255,255,.4);line-height:1.5">I agree to the <a href="/terms.html" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:600">Terms of Service</a> and <a href="/privacy.html" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:600">Privacy Policy</a></span>
         </label>
 
@@ -1149,6 +1151,8 @@ function googleTranslateInit() {
             <label class="fp-toggle"><input type="checkbox" id="mfp-show-success" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show matched pins</label>
             <label class="fp-toggle"><input type="checkbox" id="mfp-show-success-arcs" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show connection arcs</label>
             <label class="fp-toggle"><input type="checkbox" id="mfp-show-home" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show "made it home" pins</label>
+            <label class="fp-toggle"><input type="checkbox" id="mfp-show-pets-housed" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show pets housed</label>
+            <label class="fp-toggle"><input type="checkbox" id="mfp-show-pets-reunited" checked onchange="applyFilters()"><span class="fp-toggle-slider"></span>Show pets reunited</label>
           </div>
         </div>
         <button class="fp-clear" onclick="clearAllFilters()" style="width:100%;margin:.75rem 0">
@@ -1385,8 +1389,8 @@ function googleTranslateInit() {
           <!-- Mobile signup panel -->
           <div id="m-auth-panel-signup" style="display:none">
             <div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-bottom:.8rem;text-align:center;line-height:1.5">Create your account. Link more from your profile.</div>
-            <label style="display:flex;align-items:flex-start;gap:.5rem;margin-bottom:.8rem;cursor:pointer">
-              <input type="checkbox" id="m-tos-agree" style="margin-top:.2rem;accent-color:var(--accent);width:16px;height:16px;flex-shrink:0">
+            <label style="display:flex;align-items:center;gap:.5rem;margin-bottom:.8rem;cursor:pointer">
+              <input type="checkbox" id="m-tos-agree" style="accent-color:var(--accent);width:16px;height:16px;flex-shrink:0">
               <span style="font-size:.62rem;color:rgba(255,255,255,.4);line-height:1.5">I agree to the <a href="/terms.html" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:600">Terms of Service</a> and <a href="/privacy.html" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:600">Privacy Policy</a></span>
             </label>
             <button onclick="authAction('x','signup')" class="auth-provider-btn auth-provider-btn--m" style="background:#000;color:#fff;border:1.5px solid rgba(255,255,255,.2)">

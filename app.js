@@ -683,7 +683,7 @@ let _helpCluster = null;
 let _mHelpCluster = null;
 let _postMarkers = [];
 let posts = [];
-let _globalPins = [];
+let _fullyVerifiedUsers = new Set();let _globalPins = [];
 let _globalCluster = null;
 let _mGlobalCluster = null;
 let _activeFilter = 'all';
@@ -1179,13 +1179,15 @@ function getFilterState() {
   const petAnimalTypes  = chk('pet-animal');
   const showFostering   = v('show-fostering')  ?? true;
   const fosterAnimalTypes = chk('foster-animal');
+  const showPetsHoused  = v('show-pets-housed') ?? true;
+  const showPetsReunited = v('show-pets-reunited') ?? true;
 
   const destCountry = val(P + '-filter-dest-country') || val(S + '-filter-dest-country') || '';
   const destAirport = val(P + '-filter-dest-airport') || val(S + '-filter-dest-airport') || '';
   const atIata = _filterAtIata || val(P + '-at-iata') || val(S + '-at-iata') || '';
   const toIata = _filterToIata || val(P + '-to-iata') || val(S + '-to-iata') || '';
 
-  return { showOffers, offersVerified, offerTypes, showStranded, strandedVerified, nationality, strandedNeeds, groupSize, showWorldwide, destCountry, destAirport, showArcs, atIata, toIata, showSuccess, showSuccessArcs, showHome, showPets, petAnimalTypes, showFostering, fosterAnimalTypes };
+  return { showOffers, offersVerified, offerTypes, showStranded, strandedVerified, nationality, strandedNeeds, groupSize, showWorldwide, destCountry, destAirport, showArcs, atIata, toIata, showSuccess, showSuccessArcs, showHome, showPets, petAnimalTypes, showFostering, fosterAnimalTypes, showPetsHoused, showPetsReunited };
 }
 
 function applyFilters() {
@@ -1243,8 +1245,8 @@ function applyFilters() {
   }
 
   // ── Success stories — re-render with showHome, then toggle visibility ──
-  renderSuccessOnMap(window._crisisMap, f.showHome);
-  renderSuccessOnMap(window._mobileMap, f.showHome);
+  renderSuccessOnMap(window._crisisMap, f.showHome, f.showPetsHoused, f.showPetsReunited);
+  renderSuccessOnMap(window._mobileMap, f.showHome, f.showPetsHoused, f.showPetsReunited);
   [
     { layer: '_successLayer',  map: window._crisisMap,  show: f.showSuccess && !pcMerge },
     { layer: '_mSuccessLayer', map: window._mobileMap,  show: f.showSuccess && !mobMerge },
@@ -1402,7 +1404,7 @@ function renderFilteredPosts(map, cluster, filteredPosts) {
     });
     const popupHtml = `<div style="font-family:Inter,sans-serif">
         <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#93c5fd;margin-bottom:.25rem">SPARE ROOM</div>
-        <div style="font-weight:600;font-size:.95rem;margin-bottom:.2rem;color:#fff">${esc(p.name)} ${buildBadge(!!p.user_id)}</div>
+        <div style="font-weight:600;font-size:.95rem;margin-bottom:.2rem;color:#fff">${esc(p.name)} ${buildBadge(_fullyVerifiedUsers.has(p.user_id))}</div>
         <div style="font-size:.82rem;color:rgba(255,255,255,.75);line-height:1.55;margin-bottom:.4rem">${esc(p.body)||''}</div>
         <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:.4rem">📍 ${esc(p.location)}</div>
         ${buildContactButtons(p.contact, p.xhandle, p.name)}
@@ -1488,6 +1490,8 @@ function syncFilterPanels() {
     ['fp-show-worldwide','mfp-show-worldwide'],['fp-worldwide-arcs','mfp-worldwide-arcs'],
     ['fp-show-pets','mfp-show-pets'],
     ['fp-show-fostering','mfp-show-fostering'],
+    ['fp-show-pets-housed','mfp-show-pets-housed'],
+    ['fp-show-pets-reunited','mfp-show-pets-reunited'],
   ];
   pairs.forEach(([d,m]) => {
     const src = document.getElementById(isMobile ? m : d);
@@ -2874,7 +2878,7 @@ function openPostSidebar(post, postType) {
       <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.6rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       <div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">SPARE ROOM</div>
       <div style="font-size:.72rem;color:rgba(255,255,255,.25);margin-top:.3rem">posted ${timeAgo(post.created_at)}</div>
-      <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.3rem">by ${esc(post.name||'Anonymous')} ${buildBadge(!!post.user_id)} ${post.xhandle ? buildTipButton(post.xhandle, !!post.user_id) : ''}</div>
+      <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.3rem">by ${esc(post.name||'Anonymous')} ${buildBadge(_fullyVerifiedUsers.has(post.user_id))} ${post.xhandle ? buildTipButton(post.xhandle, !!post.user_id) : ''}</div>
     </div>`;
     // Spare room post
     html += `<div class="post-sidebar-section">
@@ -2901,7 +2905,7 @@ function openPostSidebar(post, postType) {
       <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.6rem"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">I'M STRANDED</div>
       <div style="font-size:.72rem;color:rgba(255,255,255,.25);margin-top:.3rem">posted ${timeAgo(post.created_at)}</div>
-      <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.3rem">by ${esc(post.name||'Anonymous')} ${buildBadge(!!post.user_id)} ${post.xhandle ? buildSendHelpButton(post.xhandle, !!post.user_id) : ''}</div>
+      <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.3rem">by ${esc(post.name||'Anonymous')} ${buildBadge(_fullyVerifiedUsers.has(post.user_id))} ${post.xhandle ? buildSendHelpButton(post.xhandle, !!post.user_id) : ''}</div>
     </div>`;
     // Stranded post
     const needsList = (post.needs || []).map(n => NEED_LABELS[n] || n).join(', ');
@@ -2997,7 +3001,7 @@ function openPetSidebar(p, statusLabel, statusColor, animalIcon, petMatchHtml) {
     <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="none" style="margin-bottom:.6rem"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="var(--accent)"/><circle cx="6.5" cy="10" r="2" fill="var(--accent)"/><circle cx="17.5" cy="10" r="2" fill="var(--accent)"/><circle cx="10" cy="6.5" r="1.8" fill="var(--accent)"/><circle cx="14" cy="6.5" r="1.8" fill="var(--accent)"/></svg>
     <div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">STRANDED PETS</div>
     <div style="font-size:.72rem;color:rgba(255,255,255,.25);margin-top:.3rem">posted ${timeAgo(p.created_at)}</div>
-    <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.3rem">by ${esc(p.name)} ${buildBadge(!!p.user_id)} <span style="color:${statusColor};font-weight:700">${p.pet_status === 'can_foster' ? statusLabel : ((p.animal_type||'Pet').charAt(0).toUpperCase()+(p.animal_type||'pet').slice(1)) + ' · ' + statusLabel}</span></div>
+    <div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.3rem">by ${esc(p.name)} ${buildBadge(_fullyVerifiedUsers.has(p.user_id))} <span style="color:${statusColor};font-weight:700">${p.pet_status === 'can_foster' ? statusLabel : ((p.animal_type||'Pet').charAt(0).toUpperCase()+(p.animal_type||'pet').slice(1)) + ' · ' + statusLabel}</span></div>
     ${(p.animal_type||'').includes(',') ? '<div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-top:.25rem">Can take: '+(p.animal_type||'').split(',').map(t=>t.trim().charAt(0).toUpperCase()+t.trim().slice(1)).join(', ')+'</div>' : ''}
   </div>`;
 
@@ -3410,7 +3414,7 @@ async function renderPostsOnMap(map) {
     const isMobileM = (map === window._mobileMap);
     const popHtml = `<div style="font-family:Inter,sans-serif">
         <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#93c5fd;margin-bottom:.25rem">SPARE ROOM</div>
-        <div style="font-weight:600;font-size:.95rem;margin-bottom:.2rem;color:#fff">${esc(p.name)} ${buildBadge(!!p.user_id)}</div>
+        <div style="font-weight:600;font-size:.95rem;margin-bottom:.2rem;color:#fff">${esc(p.name)} ${buildBadge(_fullyVerifiedUsers.has(p.user_id))}</div>
         <div style="font-size:.82rem;color:rgba(255,255,255,.75);line-height:1.55;margin-bottom:.4rem">${esc(p.body)||''}</div>
         <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:.4rem">📍 ${esc(p.location)}</div>
         ${buildContactButtons(p.contact, p.xhandle, p.name)}
@@ -3692,7 +3696,7 @@ function renderPosts() {
       <div class="post-loc">📍 ${esc(p.location)}</div>
       <div class="post-body">${esc(p.body)}</div>
       <div class="post-footer">
-        <span style="font-size:.77rem;color:var(--muted)">${esc(p.name)} ${buildBadge(!!p.user_id)}</span>
+        <span style="font-size:.77rem;color:var(--muted)">${esc(p.name)} ${buildBadge(_fullyVerifiedUsers.has(p.user_id))}</span>
       </div>
       ${buildContactButtons(p.contact, p.xhandle, p.name)}
       ${buildTipButton(p.xhandle, !!p.user_id)}
@@ -4049,6 +4053,14 @@ async function refreshSitrep() {
 // ============================================================
 // SUPABASE
 // ============================================================
+async function loadVerifiedUsers() {
+  if (!SB_ON) return;
+  try {
+    const { data } = await withTimeout(_sb.from('profiles').select('id').eq('google_verified', true).eq('x_verified', true).eq('tg_verified', true), 6000);
+    _fullyVerifiedUsers = new Set((data || []).map(p => p.id));
+  } catch(e) { console.warn('[loadVerifiedUsers]', e.message); }
+}
+
 async function loadPosts() {
   if(!SB_ON)return;
   try {
@@ -5043,7 +5055,7 @@ function renderProfileView() {
 
 function _updateProfileNameBadge() {
   const p = _currentProfile;
-  const isVerified = p?.google_verified || p?.x_verified || p?.tg_verified;
+  const isVerified = p?.google_verified && p?.x_verified && p?.tg_verified;
   const badge = document.getElementById('profile-verified-badge');
   if (!badge) return;
   const shield = badge.querySelector('svg');
@@ -5057,6 +5069,7 @@ function _updateProfileNameBadge() {
     if (check) { check.setAttribute('stroke','rgba(255,255,255,.25)'); }
     badge.title = 'Not yet verified';
   }
+  loadVerifiedUsers();
 }
 
 function updateVerifyStatus(provider, verified) {
@@ -5130,7 +5143,7 @@ async function renderProfilePosts() {
     el.innerHTML = '<div style="font-size:.82rem;color:rgba(255,255,255,.4);padding:.5rem 0">No listings yet. Offer a spare room to get started.</div>';
     return;
   }
-  const verified = _currentProfile?.google_verified || _currentProfile?.x_verified || _currentProfile?.tg_verified;
+  const verified = _currentProfile?.google_verified && _currentProfile?.x_verified && _currentProfile?.tg_verified;
   el.innerHTML = data.map(p => {
     const t = p.created_at ? new Date(p.created_at).toLocaleString() : '';
     return `<div class="profile-post-card" data-post-id="${p.id}">
@@ -5320,7 +5333,7 @@ async function renderMobileProfileView() {
     mainEl.style.display = 'block';
     const nameEl = document.getElementById('m-profile-display-name');
     if (nameEl) {
-      const verified = _currentProfile?.google_verified || _currentProfile?.x_verified || _currentProfile?.tg_verified;
+      const verified = _currentProfile?.google_verified && _currentProfile?.x_verified && _currentProfile?.tg_verified;
       nameEl.innerHTML = esc(_currentProfile?.display_name || _currentUser.email) + ' ' + buildBadge(verified);
     }
     // Profile photo — hero circle at top
@@ -6535,19 +6548,23 @@ function buildPetMatchButton(petPost) {
     return `<div style="margin-top:.5rem;padding:.45rem .6rem;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);border-radius:8px;text-align:center;font-size:.7rem;font-weight:700;color:#22c55e">${reunitedLabel}${m.foster_name ? ' by '+esc(m.foster_name) : ''}</div>`;
   }
 
-  // If I'm the pet owner viewing someone else's can_foster, or I'm a foster viewing a need_foster/found_stray
+  // If viewing a can_foster post and I have a pet needing a home
   if (petPost.pet_status === 'can_foster' && petPost.user_id !== myId) {
-    // I need a foster — check if I have an active need_foster or found_stray post
     const myPetPost = _petPosts.find(p => p.user_id === myId && (p.pet_status === 'need_foster' || p.pet_status === 'found_stray'));
     if (myPetPost) {
       return `<button onclick="requestPetMatch('${myPetPost.id}','${petPost.id}')" style="margin-top:.5rem;width:100%;padding:.5rem;background:${accentRgba(.12)};border:1px solid ${accentRgba(.25)};border-radius:8px;color:${accentHex()};font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">🐾 Request This Home</button>`;
     }
-  } else if ((petPost.pet_status === 'need_foster' || petPost.pet_status === 'found_stray') && petPost.user_id !== myId) {
-    // I can foster — check if I have an active can_foster post
+  }
+
+  // If viewing a need_foster/found_stray post and I'm not the owner
+  if ((petPost.pet_status === 'need_foster' || petPost.pet_status === 'found_stray') && petPost.user_id !== myId) {
+    // If I already have a can_foster post, offer direct match
     const myFosterPost = _petPosts.find(p => p.user_id === myId && p.pet_status === 'can_foster');
     if (myFosterPost) {
-      return `<button onclick="requestPetMatch('${petPost.id}','${myFosterPost.id}')" style="margin-top:.5rem;width:100%;padding:.5rem;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);border-radius:8px;color:#22c55e;font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">🐾 Offer a Home to This Pet</button>`;
+      return `<button onclick="requestPetMatch('${petPost.id}','${myFosterPost.id}')" style="margin-top:.5rem;width:100%;padding:.65rem .8rem;border-radius:10px;cursor:pointer;font-family:Inter,sans-serif;font-size:.76rem;font-weight:800;letter-spacing:.02em;background:${accentHex()};color:#1a1a2e;border:none;display:flex;align-items:center;justify-content:center;gap:.45rem;transition:opacity .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="none"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="currentColor"/><circle cx="6.5" cy="10" r="2" fill="currentColor"/><circle cx="17.5" cy="10" r="2" fill="currentColor"/><circle cx="10" cy="6.5" r="1.8" fill="currentColor"/><circle cx="14" cy="6.5" r="1.8" fill="currentColor"/></svg> Offer a Home</button>`;
     }
+    // No can_foster post — show quick offer button
+    return `<button onclick="quickOfferHome('${petPost.id}')" style="margin-top:.5rem;width:100%;padding:.65rem .8rem;border-radius:10px;cursor:pointer;font-family:Inter,sans-serif;font-size:.76rem;font-weight:800;letter-spacing:.02em;background:${accentHex()};color:#1a1a2e;border:none;display:flex;align-items:center;justify-content:center;gap:.45rem;transition:opacity .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="none"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="currentColor"/><circle cx="6.5" cy="10" r="2" fill="currentColor"/><circle cx="17.5" cy="10" r="2" fill="currentColor"/><circle cx="10" cy="6.5" r="1.8" fill="currentColor"/><circle cx="14" cy="6.5" r="1.8" fill="currentColor"/></svg> Offer a Home</button>`;
   }
   return '';
 }
@@ -6587,6 +6604,70 @@ async function requestPetMatch(petPostId, fosterPostId) {
     if (error) throw error;
     alert('✅ Match request sent! They will see it in their notifications.');
     loadPetMatches();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function quickOfferHome(petPostId) {
+  if (!isLoggedIn()) { alert('Please sign in first.'); return; }
+  const petPost = _petPosts.find(p => p.id === petPostId);
+  if (!petPost) { alert('Could not find the pet post.'); return; }
+
+  const animalType = (petPost.animal_type || 'pet').charAt(0).toUpperCase() + (petPost.animal_type || 'pet').slice(1);
+  const petName = petPost.pet_name || animalType;
+
+  const location = prompt(`You're offering a home to "${petName}" (${animalType}).\n\nWhere are you located? (city or address)`);
+  if (!location) return;
+
+  // Geocode the location
+  let lat = null, lng = null;
+  try {
+    const geo = await geocodeCity(location);
+    if (geo) { lat = geo.lat; lng = geo.lng; }
+  } catch(e) {}
+
+  const name = _currentProfile?.display_name || _currentUser.email?.split('@')[0] || 'Anonymous';
+  const contact = _currentProfile?.email || _currentUser.email || '';
+
+  try {
+    // Create a can_foster post
+    const { data: fosterPost, error: fosterErr } = await _sb.from('stranded_pets').insert({
+      user_id: _currentUser.id,
+      name: name,
+      pet_status: 'can_foster',
+      animal_type: petPost.animal_type || 'other',
+      location: location,
+      lat: lat, lng: lng,
+      description: `Offering a home to ${petName} in ${petPost.location || 'the Gulf region'}`,
+      contact: contact,
+      xhandle: _currentProfile?.x_handle || null,
+    }).select().single();
+
+    if (fosterErr) throw fosterErr;
+
+    // Create match request
+    const { error: matchErr } = await _sb.from('pet_matches').insert({
+      pet_post_id: petPostId,
+      foster_post_id: fosterPost.id,
+      pet_user_id: petPost.user_id,
+      foster_user_id: _currentUser.id,
+      pet_confirmed: false,
+      foster_confirmed: true,
+      pet_lat: petPost.lat, pet_lng: petPost.lng,
+      pet_location: petPost.location,
+      pet_name: petPost.pet_name || petPost.animal_type,
+      animal_type: petPost.animal_type,
+      foster_lat: lat, foster_lng: lng,
+      foster_location: location,
+      foster_name: name,
+    });
+    if (matchErr) throw matchErr;
+
+    alert(`🏠 Offer sent! ${petPost.name || 'The pet owner'} will see your offer in their dashboard and can accept it.`);
+    loadPets();
+    loadPetMatches();
+    // Close sidebars
+    closePostSidebar();
+    if (isMob()) mSheetToggle();
   } catch(e) { alert('Error: ' + e.message); }
 }
 
@@ -6985,7 +7066,7 @@ async function loadSuccessStories() {
   updateFilterBadges();
 }
 
-function renderSuccessOnMap(map, showHome = true) {
+function renderSuccessOnMap(map, showHome = true, showPetsHoused = true, showPetsReunited = true) {
   if (!map) return;
   const isMobileM = map === window._mobileMap;
   const key = isMobileM ? '_mSuccessLayer' : '_successLayer';
@@ -7021,11 +7102,17 @@ function renderSuccessOnMap(map, showHome = true) {
   // Pet match success pins
   for (const m of _petMatches) {
     if (!m.foster_confirmed) continue;
+    const isReunited = !!m.reunited;
+    // Filter: housed vs reunited
+    if (isReunited && !showPetsReunited) continue;
+    if (!isReunited && !showPetsHoused) continue;
     const lat = m.foster_lat || m.pet_lat;
     const lng = m.foster_lng || m.pet_lng;
     if (!lat || !lng) continue;
-    const animalLabel = (PET_ANIMAL_ICONS[m.animal_type] || 'Pet') + ' housed';
-    const _petSuccD = buildUserDot('success', 1, animalLabel, 50);
+    const animalLabel = isReunited
+      ? (PET_ANIMAL_ICONS[m.animal_type] || 'Pet') + ' reunited'
+      : (PET_ANIMAL_ICONS[m.animal_type] || 'Pet') + ' housed';
+    const _petSuccD = buildUserDot('success', 1, animalLabel, 50, isReunited ? '🏠' : undefined);
     const icon = L.divIcon({ className: '', html: _petSuccD.html, iconSize: [_petSuccD.sz, _petSuccD.sz], iconAnchor: [_petSuccD.sz/2, _petSuccD.sz/2] });
     const marker = L.marker([lat, lng], { icon });
     if (isMobileM) marker.on('click', e => { L.DomEvent.stopPropagation(e); openMPinSheet(buildPetSuccessSidebarHtml(m)); });
@@ -7813,7 +7900,7 @@ Object.defineProperty(window, '_svgPerson', { get: function(){ return '<svg widt
 function buildStrandedCard(p, match, step) {
   const t = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
   const needsList = (p.needs || []).join(', ');
-  const _verified = _currentProfile?.google_verified || _currentProfile?.x_verified || _currentProfile?.tg_verified;
+  const _verified = _currentProfile?.google_verified && _currentProfile?.x_verified && _currentProfile?.tg_verified;
 
   // ── MATCHED: show success summary ──
   if (step >= 2 && match) {
@@ -7884,7 +7971,7 @@ function buildStrandedCard(p, match, step) {
       <div style="font-size:.7rem;color:rgba(255,255,255,.45);margin-bottom:.6rem">Someone near you is offering help</div>`;
     html += nearby.slice(0, 5).map(o => `<div style="padding:.55rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.25rem">
-          <div><div style="font-size:.85rem;font-weight:700;color:#fff">${esc(o.name) || 'Anonymous'} ${buildBadge(!!o.user_id)}</div>
+          <div><div style="font-size:.85rem;font-weight:700;color:#fff">${esc(o.name) || 'Anonymous'} ${buildBadge(_fullyVerifiedUsers.has(o.user_id))}</div>
             <div style="font-size:.7rem;color:rgba(255,255,255,.5)">${esc(o.location)}${o._d != null ? ' · '+Math.round(o._d)+'km' : ''}</div></div>
           <button onclick="openMatchPicker('${p.id}','${lat||0}','${lng||0}','${(p.name||'').replace(/'/g,"\\'")}','${(p.current_location||'').replace(/'/g,"\\'")}')" style="white-space:nowrap;${btnStyle('accent','sm')}">Select →</button>
         </div>
@@ -7899,7 +7986,7 @@ function buildStrandedCard(p, match, step) {
 
 function buildOfferCard(p, match, pending, step) {
   const t = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
-  const _verified = _currentProfile?.google_verified || _currentProfile?.x_verified || _currentProfile?.tg_verified;
+  const _verified = _currentProfile?.google_verified && _currentProfile?.x_verified && _currentProfile?.tg_verified;
   let html = `<div style="padding:.5rem 0">
     <div style="font-size:1.35rem;font-weight:800;color:#fff;margin-bottom:.5rem;line-height:1.2">${esc(p.name) || 'Anonymous'} ${buildBadge(_verified)} <span style="font-size:.7rem;color:rgba(255,255,255,.4);font-weight:400">${t}</span></div>
     <div style="display:flex;align-items:center;gap:.35rem;font-size:.9rem;color:rgba(255,255,255,.85);margin-bottom:.25rem">${_svgPin} ${esc(p.location)}</div>
@@ -7940,7 +8027,7 @@ function buildOfferCard(p, match, pending, step) {
       const needs = (s.needs || []).slice(0,3).join(', ');
       return `<div style="padding:.55rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.25rem">
-          <div><div style="font-size:.85rem;font-weight:700;color:#fff">${esc(s.name) || 'Anonymous'} ${buildBadge(!!s.user_id)} <span style="font-size:.6rem;color:rgba(255,255,255,.25)">${s.group_size > 1 ? s.group_size + ' people' : ''}</span></div>
+          <div><div style="font-size:.85rem;font-weight:700;color:#fff">${esc(s.name) || 'Anonymous'} ${buildBadge(_fullyVerifiedUsers.has(s.user_id))} <span style="font-size:.6rem;color:rgba(255,255,255,.25)">${s.group_size > 1 ? s.group_size + ' people' : ''}</span></div>
             <div style="font-size:.7rem;color:rgba(255,255,255,.5)">${esc(s.current_location)}${s._d != null ? ' · '+Math.round(s._d)+'km' : ''}</div>
             ${needs ? '<div style="font-size:.6rem;color:#f59e0b">'+needs+'</div>' : ''}</div>
           <button onclick="alert('Room offered! They will see this in their dashboard.')" style="white-space:nowrap;${btnStyle('green','sm')}">Offer Room</button>
@@ -8024,7 +8111,7 @@ function buildPetCard(p, match, step) {
         const typeLabel = types.length > 1 ? types.map(t => (t.charAt(0).toUpperCase()+t.slice(1))).join(', ') : (fp.animal_type||'Pet').charAt(0).toUpperCase()+(fp.animal_type||'pet').slice(1);
         return `<div style="padding:.45rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.2rem">
-            <div><div style="font-size:.82rem;font-weight:700;color:#fff">${esc(fp.name)||'Anonymous'} ${buildBadge(!!fp.user_id)}</div>
+            <div><div style="font-size:.82rem;font-weight:700;color:#fff">${esc(fp.name)||'Anonymous'} ${buildBadge(_fullyVerifiedUsers.has(fp.user_id))}</div>
               <div style="font-size:.65rem;color:rgba(255,255,255,.45)">${esc(fp.location)}${fp._d!=null?' · '+Math.round(fp._d)+'km':''}</div>
               <div style="font-size:.6rem;color:var(--accent)">${icon} Can take: ${typeLabel}</div></div>
             ${buildContactIcons(fp.contact, fp.xhandle, fp.name)}
@@ -8205,7 +8292,7 @@ function openHousedFlow(petPostId) {
       html += `<label style="display:flex;align-items:center;gap:.5rem;padding:.5rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:8px;margin-bottom:.3rem;cursor:pointer">
         <input type="radio" name="housed-person" value="${fp.id}" style="accent-color:${accentHex()}">
         <div style="flex:1;min-width:0">
-          <div style="font-size:.82rem;font-weight:700;color:#fff">${esc(fp.name)} ${buildBadge(!!fp.user_id)}</div>
+          <div style="font-size:.82rem;font-weight:700;color:#fff">${esc(fp.name)} ${buildBadge(_fullyVerifiedUsers.has(fp.user_id))}</div>
           <div style="font-size:.65rem;color:rgba(255,255,255,.4)">${esc(fp.location)}${fp._d != null ? ' · '+Math.round(fp._d)+'km' : ''}</div>
         </div>
       </label>`;
@@ -9073,7 +9160,7 @@ function handleDeepLink() {
         if (isMob()) {
           const popupHtml = `<div style="font-family:Inter,sans-serif">
             <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#93c5fd;margin-bottom:.25rem">SPARE ROOM</div>
-            <div style="font-weight:600;font-size:.95rem;margin-bottom:.2rem;color:#fff">${esc(p.name)} ${buildBadge(!!p.user_id)}</div>
+            <div style="font-weight:600;font-size:.95rem;margin-bottom:.2rem;color:#fff">${esc(p.name)} ${buildBadge(_fullyVerifiedUsers.has(p.user_id))}</div>
             <div style="font-size:.82rem;color:rgba(255,255,255,.75);line-height:1.55;margin-bottom:.4rem">${esc(p.body)||''}</div>
             <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:.4rem">📍 ${esc(p.location)}</div>
             ${buildContactButtons(p.contact, p.xhandle, p.name)}
@@ -9100,6 +9187,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   initLocationAutocomplete('offer-location','offer-lat','offer-lng','offer-location-ac');
   initLocationAutocomplete('m-offer-location','m-offer-lat','m-offer-lng','m-offer-location-ac');
   initAuth();
+  loadVerifiedUsers();
   // Keep session alive — refresh token every 2 minutes to prevent expiry
   window._sessionKeepaliveInterval = setInterval(async () => {
     if (_currentUser) {
