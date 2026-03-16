@@ -1331,13 +1331,10 @@ function applyFilters() {
       if (f.showArcs || hasTo) {
         if (destAp) {
           for (const r of reverseData) {
-            const rc = r.cancelled || 0;
-            let wt, op;
-            if (rc >= 5000) { wt = 4; op = 0.35; } else if (rc >= 1000) { wt = 3; op = 0.28; } else if (rc >= 500) { wt = 2.2; op = 0.22; } else if (rc >= 200) { wt = 1.5; op = 0.18; } else { wt = 0.7; op = 0.12; }
             const arc = generateArc([r.lat, r.lng], [destAp.lat, destAp.lng], 30);
             [window._crisisMap, window._mobileMap].forEach(map => {
               if (!map) return;
-              const line = L.polyline(arc, { color: accentRgba(op), weight: wt, interactive: false }).addTo(map);
+              const line = L.polyline(arc, { color: accentRgba(0.15), weight: 0.7, interactive: false }).addTo(map);
               _globalArcLines.push(line);
             });
           }
@@ -1711,17 +1708,10 @@ function drawMERouteArcs(map) {
       if (!arrAp) continue;
       const toCoords = arrAp.coords || [arrAp.lat, arrAp.lng];
 
-      const c = dest.cancelled || 0;
-      let dw, do_;
-      if (c >= 500)      { dw = 3.0; do_ = 0.5; }
-      else if (c >= 200) { dw = 2.2; do_ = 0.4; }
-      else if (c >= 50)  { dw = 1.5; do_ = 0.3; }
-      else               { dw = 0.8; do_ = 0.2; }
-
       const arc = generateArc(fromCoords, toCoords, 30);
       const line = L.polyline(arc, {
-        color: accentRgba(do_),
-        weight: dw,
+        color: accentRgba(0.18),
+        weight: 0.7,
         interactive: false,
       }).addTo(map);
       _meArcLines.push(line);
@@ -1757,15 +1747,6 @@ function drawGlobalRouteArcs(map, disruptions) {
     }
     if (!fromCoords) continue;
 
-    const c = g.cancelled || 0;
-    let weight, opacity;
-    if (c >= 5000)      { weight = 4.5; opacity = 0.4; }
-    else if (c >= 1000) { weight = 3.5; opacity = 0.32; }
-    else if (c >= 500)  { weight = 2.5; opacity = 0.25; }
-    else if (c >= 200)  { weight = 1.8; opacity = 0.2; }
-    else if (c >= 50)   { weight = 1.0; opacity = 0.15; }
-    else                { weight = 0.5; opacity = 0.1; }
-
     if (g.isME) {
       // ME hub → draw arcs outward to top global destinations via _meOutbound
       const outbound = (window._meOutbound && window._meOutbound[g.iata]) || [];
@@ -1773,14 +1754,8 @@ function drawGlobalRouteArcs(map, disruptions) {
       for (const dest of topDests) {
         const dap = typeof findAirport === 'function' ? findAirport(dest.iata) : null;
         if (!dap) continue;
-        const destC = dest.cancelled || 0;
-        let dw, do_;
-        if (destC >= 300)      { dw = 3.5; do_ = 0.35; }
-        else if (destC >= 100) { dw = 2.5; do_ = 0.27; }
-        else if (destC >= 30)  { dw = 1.5; do_ = 0.2; }
-        else                   { dw = 0.8; do_ = 0.13; }
         const arc = generateArc(fromCoords, [dap.lat, dap.lng], 30);
-        const line = L.polyline(arc, { color: accentRgba(do_), weight: dw, interactive: false }).addTo(map);
+        const line = L.polyline(arc, { color: accentRgba(0.15), weight: 0.7, interactive: false }).addTo(map);
         _globalArcLines.push(line);
       }
     } else {
@@ -1795,7 +1770,7 @@ function drawGlobalRouteArcs(map, disruptions) {
         }
         if (!hubCoords) continue;
         const arc = generateArc(fromCoords, hubCoords, 30);
-        const line = L.polyline(arc, { color: accentRgba(opacity), weight, interactive: false }).addTo(map);
+        const line = L.polyline(arc, { color: accentRgba(0.15), weight: 0.7, interactive: false }).addTo(map);
         _globalArcLines.push(line);
       }
     }
