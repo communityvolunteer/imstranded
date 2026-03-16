@@ -1633,11 +1633,14 @@ function googleTranslateInit() {
         <div class="hstep-num" id="hr-s2-num">2</div>
         <div class="hstep-body">
           <div class="hstep-title">Get on the map</div>
-          <div class="hstep-desc">Offer a spare room to someone in need — even just a couch for a week helps. Or, if you're stranded, add yourself to the map.</div>
+          <div class="hstep-desc">Offer a spare room or a home to a pet — even just a couch for a week helps. Or, if you're stranded, add yourself to the map.</div>
           <div style="display:flex;gap:.4rem;flex-wrap:wrap">
             <button id="hr-s2-offer-btn" class="hstep-btn hstep-btn--blue" onclick="dismissHelp();setTimeout(function(){isMob()?mTab('offer',null):openFormSidebar('offer')},150)">
               
               Offer a Room
+            </button>
+            <button id="hr-s2-pet-btn" class="hstep-btn hstep-btn--blue" onclick="dismissHelp();setTimeout(function(){if(isMob()){mTab('pets',null);setTimeout(function(){setPetMode('m-pet','take')},100)}else{openFormSidebar('pets');setTimeout(function(){setPetMode('pet','take')},100)}},150)">
+              🐾 Help a Pet
             </button>
             <button id="hr-s2-stranded-btn" class="hstep-btn hstep-btn--red" onclick="dismissHelp();setTimeout(function(){isMob()?mTab('stranded',null):openFormSidebar('stranded')},150)">
               

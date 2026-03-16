@@ -1522,7 +1522,7 @@ html.translated-ltr body,html.translated-rtl body{top:0 !important;}
 }
 #pin-sidebar-header-text { flex: 1; min-width: 0; text-align: center; }
 #pin-sidebar-city {
-  font-size: 1.65rem;
+  font-size: 2rem;
   font-weight: 800;
   color: #fff;
   letter-spacing: -.01em;
@@ -1538,14 +1538,14 @@ html.translated-ltr body,html.translated-rtl body{top:0 !important;}
   margin-top: .2rem;
 }
 #pin-sidebar-code {
-  font-size: .65rem;
+  font-size: .8rem;
   font-weight: 800;
   letter-spacing: .1em;
   color: var(--accent);
   text-transform: uppercase;
 }
 #pin-sidebar-country {
-  font-size: .65rem;
+  font-size: .8rem;
   color: #fff;
   font-weight: 500;
 }

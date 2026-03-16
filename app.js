@@ -2687,7 +2687,7 @@ function buildDualPopup(iata) {
   // CTA: Can You Help?
   var ctaOffer =
     '<div style="margin-top:.6rem;padding-top:.75rem;border-top:1px solid rgba(255,255,255,.07)">' +
-      '<div class="popup-section-title" style="font-size:.99rem;font-weight:800;color:#fff;margin-bottom:.5rem;text-align:center">Can You Help?</div>' +
+      '<div class="popup-section-title" style="font-size:1.3rem;font-weight:800;color:#fff;margin-top:15px;margin-bottom:.5rem;text-align:center">Can You Help?</div>' +
       '<button onclick="isMob()?mTab(\'offer\',null):openFormSidebar(\'offer\')" ' +
         'style="width:100%;padding:.65rem .8rem;border-radius:10px;cursor:pointer;font-family:Inter,sans-serif;font-size:.76rem;font-weight:800;letter-spacing:.02em;' +
         'background:'+accentHex()+';color:#1a1a2e;border:none;' +
@@ -2710,7 +2710,7 @@ function buildDualPopup(iata) {
   // CTA: Are You Stranded Here?
   var ctaStranded =
     '<div style="margin-top:1rem;padding-top:.85rem;border-top:1px solid rgba(255,255,255,.07)">' +
-      '<div class="popup-section-title" style="font-size:.99rem;font-weight:800;color:#fff;margin-bottom:.5rem;text-align:center">Are You Stranded Here?</div>' +
+      '<div class="popup-section-title" style="font-size:1.3rem;font-weight:800;color:#fff;margin-top:15px;margin-bottom:.5rem;text-align:center">Are You Stranded Here?</div>' +
       '<button onclick="isMob()?mTab(\'stranded\',null):openFormSidebar(\'stranded\')" ' +
         'style="width:100%;padding:.65rem .8rem;border-radius:10px;cursor:pointer;font-family:Inter,sans-serif;font-size:.76rem;font-weight:800;letter-spacing:.02em;' +
         'background:'+accentHex()+';color:#1a1a2e;border:none;' +
@@ -2724,17 +2724,17 @@ function buildDualPopup(iata) {
   // Section header: The Full Impact
   var fullImpactHeader =
     '<div style="margin-top:1rem;padding-top:.85rem;border-top:1px solid rgba(255,255,255,.07);margin-bottom:.6rem">' +
-      '<div class="popup-section-title" style="font-size:.99rem;font-weight:800;color:#fff;text-align:center">The Full Impact</div>' +
+      '<div class="popup-section-title" style="font-size:1.3rem;font-weight:800;color:#fff;text-align:center">The Full Impact</div>' +
     '</div>';
 
   return '<div style="width:100%;font-family:Inter,sans-serif" id="gpop-' + uid + '">' +
     
     // City header — visible on mobile pin sheet, hidden on PC sidebar (has its own header)
     '<div class="popup-city-header" style="text-align:center;margin-bottom:.5rem">' +
-      '<div style="font-size:1.65rem;font-weight:800;color:#fff;letter-spacing:-.01em">' + city + '</div>' +
+      '<div style="font-size:2rem;font-weight:800;color:#fff;letter-spacing:-.01em">' + city + '</div>' +
       '<div style="display:flex;justify-content:center;align-items:center;gap:.5rem;margin-top:.15rem">' +
-        '<span style="font-size:.65rem;font-weight:800;letter-spacing:.1em;color:var(--accent);text-transform:uppercase">' + iata + '</span>' +
-        '<span style="font-size:.65rem;color:#fff">' + country + '</span>' +
+        '<span style="font-size:.8rem;font-weight:800;letter-spacing:.1em;color:var(--accent);text-transform:uppercase">' + iata + '</span>' +
+        '<span style="font-size:.8rem;color:#fff">' + country + '</span>' +
       '</div>' +
     '</div>' +
     
@@ -5834,10 +5834,12 @@ function refreshHelpPanel() {
   // Receive step 2 — solid when user has an active offer or stranded post
   const r2num = document.getElementById('hr-s2-num');
   const r2offerBtn = document.getElementById('hr-s2-offer-btn');
+  const r2petBtn = document.getElementById('hr-s2-pet-btn');
   const r2strandedBtn = document.getElementById('hr-s2-stranded-btn');
-  const hasPost = !!(_hasActiveOffer || _hasActiveStranded);
+  const hasPost = !!(_hasActiveOffer || _hasActiveStranded || _hasActivePets);
   if (r2num) r2num.classList.toggle('done', hasPost);
   if (r2offerBtn) r2offerBtn.classList.toggle('done', _hasActiveOffer);
+  if (r2petBtn) r2petBtn.classList.toggle('done', _hasActivePets);
   if (r2strandedBtn) r2strandedBtn.classList.toggle('done', _hasActiveStranded);
 
   // Receive step 3 — solid when X is connected
