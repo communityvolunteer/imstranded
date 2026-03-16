@@ -26,7 +26,7 @@
   --offer-bg:   var(--accent); /* blue */
   --radius:    12px;
   /* ── Accent color (swappable) ───────────────────────────── */
-  --accent:        var(--accent);
+  --accent:        #3498ec;
   --accent-r:      52;
   --accent-g:      152;
   --accent-b:      236;
@@ -119,9 +119,9 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 }
 .sitrep-label{
   font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
-  color:rgb(255, 255, 255);line-height:1.3;
+  color:rgba(255,255,255,.7);line-height:1.3;
 }
-.sitrep-sub{font-size:.5rem;color:rgb(255, 255, 255);margin-top:.1rem;}
+.sitrep-sub{font-size:.5rem;color:rgba(255,255,255,.5);margin-top:.1rem;}
 .sitrep-refresh{
   display:flex;align-items:center;justify-content:center;
   padding:0 1.1rem;flex-shrink:0;
@@ -321,7 +321,7 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 }
 .country-card{
   background:#000;border:5px solid #2e2e2f;
-  border-top:8px solid var(--border2);border-radius:var(--radius);
+  border-top:8px solid rgba(255,255,255,.15);border-radius:var(--radius);
   padding:1.2rem;box-shadow:var(--shadow);transition:box-shadow .2s;
 }
 .country-card:hover{box-shadow:var(--shadow-md);}
@@ -340,11 +340,11 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 .info-row:last-child{border-bottom:none;}
 .info-label{color:#fff;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
 .embassy-section{margin-top:.85rem;}
-.embassy-title{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.45rem;}
-.embassy-row{display:flex;align-items:center;gap:.6rem;padding:.38rem 0;border-bottom:1px solid var(--border);font-size:.8rem;}
+.embassy-title{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.4);margin-bottom:.45rem;}
+.embassy-row{display:flex;align-items:center;gap:.6rem;padding:.38rem 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:.8rem;}
 .embassy-row:last-child{border-bottom:none;}
 .embassy-name{flex:1;font-weight:500;color:#fff;}
-.embassy-note{font-size:.7rem;color:var(--muted);}
+.embassy-note{font-size:.7rem;color:rgba(255,255,255,.4);}
 .call-btn{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:.28rem .7rem;font-size:.7rem;font-weight:600;cursor:pointer;white-space:nowrap;text-decoration:none;font-family:'Inter',sans-serif;}
 .call-btn:hover{opacity:.85;}
 .ngo-tags{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.5rem;}
@@ -483,12 +483,12 @@ nav button:hover:not(.active){color:rgba(255,255,255,.9);}
 .submit-btn--offer{background:var(--accent);}
 .submit-btn--offer:hover{background:#2980c8;}
 .posts-list{display:flex;flex-direction:column;gap:.75rem;}
-.post-card{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:var(--radius-sm);padding:1rem;}
+.post-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-left:3px solid var(--safe);border-radius:var(--radius-sm);padding:1rem;}
 .post-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem;}
-.post-type{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--green);}
-.post-time{font-size:.63rem;color:var(--muted);}
-.post-loc{font-size:.78rem;font-weight:600;color:var(--text2);margin-bottom:.3rem;}
-.post-body{font-size:.84rem;color:var(--text2);line-height:1.5;margin-bottom:.6rem;}
+.post-type{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--safe);}
+.post-time{font-size:.63rem;color:rgba(255,255,255,.4);}
+.post-loc{font-size:.78rem;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:.3rem;}
+.post-body{font-size:.84rem;color:rgba(255,255,255,.6);line-height:1.5;margin-bottom:.6rem;}
 .post-footer{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}
 .tip-btn{background:var(--green);color:#fff;border:none;border-radius:6px;padding:.2rem .6rem;font-size:.68rem;font-weight:600;cursor:pointer;text-decoration:none;font-family:'Inter',sans-serif;}
 .empty-state{padding:2rem 1rem;text-align:center;color:var(--muted);font-size:.88rem;}

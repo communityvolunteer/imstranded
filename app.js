@@ -771,7 +771,7 @@ function toggleFilterPanel() {
   const panel = document.getElementById('filter-panel');
   if (panel) panel.classList.toggle('open', _filterPanelOpen);
   document.getElementById('ss-filter')?.classList.toggle('active-filter', _filterPanelOpen);
-  document.getElementById('map-view')?.style.setProperty('--sidebar-w', _filterPanelOpen ? '280px' : '0px');
+  document.getElementById('map-view')?.style.setProperty('--sidebar-w', _filterPanelOpen ? '290px' : '0px');
   const btn = document.getElementById('nav-filters-btn');
   if (btn) btn.textContent = _filterPanelOpen ? 'Hide Filters' : 'Show Filters';
 }
@@ -800,6 +800,25 @@ function toggleSocialsBar() {
   const hidden = bar.style.display === 'none';
   bar.style.display = hidden ? '' : 'none';
   if (btn) btn.textContent = hidden ? 'Hide Socials' : 'Show Socials';
+}
+
+// ── PC filter panel timeline chart (cancellations since crisis start) ──────
+function renderTimelineChart() {
+  const canvas = document.getElementById('fp-timeline-canvas');
+  if (!canvas) return;
+  const result = _drawChart(canvas, _timelineMetric);
+  if (!result) return;
+  const { pts, peakIdx } = result;
+  const peakEl = document.getElementById('fp-timeline-peak');
+  if (peakEl && pts[peakIdx]) {
+    const mmdd = Object.keys(window._dailyTotals || {}).sort()[peakIdx];
+    if (mmdd) {
+      const val = pts[peakIdx].val;
+      const label = _timelineMetric === 'stranded' ? val.toLocaleString() + ' pax' : val.toLocaleString() + ' flights';
+      peakEl.textContent = 'Peak: Mar ' + parseInt(mmdd.slice(3)) + ' · ' + label;
+    }
+  }
+  _attachChartHover(canvas, _timelineMetric, 'fp-timeline-peak');
 }
 
 function renderImpactSheetChart() {
@@ -1600,8 +1619,8 @@ function updateStrandedLabel(atIata, toIata, filteredGlobal, reverseData) {
       const todayEl = document.getElementById('stat-stranded-today');
       const todayVal = todayEl ? todayEl.textContent : '';
       pcSub.innerHTML = todayVal
-        ? `<span id="stat-stranded-today" style="color:'+accentHex()+';font-weight:700">${todayVal}</span><span id="stat-stranded-today-label">\u00a0today</span>`
-        : `<span id="stat-stranded-today" style="color:'+accentHex()+';font-weight:700"></span><span id="stat-stranded-today-label">tap \u00b7 see how</span>`;
+        ? `<span id="stat-stranded-today" style="color:${accentHex()};font-weight:700">${todayVal}</span><span id="stat-stranded-today-label"> today</span>`
+        : `<span id="stat-stranded-today" style="color:${accentHex()};font-weight:700"></span><span id="stat-stranded-today-label">tap · see how</span>`;
     }
     if (mLabel) mLabel.innerHTML = 'PEOPLE IMPACTED <span style="font-size:.52rem;color:var(--accent);font-weight:700;letter-spacing:.01em">· SINCE MAR 1</span>';
     refreshStrandedCount();
@@ -1840,7 +1859,7 @@ function _computeReverseCached(destIata) {
     }
   }
   const raw = computeReverseDisruptions(destIata, meStatuses);
-  const days = Math.max(1, Math.floor((Date.now() - new Date('2026-02-28').getTime()) / 86400000));
+  const days = Math.max(1, Math.floor((Date.now() - new Date('2026-03-01').getTime()) / 86400000));
   const altRate = Math.min(0.3, days * 0.03);
   const result = raw.map(r => ({
     ...r,
@@ -2076,8 +2095,6 @@ function closeFormSidebar() {
 // ============================================================
 // HELP TABS (offer only now)
 // ============================================================
-function switchHelpTab(tab) { switchHelpMode(tab === 'offer' ? 'helper' : 'stranded'); }
-
 function switchHelpMode(mode) {
   const sp = document.getElementById('help-panel-stranded');
   const op = document.getElementById('help-panel-offer');
@@ -2356,7 +2373,7 @@ document.addEventListener('click', e => {
 });
 
 function initAccent() {
-  let saved = 'purple';
+  let saved = 'blue';
   try { saved = localStorage.getItem('imstranded_accent') || 'blue'; } catch(e) {}
   setAccent(saved);
 }
@@ -2842,19 +2859,19 @@ function openPostSidebar(post, postType) {
     // Spare room post
     html += `<div class="post-sidebar-section">
       <div class="post-sidebar-label" style="color:#fff">Location</div>
-      <div class="post-sidebar-value">${_svgLocAccent}  ${post.location || '—'}</div>
+      <div class="post-sidebar-value">${_svgLocAccent}  ${esc(post.location) || '—'}</div>
     </div>`;
     if (post.post_type) {
       html += `<div class="post-sidebar-section">
         <div class="post-sidebar-label" style="color:#fff">Room Type</div>
-        <div class="post-sidebar-value">${post.post_type}</div>
+        <div class="post-sidebar-value">${esc(post.post_type)}</div>
       </div>`;
     }
     if (post.body) {
       html += `<hr class="post-sidebar-divider">
       <div class="post-sidebar-section">
         <div class="post-sidebar-label" style="color:#fff">About This Space</div>
-        <div class="post-sidebar-value">${post.body}</div>
+        <div class="post-sidebar-value">${esc(post.body)}</div>
       </div>`;
     }
   } else {
@@ -2870,11 +2887,11 @@ function openPostSidebar(post, postType) {
     const needsList = (post.needs || []).map(n => NEED_LABELS[n] || n).join(', ');
     html += `<div class="post-sidebar-section">
       <div class="post-sidebar-label" style="color:#fff">Currently At</div>
-      <div class="post-sidebar-value">${_svgLocAccent}  ${post.current_location || post.location || '—'}</div>
+      <div class="post-sidebar-value">${_svgLocAccent}  ${esc(post.current_location || post.location) || '—'}</div>
     </div>`;
     html += `<div class="post-sidebar-section">
       <div class="post-sidebar-label" style="color:#fff">Trying to Reach</div>
-      <div class="post-sidebar-value">${_svgLocAccent} <strong style="color:#fff">${post.destination || '—'}</strong>${post.dest_airport ? ' <span style="background:rgba(255,255,255,.1);padding:.1rem .4rem;border-radius:4px;font-size:.7rem;font-weight:600">'+post.dest_airport+'</span>' : ''}</div>
+      <div class="post-sidebar-value">${_svgLocAccent} <strong style="color:#fff">${esc(post.destination) || '—'}</strong>${post.dest_airport ? ' <span style="background:rgba(255,255,255,.1);padding:.1rem .4rem;border-radius:4px;font-size:.7rem;font-weight:600">'+esc(post.dest_airport)+'</span>' : ''}</div>
     </div>`;
     if (post.group_size > 1 || post.nationality) {
       html += `<div class="post-sidebar-section">
@@ -2898,7 +2915,7 @@ function openPostSidebar(post, postType) {
       html += `<hr class="post-sidebar-divider">
       <div class="post-sidebar-section">
         <div class="post-sidebar-label" style="color:#fff">Details</div>
-        <div class="post-sidebar-value">${post.details}</div>
+        <div class="post-sidebar-value">${esc(post.details)}</div>
       </div>`;
     }
   }
@@ -4519,6 +4536,8 @@ async function initAuth() {
 
 async function loadProfile() {
   if (!_currentUser) return;
+  // Reset session timer — this fires on both fresh login and session restore
+  _loginTime = Date.now();
   try {
     let { data, error } = await withTimeout(_sb.from('profiles').select('*').eq('id', _currentUser.id).single());
     if (!data) {
@@ -4747,7 +4766,7 @@ function checkTelegramRedirect() {
     const tgData = {};
     for (const [k, v] of params) tgData[k] = v;
     if (tgData.id && tgData.hash) {
-      window.location.hash = '';
+      history.replaceState(null, '', window.location.pathname + window.location.search);
       handleTelegramAuthData(tgData);
     }
   } catch(e) {}
@@ -4761,14 +4780,14 @@ async function checkXRedirect() {
   // X error: #x-error:message
   if (hash.startsWith('#x-error:')) {
     const msg = decodeURIComponent(hash.replace('#x-error:', ''));
-    window.location.hash = '';
+    history.replaceState(null, '', window.location.pathname + window.location.search);
     alert(msg);
     return;
   }
 
   // X linked successfully: #x-linked
   if (hash === '#x-linked') {
-    window.location.hash = '';
+    history.replaceState(null, '', window.location.pathname + window.location.search);
     if (isLoggedIn()) {
       await loadProfile();
       if (!isMob()) openFormSidebar('profile');
@@ -4780,7 +4799,7 @@ async function checkXRedirect() {
   // X link finish — browser calls Twitter API: #x-link-finish:userId:tokenB64
   if (hash.startsWith('#x-link-finish:')) {
     const parts = hash.replace('#x-link-finish:', '').split(':');
-    window.location.hash = '';
+    history.replaceState(null, '', window.location.pathname + window.location.search);
     if (parts.length >= 2) {
       const userId = parts[0];
       const token = b64urlDecode(parts.slice(1).join(':'));
@@ -4792,7 +4811,7 @@ async function checkXRedirect() {
   // X login/signup finish: #x-auth-finish:mode:xId:tokenB64
   if (hash.startsWith('#x-auth-finish:')) {
     const parts = hash.replace('#x-auth-finish:', '').split(':');
-    window.location.hash = '';
+    history.replaceState(null, '', window.location.pathname + window.location.search);
     if (parts.length >= 3) {
       const mode = parts[0];
       const xId = parts[1];
@@ -4808,7 +4827,7 @@ async function checkXRedirect() {
     if (parts.length >= 2) {
       const email = parts[0];
       const password = parts.slice(1).join(':');
-      window.location.hash = '';
+      history.replaceState(null, '', window.location.pathname + window.location.search);
       sessionStorage.setItem('postLogin', 'profile');
       const { error } = await _sb.auth.signInWithPassword({ email, password });
       if (error) { alert('X sign-in failed: ' + error.message); }
@@ -4818,7 +4837,7 @@ async function checkXRedirect() {
 
   // Generic profile redirect: #profile
   if (hash === '#profile') {
-    window.location.hash = '';
+    history.replaceState(null, '', window.location.pathname + window.location.search);
     if (isLoggedIn()) {
       await loadProfile();
       if (!isMob()) openFormSidebar('profile');
@@ -4903,6 +4922,10 @@ async function finishXAuth(mode, xId, accessToken) {
 }
 
 async function doSignOut() {
+  if (window._sessionKeepaliveInterval) {
+    clearInterval(window._sessionKeepaliveInterval);
+    window._sessionKeepaliveInterval = null;
+  }
   try {
     await _sb.auth.signOut();
   } catch(e) { console.error('Sign out error:', e); }
@@ -6428,6 +6451,21 @@ async function loadPetMatches() {
       .order('confirmed_at', { ascending: false }).limit(200));
     _petMatches = data || [];
   } catch(e) { /* table may not exist yet */ }
+
+  // Also load pending matches visible to the current user (foster side hasn't confirmed yet)
+  // so fosters see incoming requests in their dashboard
+  let _pendingMatches = [];
+  if (isLoggedIn()) {
+    try {
+      const { data: pending } = await withTimeout(_sb.from('pet_matches')
+        .select('*').eq('foster_confirmed', false)
+        .eq('foster_user_id', _currentUser.id)
+        .order('created_at', { ascending: false }).limit(50));
+      _pendingMatches = pending || [];
+    } catch(e) { /* silent */ }
+  }
+  window._pendingPetMatches = _pendingMatches;
+
   _petMatchByPet = {};
   _petMatchByFoster = {};
   for (const m of _petMatches) {
@@ -7641,6 +7679,8 @@ async function renderManageDashboard(type) {
     }
 
     let cardsHtml = '';
+    const needPets = myPets.filter(p => p.pet_status !== 'can_foster');
+    const helpPets = myPets.filter(p => p.pet_status === 'can_foster');
     const sectionHero = (title) => `<div style="display:flex;align-items:center;gap:.5rem;padding:.8rem 0 .4rem">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="none"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="${accentHex()}"/><circle cx="6.5" cy="10" r="2" fill="${accentHex()}"/><circle cx="17.5" cy="10" r="2" fill="${accentHex()}"/><circle cx="10" cy="6.5" r="1.8" fill="${accentHex()}"/><circle cx="14" cy="6.5" r="1.8" fill="${accentHex()}"/></svg>
       <div style="font-size:1.3rem;font-weight:900;color:#fff;letter-spacing:-.02em">${title}</div>
@@ -7688,7 +7728,9 @@ function buildProgressTracker(currentStep, labels, color) {
 }
 
 const _svgPin = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
-const _svgLocAccent = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="'+accentHex()+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+function _svgLocAccentFn() { return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="'+accentHex()+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>'; }
+// Use getter so existing ${_svgLocAccent} references stay valid
+Object.defineProperty(window, '_svgLocAccent', { get: _svgLocAccentFn, configurable: true });
 
 function bigShareBtn(text, deepLink, title) {
   const safeText = esc(text).replace(/'/g,"\\'").replace(/\n/g,' ');
@@ -7713,7 +7755,7 @@ function postFooter(contactHtml, tipOrHelpHtml, flagHtml, shareBtnHtml) {
     <div style="margin-top:20px">${shareBtnHtml}</div>`;
 }
 const _svgHome = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
-const _svgPerson = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="'+accentHex()+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+Object.defineProperty(window, '_svgPerson', { get: function(){ return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="'+accentHex()+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'; }, configurable: true });
 
 function buildStrandedCard(p, match, step) {
   const t = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
@@ -7824,12 +7866,12 @@ function buildOfferCard(p, match, pending, step) {
     html += `<div style="background:#22c55e4a;border:none;border-radius:10px;padding:.75rem;margin:.5rem 0">
       <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">✓ Matched${match.confirmed_at ? ' · ' + new Date(match.confirmed_at).toLocaleDateString() : ''}</div>
       <div style="font-size:.95rem;color:#fff;font-weight:700">Helped ${esc(match.stranded_name) || 'someone'} from ${esc(match.stranded_location) || 'nearby'}</div>
-      ${match.stranded_story ? '<div style="font-size:.8rem;color:rgba(255,255,255,.65);margin-top:.3rem;padding-left:.5rem;border-left:2px solid rgba(236,52,82,.3)">"'+match.stranded_story+'"</div>' : ''}
+      ${match.stranded_story ? '<div style="font-size:.8rem;color:rgba(255,255,255,.65);margin-top:.3rem;padding-left:.5rem;border-left:2px solid rgba(236,52,82,.3)">"'+esc(match.stranded_story)+'"</div>' : ''}
     </div>`;
   }
 
   html += '<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.6rem">';
-  html += `<button onclick="mProfileEditPost('${p.id}')" style="${btnStyle('accent')}">Edit</button>`;
+  html += `<button onclick="isMob()?mProfileEditPost('${p.id}'):profileEditPost('${p.id}')" style="${btnStyle('accent')}">Edit</button>`;
   html += `<button onclick="mProfileDeletePost('${p.id}')" style="${btnStyle('danger')}">Remove</button>`;
   html += '</div>';
 
@@ -7861,7 +7903,7 @@ function buildOfferCard(p, match, pending, step) {
 }
 
 // ── PET MANAGEMENT ──────────────────────────────────────────
-const _svgPaw = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="none" style="flex-shrink:0"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="'+accentHex()+'"/><circle cx="6.5" cy="10" r="2" fill="'+accentHex()+'"/><circle cx="17.5" cy="10" r="2" fill="'+accentHex()+'"/><circle cx="10" cy="6.5" r="1.8" fill="'+accentHex()+'"/><circle cx="14" cy="6.5" r="1.8" fill="'+accentHex()+'"/></svg>';
+Object.defineProperty(window, '_svgPaw', { get: function(){ return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="none" style="flex-shrink:0"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="'+accentHex()+'"/><circle cx="6.5" cy="10" r="2" fill="'+accentHex()+'"/><circle cx="17.5" cy="10" r="2" fill="'+accentHex()+'"/><circle cx="10" cy="6.5" r="1.8" fill="'+accentHex()+'"/><circle cx="14" cy="6.5" r="1.8" fill="'+accentHex()+'"/></svg>'; }, configurable: true });
 
 function buildPetCard(p, match, step) {
   const t = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
@@ -8989,7 +9031,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   initLocationAutocomplete('m-offer-location','m-offer-lat','m-offer-lng','m-offer-location-ac');
   initAuth();
   // Keep session alive — refresh token every 2 minutes to prevent expiry
-  setInterval(async () => {
+  window._sessionKeepaliveInterval = setInterval(async () => {
     if (_currentUser) {
       try {
         const { data: { session } } = await withTimeout(_sb.auth.getSession(), 5000);

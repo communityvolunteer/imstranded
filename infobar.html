@@ -162,6 +162,7 @@ async function refresh() {
         .from('route_daily')
         .select('arr_iata')
         .gte('date', CRISIS_START)
+        .lte('date', today)
         .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
 
       if (rErr || !routes || !routes.length) break;

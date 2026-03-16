@@ -4,7 +4,7 @@
 // Real users pass through to the normal SPA.
 
 const SUPABASE_URL  = 'https://nzvlvqyitsjuxnafcuhl.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im56dmx2cXlpdHNqdXhuYWZjdWhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0MTQxOTEsImV4cCI6MjA4Nzk5MDE5MX0.K4JCnTJTBR7zQBaLmxbeZS2QBRIxdVzbZKrmapOEkw';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im56dmx2cXlpdHNqdXhuYWZjdWhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0MTQxOTEsImV4cCI6MjA4Nzk5MDE5MX0.K4JCnTJTBR7zQBaLmxbeZS2QBRCIxdVzbZKrmapOEkw';
 const SITE_URL      = 'https://help.imstranded.org';
 const DEFAULT_IMG   = SITE_URL + '/og-default.png';
 
@@ -62,11 +62,11 @@ export default async function middleware(request) {
       const iata = airportId.toUpperCase();
       // Try to get disruption stats from route_daily
       const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/route_daily?dep_iata=eq.${iata}&select=cancelled.sum()&limit=1`,
+        `${SUPABASE_URL}/rest/v1/route_daily?dep_iata=eq.${iata}&select=sum(cancelled)`,
         { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${SUPABASE_ANON}` } }
       );
       const data = await res.json();
-      const cancelled = data?.[0]?.sum || 0;
+      const cancelled = data?.[0]?.['sum(cancelled)'] || 0;
       const estStranded = Math.round(cancelled * 185 * 0.2);
       title = `✈️ ${iata} — ${estStranded > 0 ? estStranded.toLocaleString() + ' estimated stranded' : 'Gulf Crisis Impact'}`;
       description = `See the live impact data for ${iata} airport. ${cancelled > 0 ? cancelled.toLocaleString() + ' flights cancelled since March 1.' : 'Real-time crisis map at ImStranded.org.'}`;
