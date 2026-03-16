@@ -6501,7 +6501,7 @@ async function loadPetMatches() {
   if (!SB_ON) return;
   try {
     const { data } = await withTimeout(_sb.from('pet_matches')
-      .select('*').eq('foster_confirmed', true)
+      .select('*').eq('foster_confirmed', true).eq('pet_confirmed', true)
       .order('confirmed_at', { ascending: false }).limit(200));
     _petMatches = data || [];
   } catch(e) { /* table may not exist yet */ }
