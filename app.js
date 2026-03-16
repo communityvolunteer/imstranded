@@ -2322,6 +2322,9 @@ function setAccent(name) {
   const oldRgbaRe = new RegExp(`rgba\\(${oldR},\\s*${oldG},\\s*${oldB},\\s*([\\d.]+)\\)`, 'g');
   document.querySelectorAll('[style]').forEach(el => {
     if (isInPicker(el)) return;
+    // Never recolor verified/badge elements — they are always signature blue
+    if (el.closest('.p-verify-btn, .hstep-badge, #profile-verified-badge, [id^="verify-btn-"], [id^="m-verify-"], .p-verify-section, [class*="hstep-badge"]')) return;
+    if (el.id === 'profile-display-name') return; // name badge rebuilt by JS
     const st = el.getAttribute('style');
     if (!st.includes(oldHex) && !st.includes(`${oldR},${oldG},${oldB}`)) return;
     el.setAttribute('style',
@@ -2332,7 +2335,8 @@ function setAccent(name) {
   // SVG fill/stroke attributes — replace old accent hex with new
   document.querySelectorAll(`[fill="${oldHex}"],[stroke="${oldHex}"]`).forEach(el => {
     if (isInPicker(el)) return;
-    if (el.closest('[class*="verified"],[id*="verified"],[class*="p-verify"]')) return;
+    // Never recolor verified badge SVGs — always signature blue
+    if (el.closest('[class*="verified"],[id*="verified"],[class*="p-verify"],[class*="hstep-badge"],[id^="verify-btn-"],[id^="m-verify-"],[id="profile-verified-badge"]')) return;
     if (el.getAttribute('fill') === oldHex) el.setAttribute('fill', hex);
     if (el.getAttribute('stroke') === oldHex) el.setAttribute('stroke', hex);
   });
