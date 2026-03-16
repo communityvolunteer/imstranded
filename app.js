@@ -2696,15 +2696,15 @@ function buildDualPopup(iata) {
         '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>' +
         'Offer a Spare Room' +
       '</button>' +
-      '<div style="font-size:.62rem;color:rgba(255,255,255,.35);text-align:center;margin-top:.45rem;line-height:1.5">Help folks providing rooms by tweeting $HELP to <a href="https://x.com/intent/tweet?text=%40bankrbot%20send%201000000%20%24HELP%20to%20%40imstrandedorg" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:600">@imstrandedorg</a></div>' +
       '<button onclick="if(isMob()){mTab(\'pets\',null);setTimeout(function(){setPetMode(\'m-pet\',\'take\')},100)}else{openFormSidebar(\'pets\');setTimeout(function(){setPetMode(\'pet\',\'take\')},100)}" ' +
         'style="width:100%;margin-top:.5rem;padding:.65rem .8rem;border-radius:10px;cursor:pointer;font-family:Inter,sans-serif;font-size:.76rem;font-weight:800;letter-spacing:.02em;' +
-        'background:#1a1a2e;color:'+accentHex()+';border:1.5px solid '+accentHex()+';' +
+        'background:'+accentHex()+';color:#1a1a2e;border:none;' +
         'display:flex;align-items:center;justify-content:center;gap:.45rem;transition:opacity .15s" ' +
         'onmouseover="this.style.opacity=\'.88\'" onmouseout="this.style.opacity=\'1\'">' +
         '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="none"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="currentColor"/><circle cx="6.5" cy="10" r="2" fill="currentColor"/><circle cx="17.5" cy="10" r="2" fill="currentColor"/><circle cx="10" cy="6.5" r="1.8" fill="currentColor"/><circle cx="14" cy="6.5" r="1.8" fill="currentColor"/></svg>' +
         'Offer a Home to a Pet' +
       '</button>' +
+      '<div style="font-size:.62rem;color:rgba(255,255,255,.35);text-align:center;margin-top:.5rem;line-height:1.5">Help folks providing rooms and homes to animals by tweeting $HELP to <a href="https://x.com/intent/tweet?text=%40bankrbot%20send%201000000%20%24HELP%20to%20%40imstrandedorg" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:600">@imstrandedorg</a></div>' +
     '</div>';
 
   // CTA: Are You Stranded Here?
@@ -2713,7 +2713,7 @@ function buildDualPopup(iata) {
       '<div class="popup-section-title" style="font-size:.99rem;font-weight:800;color:#fff;margin-bottom:.5rem;text-align:center">Are You Stranded Here?</div>' +
       '<button onclick="isMob()?mTab(\'stranded\',null):openFormSidebar(\'stranded\')" ' +
         'style="width:100%;padding:.65rem .8rem;border-radius:10px;cursor:pointer;font-family:Inter,sans-serif;font-size:.76rem;font-weight:800;letter-spacing:.02em;' +
-        'background:#1a1a2e;color:'+accentHex()+';border:1.5px solid '+accentHex()+';' +
+        'background:'+accentHex()+';color:#1a1a2e;border:none;' +
         'display:flex;align-items:center;justify-content:center;gap:.45rem;transition:opacity .15s" ' +
         'onmouseover="this.style.opacity=\'.88\'" onmouseout="this.style.opacity=\'1\'">' +
         '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>' +
@@ -2742,9 +2742,9 @@ function buildDualPopup(iata) {
     estBlock +
     
     // Share — right under the red est. stranded block
-    '<button onclick="event.stopPropagation();openShareTray(\'' + shareAirportText(city, lEstStranded).replace(/'/g,"\\'") + '\',\'airport=' + iata + '\',\'Share crisis data for ' + city + '\')" style="width:100%;margin-top:.5rem;margin-bottom:.6rem;padding:.55rem;border-radius:10px;border:none;background:#fff;color:#ec3452;font-family:Inter,sans-serif;font-size:.75rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem" onmouseover="this.style.opacity=\'.88\'" onmouseout="this.style.opacity=\'1\'">' +
+    '<button onclick="event.stopPropagation();openShareTray(\'' + shareAirportText(city, lEstStranded).replace(/'/g,"\\'") + '\',\'airport=' + iata + '\',\'Share crisis data for ' + city + '\')" style="width:100%;margin-top:.5rem;margin-bottom:.6rem;padding:.55rem;border-radius:10px;border:none;background:#fff;color:#ec3452;font-family:Inter,sans-serif;font-size:.75rem;font-weight:800;letter-spacing:.06em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem" onmouseover="this.style.opacity=\'.88\'" onmouseout="this.style.opacity=\'1\'">' +
       '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>' +
-      'Share this' +
+      'SHARE THIS' +
     '</button>' +
     
     // CTA buttons
