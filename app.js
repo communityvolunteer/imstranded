@@ -8212,17 +8212,23 @@ function buildPetCard(p, match, step) {
   html += `<button onclick="deletePetPost('${p.id}')" style="${btnStyle('danger')}">Delete</button>`;
   html += '</div>';
 
-  // Incoming offers (someone offered a home to my pet)
+  // Direct offers on this post (someone clicked Offer a Home)
   if ((p.pet_status === 'need_foster' || p.pet_status === 'found_stray') && window._pendingPetMatches?.length) {
     const offers = window._pendingPetMatches.filter(m => m.pet_post_id === p.id && !m.pet_confirmed);
     if (offers.length) {
-      html += `<div style="margin-top:.8rem;padding-top:.7rem;border-top:1px solid rgba(255,255,255,.06)">
-        <div style="font-size:1rem;font-weight:800;color:#22c55e;margin-bottom:.15rem">🏠 Incoming Offers (${offers.length})</div>
-        <div style="font-size:.65rem;color:rgba(255,255,255,.4);margin-bottom:.5rem">Someone wants to give your pet a home!</div>`;
+      html += `<div style="margin-top:.8rem;padding-top:.7rem;border-top:1px solid rgba(34,197,94,.15)">
+        <div style="font-size:1rem;font-weight:800;color:#22c55e;margin-bottom:.15rem">🏠 Direct Offers On Your Post (${offers.length})</div>
+        <div style="font-size:.65rem;color:rgba(255,255,255,.4);margin-bottom:.5rem">These people want to give your pet a home</div>`;
       for (const offer of offers) {
+        // Look up the foster's post for message + contact
+        const fosterPost = _petPosts.find(fp => fp.id === offer.foster_post_id);
+        const message = fosterPost?.description || '';
+        const showMessage = message && !message.startsWith('Offering a home to '); // skip auto-generated
         html += `<div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.15);border-radius:10px;padding:.65rem;margin-bottom:.5rem">
           <div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:.2rem">${esc(offer.foster_name || 'Someone')}</div>
           ${offer.foster_location ? '<div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.3rem">📍 '+esc(offer.foster_location)+'</div>' : ''}
+          ${showMessage ? '<div style="font-size:.75rem;color:rgba(255,255,255,.55);line-height:1.5;margin-bottom:.4rem;padding:.4rem .5rem;background:rgba(255,255,255,.04);border-radius:6px">"'+esc(message)+'"</div>' : ''}
+          ${fosterPost ? buildContactButtons(fosterPost.contact, fosterPost.xhandle, fosterPost.name) : ''}
           <div style="display:flex;gap:.4rem;margin-top:.4rem">
             <button onclick="acceptPetOffer('${offer.id}')" style="flex:1;padding:.45rem .6rem;border-radius:8px;border:none;background:#22c55e;color:#fff;font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">✅ Accept Offer</button>
             <button onclick="declinePetOffer('${offer.id}')" style="padding:.45rem .6rem;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:transparent;color:rgba(255,255,255,.4);font-family:Inter,sans-serif;font-size:.72rem;font-weight:600;cursor:pointer">Decline</button>
@@ -8241,8 +8247,8 @@ function buildPetCard(p, match, step) {
     if (lat && lng) nearby = nearby.map(fp => ({...fp, _d: haversineKm(lat, lng, fp.lat, fp.lng)})).sort((a,b) => a._d - b._d);
     if (nearby.length) {
       html += `<div style="margin-top:1rem;padding-top:.7rem;border-top:1px solid rgba(255,255,255,.06)">
-        <div style="font-size:1rem;font-weight:800;color:#fff;margin-bottom:.15rem">People Offering a Home Nearby</div>
-        <div style="font-size:.65rem;color:rgba(255,255,255,.4);margin-bottom:.5rem">Someone near you can take in a pet</div>`;
+        <div style="font-size:1rem;font-weight:800;color:#fff;margin-bottom:.15rem">People Offering Homes Nearby</div>
+        <div style="font-size:.65rem;color:rgba(255,255,255,.4);margin-bottom:.5rem">Others near you who can take in a pet</div>`;
       html += nearby.slice(0, 5).map(fp => {
         const icon = animalIcons[fp.animal_type] || '🐾';
         const types = (fp.animal_type || '').split(',').map(t => t.trim()).filter(Boolean);
