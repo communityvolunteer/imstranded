@@ -7779,7 +7779,7 @@ async function renderManageDashboard(type) {
     </div>`;
 
     if (needPets.length) {
-      cardsHtml += sectionHero('NEEDING A HOME');
+      cardsHtml += sectionHero('LOOKING FOR A NEW HOME');
       for (const p of needPets) {
         const match = _petMatchByPet[p.id] || _petMatchByFoster[p.id] || null;
         const step = match?.reunited ? 3 : match?.foster_confirmed ? 2 : 1;
@@ -7788,7 +7788,7 @@ async function renderManageDashboard(type) {
     }
     if (helpPets.length) {
       if (needPets.length) cardsHtml += `<div style="height:.6rem"></div>`;
-      cardsHtml += sectionHero('PETS I CAN HELP');
+      cardsHtml += sectionHero('I CAN PROVIDE A HOME');
       for (const p of helpPets) {
         const match = _petMatchByPet[p.id] || _petMatchByFoster[p.id] || null;
         const step = match?.reunited ? 3 : match?.foster_confirmed ? 2 : 1;
