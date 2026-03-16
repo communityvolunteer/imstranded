@@ -6607,44 +6607,120 @@ async function requestPetMatch(petPostId, fosterPostId) {
   } catch(e) { alert('Error: ' + e.message); }
 }
 
-async function quickOfferHome(petPostId) {
+function quickOfferHome(petPostId) {
   if (!isLoggedIn()) { alert('Please sign in first.'); return; }
   const petPost = _petPosts.find(p => p.id === petPostId);
   if (!petPost) { alert('Could not find the pet post.'); return; }
 
   const animalType = (petPost.animal_type || 'pet').charAt(0).toUpperCase() + (petPost.animal_type || 'pet').slice(1);
   const petName = petPost.pet_name || animalType;
-
-  const location = prompt(`You're offering a home to "${petName}" (${animalType}).\n\nWhere are you located? (city or address)`);
-  if (!location) return;
-
-  // Geocode the location
-  let lat = null, lng = null;
-  try {
-    const geo = await geocodeCity(location);
-    if (geo) { lat = geo.lat; lng = geo.lng; }
-  } catch(e) {}
-
+  const statusColor = PET_STATUS_COLORS[petPost.pet_status] || '#ff9f1c';
   const name = _currentProfile?.display_name || _currentUser.email?.split('@')[0] || 'Anonymous';
+
+  const formHtml = `
+    <div style="font-family:Inter,sans-serif;padding:.5rem 0">
+      <div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:.8rem 0 1.2rem">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="none" style="margin-bottom:.5rem"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="${accentHex()}"/><circle cx="6.5" cy="10" r="2" fill="${accentHex()}"/><circle cx="17.5" cy="10" r="2" fill="${accentHex()}"/><circle cx="10" cy="6.5" r="1.8" fill="${accentHex()}"/><circle cx="14" cy="6.5" r="1.8" fill="${accentHex()}"/></svg>
+        <div style="font-size:1.4rem;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">OFFER A HOME</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.35);margin-top:.35rem">You're offering a home to this pet</div>
+      </div>
+
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:.8rem;margin-bottom:1rem">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">
+          ${buildPetThumbs(petPost) ? '<div style="width:40px;height:40px;border-radius:8px;overflow:hidden;flex-shrink:0;background:rgba(255,255,255,.06)">' + (petPost.photo_urls?.length ? '<img src="'+petPost.photo_urls[0]+'" style="width:100%;height:100%;object-fit:cover">' : '') + '</div>' : ''}
+          <div>
+            <div style="font-size:.88rem;font-weight:800;color:#fff">${esc(petName)}</div>
+            <div style="font-size:.65rem;color:${statusColor};font-weight:700;text-transform:uppercase">${animalType} · ${PET_STATUS_LABELS[petPost.pet_status] || ''}</div>
+          </div>
+        </div>
+        <div style="font-size:.68rem;color:rgba(255,255,255,.4)">📍 ${esc(petPost.location || 'Unknown')}</div>
+        <div style="font-size:.68rem;color:rgba(255,255,255,.35);margin-top:.2rem">Posted by ${esc(petPost.name || 'Anonymous')}</div>
+      </div>
+
+      <div style="margin-bottom:.8rem">
+        <label style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);margin-bottom:.3rem;display:block">Your Name</label>
+        <input type="text" id="qoh-name" value="${esc(name)}" style="width:100%;padding:.5rem .7rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.82rem;box-sizing:border-box" />
+      </div>
+
+      <div style="margin-bottom:.8rem">
+        <label style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);margin-bottom:.3rem;display:block">Your Location</label>
+        <div class="loc-ac-wrap">
+          <input type="text" id="qoh-location" placeholder="Type city or address..." style="width:100%;padding:.5rem .7rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.82rem;box-sizing:border-box;cursor:text" onfocus="this.select()" />
+          <div class="loc-ac-list" id="qoh-location-ac"></div>
+        </div>
+        <input type="hidden" id="qoh-lat"><input type="hidden" id="qoh-lng">
+      </div>
+
+      <div style="margin-bottom:1rem">
+        <label style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);margin-bottom:.3rem;display:block">Message (optional)</label>
+        <textarea id="qoh-message" rows="3" maxlength="300" placeholder="Tell them about your home, experience with ${animalType.toLowerCase()}s..." style="width:100%;padding:.5rem .7rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.78rem;resize:vertical;box-sizing:border-box"></textarea>
+      </div>
+
+      <button id="qoh-submit-btn" onclick="submitQuickOffer('${petPost.id}')" style="width:100%;padding:.7rem;border-radius:10px;border:none;background:${accentHex()};color:#1a1a2e;font-family:Inter,sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:opacity .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="none"><ellipse cx="12" cy="17" rx="3.5" ry="3" fill="currentColor"/><circle cx="6.5" cy="10" r="2" fill="currentColor"/><circle cx="17.5" cy="10" r="2" fill="currentColor"/><circle cx="10" cy="6.5" r="1.8" fill="currentColor"/><circle cx="14" cy="6.5" r="1.8" fill="currentColor"/></svg>
+        Send Offer
+      </button>
+    </div>`;
+
+  if (isMob()) {
+    openMPinSheet(formHtml);
+    setTimeout(() => initLocationAutocomplete('qoh-location','qoh-lat','qoh-lng','qoh-location-ac'), 100);
+  } else {
+    // Render into the post-sidebar
+    const body = document.getElementById('post-sidebar-body');
+    const header = document.getElementById('post-sidebar-header');
+    if (header) header.style.display = 'none';
+    if (body) body.innerHTML = formHtml;
+    const sb = document.getElementById('post-sidebar');
+    if (sb) sb.classList.add('open');
+    document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '360px');
+    setTimeout(() => initLocationAutocomplete('qoh-location','qoh-lat','qoh-lng','qoh-location-ac'), 100);
+  }
+}
+
+async function submitQuickOffer(petPostId) {
+  const btn = document.getElementById('qoh-submit-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+
+  const petPost = _petPosts.find(p => p.id === petPostId);
+  if (!petPost) { alert('Could not find the pet post.'); if (btn) { btn.disabled = false; btn.textContent = 'Send Offer'; } return; }
+
+  const nameVal = document.getElementById('qoh-name')?.value?.trim();
+  const locationVal = document.getElementById('qoh-location')?.value?.trim();
+  const lat = parseFloat(document.getElementById('qoh-lat')?.value) || null;
+  const lng = parseFloat(document.getElementById('qoh-lng')?.value) || null;
+  const message = document.getElementById('qoh-message')?.value?.trim() || '';
+
+  if (!locationVal) { alert('Please enter your location.'); if (btn) { btn.disabled = false; btn.textContent = 'Send Offer'; } return; }
+  if (!nameVal) { alert('Please enter your name.'); if (btn) { btn.disabled = false; btn.textContent = 'Send Offer'; } return; }
+
+  // If no geocoded coords, try geocoding
+  let geoLat = lat, geoLng = lng;
+  if (!geoLat || !geoLng) {
+    try {
+      const geo = await geocodeCity(locationVal);
+      if (geo) { geoLat = geo.lat; geoLng = geo.lng; }
+    } catch(e) {}
+  }
+
+  const animalType = (petPost.animal_type || 'pet').charAt(0).toUpperCase() + (petPost.animal_type || 'pet').slice(1);
+  const petName = petPost.pet_name || animalType;
   const contact = _currentProfile?.email || _currentUser.email || '';
 
   try {
-    // Create a can_foster post
     const { data: fosterPost, error: fosterErr } = await _sb.from('stranded_pets').insert({
       user_id: _currentUser.id,
-      name: name,
+      name: nameVal,
       pet_status: 'can_foster',
       animal_type: petPost.animal_type || 'other',
-      location: location,
-      lat: lat, lng: lng,
-      description: `Offering a home to ${petName} in ${petPost.location || 'the Gulf region'}`,
+      location: locationVal,
+      lat: geoLat, lng: geoLng,
+      description: message || `Offering a home to ${petName} in ${petPost.location || 'the Gulf region'}`,
       contact: contact,
       xhandle: _currentProfile?.x_handle || null,
     }).select().single();
-
     if (fosterErr) throw fosterErr;
 
-    // Create match request
     const { error: matchErr } = await _sb.from('pet_matches').insert({
       pet_post_id: petPostId,
       foster_post_id: fosterPost.id,
@@ -6656,19 +6732,23 @@ async function quickOfferHome(petPostId) {
       pet_location: petPost.location,
       pet_name: petPost.pet_name || petPost.animal_type,
       animal_type: petPost.animal_type,
-      foster_lat: lat, foster_lng: lng,
-      foster_location: location,
-      foster_name: name,
+      foster_lat: geoLat, foster_lng: geoLng,
+      foster_location: locationVal,
+      foster_name: nameVal,
     });
     if (matchErr) throw matchErr;
 
-    alert(`🏠 Offer sent! ${petPost.name || 'The pet owner'} will see your offer in their dashboard and can accept it.`);
-    loadPets();
-    loadPetMatches();
-    // Close sidebars
-    closePostSidebar();
-    if (isMob()) mSheetToggle();
-  } catch(e) { alert('Error: ' + e.message); }
+    if (btn) { btn.textContent = '✅ Offer Sent!'; btn.style.background = '#22c55e'; }
+    setTimeout(() => {
+      loadPets();
+      loadPetMatches();
+      closePostSidebar();
+      if (isMob()) mSheetToggle();
+    }, 1200);
+  } catch(e) {
+    alert('Error: ' + e.message);
+    if (btn) { btn.disabled = false; btn.textContent = 'Send Offer'; }
+  }
 }
 
 async function confirmPetMatch(matchId) {
