@@ -2944,6 +2944,13 @@ function openPostSidebar(post, postType) {
     }
   }
 
+  // Build "Offer a Room" button for stranded posts
+  let offerRoomBtn = '';
+  if (postType !== 'offer' && isLoggedIn() && post.user_id && post.user_id !== _currentUser?.id && !_successByStranded[post.id]) {
+    offerRoomBtn = `<button onclick="quickOfferRoom('${post.id}')" style="width:100%;margin-bottom:.5rem;padding:.65rem .8rem;border-radius:10px;cursor:pointer;font-family:Inter,sans-serif;font-size:.76rem;font-weight:800;letter-spacing:.02em;background:${accentHex()};color:#1a1a2e;border:none;display:flex;align-items:center;justify-content:center;gap:.45rem;transition:opacity .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Offer a Room</button>`;
+  }
+
+  html += offerRoomBtn;
   html += `<hr class="post-sidebar-divider">`;
   const flagBtn = buildFlagButton(postType === 'offer' ? 'help_posts' : 'stranded_people', post.id);
   const shareBig = postType === 'offer'
@@ -6056,6 +6063,7 @@ function renderStrandedOnMap(map, isMobile) {
         ${p.details ? `<div style="font-size:.78rem;color:rgba(255,255,255,.5);line-height:1.45;margin-top:.35rem">${esc(p.details)}</div>` : ''}
         ${buildContactButtons(p.contact, p.xhandle, p.name)}
         ${buildSendHelpButton(p.xhandle, !!p.user_id)}
+        ${isLoggedIn() && p.user_id && p.user_id !== _currentUser?.id && !_successByStranded[p.id] ? '<button onclick="quickOfferRoom(\''+p.id+'\')" style="width:100%;margin-top:.5rem;padding:.55rem .8rem;border-radius:10px;cursor:pointer;font-family:Inter,sans-serif;font-size:.72rem;font-weight:800;background:'+accentHex()+';color:#1a1a2e;border:none;display:flex;align-items:center;justify-content:center;gap:.4rem"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Offer a Room</button>' : ''}
         ${buildFlagButton('stranded_people', p.id)}
       </div>
     `;
@@ -7215,21 +7223,194 @@ async function loadSuccessStories() {
   if (!SB_ON) return;
   try {
     const { data } = await withTimeout(_sb.from('success_stories')
-      .select('id,stranded_post_id,offer_post_id,offer_confirmed,stranded_lat,stranded_lng,stranded_location,stranded_name,lat,lng,offer_location,offer_xhandle,offer_name,stranded_story,offer_story,home_lat,home_lng,home_location,home_story,confirmed_at')
-      .eq('offer_confirmed', true)
+      .select('id,stranded_post_id,offer_post_id,stranded_user_id,offer_user_id,offer_confirmed,stranded_confirmed,stranded_lat,stranded_lng,stranded_location,stranded_name,lat,lng,offer_location,offer_xhandle,offer_name,stranded_story,offer_story,home_lat,home_lng,home_location,home_story,confirmed_at')
+      .eq('offer_confirmed', true).eq('stranded_confirmed', true)
       .order('confirmed_at', { ascending: false })
       .limit(500), 12000);
     _successStories = data || [];
   } catch(e) { console.warn('[loadSuccessStories]', e.message); }
+
+  // Fetch pending room offers for current user (stranded person hasn't accepted yet)
+  window._pendingRoomOffers = [];
+  if (isLoggedIn()) {
+    try {
+      const { data } = await withTimeout(_sb.from('success_stories')
+        .select('*').eq('stranded_confirmed', false).eq('offer_confirmed', true)
+        .eq('stranded_user_id', _currentUser.id)
+        .order('created_at', { ascending: false }).limit(50), 8000);
+      window._pendingRoomOffers = data || [];
+    } catch(e) {}
+  }
+
   buildSuccessLookups();
   renderSuccessOnMap(window._crisisMap, true);
   renderSuccessOnMap(window._mobileMap, true);
   drawSuccessArcs(window._crisisMap);
   drawSuccessArcs(window._mobileMap);
-  // Refresh stranded + offer markers so toggles appear
   if (window._crisisMap) { renderPostsOnMap(window._crisisMap); renderStrandedOnMap(window._crisisMap, false); }
   if (window._mobileMap) { renderPostsOnMap(window._mobileMap); renderStrandedOnMap(window._mobileMap, true); }
   updateFilterBadges();
+}
+
+function quickOfferRoom(strandedPostId) {
+  if (!isLoggedIn()) { alert('Please sign in first.'); return; }
+  const sp = _strandedPeople.find(p => p.id === strandedPostId);
+  if (!sp) { alert('Could not find the post.'); return; }
+
+  const name = _currentProfile?.display_name || _currentUser.email?.split('@')[0] || 'Anonymous';
+  const needsList = (sp.needs || []).map(n => NEED_LABELS[n] || n).join(', ');
+
+  const formHtml = `
+    <div style="font-family:Inter,sans-serif;padding:.5rem 0">
+      <div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:.8rem 0 1.2rem">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="${accentHex()}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.5rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <div style="font-size:1.4rem;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">OFFER A ROOM</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.35);margin-top:.35rem">You're offering a room to this person</div>
+      </div>
+
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:.8rem;margin-bottom:1rem">
+        <div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:.2rem">${esc(sp.name || 'Anonymous')}</div>
+        <div style="font-size:.68rem;color:#ec3452;font-weight:700;text-transform:uppercase;margin-bottom:.25rem">${sp.group_size > 1 ? sp.group_size + ' people' : '1 person'}${sp.nationality ? ' · ' + sp.nationality : ''}</div>
+        <div style="font-size:.68rem;color:rgba(255,255,255,.4)">📍 Stranded at ${esc(sp.current_location || 'Unknown')}</div>
+        <div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-top:.15rem">→ Trying to reach ${esc(sp.destination || 'home')}</div>
+        ${needsList ? '<div style="font-size:.65rem;color:#e67e22;margin-top:.2rem">Needs: '+needsList+'</div>' : ''}
+      </div>
+
+      <div style="margin-bottom:.8rem">
+        <label style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);margin-bottom:.3rem;display:block">Your Name</label>
+        <input type="text" id="qor-name" value="${esc(name)}" style="width:100%;padding:.5rem .7rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.82rem;box-sizing:border-box" />
+      </div>
+
+      <div style="margin-bottom:.8rem">
+        <label style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);margin-bottom:.3rem;display:block">Your Room Location</label>
+        <div style="display:flex;gap:.4rem;align-items:center">
+          <div class="loc-ac-wrap" style="flex:1">
+            <input type="text" id="qor-location" placeholder="Type city or address..." style="width:100%;padding:.5rem .7rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.82rem;box-sizing:border-box;cursor:text" onfocus="this.select()" />
+            <div class="loc-ac-list" id="qor-location-ac"></div>
+          </div>
+          <button type="button" onclick="useMyLocation('qor')" class="gps-btn" title="Use my location"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2"/></svg></button>
+        </div>
+        <input type="hidden" id="qor-lat"><input type="hidden" id="qor-lng">
+      </div>
+
+      <div style="margin-bottom:1rem">
+        <label style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);margin-bottom:.3rem;display:block">Message (optional)</label>
+        <textarea id="qor-message" rows="3" maxlength="300" placeholder="Tell them about your space, availability..." style="width:100%;padding:.5rem .7rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.78rem;resize:vertical;box-sizing:border-box"></textarea>
+      </div>
+
+      <button id="qor-submit-btn" onclick="submitQuickRoom('${sp.id}')" style="width:100%;padding:.7rem;border-radius:10px;border:none;background:${accentHex()};color:#1a1a2e;font-family:Inter,sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:opacity .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Send Room Offer
+      </button>
+    </div>`;
+
+  if (isMob()) {
+    openMPinSheet(formHtml);
+    setTimeout(() => initLocationAutocomplete('qor-location','qor-lat','qor-lng','qor-location-ac'), 100);
+  } else {
+    const body = document.getElementById('post-sidebar-body');
+    const header = document.getElementById('post-sidebar-header');
+    if (header) header.style.display = 'none';
+    if (body) body.innerHTML = formHtml;
+    const sb = document.getElementById('post-sidebar');
+    if (sb) sb.classList.add('open');
+    document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '360px');
+    setTimeout(() => initLocationAutocomplete('qor-location','qor-lat','qor-lng','qor-location-ac'), 100);
+  }
+}
+
+async function submitQuickRoom(strandedPostId) {
+  const btn = document.getElementById('qor-submit-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+
+  const sp = _strandedPeople.find(p => p.id === strandedPostId);
+  if (!sp) { alert('Could not find the post.'); if (btn) { btn.disabled = false; btn.textContent = 'Send Room Offer'; } return; }
+
+  const nameVal = document.getElementById('qor-name')?.value?.trim();
+  const locationVal = document.getElementById('qor-location')?.value?.trim();
+  const lat = parseFloat(document.getElementById('qor-lat')?.value) || null;
+  const lng = parseFloat(document.getElementById('qor-lng')?.value) || null;
+  const message = document.getElementById('qor-message')?.value?.trim() || '';
+
+  if (!locationVal) { alert('Please enter your room location.'); if (btn) { btn.disabled = false; btn.textContent = 'Send Room Offer'; } return; }
+  if (!nameVal) { alert('Please enter your name.'); if (btn) { btn.disabled = false; btn.textContent = 'Send Room Offer'; } return; }
+
+  let geoLat = lat, geoLng = lng;
+  if (!geoLat || !geoLng) {
+    try { const geo = await geocodeCity(locationVal); if (geo) { geoLat = geo.lat; geoLng = geo.lng; } } catch(e) {}
+  }
+
+  try {
+    // Create a help_post so the room appears on the map
+    const { data: offerPost, error: offerErr } = await _sb.from('help_posts').insert({
+      type: 'offer',
+      post_type: 'room',
+      user_id: _currentUser.id,
+      name: nameVal,
+      location: locationVal,
+      lat: geoLat, lng: geoLng,
+      body: message || `Offering a room to ${sp.name || 'someone'} stranded in ${sp.current_location || 'the Gulf'}`,
+      contact: _currentProfile?.email || _currentUser.email || '',
+      xhandle: _currentProfile?.x_handle || null,
+    }).select().single();
+    if (offerErr) throw offerErr;
+
+    const { error } = await _sb.from('success_stories').insert({
+      stranded_post_id: strandedPostId,
+      offer_post_id: offerPost.id,
+      stranded_user_id: sp.user_id,
+      offer_user_id: _currentUser.id,
+      stranded_confirmed: false,
+      offer_confirmed: true,
+      stranded_lat: sp.current_lat, stranded_lng: sp.current_lng,
+      stranded_location: sp.current_location,
+      stranded_name: sp.name,
+      lat: geoLat, lng: geoLng,
+      offer_location: locationVal,
+      offer_name: nameVal,
+      offer_xhandle: _currentProfile?.x_handle || null,
+      offer_story: message || null,
+    });
+    if (error) throw error;
+    if (btn) { btn.textContent = '✅ Offer Sent!'; btn.style.background = '#22c55e'; btn.style.color = '#fff'; }
+    setTimeout(() => {
+      loadPosts();
+      loadSuccessStories();
+      closePostSidebar();
+      if (isMob()) mSheetToggle();
+    }, 1200);
+  } catch(e) {
+    alert('Error: ' + e.message);
+    if (btn) { btn.disabled = false; btn.textContent = 'Send Room Offer'; }
+  }
+}
+
+async function acceptRoomOffer(storyId) {
+  if (!isLoggedIn()) return;
+  if (!confirm('Accept this room offer?')) return;
+  try {
+    const { error } = await _sb.from('success_stories').update({
+      stranded_confirmed: true,
+      offer_confirmed: true,
+      confirmed_at: new Date().toISOString()
+    }).eq('id', storyId).eq('stranded_user_id', _currentUser.id);
+    if (error) throw error;
+    alert('🎉 Offer accepted! This will show on the map as a success story.');
+    loadSuccessStories();
+    renderManageDashboard('stranded');
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function declineRoomOffer(storyId) {
+  if (!isLoggedIn()) return;
+  if (!confirm('Decline this room offer?')) return;
+  try {
+    const { error } = await _sb.from('success_stories').delete().eq('id', storyId).eq('stranded_user_id', _currentUser.id);
+    if (error) throw error;
+    alert('Offer declined.');
+    loadSuccessStories();
+    renderManageDashboard('stranded');
+  } catch(e) { alert('Error: ' + e.message); }
 }
 
 function renderSuccessOnMap(map, showHome = true, showPetsHoused = true, showPetsReunited = true) {
@@ -7880,13 +8061,14 @@ async function renderManageDashboard(type) {
 
   // ── STRANDED ──
   if (type === 'stranded') {
+    container.innerHTML = '<div style="text-align:center;padding:1rem 0;color:rgba(255,255,255,.4)">Loading...</div>';
+    await loadSuccessStories();
     // 1. Try cache (instant, no network)
     let p = _strandedPeople.find(s => s.user_id === _currentUser.id);
     let match = p ? (_successByStranded[p.id] || null) : null;
 
     // 2. If cache empty, try network with tight timeout
     if (!p) {
-      container.innerHTML = '<div style="text-align:center;padding:1rem 0;color:rgba(255,255,255,.4)">Loading...</div>';
       try {
         const { data } = await withTimeout(_sb.from('stranded_people')
           .select('id,name,current_location,current_lat,current_lng,destination,dest_airport,needs,group_size,stranded_since,details,created_at')
@@ -8127,6 +8309,28 @@ function buildStrandedCard(p, match, step) {
   html += `<button onclick="editStrandedPost('${p.id}')" style="${btnStyle('accent')}">Edit</button>`;
   html += `<button onclick="deleteStrandedPost('${p.id}')" style="${btnStyle('danger')}">Remove</button>`;
   html += '</div>';
+
+  // Direct room offers (someone clicked Offer a Room on this post)
+  if (window._pendingRoomOffers?.length) {
+    const offers = window._pendingRoomOffers.filter(s => s.stranded_post_id === p.id && !s.stranded_confirmed);
+    if (offers.length) {
+      html += `<div style="margin-top:.8rem;padding-top:.7rem;border-top:1px solid rgba(255,255,255,.06)">
+        <div style="font-size:1rem;font-weight:800;color:#22c55e;margin-bottom:.15rem">🏠 Direct Room Offers (${offers.length})</div>
+        <div style="font-size:.65rem;color:rgba(255,255,255,.4);margin-bottom:.5rem">Someone wants to give you a place to stay</div>`;
+      for (const offer of offers) {
+        html += `<div style="background:rgba(34,197,94,.08);border:none;border-radius:10px;padding:.65rem;margin-bottom:.5rem">
+          <div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:.2rem">${esc(offer.offer_name || 'Someone')} ${buildBadge(_fullyVerifiedUsers.has(offer.offer_user_id))}</div>
+          ${offer.offer_location ? '<div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.3rem;display:flex;align-items:center;gap:.3rem">'+_svgLocAccent+' '+esc(offer.offer_location)+'</div>' : ''}
+          ${offer.offer_story ? '<div style="font-size:.75rem;color:rgba(255,255,255,.55);line-height:1.5;margin-bottom:.4rem;padding:.4rem .5rem;background:rgba(255,255,255,.04);border-radius:6px">"'+esc(offer.offer_story)+'"</div>' : ''}
+          <div style="display:flex;gap:.4rem;margin-top:.4rem">
+            <button onclick="acceptRoomOffer('${offer.id}')" style="flex:1;padding:.45rem .6rem;border-radius:8px;border:none;background:#22c55e;color:#fff;font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;cursor:pointer">✓ Accept Offer</button>
+            <button onclick="declineRoomOffer('${offer.id}')" style="padding:.45rem .6rem;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:transparent;color:rgba(255,255,255,.4);font-family:Inter,sans-serif;font-size:.72rem;font-weight:600;cursor:pointer">Decline</button>
+          </div>
+        </div>`;
+      }
+      html += '</div>';
+    }
+  }
 
   // Discovery: nearby rooms (only when unmatched)
   const lat = p.current_lat, lng = p.current_lng;
