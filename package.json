@@ -6,4 +6,4 @@
   "scripts": {
     "build": "bash build.sh"
   }
-}
+} 
