@@ -1358,11 +1358,9 @@ function renderFilteredPosts(map, cluster, filteredPosts) {
   cluster.clearLayers();
   for (const p of filteredPosts) {
     if (!p.lat || !p.lng) continue;
-    const fStory = _successByOffer[p.id];
-    const fMatched = !!fStory;
-    const fDotType = fMatched ? 'success' : 'offer';
-    const fDotLabel = fMatched ? 'story' : 'room';
-    const _fd = buildUserDot(fDotType, 1, fDotLabel, 50);
+    // Skip matched posts — success layer renders them as green pins
+    if (_successByOffer[p.id]) continue;
+    const _fd = buildUserDot('offer', 1, 'room', 50);
     const helpIcon = L.divIcon({
       className:'',
       html: _fd.html,
@@ -3367,29 +3365,16 @@ async function renderPostsOnMap(map) {
       geo = await geocodeCity(p.location);
     }
     if (!geo) continue;
-    const story = _successByOffer[p.id];
-    const isMatched = !!story; // story only exists if offer_confirmed=true
-    const dotType = isMatched ? 'success' : 'offer';
-    const dotLabel = isMatched ? 'story' : 'room';
-    const _d = buildUserDot(dotType, 1, dotLabel, 50);
+    // Skip matched posts — success layer renders them
+    if (_successByOffer[p.id]) continue;
+    const _d = buildUserDot('offer', 1, 'room', 50);
     const helpIcon = L.divIcon({
       className:'',
       html: _d.html,
       iconSize:[_d.sz,_d.sz],iconAnchor:[_d.sz/2,_d.sz/2]
     });
     const isMobileM = (map === window._mobileMap);
-    const uid = p.id.slice(0,8);
-    const toggleBar = story ? `
-      <div class="success-popup-toggle spt-wrap-${uid}" style="margin-bottom:.5rem">
-        <button class="spt-btn active" onclick="showSuccessTab(this,'story','${uid}')">✓ Success Story</button>
-        <button class="spt-btn" onclick="showSuccessTab(this,'original','${uid}')">Original Post</button>
-      </div>` : '';
-    const storyTab = story ? buildSuccessTab(story, uid) : '';
-    const originalStyle = story ? 'display:none' : '';
-    const popHtml = `<div class="spt-wrap-${uid}" style="font-family:Inter,sans-serif">
-        ${toggleBar}
-        ${storyTab}
-        <div data-sptab="original" style="${originalStyle}">
+    const popHtml = `<div style="font-family:Inter,sans-serif">
         <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#93c5fd;margin-bottom:.25rem">SPARE ROOM</div>
         <div style="font-weight:600;font-size:.95rem;margin-bottom:.2rem;color:#fff">${esc(p.name)} ${buildBadge(!!p.user_id)}</div>
         <div style="font-size:.82rem;color:rgba(255,255,255,.75);line-height:1.55;margin-bottom:.4rem">${esc(p.body)||''}</div>
@@ -3397,7 +3382,6 @@ async function renderPostsOnMap(map) {
         ${buildContactButtons(p.contact, p.xhandle, p.name)}
         ${buildTipButton(p.xhandle, !!p.user_id)}
         ${buildFlagButton('help_posts', p.id)}
-        </div>
       </div>`;
     const m = L.marker([geo.lat,geo.lng],{icon:helpIcon});
     if (isMobileM) {
@@ -5981,30 +5965,16 @@ function renderStrandedOnMap(map, isMobile) {
 
   for (const p of _strandedPeople) {
     if (!p.current_lat || !p.current_lng) continue;
+    // Skip matched posts — success layer renders them
+    if (_successByStranded[p.id]) continue;
     const age = timeAgo(p.created_at);
     const needsList = (p.needs || []).map(n => NEED_LABELS[n] || n).join(', ');
     const sinceTxt = p.stranded_since ? 'Since ' + new Date(p.stranded_since).toLocaleDateString() : '';
-    const story = _successByStranded[p.id];
-    const isMatched = !!story; // story only exists if offer_confirmed=true
-    const hasHome = isMatched && story?.home_lat;
-    const dotType = isMatched ? 'success' : 'stranded';
-    const dotLabel = hasHome ? 'home' : isMatched ? 'story' : 'stranded';
-    const _sd = buildUserDot(dotType, p.group_size || 1, dotLabel, 50);
+    const _sd = buildUserDot('stranded', p.group_size || 1, 'stranded', 50);
     const icon = L.divIcon({ className: '', html: _sd.html, iconSize: [_sd.sz, _sd.sz], iconAnchor: [_sd.sz/2, _sd.sz/2] });
     const marker = L.marker([p.current_lat, p.current_lng], { icon, groupSize: p.group_size || 1 });
-    const uid = p.id.slice(0,8);
-    const toggleBar = story ? `
-      <div class="success-popup-toggle spt-wrap-${uid}" style="margin-bottom:.5rem">
-        <button class="spt-btn active" onclick="showSuccessTab(this,'story','${uid}')">✓ Success Story</button>
-        <button class="spt-btn" onclick="showSuccessTab(this,'original','${uid}')">Original Post</button>
-      </div>` : '';
-    const storyTab = story ? buildSuccessTab(story, uid) : '';
-    const originalStyle = story ? 'display:none' : '';
     const popHtml = `
-      <div class="spt-wrap-${uid}" style="font-family:Inter,sans-serif">
-        ${toggleBar}
-        ${storyTab}
-        <div data-sptab="original" style="${originalStyle}">
+      <div style="font-family:Inter,sans-serif">
         <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;color:#ec3452;margin-bottom:.3rem">STRANDED · ${age}</div>
         ${p.name ? '<div style="font-size:.95rem;font-weight:800;color:#fff;margin-bottom:.15rem">'+esc(p.name)+'</div>' : ''}
         <div style="font-size:.82rem;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:.2rem">${p.group_size > 1 ? p.group_size + ' people' : '1 person'}${p.nationality ? ' · ' + p.nationality : ''}</div>
@@ -6016,7 +5986,6 @@ function renderStrandedOnMap(map, isMobile) {
         ${buildContactButtons(p.contact, p.xhandle, p.name)}
         ${buildSendHelpButton(p.xhandle, !!p.user_id)}
         ${buildFlagButton('stranded_people', p.id)}
-        </div>
       </div>
     `;
     if (isMobile) {
