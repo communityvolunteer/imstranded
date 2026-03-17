@@ -27,6 +27,10 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
+function loadingBeacon(text) {
+  return `<div class="loading-beacon"><div class="loading-beacon-dot"></div><div class="loading-beacon-text">${text || 'Loading...'}</div></div>`;
+}
+
 // Solid button style helpers (accent-aware)
 function btnStyle(type, size) {
   const pad = size === 'sm' ? '.25rem .5rem' : '.5rem .8rem';
@@ -5144,7 +5148,7 @@ function updateVerifyStatus(provider, verified) {
 async function renderProfilePosts() {
   const el = document.getElementById('profile-posts-list');
   if (!el || !_currentUser) return;
-  el.innerHTML = '<div style="font-size:.82rem;color:rgba(255,255,255,.4);padding:.5rem 0">Loading...</div>';
+  el.innerHTML = loadingBeacon('Loading posts...');
   const { data, error } = await _sb.from('help_posts').select('id,location,body,name,contact,xhandle,post_type,lat,lng,created_at').eq('user_id', _currentUser.id).eq('type', 'offer').eq('flagged', false).order('created_at', { ascending: false });
   if (error || !data || !data.length) {
     el.innerHTML = '<div style="font-size:.82rem;color:rgba(255,255,255,.4);padding:.5rem 0">No listings yet. Offer a spare room to get started.</div>';
@@ -5382,7 +5386,7 @@ async function mRenderProfilePosts() {
   if (!await ensureSession()) {
     list.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:.82rem;padding:.5rem 0">Please sign in.</div>'; return;
   }
-  list.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:.82rem;padding:.5rem 0">Loading...</div>';
+  list.innerHTML = loadingBeacon('Loading posts...');
   try {
     const { data, error } = await _sb.from('help_posts').select('id,location,body,name,post_type,lat,lng,created_at').eq('user_id', _currentUser.id).eq('type', 'offer').eq('flagged', false).order('created_at', { ascending: false });
     if (error) throw error;
@@ -5426,7 +5430,7 @@ async function renderProfileStranded() {
   const mel = document.getElementById('m-stranded-posts-list');
   if (!await ensureSession()) return;
   [el, mel].forEach(list => {
-    if (list) list.innerHTML = '<div style="font-size:.82rem;color:rgba(255,255,255,.4);padding:.3rem 0">Loading...</div>';
+    if (list) list.innerHTML = loadingBeacon('Loading status...');
   });
   try {
     const { data, error } = await _sb.from('stranded_people').select('id,name,current_location,current_lat,current_lng,destination,dest_airport,nationality,group_size,needs,stranded_since,details,status,created_at')
@@ -8060,7 +8064,7 @@ async function renderManageDashboard(type) {
 
   // ── STRANDED ──
   if (type === 'stranded') {
-    container.innerHTML = '<div style="text-align:center;padding:1rem 0;color:rgba(255,255,255,.4)">Loading...</div>';
+    container.innerHTML = loadingBeacon('Loading your status...');
     await loadSuccessStories();
     // 1. Try cache (instant, no network)
     let p = _strandedPeople.find(s => s.user_id === _currentUser.id);
@@ -8104,7 +8108,7 @@ async function renderManageDashboard(type) {
 
     // 2. If cache empty, try network
     if (!p) {
-      container.innerHTML = '<div style="text-align:center;padding:1rem 0;color:rgba(255,255,255,.4)">Loading...</div>';
+      container.innerHTML = loadingBeacon('Loading your room...');
       try {
         const { data } = await withTimeout(_sb.from('help_posts')
           .select('id,location,body,name,lat,lng,created_at')
@@ -8141,7 +8145,7 @@ async function renderManageDashboard(type) {
 
   // ── PETS ──
   } else if (type === 'pets') {
-    container.innerHTML = '<div style="text-align:center;padding:1rem 0;color:rgba(255,255,255,.4)">Loading...</div>';
+    container.innerHTML = loadingBeacon('Loading pets...');
     await loadPetMatches();
     let myPets = _petPosts.filter(p => p.user_id === _currentUser.id);
     if (!myPets.length) {
@@ -9101,7 +9105,7 @@ async function renderAdminPanel(container) {
     return;
   }
 
-  container.innerHTML = toggleHtml + '<div style="text-align:center;padding:1rem 0;color:rgba(255,255,255,.4)">Loading...</div>';
+  container.innerHTML = toggleHtml + loadingBeacon('Loading admin...');
 
   try {
     let items = [];
