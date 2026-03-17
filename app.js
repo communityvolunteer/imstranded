@@ -8288,9 +8288,6 @@ function buildStrandedCard(p, match, step) {
     if (match.offer_story) {
       html += `<div style="font-size:.8rem;color:rgba(255,255,255,.65);margin-bottom:.4rem;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.3)"><span style="font-size:.55rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.3)">Their story:</span><br>"${esc(match.offer_story)}"</div>`;
     }
-    if (!match.stranded_story) {
-      html += `<button onclick="addStrandedStory('${match.id}')" style="width:100%;margin-bottom:.4rem;padding:.55rem .8rem;border-radius:10px;border:none;background:#22c55e;color:#fff;font-family:Inter,sans-serif;font-size:.78rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:opacity .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">📝 Share Your Story</button>`;
-    }
 
     // Made it home section
     if (match.home_lat) {
@@ -8301,8 +8298,11 @@ function buildStrandedCard(p, match, step) {
       </div>`;
     }
 
-    // Actions — only "Made it home?" if not yet home
+    // Actions
     html += '<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.6rem">';
+    if (!match.stranded_story) {
+      html += `<button onclick="addStrandedStory('${match.id}')" style="${btnStyle('green')}">Share Your Story</button>`;
+    }
     if (!match.home_lat) {
       html += `<button onclick="checkAndOpenGoHome('${p.id}')" style="flex:1;${btnStyle('green')}">Made it home? →</button>`;
     }
@@ -8512,12 +8512,12 @@ function buildOfferCard(p, match, pending, step) {
       ${match.stranded_story ? '<div style="font-size:.8rem;color:rgba(255,255,255,.65);margin-top:.3rem;padding-left:.5rem;border-left:2px solid rgba(236,52,82,.3)"><span style="font-size:.55rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.3)">Their story:</span><br>"'+esc(match.stranded_story)+'"</div>' : ''}
       ${match.offer_story ? '<div style="font-size:.8rem;color:rgba(255,255,255,.65);margin-top:.3rem;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.3)"><span style="font-size:.55rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.3)">Your story:</span><br>"'+esc(match.offer_story)+'"</div>' : ''}
     </div>`;
-    if (!match.offer_story) {
-      html += `<button onclick="addOfferStory('${match.id}')" style="width:100%;margin-bottom:.4rem;padding:.55rem .8rem;border-radius:10px;border:none;background:#22c55e;color:#fff;font-family:Inter,sans-serif;font-size:.78rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:opacity .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">📝 Share Your Story</button>`;
-    }
   }
 
   html += '<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.6rem">';
+  if (step >= 2 && match && !match.offer_story) {
+    html += `<button onclick="addOfferStory('${match.id}')" style="${btnStyle('green')}">Share Your Story</button>`;
+  }
   html += `<button onclick="isMob()?mTab('offer',null):openFormSidebar('offer')" style="${btnStyle('accent')}">Edit</button>`;
   html += `<button onclick="mProfileDeletePost('${p.id}')" style="${btnStyle('danger')}">Remove</button>`;
   html += '</div>';
@@ -9831,4 +9831,4 @@ window.addEventListener('DOMContentLoaded',()=>{
   // ── Deep link hash routing ──
   handleDeepLink();
 });
-window.addEventListener('resize',()=>{if(isMob()&&!window._mobileInit)initMobile();}); 
+window.addEventListener('resize',()=>{if(isMob()&&!window._mobileInit)initMobile();});
