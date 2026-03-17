@@ -5433,7 +5433,7 @@ async function renderProfileStranded() {
     if (list) list.innerHTML = loadingBeacon('Loading status...');
   });
   try {
-    const { data, error } = await _sb.from('stranded_people').select('id,name,current_location,current_lat,current_lng,destination,dest_airport,nationality,group_size,needs,stranded_since,details,status,created_at')
+    const { data, error } = await _sb.from('stranded_people').select('id,name,current_location,current_lat,current_lng,destination,dest_airport,nationality,language,group_size,needs,stranded_since,details,status,created_at')
       .eq('user_id', _currentUser.id).eq('status', 'active').order('created_at', { ascending: false });
     if (error) throw error;
     if (!data || !data.length) {
@@ -5575,6 +5575,7 @@ async function submitStrandedEdit(prefix) {
   const destCountry = document.getElementById(prefix + '-dest-country')?.value || '';
   const destAirport = document.getElementById(prefix + '-dest-airport')?.value || '';
   const nationality = document.getElementById(prefix + '-nationality')?.value;
+  const language = document.getElementById(prefix + '-language')?.value || '';
   const groupSize = parseInt(document.getElementById(prefix + '-group')?.value) || 1;
   const since = document.getElementById(prefix + '-since')?.value || null;
   const details = document.getElementById(prefix + '-details')?.value?.trim();
@@ -5594,7 +5595,7 @@ async function submitStrandedEdit(prefix) {
       name: sName || null, current_location: loc, current_lat: lat, current_lng: lng,
       destination: dest, dest_lat: destLat, dest_lng: destLng,
       dest_country: destCountry || null, dest_airport: destAirport || null,
-      nationality, group_size: groupSize,
+      nationality, language: language || null, group_size: groupSize,
       needs: needs.length ? `{${needs.join(',')}}` : '{}',
       stranded_since: since, details, contact, xhandle: xhandle || null,
     }).eq('id', _editingStrandedId).eq('user_id', _currentUser.id);
@@ -5914,6 +5915,7 @@ async function mSubmitStranded() {
   const destCountry = document.getElementById('m-stranded-dest-country')?.value || '';
   const destAirport = document.getElementById('m-stranded-dest-airport')?.value || '';
   const nationality = document.getElementById('m-stranded-nationality').value;
+  const language = document.getElementById('m-stranded-language')?.value || '';
   const groupSize = parseInt(document.getElementById('m-stranded-group').value) || 1;
   const since = document.getElementById('m-stranded-since').value || null;
   const details = document.getElementById('m-stranded-details').value.trim();
@@ -5935,7 +5937,7 @@ async function mSubmitStranded() {
       user_id: _currentUser.id, name: sName || null, current_location: loc, current_lat: lat, current_lng: lng,
       destination: dest, dest_lat: destLat, dest_lng: destLng,
       dest_country: destCountry || null, dest_airport: destAirport || null,
-      nationality, group_size: groupSize,
+      nationality, language: language || null, group_size: groupSize,
       needs: needs.length ? '{' + needs.join(',') + '}' : '{}',
       stranded_since: since, details, contact, xhandle: xhandle || null,
     });
@@ -5960,6 +5962,7 @@ async function submitStranded() {
   const destCountry = document.getElementById('stranded-dest-country')?.value || '';
   const destAirport = document.getElementById('stranded-dest-airport')?.value || '';
   const nationality = document.getElementById('stranded-nationality').value;
+  const language = document.getElementById('stranded-language')?.value || '';
   const groupSize = parseInt(document.getElementById('stranded-group').value) || 1;
   const since = document.getElementById('stranded-since').value || null;
   const details = document.getElementById('stranded-details').value.trim();
@@ -5985,7 +5988,7 @@ async function submitStranded() {
       current_location: loc, current_lat: lat, current_lng: lng,
       destination: dest, dest_lat: destLat, dest_lng: destLng,
       dest_country: destCountry || null, dest_airport: destAirport || null,
-      nationality, group_size: groupSize,
+      nationality, language: language || null, group_size: groupSize,
       needs: needs.length ? `{${needs.join(',')}}` : '{}',
       stranded_since: since, details, contact, xhandle: xhandle || null,
     });
@@ -6001,7 +6004,7 @@ async function submitStranded() {
 
 async function loadStranded() {
   try {
-    const { data } = await withTimeout(_sb.from('stranded_people').select('id,user_id,name,current_location,current_lat,current_lng,destination,dest_lat,dest_lng,dest_country,dest_airport,nationality,group_size,needs,stranded_since,details,contact,xhandle,status,created_at')
+    const { data } = await withTimeout(_sb.from('stranded_people').select('id,user_id,name,current_location,current_lat,current_lng,destination,dest_lat,dest_lng,dest_country,dest_airport,nationality,language,group_size,needs,stranded_since,details,contact,xhandle,status,created_at')
       .eq('flagged', false).eq('status', 'active').order('created_at', { ascending: false }).limit(500));
     _strandedPeople = data || [];
 
@@ -8064,7 +8067,7 @@ async function renderManageDashboard(type) {
     if (!p) {
       try {
         const { data } = await withTimeout(_sb.from('stranded_people')
-          .select('id,name,current_location,current_lat,current_lng,destination,dest_airport,needs,group_size,stranded_since,details,created_at')
+          .select('id,name,current_location,current_lat,current_lng,destination,dest_airport,nationality,language,needs,group_size,stranded_since,details,created_at')
           .eq('user_id', _currentUser.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1), 6000);
         p = data?.[0];
         if (p) {
