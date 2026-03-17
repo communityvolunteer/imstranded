@@ -2320,23 +2320,12 @@ function setAccent(name) {
   // Close dropdowns
   document.querySelectorAll('.accent-dropdown').forEach(d => d.classList.remove('open'));
 
-  // Re-render map layers that use hardcoded '+accentRgba(...)+' in JS
-  // These live in renderGlobalDisruptions — trigger a repaint if map is ready
+  // Re-render map layers that use accent color
   if (window._crisisMap || window._mobileMap) {
-    clearGlobalArcs();
-    _globalPins.forEach(m => {
-      [window._crisisMap, window._mobileMap].forEach(map => { if (map) try { map.removeLayer(m); } catch(e){} });
-    });
-    _globalPins = [];
-    renderGlobalDisruptions(window._crisisMap, _globalDisruptions);
-    renderGlobalDisruptions(window._mobileMap, _globalDisruptions);
-    // Redraw arcs (clearGlobalArcs removed them)
-    drawGlobalRouteArcs(window._crisisMap, _globalDisruptions);
-    drawGlobalRouteArcs(window._mobileMap, _globalDisruptions);
-    drawMERouteArcs(window._crisisMap);
-    drawMERouteArcs(window._mobileMap);
-    drawSuccessArcs(window._crisisMap);
-    drawSuccessArcs(window._mobileMap);
+    // Force global cluster rebuild with new accent
+    if (window._globalCluster) { try { window._crisisMap?.removeLayer(window._globalCluster); } catch(e) {} window._globalCluster = null; }
+    if (window._mGlobalCluster) { try { window._mobileMap?.removeLayer(window._mGlobalCluster); } catch(e) {} window._mGlobalCluster = null; }
+    applyFilters();
     // Live-repaint country status dots (rendered once at init, stored in _mk.country)
     const newCol = accentHex();
     (_mk.country || []).forEach(({marker, status}) => {
@@ -3220,54 +3209,57 @@ function renderGlobalDisruptions(map, data) {
 
   const isMobileMap = (map === window._mobileMap);
 
-  // Remove existing cluster for this map
-  const existingCluster = isMobileMap ? window._mGlobalCluster : window._globalCluster;
-  if (existingCluster) { try { map.removeLayer(existingCluster); } catch(e) {} }
+  // Reuse cluster, create only once per map
+  let cluster = isMobileMap ? window._mGlobalCluster : window._globalCluster;
+  if (!cluster) {
+    cluster = L.markerClusterGroup({
+      maxClusterRadius: function(zoom) {
+        if (zoom <= 2)  return 220;
+        if (zoom <= 3)  return 160;
+        if (zoom <= 4)  return 100;
+        if (zoom <= 5)  return 60;
+        return 30;
+      },
+      spiderfyOnMaxZoom: false,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+      disableClusteringAtZoom: 7,
+      animate: true,
+      iconCreateFunction: function(c) {
+        const markers = c.getAllChildMarkers();
+        const totalStranded = markers.reduce((s, m) => s + (m.options.strandedEst || 0), 0);
+        const label = totalStranded >= 1000000
+          ? (totalStranded / 1000000).toFixed(1) + 'M'
+          : totalStranded >= 1000
+            ? Math.round(totalStranded / 1000) + 'k'
+            : Math.round(totalStranded).toLocaleString();
+        const count = markers.length;
+        const mob = (typeof isMob === 'function' && isMob());
+        let sz, ring;
+        if (totalStranded >= 5000000)      { sz = 110; ring = 16; }
+        else if (totalStranded >= 1000000) { sz = 90;  ring = 12; }
+        else if (totalStranded >= 500000)  { sz = 74;  ring = 10; }
+        else if (totalStranded >= 100000)  { sz = 60;  ring = 8;  }
+        else if (totalStranded >= 10000)   { sz = 48;  ring = 6;  }
+        else                               { sz = 36;  ring = 4;  }
+        if (mob) { sz = Math.round(sz * 1.3); ring = Math.round(ring * 1.3); }
+        const html =
+          '<div class="gd-cluster" style="width:'+sz+'px;height:'+sz+'px">' +
+            '<div class="gd-cluster-ring" style="inset:-'+ring+'px"></div>' +
+            '<div class="gd-cluster-inner">' +
+              '<div class="gd-cluster-num">'+label+'</div>' +
+              '<div class="gd-cluster-lbl">impacted</div>' +
+            '</div>' +
+          '</div>';
+        return L.divIcon({ html, className: '', iconSize: [sz, sz], iconAnchor: [sz/2, sz/2] });
+      }
+    });
+    map.addLayer(cluster);
+    if (isMobileMap) window._mGlobalCluster = cluster;
+    else window._globalCluster = cluster;
+  }
 
-  const cluster = L.markerClusterGroup({
-    maxClusterRadius: function(zoom) {
-      // Wide radius zoomed out = continent blobs; tight zoomed in = per-airport
-      if (zoom <= 2)  return 220;
-      if (zoom <= 3)  return 160;
-      if (zoom <= 4)  return 100;
-      if (zoom <= 5)  return 60;
-      return 30;
-    },
-    spiderfyOnMaxZoom: false,
-    showCoverageOnHover: false,
-    zoomToBoundsOnClick: true,
-    disableClusteringAtZoom: 7,
-    animate: true,
-    iconCreateFunction: function(c) {
-      const markers = c.getAllChildMarkers();
-      const totalStranded = markers.reduce((s, m) => s + (m.options.strandedEst || 0), 0);
-      const label = totalStranded >= 1000000
-        ? (totalStranded / 1000000).toFixed(1) + 'M'
-        : totalStranded >= 1000
-          ? Math.round(totalStranded / 1000) + 'k'
-          : Math.round(totalStranded).toLocaleString();
-      const count = markers.length;
-      // Size tiers based on stranded estimate — larger on mobile
-      const mob = (typeof isMob === 'function' && isMob());
-      let sz, ring;
-      if (totalStranded >= 5000000)      { sz = 110; ring = 16; }
-      else if (totalStranded >= 1000000) { sz = 90;  ring = 12; }
-      else if (totalStranded >= 500000)  { sz = 74;  ring = 10; }
-      else if (totalStranded >= 100000)  { sz = 60;  ring = 8;  }
-      else if (totalStranded >= 10000)   { sz = 48;  ring = 6;  }
-      else                               { sz = 36;  ring = 4;  }
-      if (mob) { sz = Math.round(sz * 1.3); ring = Math.round(ring * 1.3); }
-      const html =
-        '<div class="gd-cluster" style="width:'+sz+'px;height:'+sz+'px">' +
-          '<div class="gd-cluster-ring" style="inset:-'+ring+'px"></div>' +
-          '<div class="gd-cluster-inner">' +
-            '<div class="gd-cluster-num">'+label+'</div>' +
-            '<div class="gd-cluster-lbl">impacted</div>' +
-          '</div>' +
-        '</div>';
-      return L.divIcon({ html, className: '', iconSize: [sz, sz], iconAnchor: [sz/2, sz/2] });
-    }
-  });
+  cluster.clearLayers();
 
   for (const g of disruptions) {
     const ap = typeof findAirport === 'function' ? findAirport(g.iata) : null;
@@ -3341,12 +3333,9 @@ function renderGlobalDisruptions(map, data) {
     }
 
     cluster.addLayer(marker);
-    _globalPins.push(marker);
   }
 
-  map.addLayer(cluster);
-  if (isMobileMap) window._mGlobalCluster = cluster;
-  else window._globalCluster = cluster;
+  if (!map.hasLayer(cluster)) map.addLayer(cluster);
 }
 
 
@@ -4076,25 +4065,10 @@ async function refreshSitrep() {
   const lbl=document.getElementById('last-updated-label'); if(lbl)lbl.textContent='Updated: '+now;
 
   // Render global disruption dots + arcs now that _globalDisruptions is populated.
-  // Use requestAnimationFrame so Leaflet tile layers are committed before we add vector layers.
   requestAnimationFrame(() => {
-    _globalPins.forEach(m => { [window._crisisMap, window._mobileMap].forEach(map => { if (map) try { map.removeLayer(m); } catch(e) {} }); });
-    _globalPins = [];
-    renderGlobalDisruptions(window._crisisMap, _globalDisruptions);
-    renderGlobalDisruptions(window._mobileMap, _globalDisruptions);
-    clearGlobalArcs();
-    drawGlobalRouteArcs(window._crisisMap, _globalDisruptions);
-    drawGlobalRouteArcs(window._mobileMap, _globalDisruptions);
-    drawMERouteArcs(window._crisisMap);
-    drawMERouteArcs(window._mobileMap);
+    applyFilters();
     if (icon) icon.classList.remove('spinning');
 
-    // Mobile: after data loads, fire a second full re-render timed to land AFTER the
-    // intro overlay's ~1370ms dismissal window. This ensures arcs and pins survive the
-    // iOS GPU compositor reset that backdrop-filter removal can trigger on SVG layers.
-    // Always schedule the catch-up re-render, even if _mobileMap isn't ready yet.
-    // If map init (double-rAF) hasn't fired yet, _mobileMap will be set by the time
-    // this 1600ms timeout runs (double-rAF takes ~33ms, this is 1600ms).
     setTimeout(() => {
       if (window._mobileMap) {
         window._mobileMap.invalidateSize();
