@@ -7372,7 +7372,7 @@ async function submitQuickRoom(strandedPostId) {
       offer_location: locationVal,
       offer_name: nameVal,
       offer_xhandle: _currentProfile?.x_handle || null,
-      offer_story: message || null,
+      offer_story: null,
     });
     if (error) throw error;
     if (btn) { btn.textContent = '✅ Offer Sent!'; btn.style.background = '#22c55e'; btn.style.color = '#fff'; }
@@ -8137,7 +8137,7 @@ async function renderManageDashboard(type) {
       pending = pr.data;
     } catch(e) {}
 
-    const step = match ? 2 : 1;
+    const step = (match?.offer_story || match?.home_lat) ? 3 : match ? 2 : 1;
     const offerHero = isMob()
       ? `<div style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1rem"><button onclick="mSheetToggle()" style="position:absolute;top:.3rem;right:.3rem;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.6);font-size:.9rem">✕</button><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="${accentHex()}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.5rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">MY ROOM</div></div>`
       : `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1.4rem"><svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="${accentHex()}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.6rem"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><div style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">MY ROOM</div><div style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:.4rem">Manage your spare room listing and incoming requests.</div></div>`;
@@ -8289,7 +8289,7 @@ function buildStrandedCard(p, match, step) {
       html += `<div style="font-size:.8rem;color:rgba(255,255,255,.65);margin-bottom:.4rem;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.3)"><span style="font-size:.55rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.3)">Their story:</span><br>"${esc(match.offer_story)}"</div>`;
     }
     if (!match.stranded_story) {
-      html += `<button onclick="addStrandedStory('${match.id}')" style="width:100%;margin-bottom:.4rem;${btnStyle('accent')}">Share Your Story</button>`;
+      html += `<button onclick="addStrandedStory('${match.id}')" style="width:100%;margin-bottom:.4rem;padding:.55rem .8rem;border-radius:10px;border:none;background:#22c55e;color:#fff;font-family:Inter,sans-serif;font-size:.78rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:opacity .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">📝 Share Your Story</button>`;
     }
 
     // Made it home section
@@ -8513,7 +8513,7 @@ function buildOfferCard(p, match, pending, step) {
       ${match.offer_story ? '<div style="font-size:.8rem;color:rgba(255,255,255,.65);margin-top:.3rem;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.3)"><span style="font-size:.55rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.3)">Your story:</span><br>"'+esc(match.offer_story)+'"</div>' : ''}
     </div>`;
     if (!match.offer_story) {
-      html += `<button onclick="addOfferStory('${match.id}')" style="width:100%;margin-bottom:.4rem;${btnStyle('accent')}">Share Your Story</button>`;
+      html += `<button onclick="addOfferStory('${match.id}')" style="width:100%;margin-bottom:.4rem;padding:.55rem .8rem;border-radius:10px;border:none;background:#22c55e;color:#fff;font-family:Inter,sans-serif;font-size:.78rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:opacity .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">📝 Share Your Story</button>`;
     }
   }
 
