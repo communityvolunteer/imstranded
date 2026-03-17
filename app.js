@@ -6470,10 +6470,11 @@ async function uploadAllPetPhotos(prefix) {
 async function submitPet(prefix) {
   const status = getPetStatus(prefix);
   let animalType = document.getElementById(prefix + '-pet-animal')?.value;
-  // If "other" selected, use custom input value
+  let customAnimal = '';
+  // If "other" selected, capture custom input but keep animal_type as 'other' for DB constraint
   if (animalType === 'other') {
     const custom = document.getElementById(prefix + '-pet-animal-other')?.value?.trim();
-    if (custom) animalType = custom.toLowerCase();
+    if (custom) customAnimal = custom;
   }
   // In "take" mode, read multiselect chips instead of single select
   if (status === 'can_foster') {
@@ -6503,8 +6504,8 @@ async function submitPet(prefix) {
 
     if (btn) btn.textContent = 'Posting...';
     const row = {
-      pet_status: status, animal_type: animalType, pet_name: petName || null,
-      description: desc, location: loc, lat, lng, name, contact,
+      pet_status: status, animal_type: animalType, pet_name: petName || customAnimal || null,
+      description: customAnimal ? `[${customAnimal}] ${desc}` : desc, location: loc, lat, lng, name, contact,
       xhandle: (_currentProfile?.x_handle) || null,
       user_id: _currentUser?.id || null,
       avatar_url: _currentProfile?.avatar_url || '',
