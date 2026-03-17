@@ -2128,21 +2128,45 @@ const TILE_DARK = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png
 const TILE_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
 
 const LANGUAGES = [
-  {code:'ar',name:'Arabic',native:'العربية'},{code:'bn',name:'Bengali',native:'বাংলা'},
-  {code:'zh-CN',name:'Chinese',native:'中文'},{code:'nl',name:'Dutch',native:'Nederlands'},
-  {code:'en',name:'English',native:'English'},{code:'fa',name:'Farsi',native:'فارسی'},
-  {code:'tl',name:'Filipino',native:'Filipino'},{code:'fr',name:'French',native:'Français'},
-  {code:'de',name:'German',native:'Deutsch'},{code:'el',name:'Greek',native:'Ελληνικά'},
-  {code:'hi',name:'Hindi',native:'हिन्दी'},{code:'iw',name:'Hebrew',native:'עברית'},{code:'id',name:'Indonesian',native:'Bahasa'},
-  {code:'it',name:'Italian',native:'Italiano'},{code:'ja',name:'Japanese',native:'日本語'},
-  {code:'ko',name:'Korean',native:'한국어'},{code:'ms',name:'Malay',native:'Melayu'},
-  {code:'ne',name:'Nepali',native:'नेपाली'},{code:'pl',name:'Polish',native:'Polski'},
-  {code:'pt',name:'Portuguese',native:'Português'},{code:'ro',name:'Romanian',native:'Română'},
-  {code:'ru',name:'Russian',native:'Русский'},{code:'si',name:'Sinhala',native:'සිංහල'},
-  {code:'es',name:'Spanish',native:'Español'},{code:'ta',name:'Tamil',native:'தமிழ்'},
-  {code:'te',name:'Telugu',native:'తెలుగు'},{code:'th',name:'Thai',native:'ไทย'},
-  {code:'tr',name:'Turkish',native:'Türkçe'},{code:'uk',name:'Ukrainian',native:'Українська'},
-  {code:'ur',name:'Urdu',native:'اردو'},{code:'vi',name:'Vietnamese',native:'Tiếng Việt'},
+  // Middle East & Gulf
+  {code:'ar',name:'Arabic',native:'العربية'},{code:'fa',name:'Farsi',native:'فارسی'},
+  {code:'iw',name:'Hebrew',native:'עברית'},{code:'tr',name:'Turkish',native:'Türkçe'},
+  {code:'ku',name:'Kurdish',native:'کوردی'},{code:'az',name:'Azerbaijani',native:'Azərbaycan'},
+  // South Asia
+  {code:'hi',name:'Hindi',native:'हिन्दी'},{code:'ur',name:'Urdu',native:'اردو'},
+  {code:'bn',name:'Bengali',native:'বাংলা'},{code:'ta',name:'Tamil',native:'தமிழ்'},
+  {code:'te',name:'Telugu',native:'తెలుగు'},{code:'ml',name:'Malayalam',native:'മലയാളം'},
+  {code:'kn',name:'Kannada',native:'ಕನ್ನಡ'},{code:'mr',name:'Marathi',native:'मराठी'},
+  {code:'gu',name:'Gujarati',native:'ગુજરાતી'},{code:'pa',name:'Punjabi',native:'ਪੰਜਾਬੀ'},
+  {code:'ne',name:'Nepali',native:'नेपाली'},{code:'si',name:'Sinhala',native:'සිංහල'},
+  {code:'ps',name:'Pashto',native:'پښتو'},
+  // Southeast Asia
+  {code:'tl',name:'Filipino',native:'Filipino'},{code:'id',name:'Indonesian',native:'Bahasa Indonesia'},
+  {code:'ms',name:'Malay',native:'Melayu'},{code:'th',name:'Thai',native:'ไทย'},
+  {code:'vi',name:'Vietnamese',native:'Tiếng Việt'},{code:'my',name:'Burmese',native:'မြန်မာ'},
+  {code:'km',name:'Khmer',native:'ខ្មែរ'},
+  // East Asia
+  {code:'zh-CN',name:'Chinese',native:'中文'},{code:'ja',name:'Japanese',native:'日本語'},
+  {code:'ko',name:'Korean',native:'한국어'},
+  // Caucasus & Central Asia
+  {code:'hy',name:'Armenian',native:'Հայերեն'},{code:'ka',name:'Georgian',native:'ქართული'},
+  {code:'uz',name:'Uzbek',native:'Oʻzbek'},
+  // Africa
+  {code:'am',name:'Amharic',native:'አማርኛ'},{code:'sw',name:'Swahili',native:'Kiswahili'},
+  {code:'so',name:'Somali',native:'Soomaali'},{code:'ha',name:'Hausa',native:'Hausa'},
+  {code:'yo',name:'Yoruba',native:'Yorùbá'},{code:'ig',name:'Igbo',native:'Igbo'},
+  // Europe
+  {code:'en',name:'English',native:'English'},{code:'fr',name:'French',native:'Français'},
+  {code:'de',name:'German',native:'Deutsch'},{code:'it',name:'Italian',native:'Italiano'},
+  {code:'es',name:'Spanish',native:'Español'},{code:'pt',name:'Portuguese',native:'Português'},
+  {code:'nl',name:'Dutch',native:'Nederlands'},{code:'ru',name:'Russian',native:'Русский'},
+  {code:'uk',name:'Ukrainian',native:'Українська'},{code:'pl',name:'Polish',native:'Polski'},
+  {code:'ro',name:'Romanian',native:'Română'},{code:'el',name:'Greek',native:'Ελληνικά'},
+  {code:'sv',name:'Swedish',native:'Svenska'},{code:'da',name:'Danish',native:'Dansk'},
+  {code:'no',name:'Norwegian',native:'Norsk'},{code:'fi',name:'Finnish',native:'Suomi'},
+  {code:'hu',name:'Hungarian',native:'Magyar'},{code:'cs',name:'Czech',native:'Čeština'},
+  {code:'bg',name:'Bulgarian',native:'Български'},{code:'sr',name:'Serbian',native:'Српски'},
+  {code:'hr',name:'Croatian',native:'Hrvatski'},
 ];
 
 let _langGridBuilt = false;
