@@ -6551,7 +6551,7 @@ async function loadPetMatches() {
 }
 
 function buildPetMatchButton(petPost) {
-  if (!isLoggedIn() || !petPost?.id || !petPost?.user_id) return '';
+  if (!isLoggedIn() || !petPost?.id) return '';
   const myId = _currentUser?.id;
   if (!myId) return '';
 
