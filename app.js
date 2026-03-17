@@ -9831,4 +9831,4 @@ window.addEventListener('DOMContentLoaded',()=>{
   // ── Deep link hash routing ──
   handleDeepLink();
 });
-window.addEventListener('resize',()=>{if(isMob()&&!window._mobileInit)initMobile();});
+window.addEventListener('resize',()=>{if(isMob()&&!window._mobileInit)initMobile();}); 
