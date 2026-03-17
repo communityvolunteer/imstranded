@@ -2000,6 +2000,13 @@ const _fsReturnMap = {
 
 function openFormSidebar(which) {
   if (isMob()) return;
+
+  // Require login for post forms
+  if ((which === 'pets' || which === 'offer' || which === 'stranded') && !isLoggedIn()) {
+    ensureSession();
+    return;
+  }
+
   const sb    = document.getElementById('form-sidebar');
   const body  = document.getElementById('form-sidebar-body');
   const title = document.getElementById('form-sidebar-title');
@@ -4317,6 +4324,12 @@ function refreshMPinSheet(html) {
 }
 
 function mTab(tab,btn){
+  // Require login for post forms
+  if ((tab === 'pets' || tab === 'offer' || tab === 'stranded') && !isLoggedIn()) {
+    ensureSession();
+    return;
+  }
+
   const sheet=document.getElementById('m-sheet');
 
   if(_mCurrentTab===tab&&tab!=='map'&&_mSheetOpen){
