@@ -1194,7 +1194,18 @@ function getFilterState() {
   return { showOffers, offersVerified, offerTypes, showStranded, strandedVerified, nationality, strandedNeeds, groupSize, showWorldwide, destCountry, destAirport, showArcs, atIata, toIata, showSuccess, showSuccessArcs, showHome, showPets, petAnimalTypes, showFostering, fosterAnimalTypes, showPetsHoused, showPetsReunited };
 }
 
+let _applyFiltersRunning = false;
+let _applyFiltersTimer = null;
+function applyFiltersDebounced() {
+  clearTimeout(_applyFiltersTimer);
+  _applyFiltersTimer = setTimeout(applyFilters, 120);
+}
 function applyFilters() {
+  if (_applyFiltersRunning) return;
+  _applyFiltersRunning = true;
+  try { _applyFiltersInner(); } finally { _applyFiltersRunning = false; }
+}
+function _applyFiltersInner() {
   const f = getFilterState();
   syncFilterPanels();
 
@@ -1251,14 +1262,16 @@ function applyFilters() {
   // ── Success stories — re-render with showHome, then toggle visibility ──
   renderSuccessOnMap(window._crisisMap, f.showHome, f.showPetsHoused, f.showPetsReunited);
   renderSuccessOnMap(window._mobileMap, f.showHome, f.showPetsHoused, f.showPetsReunited);
+  drawSuccessArcs(window._crisisMap);
+  drawSuccessArcs(window._mobileMap);
   [
-    { layer: '_successLayer',  map: window._crisisMap,  show: f.showSuccess && !pcMerge },
-    { layer: '_mSuccessLayer', map: window._mobileMap,  show: f.showSuccess && !mobMerge },
-    { layer: '_arcLayer',      map: window._crisisMap,  show: f.showSuccessArcs && f.showSuccess && f.showHome && !pcMerge },
-    { layer: '_mArcLayer',     map: window._mobileMap,  show: f.showSuccessArcs && f.showSuccess && f.showHome && !mobMerge },
-  ].forEach(({ layer, map, show }) => {
-    if (!map || !window[layer]) return;
-    show ? window[layer].addTo(map) : map.removeLayer(window[layer]);
+    { ref: _successLayer,  map: window._crisisMap,  show: f.showSuccess && !pcMerge },
+    { ref: _mSuccessLayer, map: window._mobileMap,  show: f.showSuccess && !mobMerge },
+    { ref: _arcLayer,      map: window._crisisMap,  show: f.showSuccessArcs && f.showSuccess && f.showHome && !pcMerge },
+    { ref: _mArcLayer,     map: window._mobileMap,  show: f.showSuccessArcs && f.showSuccess && f.showHome && !mobMerge },
+  ].forEach(({ ref, map, show }) => {
+    if (!map || !ref) return;
+    show ? ref.addTo(map) : map.removeLayer(ref);
   });
 
   // ── Worldwide markers ──
@@ -1430,17 +1443,24 @@ function renderFilteredPosts(map, cluster, filteredPosts) {
 
 function renderFilteredStranded(map, isMobile, filteredData) {
   if (!map) return;
-  const clusterRef = isMobile ? _mStrandedCluster : _strandedCluster;
-  if (clusterRef) map.removeLayer(clusterRef);
-
-  const cluster = L.markerClusterGroup({
-    maxClusterRadius: 60, spiderfyOnMaxZoom: true, showCoverageOnHover: false, zoomToBoundsOnClick: true,
-    iconCreateFunction: function(c) {
-      const total = c.getAllChildMarkers().reduce((sum, m) => sum + (m.options.groupSize || 1), 0);
-      const d = buildUserDot('stranded', total, 'stranded', 50);
-      return L.divIcon({ html: d.html, className: '', iconSize: [d.sz, d.sz], iconAnchor: [d.sz/2, d.sz/2] });
-    }
-  });
+  let cluster = isMobile ? _mStrandedCluster : _strandedCluster;
+  
+  // Create cluster once, reuse on subsequent calls
+  if (!cluster) {
+    cluster = L.markerClusterGroup({
+      maxClusterRadius: 60, spiderfyOnMaxZoom: true, showCoverageOnHover: false, zoomToBoundsOnClick: true,
+      iconCreateFunction: function(c) {
+        const total = c.getAllChildMarkers().reduce((sum, m) => sum + (m.options.groupSize || 1), 0);
+        const d = buildUserDot('stranded', total, 'stranded', 50);
+        return L.divIcon({ html: d.html, className: '', iconSize: [d.sz, d.sz], iconAnchor: [d.sz/2, d.sz/2] });
+      }
+    });
+    map.addLayer(cluster);
+    if (isMobile) _mStrandedCluster = cluster;
+    else _strandedCluster = cluster;
+  }
+  
+  cluster.clearLayers();
 
   for (const p of filteredData) {
     if (!p.current_lat || !p.current_lng) continue;
@@ -1481,9 +1501,9 @@ function renderFilteredStranded(map, isMobile, filteredData) {
     cluster.addLayer(marker);
   }
 
-  map.addLayer(cluster);
-  if (isMobile) _mStrandedCluster = cluster;
-  else _strandedCluster = cluster;
+  // Ensure visible (merge threshold passes empty array to hide)
+  if (!filteredData.length) { try { map.removeLayer(cluster); } catch(e) {} }
+  else if (!map.hasLayer(cluster)) { map.addLayer(cluster); }
 }
 
 function syncFilterPanels() {
@@ -2479,9 +2499,8 @@ function initMap() {
   });
   map.addLayer(_helpCluster);
 
-  renderPostsOnMap(map);
-  renderStrandedOnMap(map, false);
-  map.on('zoomend', () => applyFilters());
+  applyFilters();
+  map.on('zoomend', applyFiltersDebounced);
   window._crisisMap = map;
 }
 
@@ -4100,7 +4119,7 @@ async function loadPosts() {
   if(!SB_ON)return;
   try {
     const{data}=await withTimeout(_sb.from('help_posts').select('id,type,post_type,location,body,name,contact,xhandle,lat,lng,user_id,created_at,avatar_url').eq('flagged',false).eq('type','offer').order('created_at',{ascending:false}).limit(100));
-    if(data){posts=data;renderPosts();renderPostsOnMap(window._crisisMap||window._mobileMap);updateActionButtons();updateFilterBadges();}
+    if(data){posts=data;renderPosts();applyFilters();updateActionButtons();updateFilterBadges();}
   } catch(e) { console.warn('[loadPosts]', e.message); }
 }
 function subscribeStream(){
@@ -4111,7 +4130,7 @@ function subscribeStream(){
   }
   _realtimeChannels = [];
   const helpCh = _sb.channel('help_posts').on('postgres_changes',{event:'INSERT',schema:'public',table:'help_posts'},p=>{
-    if(p.new.type==='offer'){posts.unshift(p.new);renderPosts();renderPostsOnMap(window._crisisMap||window._mobileMap);}
+    if(p.new.type==='offer'){posts.unshift(p.new);renderPosts();applyFilters();}
   }).subscribe();
   _realtimeChannels.push(helpCh);
   // Live sitrep updates — when scraper writes new data, refresh instantly
@@ -4155,7 +4174,7 @@ function initMobile(){
     // Assign immediately so any async callbacks that fire during init can find it,
     // and so a second rAF call won't re-enter.
     window._mobileMap = mmap;
-    mmap.on('zoomend', () => applyFilters());
+    mmap.on('zoomend', applyFiltersDebounced);
 
     try {
       window._mTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mmap);
@@ -4189,8 +4208,7 @@ function initMobile(){
       });
       mmap.addLayer(_mHelpCluster);
 
-      renderStrandedOnMap(mmap, true);
-      renderPostsOnMap(mmap);
+      applyFilters();
 
       if (_globalDisruptions.length) {
         renderGlobalDisruptions(mmap, _globalDisruptions);
@@ -6045,8 +6063,7 @@ async function loadStranded() {
       if (regEl) regEl.textContent = totalPeople.toLocaleString() + '+';
     }
 
-    renderStrandedOnMap(window._crisisMap, false);
-    renderStrandedOnMap(window._mobileMap, true);
+    applyFilters();
     updateActionButtons();
     updateFilterBadges();
   } catch (e) { console.error('Load stranded error:', e); }
@@ -6115,8 +6132,7 @@ function initStrandedRealtime() {
   const ch = _sb.channel('stranded_people').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'stranded_people' }, payload => {
     if (payload.new && !payload.new.flagged) {
       _strandedPeople.unshift(payload.new);
-      renderStrandedOnMap(window._crisisMap, false);
-      renderStrandedOnMap(window._mobileMap, true);
+      applyFilters();
     }
   }).subscribe();
   _realtimeChannels.push(ch);
@@ -6134,8 +6150,7 @@ async function loadPets() {
     const { data } = await withTimeout(_sb.from('stranded_pets').select('*')
       .eq('flagged', false).order('created_at', { ascending: false }).limit(500));
     _petPosts = data || [];
-    renderPetsOnMap(window._crisisMap, false);
-    renderPetsOnMap(window._mobileMap, true);
+    applyFilters();
     updateFilterBadges();
     updateActionButtons();
   } catch(e) { console.error('Load pets error:', e); }
@@ -6214,25 +6229,31 @@ function renderPetsOnMap(map, isMobile) {
 
 function renderFilteredPets(map, isMobile, filteredPets) {
   if (!map) return;
-  const clusterRef = isMobile ? _mPetCluster : _petCluster;
-  if (clusterRef) map.removeLayer(clusterRef);
+  let cluster = isMobile ? _mPetCluster : _petCluster;
 
-  const cluster = L.markerClusterGroup({
-    maxClusterRadius: 60, spiderfyOnMaxZoom: true, showCoverageOnHover: false, zoomToBoundsOnClick: true,
-    iconCreateFunction: function(c) {
-      const count = c.getChildCount();
-      const kids = c.getAllChildMarkers();
-      let label = 'Pets';
-      if (count === 1 && kids[0]?._petAnimalType) {
-        label = PET_ANIMAL_ICONS[kids[0]._petAnimalType] || 'Pet';
-      } else if (count > 1) {
-        const types = new Set(kids.map(k => k._petAnimalType).filter(Boolean));
-        if (types.size === 1) label = PET_ANIMAL_ICONS[types.values().next().value] + 's';
+  if (!cluster) {
+    cluster = L.markerClusterGroup({
+      maxClusterRadius: 60, spiderfyOnMaxZoom: true, showCoverageOnHover: false, zoomToBoundsOnClick: true,
+      iconCreateFunction: function(c) {
+        const count = c.getChildCount();
+        const kids = c.getAllChildMarkers();
+        let label = 'Pets';
+        if (count === 1 && kids[0]?._petAnimalType) {
+          label = PET_ANIMAL_ICONS[kids[0]._petAnimalType] || 'Pet';
+        } else if (count > 1) {
+          const types = new Set(kids.map(k => k._petAnimalType).filter(Boolean));
+          if (types.size === 1) label = PET_ANIMAL_ICONS[types.values().next().value] + 's';
+        }
+        const d = buildUserDot('pet', count, label, 50);
+        return L.divIcon({ html: d.html, className: '', iconSize: [d.sz, d.sz], iconAnchor: [d.sz/2, d.sz/2] });
       }
-      const d = buildUserDot('pet', count, label, 50);
-      return L.divIcon({ html: d.html, className: '', iconSize: [d.sz, d.sz], iconAnchor: [d.sz/2, d.sz/2] });
-    }
-  });
+    });
+    map.addLayer(cluster);
+    if (isMobile) _mPetCluster = cluster;
+    else _petCluster = cluster;
+  }
+
+  cluster.clearLayers();
 
   for (const p of filteredPets) {
     if (!p.lat || !p.lng) continue;
@@ -6278,17 +6299,16 @@ function renderFilteredPets(map, isMobile, filteredPets) {
     cluster.addLayer(marker);
   }
 
-  map.addLayer(cluster);
-  if (isMobile) _mPetCluster = cluster;
-  else _petCluster = cluster;
+  // Ensure visible
+  if (!filteredPets.length) { try { map.removeLayer(cluster); } catch(e) {} }
+  else if (!map.hasLayer(cluster)) { map.addLayer(cluster); }
 }
 
 function initPetRealtime() {
   const ch = _sb.channel('stranded_pets').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'stranded_pets' }, payload => {
     if (payload.new && !payload.new.flagged) {
       _petPosts.unshift(payload.new);
-      renderPetsOnMap(window._crisisMap, false);
-      renderPetsOnMap(window._mobileMap, true);
+      applyFilters();
     }
   }).subscribe();
   _realtimeChannels.push(ch);
@@ -7262,13 +7282,7 @@ async function loadSuccessStories() {
   }
 
   buildSuccessLookups();
-  // Re-render all map layers (success, posts, stranded, AND pets) in one pass
-  if (window._crisisMap) { renderPostsOnMap(window._crisisMap); renderStrandedOnMap(window._crisisMap, false); }
-  if (window._mobileMap) { renderPostsOnMap(window._mobileMap); renderStrandedOnMap(window._mobileMap, true); }
-  if (typeof renderPetsOnMap === 'function') {
-    if (window._crisisMap) renderPetsOnMap(window._crisisMap, false);
-    if (window._mobileMap) renderPetsOnMap(window._mobileMap, true);
-  }
+  // Single-pass re-render via applyFilters (handles all layers: posts, stranded, pets, success, arcs)
   applyFilters();
   updateFilterBadges();
 }
@@ -7437,9 +7451,13 @@ async function declineRoomOffer(storyId) {
 function renderSuccessOnMap(map, showHome = true, showPetsHoused = true, showPetsReunited = true) {
   if (!map) return;
   const isMobileM = map === window._mobileMap;
-  const key = isMobileM ? '_mSuccessLayer' : '_successLayer';
-  if (window[key]) map.removeLayer(window[key]);
-  window[key] = L.layerGroup();
+  let layer = isMobileM ? _mSuccessLayer : _successLayer;
+  if (!layer) {
+    layer = L.layerGroup();
+    if (isMobileM) _mSuccessLayer = layer;
+    else _successLayer = layer;
+  }
+  layer.clearLayers();
   for (const s of _successStories) {
     // Green pin at room location
     if (s.lat && s.lng) {
@@ -7452,7 +7470,7 @@ function renderSuccessOnMap(map, showHome = true, showPetsHoused = true, showPet
       } else {
         marker.on('click', e => { L.DomEvent.stopPropagation(e); openSuccessSidebar(s, 'story'); });
       }
-      window[key].addLayer(marker);
+      layer.addLayer(marker);
     }
     // Extra pin at home location if they made it
     if (showHome && s.home_lat && s.home_lng) {
@@ -7464,7 +7482,7 @@ function renderSuccessOnMap(map, showHome = true, showPetsHoused = true, showPet
       } else {
         hm.on('click', e => { L.DomEvent.stopPropagation(e); openSuccessSidebar(s, 'story'); });
       }
-      window[key].addLayer(hm);
+      layer.addLayer(hm);
     }
   }
   // Pet match success pins
@@ -7485,34 +7503,36 @@ function renderSuccessOnMap(map, showHome = true, showPetsHoused = true, showPet
     const marker = L.marker([lat, lng], { icon });
     if (isMobileM) marker.on('click', e => { L.DomEvent.stopPropagation(e); openMPinSheet(buildPetSuccessSidebarHtml(m)); });
     else marker.on('click', e => { L.DomEvent.stopPropagation(e); openPetSuccessSidebar(m); });
-    window[key].addLayer(marker);
+    layer.addLayer(marker);
   }
-  map.addLayer(window[key]);
+  if (!map.hasLayer(layer)) map.addLayer(layer);
 }
 
 // ── Draw green arcs between matched pairs ────────────────────
 function drawSuccessArcs(map) {
   if (!map) return;
   const isMobileM = map === window._mobileMap;
-  const key = isMobileM ? '_mArcLayer' : '_arcLayer';
-  if (window[key]) map.removeLayer(window[key]);
-  window[key] = L.layerGroup();
+  let layer = isMobileM ? _mArcLayer : _arcLayer;
+  if (!layer) {
+    layer = L.layerGroup();
+    if (isMobileM) _mArcLayer = layer;
+    else _arcLayer = layer;
+  }
+  layer.clearLayers();
   for (const s of _successStories) {
-    // Arc: SUCCESS pin (room) → I'M HOME pin
     if (s.lat && s.lng && s.home_lat && s.home_lng) {
       const pts = arcPoints([s.lat, s.lng], [s.home_lat, s.home_lng]);
-      L.polyline(pts, { color:'#22c55e', weight:2.2, opacity:.6, className:'success-arc', interactive:false }).addTo(window[key]);
+      L.polyline(pts, { color:'#22c55e', weight:2.2, opacity:.6, className:'success-arc', interactive:false }).addTo(layer);
     }
   }
-  // Pet match arcs: pet location → new home location
   for (const m of _petMatches) {
     if (!m.foster_confirmed) continue;
     if (m.pet_lat && m.pet_lng && m.foster_lat && m.foster_lng) {
       const pts = arcPoints([m.pet_lat, m.pet_lng], [m.foster_lat, m.foster_lng]);
-      L.polyline(pts, { color:'#22c55e', weight:1.8, opacity:.45, dashArray:'5,5', className:'success-arc', interactive:false }).addTo(window[key]);
+      L.polyline(pts, { color:'#22c55e', weight:1.8, opacity:.45, dashArray:'5,5', className:'success-arc', interactive:false }).addTo(layer);
     }
   }
-  map.addLayer(window[key]);
+  if (!map.hasLayer(layer)) map.addLayer(layer);
 }
 
 // ── Role enforcement — one account, one role ─────────────────
