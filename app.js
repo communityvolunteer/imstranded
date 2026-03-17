@@ -6839,17 +6839,7 @@ function markPetReunited(matchId) {
       </button>
     </div>`;
 
-  if (isMob()) {
-    openMPinSheet(formHtml);
-  } else {
-    const body = document.getElementById('post-sidebar-body');
-    const header = document.getElementById('post-sidebar-header');
-    if (header) header.style.display = 'none';
-    if (body) body.innerHTML = formHtml;
-    const sb = document.getElementById('post-sidebar');
-    if (sb) sb.classList.add('open');
-    document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '360px');
-  }
+  _renderStoryForm(formHtml);
 }
 
 async function submitReunited(matchId) {
@@ -8392,16 +8382,26 @@ function addOfferStory(storyId) {
       </button>
     </div>`;
 
+  _renderStoryForm(formHtml);
+}
+
+function _renderStoryForm(formHtml) {
   if (isMob()) {
     openMPinSheet(formHtml);
   } else {
-    const body = document.getElementById('post-sidebar-body');
-    const header = document.getElementById('post-sidebar-header');
-    if (header) header.style.display = 'none';
-    if (body) body.innerHTML = formHtml;
-    const sb = document.getElementById('post-sidebar');
-    if (sb) sb.classList.add('open');
-    document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '360px');
+    const fsSb = document.getElementById('form-sidebar');
+    if (fsSb?.classList.contains('open')) {
+      const fsBody = document.getElementById('pc-manage-content') || document.getElementById('form-sidebar-body');
+      if (fsBody) fsBody.innerHTML = formHtml;
+    } else {
+      const body = document.getElementById('post-sidebar-body');
+      const header = document.getElementById('post-sidebar-header');
+      if (header) header.style.display = 'none';
+      if (body) body.innerHTML = formHtml;
+      const sb = document.getElementById('post-sidebar');
+      if (sb) sb.classList.add('open');
+      document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '360px');
+    }
   }
 }
 
@@ -8451,17 +8451,7 @@ function addStrandedStory(storyId) {
       </button>
     </div>`;
 
-  if (isMob()) {
-    openMPinSheet(formHtml);
-  } else {
-    const body = document.getElementById('post-sidebar-body');
-    const header = document.getElementById('post-sidebar-header');
-    if (header) header.style.display = 'none';
-    if (body) body.innerHTML = formHtml;
-    const sb = document.getElementById('post-sidebar');
-    if (sb) sb.classList.add('open');
-    document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '360px');
-  }
+  _renderStoryForm(formHtml);
 }
 
 async function submitStrandedStory(storyId) {
