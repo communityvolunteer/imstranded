@@ -785,9 +785,11 @@ function googleTranslateInit() {
 <div id="profile-view" class="view">
   <div class="container" style="max-width:720px">
 <!-- Login/Signup state -->
-    <div id="profile-login" style="padding:3rem 0;text-align:center">
-      <div style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 1.2rem">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <div id="profile-login" style="padding:1.5rem 0;text-align:center">
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.5rem 0 1.2rem">
+        <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.6rem"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <div id="profile-login-title" style="font-size:35px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">LOG IN</div>
+        <div style="font-size:.82rem;color:rgba(255,255,255,.35);margin-top:.4rem">Join the community. Help someone today.</div>
       </div>
 
       <!-- Tabs -->
@@ -1390,6 +1392,11 @@ function googleTranslateInit() {
       <div id="m-edit-content" style="display:none">
         <!-- Mobile profile login -->
         <div id="m-profile-login">
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:.8rem 0 1rem">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.5rem"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <div id="m-profile-login-title" style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">LOG IN</div>
+            <div style="font-size:.72rem;color:rgba(255,255,255,.3);margin-top:.35rem">Join the community. Help someone today.</div>
+          </div>
           <!-- Mobile tabs -->
           <div style="display:flex;background:rgba(255,255,255,.06);border-radius:8px;padding:2px;border:1px solid rgba(255,255,255,.08);margin-bottom:1rem">
             <button id="m-auth-tab-login" onclick="switchAuthTab('login')" class="auth-tab auth-tab--active" style="font-size:.78rem;padding:.45rem">Log In</button>

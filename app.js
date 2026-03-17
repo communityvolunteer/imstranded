@@ -2003,7 +2003,7 @@ function openFormSidebar(which) {
 
   // Require login for post forms
   if ((which === 'pets' || which === 'offer' || which === 'stranded') && !isLoggedIn()) {
-    ensureSession();
+    openFormSidebar('profile');
     return;
   }
 
@@ -4326,7 +4326,7 @@ function refreshMPinSheet(html) {
 function mTab(tab,btn){
   // Require login for post forms
   if ((tab === 'pets' || tab === 'offer' || tab === 'stranded') && !isLoggedIn()) {
-    ensureSession();
+    mTab('profile', null);
     return;
   }
 
@@ -4754,6 +4754,11 @@ function updateLinkedFields() {
 
 // ── Auth Tab Switching ────────────────────────────────────
 function switchAuthTab(tab) {
+  const titleText = tab === 'login' ? 'LOG IN' : 'SIGN UP';
+  ['profile-login-title','m-profile-login-title'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = titleText;
+  });
   ['auth-panel-login','m-auth-panel-login'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = tab === 'login' ? 'block' : 'none';
