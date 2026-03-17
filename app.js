@@ -6539,12 +6539,9 @@ async function loadPetMatches() {
     _petMatchByPet[m.pet_post_id] = m;
     _petMatchByFoster[m.foster_post_id] = m;
   }
-  // Re-render success layer to include pet match pins + arcs
-  if (_petMatches.length) {
-    renderSuccessOnMap(window._crisisMap, true);
-    renderSuccessOnMap(window._mobileMap, true);
-    drawSuccessArcs(window._crisisMap);
-    drawSuccessArcs(window._mobileMap);
+  // Re-render all layers so pet match pins, arcs, and pet post pins stay in sync
+  if (_petMatches.length || window._pendingPetMatches?.length) {
+    applyFilters();
     updateFilterBadges();
   }
 }
@@ -7243,12 +7240,14 @@ async function loadSuccessStories() {
   }
 
   buildSuccessLookups();
-  renderSuccessOnMap(window._crisisMap, true);
-  renderSuccessOnMap(window._mobileMap, true);
-  drawSuccessArcs(window._crisisMap);
-  drawSuccessArcs(window._mobileMap);
+  // Re-render all map layers (success, posts, stranded, AND pets) in one pass
   if (window._crisisMap) { renderPostsOnMap(window._crisisMap); renderStrandedOnMap(window._crisisMap, false); }
   if (window._mobileMap) { renderPostsOnMap(window._mobileMap); renderStrandedOnMap(window._mobileMap, true); }
+  if (typeof renderPetsOnMap === 'function') {
+    if (window._crisisMap) renderPetsOnMap(window._crisisMap, false);
+    if (window._mobileMap) renderPetsOnMap(window._mobileMap, true);
+  }
+  applyFilters();
   updateFilterBadges();
 }
 
@@ -8278,6 +8277,17 @@ function buildStrandedCard(p, match, step) {
       Matched with <strong style="color:#fff">${esc(match.offer_name)||'a host'}</strong> in <strong style="color:#fff">${esc(match.offer_location)||'nearby'}</strong> on ${matchDate}.
     </div>`;
 
+    // Stories
+    if (match.stranded_story) {
+      html += `<div style="font-size:.8rem;color:rgba(255,255,255,.65);margin-bottom:.4rem;padding-left:.5rem;border-left:2px solid rgba(236,52,82,.3)"><span style="font-size:.55rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.3)">Your story:</span><br>"${esc(match.stranded_story)}"</div>`;
+    }
+    if (match.offer_story) {
+      html += `<div style="font-size:.8rem;color:rgba(255,255,255,.65);margin-bottom:.4rem;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.3)"><span style="font-size:.55rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.3)">Their story:</span><br>"${esc(match.offer_story)}"</div>`;
+    }
+    if (!match.stranded_story) {
+      html += `<button onclick="addStrandedStory('${match.id}')" style="width:100%;margin-bottom:.4rem;${btnStyle('accent')}">Share Your Story</button>`;
+    }
+
     // Made it home section
     if (match.home_lat) {
       html += `<div style="background:rgba(34,197,94,.15);border:none;border-radius:10px;padding:.65rem;margin-bottom:.5rem">
@@ -8355,6 +8365,124 @@ function buildStrandedCard(p, match, step) {
   return html;
 }
 
+function addOfferStory(storyId) {
+  if (!isLoggedIn()) return;
+  const match = _successStories.find(s => s.id === storyId);
+
+  const formHtml = `
+    <div style="font-family:Inter,sans-serif;padding:.5rem 0">
+      <div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:.8rem 0 1.2rem">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.5rem"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <div style="font-size:1.4rem;font-weight:900;color:#22c55e;letter-spacing:-.02em;line-height:1">SHARE YOUR STORY</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.35);margin-top:.35rem">Tell people how you helped${match?.stranded_name ? ' <strong style="color:#fff">' + esc(match.stranded_name) + '</strong>' : ''}</div>
+      </div>
+
+      <div style="margin-bottom:1rem">
+        <label style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);margin-bottom:.3rem;display:block">Your Story</label>
+        <textarea id="offer-story-text" rows="5" maxlength="500" placeholder="What was it like hosting someone in need? How did it go?" style="width:100%;padding:.5rem .7rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.78rem;resize:vertical;box-sizing:border-box"></textarea>
+        <div style="font-size:.55rem;color:rgba(255,255,255,.25);margin-top:.2rem;text-align:right">500 chars max</div>
+      </div>
+
+      <button id="offer-story-btn" onclick="submitOfferStory('${storyId}')" style="width:100%;padding:.7rem;border-radius:10px;border:none;background:#22c55e;color:#fff;font-family:Inter,sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:opacity .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+        Save Story
+      </button>
+    </div>`;
+
+  if (isMob()) {
+    openMPinSheet(formHtml);
+  } else {
+    const body = document.getElementById('post-sidebar-body');
+    const header = document.getElementById('post-sidebar-header');
+    if (header) header.style.display = 'none';
+    if (body) body.innerHTML = formHtml;
+    const sb = document.getElementById('post-sidebar');
+    if (sb) sb.classList.add('open');
+    document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '360px');
+  }
+}
+
+async function submitOfferStory(storyId) {
+  const btn = document.getElementById('offer-story-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+  const story = document.getElementById('offer-story-text')?.value?.trim() || '';
+  if (!story) { alert('Please write something!'); if (btn) { btn.disabled = false; btn.textContent = 'Save Story'; } return; }
+  try {
+    const { error } = await _sb.from('success_stories').update({
+      offer_story: story.slice(0, 500)
+    }).eq('id', storyId).eq('offer_user_id', _currentUser.id);
+    if (error) throw error;
+    if (btn) { btn.textContent = '✓ Saved!'; btn.style.background = '#16a34a'; }
+    setTimeout(() => {
+      loadSuccessStories();
+      closePostSidebar();
+      if (isMob()) mSheetToggle();
+      renderManageDashboard('offer');
+    }, 1200);
+  } catch(e) {
+    alert('Error: ' + e.message);
+    if (btn) { btn.disabled = false; btn.textContent = 'Save Story'; }
+  }
+}
+
+function addStrandedStory(storyId) {
+  if (!isLoggedIn()) return;
+  const match = _successStories.find(s => s.id === storyId);
+
+  const formHtml = `
+    <div style="font-family:Inter,sans-serif;padding:.5rem 0">
+      <div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:.8rem 0 1.2rem">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ec3452" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.5rem"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <div style="font-size:1.4rem;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1">SHARE YOUR STORY</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.35);margin-top:.35rem">Tell people about your experience${match?.offer_name ? ' with <strong style="color:#fff">' + esc(match.offer_name) + '</strong>' : ''}</div>
+      </div>
+
+      <div style="margin-bottom:1rem">
+        <label style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);margin-bottom:.3rem;display:block">Your Story</label>
+        <textarea id="stranded-story-text" rows="5" maxlength="500" placeholder="What happened? How did finding a room help you?" style="width:100%;padding:.5rem .7rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-family:Inter,sans-serif;font-size:.78rem;resize:vertical;box-sizing:border-box"></textarea>
+        <div style="font-size:.55rem;color:rgba(255,255,255,.25);margin-top:.2rem;text-align:right">500 chars max</div>
+      </div>
+
+      <button id="stranded-story-btn" onclick="submitStrandedStory('${storyId}')" style="width:100%;padding:.7rem;border-radius:10px;border:none;background:#ec3452;color:#fff;font-family:Inter,sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:opacity .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+        Save Story
+      </button>
+    </div>`;
+
+  if (isMob()) {
+    openMPinSheet(formHtml);
+  } else {
+    const body = document.getElementById('post-sidebar-body');
+    const header = document.getElementById('post-sidebar-header');
+    if (header) header.style.display = 'none';
+    if (body) body.innerHTML = formHtml;
+    const sb = document.getElementById('post-sidebar');
+    if (sb) sb.classList.add('open');
+    document.getElementById('map-view')?.style.setProperty('--right-sidebar-w', '360px');
+  }
+}
+
+async function submitStrandedStory(storyId) {
+  const btn = document.getElementById('stranded-story-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+  const story = document.getElementById('stranded-story-text')?.value?.trim() || '';
+  if (!story) { alert('Please write something!'); if (btn) { btn.disabled = false; btn.textContent = 'Save Story'; } return; }
+  try {
+    const { error } = await _sb.from('success_stories').update({
+      stranded_story: story.slice(0, 500)
+    }).eq('id', storyId).eq('stranded_user_id', _currentUser.id);
+    if (error) throw error;
+    if (btn) { btn.textContent = '✓ Saved!'; btn.style.background = '#b91c1c'; }
+    setTimeout(() => {
+      loadSuccessStories();
+      closePostSidebar();
+      if (isMob()) mSheetToggle();
+      renderManageDashboard('stranded');
+    }, 1200);
+  } catch(e) {
+    alert('Error: ' + e.message);
+    if (btn) { btn.disabled = false; btn.textContent = 'Save Story'; }
+  }
+}
+
 function buildOfferCard(p, match, pending, step) {
   const t = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
   const _verified = _currentProfile?.google_verified && _currentProfile?.x_verified && _currentProfile?.tg_verified;
@@ -8377,18 +8505,22 @@ function buildOfferCard(p, match, pending, step) {
     html += `<div style="background:#22c55e4a;border:none;border-radius:10px;padding:.75rem;margin:.5rem 0">
       <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">✓ Matched${match.confirmed_at ? ' · ' + new Date(match.confirmed_at).toLocaleDateString() : ''}</div>
       <div style="font-size:.95rem;color:#fff;font-weight:700">Helped ${esc(match.stranded_name) || 'someone'} from ${esc(match.stranded_location) || 'nearby'}</div>
-      ${match.stranded_story ? '<div style="font-size:.8rem;color:rgba(255,255,255,.65);margin-top:.3rem;padding-left:.5rem;border-left:2px solid rgba(236,52,82,.3)">"'+esc(match.stranded_story)+'"</div>' : ''}
+      ${match.stranded_story ? '<div style="font-size:.8rem;color:rgba(255,255,255,.65);margin-top:.3rem;padding-left:.5rem;border-left:2px solid rgba(236,52,82,.3)"><span style="font-size:.55rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.3)">Their story:</span><br>"'+esc(match.stranded_story)+'"</div>' : ''}
+      ${match.offer_story ? '<div style="font-size:.8rem;color:rgba(255,255,255,.65);margin-top:.3rem;padding-left:.5rem;border-left:2px solid rgba(34,197,94,.3)"><span style="font-size:.55rem;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.3)">Your story:</span><br>"'+esc(match.offer_story)+'"</div>' : ''}
     </div>`;
+    if (!match.offer_story) {
+      html += `<button onclick="addOfferStory('${match.id}')" style="width:100%;margin-bottom:.4rem;${btnStyle('accent')}">Share Your Story</button>`;
+    }
   }
 
   html += '<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.6rem">';
-  html += `<button onclick="isMob()?mProfileEditPost('${p.id}'):profileEditPost('${p.id}')" style="${btnStyle('accent')}">Edit</button>`;
+  html += `<button onclick="isMob()?mTab('offer',null):openFormSidebar('offer')" style="${btnStyle('accent')}">Edit</button>`;
   html += `<button onclick="mProfileDeletePost('${p.id}')" style="${btnStyle('danger')}">Remove</button>`;
   html += '</div>';
 
-  // Discovery: stranded people nearby
+  // Discovery: stranded people nearby — exclude matched ones
   const lat = p.lat, lng = p.lng;
-  let nearby = _strandedPeople.filter(s => s.current_lat && s.current_lng);
+  let nearby = _strandedPeople.filter(s => s.current_lat && s.current_lng && !_successByStranded[s.id]);
   if (lat && lng) nearby = nearby.map(s => ({...s, _d: haversineKm(lat, lng, s.current_lat, s.current_lng)})).sort((a,b) => a._d - b._d);
   if (nearby.length) {
     html += `<div style="margin-top:1.2rem;padding-top:.8rem;border-top:1px solid rgba(255,255,255,.06)">
@@ -8401,7 +8533,7 @@ function buildOfferCard(p, match, pending, step) {
           <div><div style="font-size:.85rem;font-weight:700;color:#fff">${esc(s.name) || 'Anonymous'} ${buildBadge(_fullyVerifiedUsers.has(s.user_id))} <span style="font-size:.6rem;color:rgba(255,255,255,.25)">${s.group_size > 1 ? s.group_size + ' people' : ''}</span></div>
             <div style="font-size:.7rem;color:rgba(255,255,255,.5)">${esc(s.current_location)}${s._d != null ? ' · '+Math.round(s._d)+'km' : ''}</div>
             ${needs ? '<div style="font-size:.6rem;color:#f59e0b">'+needs+'</div>' : ''}</div>
-          <button onclick="alert('Room offered! They will see this in their dashboard.')" style="white-space:nowrap;${btnStyle('green','sm')}">Offer Room</button>
+          <button onclick="quickOfferRoom('${s.id}')" style="white-space:nowrap;${btnStyle('green','sm')}">Offer Room</button>
         </div>
         ${buildContactIcons(s.contact, s.xhandle, s.name)}
       </div>`;
