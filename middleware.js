@@ -6,7 +6,7 @@
 const SUPABASE_URL  = process.env.SUPABASE_URL;
 const SUPABASE_ANON = process.env.SUPABASE_ANON;
 const SITE_URL      = 'https://help.imstranded.org';
-const DEFAULT_IMG   = SITE_URL + '/og-default.png';
+const DEFAULT_IMG   = SITE_URL + '/mapshot.webp';
 
 // Social media crawler user-agent patterns
 const CRAWLER_RE = /facebookexternalhit|Facebot|Twitterbot|LinkedInBot|WhatsApp|TelegramBot|Slackbot|Discordbot|Pinterestbot|redditbot|Applebot|bingbot|Googlebot/i;

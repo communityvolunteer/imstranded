@@ -2046,11 +2046,14 @@ function openFormSidebar(which) {
     if (!window._fsBackdropClose) {
       window._fsBackdropClose = function(e) {
         const sb = document.getElementById('form-sidebar');
-        if (sb && sb.classList.contains('open') && !sb.contains(e.target)) {
-          // Don't close if clicking a button that opens the sidebar
-          if (e.target.closest('[onclick*="openFormSidebar"]') || e.target.closest('[onclick*="openManageSidebar"]') || e.target.closest('[onclick*="mTab"]')) return;
-          closeFormSidebar();
-        }
+        if (!sb || !sb.classList.contains('open')) return;
+        // Check if click is inside the sidebar element OR its bounding rect (catches scrollbar clicks)
+        if (sb.contains(e.target)) return;
+        const rect = sb.getBoundingClientRect();
+        if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) return;
+        // Don't close if clicking a button that opens the sidebar
+        if (e.target.closest('[onclick*="openFormSidebar"]') || e.target.closest('[onclick*="openManageSidebar"]') || e.target.closest('[onclick*="mTab"]')) return;
+        closeFormSidebar();
       };
     }
     document.removeEventListener('mousedown', window._fsBackdropClose);
@@ -8069,10 +8072,12 @@ function openManageSidebar(type) {
       if (!window._fsBackdropClose) {
         window._fsBackdropClose = function(e) {
           const sb = document.getElementById('form-sidebar');
-          if (sb && sb.classList.contains('open') && !sb.contains(e.target)) {
-            if (e.target.closest('[onclick*="openFormSidebar"]') || e.target.closest('[onclick*="openManageSidebar"]') || e.target.closest('[onclick*="mTab"]')) return;
-            closeFormSidebar();
-          }
+          if (!sb || !sb.classList.contains('open')) return;
+          if (sb.contains(e.target)) return;
+          const rect = sb.getBoundingClientRect();
+          if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) return;
+          if (e.target.closest('[onclick*="openFormSidebar"]') || e.target.closest('[onclick*="openManageSidebar"]') || e.target.closest('[onclick*="mTab"]')) return;
+          closeFormSidebar();
         };
       }
       document.removeEventListener('mousedown', window._fsBackdropClose);
@@ -8775,9 +8780,10 @@ async function submitPetEdit(prefix) {
   if (!_editingPetId || !isLoggedIn()) return;
   const status = getPetStatus(prefix);
   let animalType = document.getElementById(prefix + '-pet-animal')?.value;
+  let customAnimal = '';
   if (animalType === 'other') {
     const custom = document.getElementById(prefix + '-pet-animal-other')?.value?.trim();
-    if (custom) animalType = custom.toLowerCase();
+    if (custom) customAnimal = custom;
   }
   if (status === 'can_foster') {
     const chips = [...document.querySelectorAll('#' + prefix + '-take-animal-chips input:checked')].map(c => c.value);
@@ -8788,7 +8794,7 @@ async function submitPetEdit(prefix) {
   const lat = parseFloat(document.getElementById(prefix + '-pet-lat')?.value) || null;
   const lng = parseFloat(document.getElementById(prefix + '-pet-lng')?.value) || null;
   const name = document.getElementById(prefix + '-pet-poster')?.value?.trim();
-  const petName = document.getElementById(prefix + '-pet-name')?.value?.trim() || null;
+  const petName = document.getElementById(prefix + '-pet-name')?.value?.trim() || customAnimal || null;
 
   if (!animalType) return alert('Please select the animal type.');
   if (!desc || desc.length < 5) return alert('Please describe the situation.');
@@ -8801,7 +8807,7 @@ async function submitPetEdit(prefix) {
     const photos = await uploadAllPetPhotos(prefix);
     const updates = {
       pet_status: status, animal_type: animalType, pet_name: petName,
-      description: desc, location: loc, lat, lng, name,
+      description: customAnimal ? `[${customAnimal}] ${desc}` : desc, location: loc, lat, lng, name,
       flagged: containsLink(desc)
     };
     if (photos.photo_url) updates.photo_url = photos.photo_url;
