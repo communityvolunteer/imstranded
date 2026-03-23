@@ -1204,6 +1204,11 @@ function googleTranslateInit() {
           <div style="font-size:.68rem;color:rgba(255,255,255,.4)">Find helpers on the map, tap their post to tip</div>
         </a>
         <div style="font-size:.65rem;color:rgba(255,255,255,.25);text-align:center;line-height:1.5;margin-top:.8rem">$HELP tips are processed via <a href="https://x.com/bankrbot" target="_blank" style="color:rgba(255,255,255,.4)">@bankrbot</a> on X. Link your X account in your profile to receive tips.</div>
+        <div style="margin-top:.8rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.7rem;text-align:center">
+          <div style="font-size:.5rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.3);margin-bottom:.3rem">Contract Address (Base)</div>
+          <div style="font-size:.58rem;font-family:monospace;color:rgba(255,255,255,.6);word-break:break-all;cursor:pointer;padding:.3rem .5rem;background:rgba(255,255,255,.04);border-radius:6px" onclick="navigator.clipboard.writeText('0xaC18468159df247F12a2576BF2363f71FFfC6ba3');this.textContent='Copied!';setTimeout(()=>this.textContent='0xaC18468159df247F12a2576BF2363f71FFfC6ba3',1500)">0xaC18468159df247F12a2576BF2363f71FFfC6ba3</div>
+          <div style="font-size:.48rem;color:rgba(255,255,255,.2);margin-top:.25rem">Tap to copy · Tradeable on Coinbase, Uniswap &amp; OKX</div>
+        </div>
       </div>
       <div id="m-stranded-content" style="display:none">
         <div style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.2rem 0 1.2rem"><button onclick="mSheetToggle()" style="position:absolute;top:.7rem;right:.7rem;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.6);font-size:.9rem;flex-shrink:0">✕</button>
@@ -1568,7 +1573,7 @@ function googleTranslateInit() {
           <span class="help-buy-name">Uniswap</span>
         </a>
       </div>
-      <div class="help-buy-ca" onclick="navigator.clipboard.writeText(this.textContent.trim());this.style.color='var(--accent)';setTimeout(()=>this.style.color='',1500)" title="Click to copy contract address">CA: 0x000...replace_with_real_ca</div>
+      <div class="help-buy-ca" onclick="navigator.clipboard.writeText('0xaC18468159df247F12a2576BF2363f71FFfC6ba3');this.style.color='var(--accent)';this.textContent='Copied!';setTimeout(()=>{this.style.color='';this.textContent='CA: 0xaC18468159df247F12a2576BF2363f71FFfC6ba3'},1500)" title="Click to copy contract address">CA: 0xaC18468159df247F12a2576BF2363f71FFfC6ba3</div>
       <div class="help-buy-bankr">Send to <a href="https://bankr.bot/terminal" target="_blank">bankr.bot/terminal</a> to tip on X</div>
     </div>
 
